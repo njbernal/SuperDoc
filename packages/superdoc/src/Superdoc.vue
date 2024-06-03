@@ -1,0 +1,285 @@
+<script setup>
+import { getCurrentInstance, toRefs, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { storeToRefs } from 'pinia';
+import PdfViewer from './components/PdfViewer/PdfViewer.vue';
+import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
+import DocumentEditor from './components/DocumentEditor/DocumentEditor.vue';
+import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
+import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
+import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@/stores/comments-store';
+import { useHrbrFieldsStore } from '@/stores/hrbr-fields-store';
+
+// Stores
+const superdocStore = useSuperdocStore();
+const commentsStore = useCommentsStore();
+
+const { documents, isReady, documentContainers, areDocumentsReady } = storeToRefs(superdocStore);
+const { handlePageReady, modules, user, getDocument } = superdocStore;
+
+const { getConfig, documentsWithConverations } = storeToRefs(commentsStore);
+const { proxy } = getCurrentInstance();
+commentsStore.proxy = proxy;
+
+// Refs
+const stageSize = reactive({});
+const layers = ref(null);
+
+// Comments layer
+const commentsLayer = ref(null);
+const toolsMenuPosition = ref(null);
+const selectionPosition = ref(null);
+const activeSelection = ref(null);
+
+// Hrbr Fields
+const hrbrFieldsLayer = ref(null);
+
+const handlePdfReady = (documentId, container) => {
+  const doc = getDocument(documentId);
+  doc.isReady = true;
+  doc.container = container;
+  if (areDocumentsReady.value) isReady.value = true;
+}
+
+// Document selections
+const handleSelectionChange = (selection) => {
+  if (!selection.selectionBounds) return;
+  activeSelection.value = selection;
+
+  // Place the tools menu at the level of the selection
+  const containerBounds = selection.getContainerLocation(layers.value)
+
+  let top = selection.selectionBounds.top + containerBounds.top;
+  if (selection.selectionBounds.bottom - selection.selectionBounds.top < 0) {
+    top = selection.selectionBounds.bottom + containerBounds.top;
+  }
+
+  toolsMenuPosition.value = {
+    top: top - 25 + 'px',
+    right: '-25px',
+  };
+}
+
+const handleSelectionDrag = (selection, e) => {
+  if (!selection.selectionBounds) return;
+  activeSelection.value = selection;
+
+  // Place the tools menu at the level of the selection
+  const containerBounds = selection.getContainerLocation(layers.value)
+
+  let left = selection.selectionBounds.left;
+  let top = selection.selectionBounds.top + containerBounds.top;
+
+  if (selection.selectionBounds.right - selection.selectionBounds.left < 0) {
+    left = selection.selectionBounds.right;
+  }
+
+  if (selection.selectionBounds.bottom - selection.selectionBounds.top < 0) {
+    top = selection.selectionBounds.bottom + containerBounds.top;
+  }
+
+  selectionPosition.value = {
+    zIndex: 500,
+    position: 'absolute',
+    border: '1px dashed #000',
+    pointerEvents: 'none',
+    top: top + 'px',
+    left: left + 'px',
+    width: Math.abs(selection.selectionBounds.right - selection.selectionBounds.left) + 'px',
+    height: Math.abs(selection.selectionBounds.bottom - selection.selectionBounds.top) + 'px',
+    borderRadius: '4px',
+  };
+}
+const handleSelectionDragEnd = () => {
+  if (!selectionPosition.value) return;
+  selectionPosition.value.border = '1px solid transparent';
+}
+
+const handleToolClick = (tool) => {
+  const toolOptions = {
+    'comments': commentsLayer.value.addCommentEntry(activeSelection.value)
+  }
+
+  if (tool in toolOptions) {
+    toolOptions[tool];
+  }
+  activeSelection.value = null;
+  selectionPosition.value = null;
+  toolsMenuPosition.value = null;
+}
+
+const adjustSize = (e) => {
+  stageSize.width = e.width + 'px';
+  stageSize.height = e.height + 'px';
+}
+
+const handleDocumentMouseDown = (e) => {
+  if (!e.target.closest('.tools')) selectionPosition.value = null
+  document.removeEventListener('mousedown', handleDocumentMouseDown);
+}
+
+onMounted(() => {
+  if ('comments' in modules && !modules.comments.readOnly) {
+    document.addEventListener('mousedown', handleDocumentMouseDown);
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleDocumentMouseDown);
+});
+
+</script>
+
+<template>
+<div>
+  <div class="superdoc" @mousedown="selectionPosition = null">
+    <div class="layers" ref="layers">
+      <div
+          v-if="toolsMenuPosition && !getConfig?.readOnly"
+          class="tools"
+          :style="toolsMenuPosition"
+          @click.stop.prevent>
+        <i class="fas fa-comment-alt-lines" @click="handleToolClick('comments')"></i>
+      </div>
+
+      <div
+          v-if="!getConfig?.readOnly"
+          :style="selectionPosition" class="sd-highlight">
+      </div>
+
+      <div class="document">
+        <HrbrFieldsLayer
+            v-if="'hrbr-fields' in modules && layers"
+            :fields="modules['hrbr-fields']"
+            class="comments-layer"
+            style="z-index: 5; background-color: blue;"
+            ref="hrbrFieldsLayer" />
+
+        <CommentsLayer
+            class="comments-layer"
+            v-if="isReady && 'comments' in modules && layers"
+            style="z-index: 3;"
+            ref="commentsLayer"
+            :parent="layers"
+            :user="user" />
+
+        <div class="sub-document" v-for="doc in documents" ref="documentContainers">
+          <PdfViewer
+              v-if="doc.type === 'pdf'"
+              :document-data="doc"
+              @selection-change="handleSelectionChange"
+              @selection-drag="handleSelectionDrag"
+              @selection-drag-end="handleSelectionDragEnd"
+              @ready="handlePdfReady" 
+              @page-loaded="handlePageReady" />
+        </div>
+      </div>
+    </div>
+
+    <div class="right-sidebar" v-if="documentsWithConverations.length && layers && isReady">
+      <template v-for="doc in documentsWithConverations">
+        <template v-for="conversation in doc.conversations">
+          <CommentDialog
+              class="comment-box"
+              :data-id="conversation.conversationId"
+              :data="conversation"
+              :current-document="doc"
+              :parent="layers"
+              :user="user" />
+        </template>
+      </template>
+    </div>
+  </div>
+</div>
+</template>
+
+<style scoped>
+/* Right sidebar drawer */
+.right-sidebar {
+  width: 320px;
+  padding: 10px;
+  position: relative;
+}
+
+/* General Styles */
+.box-sizing, .layers {
+  box-sizing: border-box;
+}
+.cursor-pointer, .tools i, .toolbar-item {
+  cursor: pointer;
+}
+.flex {
+  display: flex;
+}
+.flex-column {
+  flex-direction: column;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Layer Styles */
+.comments-layer {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+.layers {
+  position: relative;
+  display: inline-block;
+}
+
+/* Document Styles */
+.docx {
+  border: 1px solid #DFDFDF;
+  pointer-events: auto;
+}
+.sub-document {
+  position: relative;
+}
+
+/* Toolbar Styles */
+.toolbar {
+  height: 25px;
+  background-color: #fff;
+  margin-bottom: 5px;
+}
+.toolbar-item {
+  width: 20px;
+  height: 20px;
+  border-radius: 8px;
+  border: 1px solid #DBDBDB;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 250ms ease;
+}
+.toolbar-item:hover {
+  background-color: #DBDBDB;
+}
+
+/* Tools Styles */
+.tools {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(219, 219, 219, 0.6);
+  border-radius: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tools i {
+  font-size: 20px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background-color: #DBDBDB;
+}
+
+</style>

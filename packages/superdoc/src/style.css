@@ -1,0 +1,83 @@
+@import './styles/css/all.css';
+
+:root {
+  --page-spacing: 20px;
+  --page-border: 1px solid #DFDFDF;
+}
+
+*,
+div,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+
+html {
+  text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  color: #4a4a4a;
+  min-width: 320px;
+  padding: 0;
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+  position: relative;
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+  min-width: 320px;
+  width: 320px;
+  box-sizing: border-box;
+  flex-grow: 1;
+  padding: 10px;
+}
+.sd-button {
+  border-radius: 8px;
+  background-color: white;
+  padding: 8px 12px;
+  outline: none;
+  border: 1px solid #DBDBDB;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 250ms ease;
+}
+.sd-button:hover {
+  background-color: #DBDBDB;
+}
+.primary {
+  background-color: #1355FF;
+  border: none;
+  color: white;
+}
+.primary:hover {
+  background-color: #0D3FCC;
+}
+
+.sd-highlight {
+  position: absolute;
+  border-radius: px;
+  background-color: #FFD70044;
+}
+.comment-box {
+  width: 300px;
+}
+.superdoc {
+  min-height: 100%;
+  display: flex;
+}
