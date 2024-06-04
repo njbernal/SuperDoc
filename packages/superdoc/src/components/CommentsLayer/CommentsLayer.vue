@@ -7,10 +7,9 @@ import useConversation from './use-conversation';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS, getCommentLocation } = commentsStore;
-const { documentsWithConverations } = storeToRefs(commentsStore);
+const { COMMENT_EVENTS, getCommentLocation, isConversationInGroup } = commentsStore;
+const { documentsWithConverations, activeComment } = storeToRefs(commentsStore);
 const { documents } = storeToRefs(superdocStore);
-const { getPageBounds } = superdocStore;
 const { proxy } = getCurrentInstance();
 
 const props = defineProps({
@@ -35,6 +34,8 @@ const addCommentEntry = (selection) => {
 
   const matchedDocument = documents.value.find((c) => c.id === selection.documentId);
   const newConvo = useConversation(params);
+  activeComment.value = newConvo.conversationId;
+
   matchedDocument.conversations.push(newConvo);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.NEW, newConvo.getValues());
 }
@@ -54,6 +55,8 @@ const getStyle = (conversation) => {
 
 const handleHighlightClick = (conversation) => {
   conversation.isFocused = true;
+  const hasGroup = isConversationInGroup(conversation);
+  console.debug('hasGroup', hasGroup);
 }
 
 const getAllConversations = computed(() => {

@@ -1,52 +1,50 @@
 import './style.css';
-import EventEmitter from 'eventemitter3'
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { useSuperdocStore } from './stores/superdoc-store';
-import clickOutside from '@/helpers/v-click-outside';
+import fw4 from './assets/sample.pdf?url'
+import pdfUrl from './assets/lucygoose.pdf?url'
+import docxUrl from './assets/sample.docx?url'
+import { fields, annotations, conversations } from './assets/test-data';
+import Superdoc from './index.js';
 
 
-const createMyApp = () => {
-  const app = createApp(App);
-  const pinia = createPinia()
-  app.use(pinia)
-  app.directive('click-outside', clickOutside);
-
-  const superdocStore = useSuperdocStore();
-  return { app, pinia, superdocStore };
+/* For local dev */
+const initializeApp = async () => {
+  const config = {
+    selector: '#app',
+    user: {
+      name: 'Nick Bernal',
+      email: 'nick@harbourshare.com',
+    },
+    documents: [
+      {
+        id: '456',
+        type: 'pdf',
+        data: pdfUrl,
+        fields,
+        annotations,
+        conversations,
+      },
+      {
+        type: 'docx',
+        data: docxUrl,
+        id: '123',
+      },
+      {
+        id: '789',
+        type: 'pdf',
+        data: fw4,
+      }
+    ],
+    modules: {
+      'comments': {
+        // readOnly: true,
+        // allowResolve: false,
+      },
+      'hrbr-fields': {},
+    }
+  }
+  new Superdoc(config);
 }
 
-/* **
-  * Superdoc class
-  * Expects a config object
-*/
-export default class Superdoc extends EventEmitter {
-  constructor(config) {
-    super();
-    const { app, pinia, superdocStore } = createMyApp(this);
-    this.app = app;
-    this.pinia = pinia;
-    this.app.config.globalProperties.$config = config;
-    this.app.config.globalProperties.$superdoc = this;
-
-    superdocStore.init(config);
-
-    // Directives
-    this.app.mount(config.selector);
-  }
-
-  broadcastComments(type, data) {
-    console.debug('[comments] Broadcasting:', type, data);
-    this.emit('comments-update', type, data);
-  }
-
-  destroy() {
-    if (this.app) {
-      this.app.unmount();
-    }
-
-    // Remove global properties
-    delete this.app.config.globalProperties.$config;
-    delete this.app.config.globalProperties.$superdoc;
-  }
+if (import.meta.env.DEV) {
+  initializeApp();
 }

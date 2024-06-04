@@ -1,18 +1,17 @@
 export default {
-  beforeMount(el, binding) {
-    // Define the click handler
-    el.clickOutsideEvent = function(event) {
-      // Check if the click was outside the element and its children
-      if (!(el == event.target || el.contains(event.target))) {
-        // Call the method provided in the directive binding
+  mounted(el, binding, vnode) {
+    const clickOutsideHandler = (event) => {
+      if (!el.contains(event.target)) {
         binding.value(event);
       }
     };
-    // Add the event listener to the document
-    document.addEventListener('click', el.clickOutsideEvent);
+
+    document.addEventListener('click', clickOutsideHandler);
+
+    el.__clickOutsideHandler = clickOutsideHandler;
   },
   unmounted(el) {
-    // Remove the event listener from the document
-    document.removeEventListener('click', el.clickOutsideEvent);
-  }
-};
+    document.removeEventListener('click', el.__clickOutsideHandler);
+    delete el.__clickOutsideHandler;
+  },
+}

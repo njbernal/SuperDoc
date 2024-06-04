@@ -1,10 +1,11 @@
 <script setup>
-import { getCurrentInstance, toRefs, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { getCurrentInstance, computed, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { storeToRefs } from 'pinia';
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
 import DocumentEditor from './components/DocumentEditor/DocumentEditor.vue';
 import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
+import CommentGroup from '@/components/CommentsLayer/CommentGroup.vue';
 import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import { useCommentsStore } from '@/stores/comments-store';
@@ -17,7 +18,7 @@ const commentsStore = useCommentsStore();
 const { documents, isReady, documentContainers, areDocumentsReady } = storeToRefs(superdocStore);
 const { handlePageReady, modules, user, getDocument } = superdocStore;
 
-const { getConfig, documentsWithConverations } = storeToRefs(commentsStore);
+const { getConfig, documentsWithConverations, getAllConversations } = storeToRefs(commentsStore);
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -108,11 +109,6 @@ const handleToolClick = (tool) => {
   toolsMenuPosition.value = null;
 }
 
-const adjustSize = (e) => {
-  stageSize.width = e.width + 'px';
-  stageSize.height = e.height + 'px';
-}
-
 const handleDocumentMouseDown = (e) => {
   if (!e.target.closest('.tools')) selectionPosition.value = null
   document.removeEventListener('mousedown', handleDocumentMouseDown);
@@ -154,7 +150,6 @@ onBeforeUnmount(() => {
             class="comments-layer"
             style="z-index: 5; background-color: blue;"
             ref="hrbrFieldsLayer" />
-
         <CommentsLayer
             class="comments-layer"
             v-if="isReady && 'comments' in modules && layers"
@@ -172,22 +167,30 @@ onBeforeUnmount(() => {
               @selection-drag-end="handleSelectionDragEnd"
               @ready="handlePdfReady" 
               @page-loaded="handlePageReady" />
+
+          <DocumentEditor
+              v-if="doc.type === 'docx'"
+              :document-data="doc"
+              @ready="handlePdfReady" />
         </div>
       </div>
     </div>
 
     <div class="right-sidebar" v-if="documentsWithConverations.length && layers && isReady">
-      <template v-for="doc in documentsWithConverations">
-        <template v-for="conversation in doc.conversations">
-          <CommentDialog
-              class="comment-box"
-              :data-id="conversation.conversationId"
-              :data="conversation"
-              :current-document="doc"
-              :parent="layers"
-              :user="user" />
-        </template>
-      </template>
+        <CommentDialog
+            v-for="conversation in getAllConversations[0]"
+            class="comment-box"
+            :data-id="conversation.conversationId"
+            :data="conversation"
+            :current-document="conversation.doc"
+            :parent="layers"
+            :user="user" />
+        <CommentGroup
+            v-for="group in getAllConversations[1]"
+            class="comment-box"
+            :user="user"
+            :parent="layers"
+            :data="group" />
     </div>
   </div>
 </div>
@@ -269,7 +272,7 @@ onBeforeUnmount(() => {
   height: 50px;
   background-color: rgba(219, 219, 219, 0.6);
   border-radius: 12px;
-  z-index: 6;
+  z-index: 11;
   display: flex;
   align-items: center;
   justify-content: center;

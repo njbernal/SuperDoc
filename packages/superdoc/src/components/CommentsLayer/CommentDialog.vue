@@ -9,10 +9,11 @@ import Avatar from '@/components/general/Avatar.vue';
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
 const { COMMENT_EVENTS, getCommentLocation } = commentsStore;
-const { getConfig } = storeToRefs(commentsStore);
+const { getConfig, activeComment } = storeToRefs(commentsStore);
 const { areDocumentsReady } = superdocStore;
 const { proxy } = getCurrentInstance();
 
+const emit = defineEmits(['click-outside']);
 const props = defineProps({
   user: {
     type: Object,
@@ -24,7 +25,7 @@ const props = defineProps({
   },
   parent: {
     type: Object,
-    required: true,
+    required: false,
   },
   currentDocument: {
     type: Object,
@@ -32,6 +33,7 @@ const props = defineProps({
   }
 });
 
+const commentDialogContainer = ref(null);
 const inputIsFocused = ref(false);
 const input = ref(null);
 const addComment = () => {
@@ -70,6 +72,8 @@ const handleKeyUp = () => {
 }
 
 const getSidebarCommentStyle = computed(() => {
+  if (!props.parent) return { position: 'relative' }
+
   const topOffset = 10;
   const location = getCommentLocation(props.data.selection, props.parent);
   if (!location) return {};
@@ -78,7 +82,7 @@ const getSidebarCommentStyle = computed(() => {
     top: location.top - topOffset + 'px',
   }
 
-  if (props.data.isFocused) {
+  if (isActiveComment.value) {
     style.backgroundColor = 'white';
     style.zIndex = 10;
   }
@@ -94,13 +98,13 @@ const cleanConversations = () => {
 }
 
 const handleClickOutside = (e) => {
-  if (e.target.dataset.id === props.data.conversationId) return;
+  if (e.target.dataset.id) activeComment.value = e.target.dataset.id;
+  else activeComment.value = null;
   cleanConversations();
-  setFocus(false);
 }
 
-const setFocus = (state) => {
-  props.data.isFocused = state;
+const setFocus = () => {
+  activeComment.value = props.data.conversationId;
 }
 
 const markDone = () => {
@@ -110,16 +114,29 @@ const markDone = () => {
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.RESOLVED, convo.getValues());
 }
 
+const cancelComment = () => {
+  
+}
 
+const isActiveComment = computed(() => {
+  return activeComment.value === props.data.conversationId;
+});
+
+onMounted(() => {
+  if (props.data.isFocused) {
+    console.debug('isFocused', props.data);
+  }
+})
 </script>
 
 <template>
   <div
       v-if="areDocumentsReady"
       class="comments-dialog"
-      @click="setFocus(true)"
+      @click.stop.prevent="setFocus"
       v-click-outside="handleClickOutside"
-      :style="getSidebarCommentStyle">
+      :style="getSidebarCommentStyle"
+      ref="commentDialogContainer">
 
     <div v-for="(item, index) in data.comments">
       <div class="card-section comment-header">
@@ -148,20 +165,21 @@ const markDone = () => {
       </div>
     </div>
 
-    <div class="card-section input-section" v-if="!getConfig.readOnly && props.data.isFocused && !props.data.markedDone">
+    <div class="card-section input-section" v-if="!getConfig.readOnly && isActiveComment && !props.data.markedDone">
       <div class="comment-entry">
         <input
             ref="input"
             type="text"
             placeholder="Add a comment..."
             @keyup.enter="handleKeyUp"
-            @focus="inputIsFocused = true;" />
+            @focus="inputIsFocused = true;"
+            @click.stop.prevent />
       </div>
     </div>
 
-    <div class="card-section comment-footer" v-if="!getConfig.readOnly && props.data.isFocused && !props.data.markedDone">
-      <button class="sd-button primary" @click="addComment">Comment</button>
-      <button class="sd-button">Cancel</button>
+    <div class="card-section comment-footer" v-if="!getConfig.readOnly && isActiveComment && !props.data.markedDone">
+      <button class="sd-button primary" @click.stop.prevent="addComment">Comment</button>
+      <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
     </div>
   </div>
 </template>
