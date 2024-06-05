@@ -36,6 +36,9 @@ export default defineConfig((data) => {
       },
       extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     },
+    css: {
+      postcss: './postcss.config.cjs',
+    },
     server: {
       port: 9094,
       fs: {

@@ -1,5 +1,4 @@
 <script setup>
-import 'pdfjs-dist/web/pdf_viewer.css';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min?raw';
@@ -201,7 +200,7 @@ onMounted(async () => {
 
 <template>
   <div
-      class="viewer"
+      class="superdoc-viewer"
       ref="viewer"
       id="viewerId"
       @mousedown="onMouseDown"
@@ -209,20 +208,21 @@ onMounted(async () => {
   </div>
 </template>
 
-<style>
-.pdf-page {
+<style lang="postcss">
+.superdoc-viewer {
+  @nested-import 'pdfjs-dist/web/pdf_viewer.css';
+  
   position: relative;
-  border: 1px solid #DFDFDF;
-  margin-bottom: var(--page-spacing);
-  width: fit-content;
-}
-.textLayer {
-  z-index: 2;
-}
-.viewer {
-  position: relative;
-}
-</style>
-<style scoped>
 
+  .pdf-page {
+    position: relative;
+    border: 1px solid #DFDFDF;
+    margin-bottom: var(--page-spacing);
+    width: fit-content;
+  }
+
+  .textLayer {
+    z-index: 2;
+  }
+}
 </style>
