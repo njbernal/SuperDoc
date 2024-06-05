@@ -7,11 +7,12 @@ import useConversation from './use-conversation';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS, getCommentLocation, isConversationInGroup } = commentsStore;
+const { COMMENT_EVENTS, getCommentLocation } = commentsStore;
 const { documentsWithConverations, activeComment } = storeToRefs(commentsStore);
 const { documents } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
+const emit = defineEmits(['highlight-click']);
 const props = defineProps({
   user: {
     type: Object,
@@ -55,8 +56,8 @@ const getStyle = (conversation) => {
 
 const handleHighlightClick = (conversation) => {
   conversation.isFocused = true;
-  const hasGroup = isConversationInGroup(conversation);
-  console.debug('hasGroup', hasGroup);
+  activeComment.value = conversation.conversationId;
+  emit('highlight-click', conversation);
 }
 
 const getAllConversations = computed(() => {

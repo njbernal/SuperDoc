@@ -10,12 +10,7 @@ export function useFieldValueWatcher(field, originalValue) {
   const change = ref(null);
 
   const handleChange = (newValue, oldValue) => {
-
-    console.debug('\n\n fIELD CHANGE', newValue, oldValue);
-
-    // // If the value hasn't changed, don't do anything
-    // if (!valueIsObject && isEqual(oldValue, newValue)) return;
-
+    // If the value hasn't changed, don't do anything
     // If new change, add the change to the list
     const newChange = {
       fieldId: fieldId.value,

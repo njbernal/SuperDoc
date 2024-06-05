@@ -23,11 +23,11 @@ const initializeApp = async () => {
         annotations,
         conversations,
       },
-      {
-        type: 'docx',
-        data: docxUrl,
-        id: '123',
-      },
+      // {
+      //   type: 'docx',
+      //   data: docxUrl,
+      //   id: '123',
+      // },
       {
         id: '789',
         type: 'pdf',

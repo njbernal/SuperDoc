@@ -1,5 +1,5 @@
 <script setup>
-import { getCurrentInstance, computed, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { getCurrentInstance, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { storeToRefs } from 'pinia';
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
@@ -9,7 +9,6 @@ import CommentGroup from '@/components/CommentsLayer/CommentGroup.vue';
 import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import { useCommentsStore } from '@/stores/comments-store';
-import { useHrbrFieldsStore } from '@/stores/hrbr-fields-store';
 
 // Stores
 const superdocStore = useSuperdocStore();
@@ -18,7 +17,8 @@ const commentsStore = useCommentsStore();
 const { documents, isReady, documentContainers, areDocumentsReady } = storeToRefs(superdocStore);
 const { handlePageReady, modules, user, getDocument } = superdocStore;
 
-const { getConfig, documentsWithConverations, getAllConversations } = storeToRefs(commentsStore);
+const { getConfig, documentsWithConverations, overlappingComments, getAllConversationsFiltered } = storeToRefs(commentsStore);
+const { initialCheck } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -39,7 +39,10 @@ const handlePdfReady = (documentId, container) => {
   const doc = getDocument(documentId);
   doc.isReady = true;
   doc.container = container;
-  if (areDocumentsReady.value) isReady.value = true;
+  if (areDocumentsReady.value) {
+    isReady.value = true;
+    nextTick(() => initialCheck());
+  }
 }
 
 // Document selections
@@ -114,6 +117,11 @@ const handleDocumentMouseDown = (e) => {
   document.removeEventListener('mousedown', handleDocumentMouseDown);
 }
 
+const handleHighlightClick = () => {
+  selectionPosition.value = null;
+  toolsMenuPosition.value = null;
+}
+
 onMounted(() => {
   if ('comments' in modules && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
@@ -156,7 +164,8 @@ onBeforeUnmount(() => {
             style="z-index: 3;"
             ref="commentsLayer"
             :parent="layers"
-            :user="user" />
+            :user="user"
+            @highlight-click="handleHighlightClick" />
 
         <div class="sub-document" v-for="doc in documents" ref="documentContainers">
           <PdfViewer
@@ -177,20 +186,24 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="right-sidebar" v-if="documentsWithConverations.length && layers && isReady">
+      <template v-for="doc in documentsWithConverations">
         <CommentDialog
-            v-for="conversation in getAllConversations[0]"
+            v-for="conversation in doc.conversations"
             class="comment-box"
             :data-id="conversation.conversationId"
             :data="conversation"
-            :current-document="conversation.doc"
+            :current-document="doc"
             :parent="layers"
             :user="user" />
         <CommentGroup
-            v-for="group in getAllConversations[1]"
+            v-for="(group, index) in overlappingComments"
             class="comment-box"
             :user="user"
+            :data-index="index"
             :parent="layers"
+            :current-document="doc"
             :data="group" />
+      </template>
     </div>
   </div>
 </div>

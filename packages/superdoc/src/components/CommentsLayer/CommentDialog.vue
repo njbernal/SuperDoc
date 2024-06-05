@@ -8,8 +8,8 @@ import Avatar from '@/components/general/Avatar.vue';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS, getCommentLocation } = commentsStore;
-const { getConfig, activeComment } = storeToRefs(commentsStore);
+const { COMMENT_EVENTS, getCommentLocation, checkOverlaps } = commentsStore;
+const { getConfig, activeComment, overlappingComments } = storeToRefs(commentsStore);
 const { areDocumentsReady } = superdocStore;
 const { proxy } = getCurrentInstance();
 
@@ -30,10 +30,15 @@ const props = defineProps({
   currentDocument: {
     type: Object,
     required: true,
-  }
+  },
+  showGrouped: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
-const commentDialogContainer = ref(null);
+const currentElement = ref(null);
 const inputIsFocused = ref(false);
 const input = ref(null);
 const addComment = () => {
@@ -51,6 +56,7 @@ const addComment = () => {
   props.data.comments.push(comment);
   input.value.value = '';
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
+  checkOverlaps(currentElement.value, props.data, props.currentDocument);
 }
 
 function formatDate(timestamp) {
@@ -72,21 +78,22 @@ const handleKeyUp = () => {
 }
 
 const getSidebarCommentStyle = computed(() => {
-  if (!props.parent) return { position: 'relative' }
-
-  const topOffset = 10;
-  const location = getCommentLocation(props.data.selection, props.parent);
-  if (!location) return {};
-
-  const style = {
-    top: location.top - topOffset + 'px',
-  }
-
+  const style = {}
   if (isActiveComment.value) {
     style.backgroundColor = 'white';
     style.zIndex = 10;
   }
 
+  if (!props.parent) {
+    style.position = 'relative';
+    return style;
+  }
+
+  const topOffset = 10;
+  const location = getCommentLocation(props.data.selection, props.parent);
+  if (!location) return {};
+
+  style.top = location.top - topOffset + 'px';
   return style;
 });
 
@@ -112,31 +119,49 @@ const markDone = () => {
   convo.markDone(props.user.email, props.user.name);
   props.currentDocument.removeConversation(convo.conversationId);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.RESOLVED, convo.getValues());
+
+  const group = overlappingComments.value.find((g) => g.includes(props.data));
+  if (!group) return;
+  const index = group.findIndex((c) => c.conversationId === props.data.conversationId);
+  if (index > -1) group.splice(index, 1);
+  if (group.length === 1) {
+    const conversation = group[0];
+    const groupIndex = overlappingComments.value.findIndex((g) => g.includes(conversation));
+
+    overlappingComments.value.splice(groupIndex, 1);
+    conversation.group = false;
+  }
 }
 
 const cancelComment = () => {
-  
+  activeComment.value = null;
+  if (!props.data.comments.length) {
+    cleanConversations();
+  }
 }
 
 const isActiveComment = computed(() => {
   return activeComment.value === props.data.conversationId;
 });
 
-onMounted(() => {
-  if (props.data.isFocused) {
-    console.debug('isFocused', props.data);
-  }
-})
+const trackContainers = (e) => {
+  currentElement.value = e;
+  const conversations = props.currentDocument.conversations;
+  const currentConversation = conversations.find((c) => c.conversationId === props.data.conversationId);
+  if (!currentConversation) return;
+  currentConversation.conversationElement = e;
+}
 </script>
 
 <template>
   <div
-      v-if="areDocumentsReady"
+      v-if="areDocumentsReady && (!props.data.group || (props.data.group && props.showGrouped))"
       class="comments-dialog"
       @click.stop.prevent="setFocus"
       v-click-outside="handleClickOutside"
       :style="getSidebarCommentStyle"
-      ref="commentDialogContainer">
+      :id="data.conversationId"
+      :ref="trackContainers">
 
     <div v-for="(item, index) in data.comments">
       <div class="card-section comment-header">

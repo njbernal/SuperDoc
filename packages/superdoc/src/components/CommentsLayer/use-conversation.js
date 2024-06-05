@@ -16,6 +16,9 @@ export default function useConversation(params) {
   const markedDone = ref(params.markedDone || null);
   const markedDoneByEmail = ref(params.markedDoneByEmail || null);
   const markedDoneByName = ref(params.markedDoneByName || null);
+  const group = ref(null);
+
+  const conversationElement = ref(null);
 
   const isFocused = ref(params.isFocused || false);
 
@@ -24,6 +27,7 @@ export default function useConversation(params) {
     markedDone.value = new Date().toISOString();
     markedDoneByEmail.value = email;
     markedDoneByName.value = name;
+    group.value = null;
   }
 
   /* Add a comment to this conversation */
@@ -59,6 +63,8 @@ export default function useConversation(params) {
     markedDoneByEmail,
     markedDoneByName,
     isFocused,
+    group,
+    conversationElement,
   }
   return {
     ...exposedData,

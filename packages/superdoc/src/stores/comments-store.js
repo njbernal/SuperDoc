@@ -15,7 +15,11 @@ export const useCommentsStore = defineStore('comments', () => {
   const COMMENT_EVENTS = comments_module_events;
   const hasInitializedComments = ref(false);
   const activeComment = ref(null);
+  const commentDialogs = ref([]);
+  const overlappingComments = ref([]);
+  const overlappedIds = new Set([]);
 
+  const hasOverlapId = (id) => overlappedIds.includes(id);
   const documentsWithConverations = computed(() => {
     return superdocStore.documents?.filter((d) => d.conversations.length > 0) || [];
   });
@@ -41,12 +45,9 @@ export const useCommentsStore = defineStore('comments', () => {
     if (!obj1.comments.length || !obj2.comments.length) return false;
     const sel1 = obj1.selection.selectionBounds;
     const sel2 = obj2.selection.selectionBounds;
-  
-    if (sel1.bottom <= sel2.top || sel1.top >= sel2.bottom) {
-      return false;
-    }
-  
-    return true;
+
+    if (sel1.bottom - sel2.top < 200 || sel2.top - sel1.bottom < 200) return true;
+    return false
   }
   
   const getAllConversations = computed(() => {
@@ -54,18 +55,18 @@ export const useCommentsStore = defineStore('comments', () => {
     let overlaps = 0;
     documentsWithConverations.value.map(doc => {
       doc.conversations.forEach((c) => {
-  
+
         for (let index in allConvos) {
           const conv = allConvos[index];
           let currentOverlap = conv.overlap || overlaps;
-  
+
           if (isOverlap(conv, c)) {
             conv.overlap = currentOverlap;
             c.overlap = currentOverlap;
             overlaps++;
           }
         };
-  
+
         allConvos.push({
           ...c,
           documentId: doc.documentId,
@@ -73,34 +74,65 @@ export const useCommentsStore = defineStore('comments', () => {
         });
       })
     });
-  
-    const convosWithoutOverlaps = allConvos.filter((c) => c.overlap === undefined);
-    const convosWithOverlaps = allConvos.filter((c) => c.overlap !== undefined);
-    const overlapGroups = {};
-    convosWithOverlaps.forEach((c) => {
-      console.debug('overlapGroups', overlapGroups, c.overlap);
-      if (!(c.overlap in overlapGroups)) {
-        overlapGroups[c.overlap] = {
-          convos: [],
-          bounds: c.selection.selectionBounds,
-        };
-      }
-  
-      overlapGroups[c.overlap].convos.push(c);
-      console.debug('overlapGroups', overlapGroups, c.overlap);
-    });
-  
-    console.debug('overlapGroups', overlapGroups);
-    console.debug('convosWithoutOverlaps', convosWithoutOverlaps);  
-    return [convosWithoutOverlaps, overlapGroups];
+    return allConvos;
   });
 
-  const isConversationInGroup = (conversation) => {
-    const [convos, groups] = getAllConversations.value;
-    console.debug('isConversationInGroup', convos, groups);
-    const found = Object.values(groups).find((g) => g.convos.some((c) => c.conversationId === conversation.conversationId));
-    console.debug('isConversationInGroup', found);
-    return found;
+  const getAllConversationsFiltered = computed(() => {
+    return getAllConversations.value.filter((c) => !c.group).filter((c) => !c.markedDone);
+  });
+
+  const getAllGroups = computed(() => {
+    return getAllConversations.value.filter((c) => c.group);
+  });
+
+  const initialCheck = () => {
+    const currentDialogs = document.querySelectorAll('.comment-box');
+    currentDialogs.forEach((d) => {
+      const conversationObject = getAllConversations.value.find((conversation) => {
+        return conversation.conversationId === d.dataset.id
+      });
+      if (!conversationObject) return;
+      checkOverlaps(d, conversationObject);
+    });
+  }
+
+  const checkOverlaps = (currentElement, dialog, doc) => {
+    const currentDialogs = document.querySelectorAll('.comment-box');
+    const currentBounds = currentElement.getBoundingClientRect();
+  
+    const overlaps = [];
+    currentDialogs.forEach((d) => {
+      if (d.dataset.id === dialog.conversationId) return;
+      const bounds = d.getBoundingClientRect();
+  
+      if (Math.abs(bounds.top - currentBounds.top) < 50 || Math.abs(bounds.bottom - currentBounds.bottom) < 50) {
+        if (!d.dataset?.id) {
+          // Then this is a group
+          const groupIndex = d.dataset.index;
+          const group = overlappingComments.value[groupIndex];
+          group.unshift(dialog);
+        } else {
+          let dialogObject = dialog.doc?.conversations?.find((c) => c.conversationId === d.dataset.id);
+          if (!dialogObject) dialogObject = doc.conversations.find((c) => c.conversationId === d.dataset.id);
+          overlaps.unshift(dialogObject);
+          overlaps.unshift(dialog);
+          dialogObject.group = true;
+        }
+        dialog.group = true;
+      }
+    })
+    if (overlaps.length) {
+      const overlapsGroup = overlappingComments.value.find((group) => {
+        return group.some((c) => c.conversationId === dialog.conversationId)
+      })
+
+      if (overlapsGroup) {
+        const filtered = overlaps.filter((o) => !overlapsGroup.some((o) => o.conversationId === o.conversationId));
+        overlapsGroup.push(...filtered);
+      } else {
+        overlappingComments.value.unshift(overlaps);
+      }
+    }
   }
 
   return {
@@ -108,14 +140,21 @@ export const useCommentsStore = defineStore('comments', () => {
     hasInitializedComments,
     getConfig,
     activeComment,
+    commentDialogs,
+    overlappingComments,
+    overlappedIds,
 
     // Getters
     getConfig,
     documentsWithConverations,
     getAllConversations,
+    getAllConversationsFiltered,
+    getAllGroups,
 
     // Actions
     getCommentLocation,
-    isConversationInGroup
+    hasOverlapId,
+    checkOverlaps,
+    initialCheck
   }
 });
