@@ -33,6 +33,20 @@ const addCommentEntry = (selection) => {
     isFocused: true,
   }
 
+  const bounds = selection.selectionBounds;
+  if (bounds.top > bounds.bottom) {
+    const temp = bounds.top;
+    bounds.top = bounds.bottom;
+    bounds.bottom = temp;
+  }
+
+  if (bounds.left > bounds.right) {
+    const temp = bounds.left;
+    bounds.left = bounds.right;
+    bounds.right = temp;
+  }
+
+  selection.selectionBounds = bounds;
   const matchedDocument = documents.value.find((c) => c.id === selection.documentId);
   const newConvo = useConversation(params);
   activeComment.value = newConvo.conversationId;
