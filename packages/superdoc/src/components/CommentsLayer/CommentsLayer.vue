@@ -1,14 +1,20 @@
 <script setup>
-import { getCurrentInstance, computed, ref } from 'vue';
+import { getCurrentInstance, computed, ref, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useCommentsStore } from '@/stores/comments-store';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import useConversation from './use-conversation';
+import useSelection from '@/helpers/use-selection';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS, getCommentLocation } = commentsStore;
-const { documentsWithConverations, activeComment } = storeToRefs(commentsStore);
+const { COMMENT_EVENTS } = commentsStore;
+const {
+  documentsWithConverations,
+  activeComment,
+  floatingCommentsOffset,
+  visibleConversations
+} = storeToRefs(commentsStore);
 const { documents } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
@@ -51,26 +57,40 @@ const addCommentEntry = (selection) => {
   const newConvo = useConversation(params);
   activeComment.value = newConvo.conversationId;
 
+
   matchedDocument.conversations.push(newConvo);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.NEW, newConvo.getValues());
 }
 
 const getStyle = (conversation) => {
+  const { selection } = conversation
+  const containerBounds = selection.getContainerLocation(props.parent)
   const placement = conversation.selection.selectionBounds;
-  const location = getCommentLocation(conversation.selection, props.parent);
-
+  const top = parseFloat(placement.top) + containerBounds.top;
   return {
     position: 'absolute',
-    top: location.top + 'px',
-    left: location.left + 'px',
+    top: top + 'px',
+    left: placement.left + 'px',
     width: placement.right - placement.left + 'px',
     height: placement.bottom - placement.top + 'px',
   }
 }
 
-const handleHighlightClick = (conversation) => {
+const setFloatingCommentOffset = (conversation, e) => {
+  const floatingConvo = visibleConversations.value.find((c) => c.id === conversation.conversationId);
+  const convoTop = conversation.selection.getContainerLocation(props.parent).top;
+
+  const parentTop = props.parent.getBoundingClientRect().top;
+  const top = floatingConvo.position.top;
+  const eTop = e.target.getBoundingClientRect().top;
+
+  floatingCommentsOffset.value = conversation.selection.selectionBounds.top; //top - eTop + parentTop;
+}
+
+const handleHighlightClick = (conversation, e) => {
   conversation.isFocused = true;
   activeComment.value = conversation.conversationId;
+  setFloatingCommentOffset(conversation, e);
   emit('highlight-click', conversation);
 }
 
@@ -90,9 +110,10 @@ defineExpose({
   <div class="comments-container" id="commentsContainer">
     <div class="comments-layer">
       <div
+          :class="{ 'sd-highlight-active': activeComment === conversation.conversationId }"
           v-for="conversation in getAllConversations"
           class="comment-anchor sd-highlight"
-          @click="handleHighlightClick(conversation)"
+          @click="(e) => handleHighlightClick(conversation, e)"
           :data-id="conversation.conversationId"
           :style="getStyle(conversation)"></div>
     </div>
@@ -101,7 +122,6 @@ defineExpose({
 
 <style scoped>
 .comment-doc {
-  background-color: red;
   position: relative;
 }
 .comments-layer {
@@ -113,12 +133,8 @@ defineExpose({
   z-index: 3;
   border-radius: 4px;
   transition: background-color 250ms ease;
-  pointer-events: auto;
-}
-.comment-anchor:hover {
-  background-color: #FFD70099;
 }
 .comments-container {
-  pointer-events: none; 
+  /* pointer-events: none;  */
 }
 </style>

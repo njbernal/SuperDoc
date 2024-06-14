@@ -1,11 +1,11 @@
 <script setup>
-import { getCurrentInstance, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { getCurrentInstance, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia';
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
 import DocumentEditor from './components/DocumentEditor/DocumentEditor.vue';
 import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
-import CommentGroup from '@/components/CommentsLayer/CommentGroup.vue';
+import FloatingComments from '@/components/CommentsLayer/FloatingComments.vue';
 import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import { useCommentsStore } from '@/stores/comments-store';
@@ -14,23 +14,32 @@ import { useCommentsStore } from '@/stores/comments-store';
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
 
-const { documents, isReady, documentContainers, areDocumentsReady } = storeToRefs(superdocStore);
+const {
+  documents,
+  isReady,
+  documentContainers,
+  areDocumentsReady,
+  selectionPosition,
+  activeSelection
+} = storeToRefs(superdocStore);
 const { handlePageReady, modules, user, getDocument } = superdocStore;
 
-const { getConfig, documentsWithConverations, overlappingComments, getAllConversationsFiltered } = storeToRefs(commentsStore);
-const { initialCheck } = commentsStore;
+const {
+  getConfig,
+  documentsWithConverations,
+  pendingComment,
+  floatingCommentsOffset
+} = storeToRefs(commentsStore);
+const { initialCheck, showAddComment } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
 // Refs
-const stageSize = reactive({});
 const layers = ref(null);
 
 // Comments layer
 const commentsLayer = ref(null);
 const toolsMenuPosition = ref(null);
-const selectionPosition = ref(null);
-const activeSelection = ref(null);
 
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
@@ -48,7 +57,8 @@ const handlePdfReady = (documentId, container) => {
 // Document selections
 const handleSelectionChange = (selection) => {
   if (!selection.selectionBounds) return;
-  activeSelection.value = selection;
+  
+  activeSelection.value = selection
 
   // Place the tools menu at the level of the selection
   const containerBounds = selection.getContainerLocation(layers.value)
@@ -61,27 +71,23 @@ const handleSelectionChange = (selection) => {
   toolsMenuPosition.value = {
     top: top - 25 + 'px',
     right: '-25px',
+    zIndex: 10,
   };
 }
 
-const handleSelectionDrag = (selection, e) => {
-  if (!selection.selectionBounds) return;
+const setSelectionPosition = (selection) => {
   activeSelection.value = selection;
 
-  // Place the tools menu at the level of the selection
   const containerBounds = selection.getContainerLocation(layers.value)
-
+  
   let left = selection.selectionBounds.left;
   let top = selection.selectionBounds.top + containerBounds.top;
 
-  if (selection.selectionBounds.right - selection.selectionBounds.left < 0) {
-    left = selection.selectionBounds.right;
-  }
+  // Flip top/bottom or left/right if reverse selection
+  if (selection.selectionBounds.right - selection.selectionBounds.left < 0) left = selection.selectionBounds.right;
+  if (selection.selectionBounds.bottom - selection.selectionBounds.top < 0) top = selection.selectionBounds.bottom;
 
-  if (selection.selectionBounds.bottom - selection.selectionBounds.top < 0) {
-    top = selection.selectionBounds.bottom + containerBounds.top;
-  }
-
+  // Set the selection position
   selectionPosition.value = {
     zIndex: 500,
     position: 'absolute',
@@ -94,6 +100,12 @@ const handleSelectionDrag = (selection, e) => {
     borderRadius: '4px',
   };
 }
+  
+const handleSelectionDrag = (selection, e) => {
+  if (!selection.selectionBounds) return;
+  setSelectionPosition(selection);
+}
+
 const handleSelectionDragEnd = () => {
   if (!selectionPosition.value) return;
   selectionPosition.value.border = '1px solid transparent';
@@ -101,25 +113,29 @@ const handleSelectionDragEnd = () => {
 
 const handleToolClick = (tool) => {
   const toolOptions = {
-    'comments': commentsLayer.value.addCommentEntry(activeSelection.value)
+    comments: showAddComment,
   }
 
   if (tool in toolOptions) {
-    toolOptions[tool];
+    setSelectionPosition(activeSelection.value);
+    toolOptions[tool](activeSelection.value, selectionPosition.value);
   }
+
   activeSelection.value = null;
-  selectionPosition.value = null;
   toolsMenuPosition.value = null;
 }
 
 const handleDocumentMouseDown = (e) => {
-  if (!e.target.closest('.tools')) selectionPosition.value = null
-  document.removeEventListener('mousedown', handleDocumentMouseDown);
+  if (pendingComment.value) return;
+  selectionPosition.value = null;;
 }
 
 const handleHighlightClick = () => {
-  selectionPosition.value = null;
   toolsMenuPosition.value = null;
+}
+
+const cancelPendingComment = () => {
+  selectionPosition.value = null;
 }
 
 onMounted(() => {
@@ -135,76 +151,73 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-<div>
-  <div class="superdoc" @mousedown="selectionPosition = null">
-    <div class="layers" ref="layers">
-      <div
-          v-if="toolsMenuPosition && !getConfig?.readOnly"
-          class="tools"
-          :style="toolsMenuPosition"
-          @click.stop.prevent>
-        <i class="fas fa-comment-alt-lines" @click="handleToolClick('comments')"></i>
-      </div>
+<div class="superdoc">
+  <div class="layers" ref="layers">
 
-      <div
-          v-if="!getConfig?.readOnly"
-          :style="selectionPosition" class="sd-highlight">
-      </div>
-
-      <div class="document">
-        <HrbrFieldsLayer
-            v-if="'hrbr-fields' in modules && layers"
-            :fields="modules['hrbr-fields']"
-            class="comments-layer"
-            style="z-index: 5; background-color: blue;"
-            ref="hrbrFieldsLayer" />
-        <CommentsLayer
-            class="comments-layer"
-            v-if="isReady && 'comments' in modules && layers"
-            style="z-index: 3;"
-            ref="commentsLayer"
-            :parent="layers"
-            :user="user"
-            @highlight-click="handleHighlightClick" />
-
-        <div class="sub-document" v-for="doc in documents" ref="documentContainers">
-          <PdfViewer
-              v-if="doc.type === 'pdf'"
-              :document-data="doc"
-              @selection-change="handleSelectionChange"
-              @selection-drag="handleSelectionDrag"
-              @selection-drag-end="handleSelectionDragEnd"
-              @ready="handlePdfReady" 
-              @page-loaded="handlePageReady" />
-
-          <DocumentEditor
-              v-if="doc.type === 'docx'"
-              :document-data="doc"
-              @ready="handlePdfReady" />
-        </div>
-      </div>
+    <div
+        v-if="toolsMenuPosition && !getConfig?.readOnly" 
+        class="tools"
+        :style="toolsMenuPosition">
+      <i class="fas fa-comment-alt-lines" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')"></i>
     </div>
 
-    <div class="right-sidebar" v-if="documentsWithConverations.length && layers && isReady">
-      <template v-for="doc in documentsWithConverations">
-        <CommentDialog
-            v-for="conversation in doc.conversations"
-            class="comment-box"
-            :data-id="conversation.conversationId"
-            :data="conversation"
-            :current-document="doc"
-            :parent="layers"
-            :user="user" />
-        <CommentGroup
-            v-for="(group, index) in overlappingComments"
-            class="comment-box"
-            :user="user"
-            :data-index="index"
-            :parent="layers"
-            :current-document="doc"
-            :data="group" />
-      </template>
+    <div
+        v-if="!getConfig?.readOnly && selectionPosition"
+        :style="selectionPosition" class="sd-highlight sd-initial-highlight">
     </div>
+
+    <div class="document">
+      <!-- Fields layer -->
+      <HrbrFieldsLayer
+          v-if="'hrbr-fields' in modules && layers"
+          :fields="modules['hrbr-fields']"
+          class="comments-layer"
+          style="z-index: 5; background-color: blue;"
+          ref="hrbrFieldsLayer" />
+
+      <!-- On-document comments layer -->
+      <CommentsLayer
+          class="comments-layer"
+          v-if="isReady && 'comments' in modules && layers"
+          style="z-index: 3;"
+          ref="commentsLayer"
+          :parent="layers"
+          :user="user"
+          @highlight-click="handleHighlightClick" />
+
+      <div class="sub-document" v-for="doc in documents" ref="documentContainers">
+        <!-- PDF renderer -->
+        <PdfViewer
+            v-if="doc.type === 'pdf'"
+            :document-data="doc"
+            @selection-change="handleSelectionChange"
+            @selection-drag="handleSelectionDrag"
+            @selection-drag-end="handleSelectionDragEnd"
+            @ready="handlePdfReady" 
+            @page-loaded="handlePageReady" />
+
+        <!-- DOCX Renderer -->
+        <DocumentEditor
+            v-if="doc.type === 'docx'"
+            :document-data="doc"
+            @ready="handlePdfReady" />
+      </div>
+    </div>
+  </div>
+
+  <div class="right-sidebar" v-if="(pendingComment || documentsWithConverations.length) && layers && isReady">
+    <CommentDialog
+        v-if="pendingComment"
+        :data="pendingComment"
+        :current-document="getDocument(pendingComment.documentId)"
+        :user="user" 
+        :parent="layers"
+        v-click-outside="cancelPendingComment" />
+
+    <FloatingComments
+        v-for="doc in documentsWithConverations"
+        :parent="layers"
+        :current-document="doc" />
   </div>
 </div>
 </template>
@@ -213,7 +226,8 @@ onBeforeUnmount(() => {
 /* Right sidebar drawer */
 .right-sidebar {
   width: 320px;
-  padding: 10px;
+  padding: 0 10px;
+  min-height: 100%;
   position: relative;
 }
 
@@ -244,7 +258,6 @@ onBeforeUnmount(() => {
 }
 .layers {
   position: relative;
-  display: inline-block;
 }
 
 /* Document Styles */
@@ -298,4 +311,15 @@ onBeforeUnmount(() => {
   background-color: #DBDBDB;
 }
 
+@media (max-width: 768px) {
+  .sub-document {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .right-sidebar {
+    padding: 10px;
+    width: 55px;
+    position: relative;
+  }
+}
 </style>

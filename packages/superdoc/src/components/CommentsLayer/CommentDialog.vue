@@ -3,17 +3,18 @@ import { computed, toRefs, ref, getCurrentInstance, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useCommentsStore } from '@/stores/comments-store';
 import { useSuperdocStore } from '@/stores/superdoc-store';
+import useSelection from '@/helpers/use-selection';
 import useComment from '@/components/CommentsLayer/use-comment';
 import Avatar from '@/components/general/Avatar.vue';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS, getCommentLocation, checkOverlaps } = commentsStore;
-const { getConfig, activeComment, overlappingComments } = storeToRefs(commentsStore);
+const { COMMENT_EVENTS } = commentsStore;
+const { getConfig, activeComment, pendingComment, floatingCommentsOffset } = storeToRefs(commentsStore);
 const { areDocumentsReady } = superdocStore;
+const { selectionPosition } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
-const emit = defineEmits(['click-outside']);
 const props = defineProps({
   user: {
     type: Object,
@@ -31,19 +32,16 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  showGrouped: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
 });
 
+const emit = defineEmits(['click-outside', 'ready', 'dialog-exit']);
 const currentElement = ref(null);
 const inputIsFocused = ref(false);
 const input = ref(null);
 const addComment = () => {
   if (!input.value?.value) return;
 
+  // create the new comment for the conversation
   const comment = useComment({
     user: {
       email: props.user.email,
@@ -53,10 +51,38 @@ const addComment = () => {
     comment: input.value.value,
   });
 
-  props.data.comments.push(comment);
+  // If this conversation is pending addition, add to the document first
+  if (pendingComment.value && pendingComment.value.conversationId === props.data.conversationId) {
+    const newConversation = { ...pendingComment.value }
+
+    const selection = pendingComment.value.selection.getValues();
+    const bounds = selection.selectionBounds;
+    if (bounds.top > bounds.bottom) {
+      const temp = bounds.top;
+      bounds.top = bounds.bottom;
+      bounds.bottom = temp;
+    } 
+    if (bounds.left > bounds.right) {
+      const temp = bounds.left;
+      bounds.left = bounds.right;
+      bounds.right = temp;
+    }
+    newConversation.selection = useSelection(selection)
+
+     // Remove the pending comment
+     pendingComment.value = null;
+    
+    // Reset the original selection
+    selectionPosition.value = null;
+    newConversation.comments.push(comment);
+    props.currentDocument.conversations.push(newConversation);
+    proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
+  } else {
+    props.data.comments.push(comment);
+    proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
+  }
+
   input.value.value = '';
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
-  checkOverlaps(currentElement.value, props.data, props.currentDocument);
 }
 
 function formatDate(timestamp) {
@@ -78,36 +104,42 @@ const handleKeyUp = () => {
 }
 
 const getSidebarCommentStyle = computed(() => {
-  const style = {}
+  const style = {};
   if (isActiveComment.value) {
     style.backgroundColor = 'white';
     style.zIndex = 10;
   }
 
-  if (!props.parent) {
-    style.position = 'relative';
-    return style;
+  if (!props.data.comments.length && currentElement.value) {
+    const selectionBounds = props.data.selection.getContainerLocation(props.parent)
+    const bounds = props.data.selection.selectionBounds;
+    const parentTop = props.parent.getBoundingClientRect().top;
+    const currentBounds = currentElement.value.getBoundingClientRect();
+    style.top = bounds.top + selectionBounds.top + 'px';
+    style.width = 300 + 'px';
   }
 
-  const topOffset = 10;
-  const location = getCommentLocation(props.data.selection, props.parent);
-  if (!location) return {};
-
-  style.top = location.top - topOffset + 'px';
   return style;
 });
 
 const cleanConversations = () => {
   if (props.data.comments.length) return;
+  if (pendingComment.value) selectionPosition.value = null;
   const id = props.data.conversationId;
+  pendingComment.value = null;
   props.currentDocument.removeConversation(id);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.DELETED, id);
 }
 
 const handleClickOutside = (e) => {
-  if (e.target.dataset.id) activeComment.value = e.target.dataset.id;
-  else activeComment.value = null;
-  cleanConversations();
+  if (activeComment.value === props.data.conversationId) {
+    floatingCommentsOffset.value = 0;
+
+    emit('dialog-exit');
+    if (e.target.dataset.id) activeComment.value = e.target.dataset.id;
+    else activeComment.value = null;
+    cleanConversations();
+  }
 }
 
 const setFocus = () => {
@@ -119,22 +151,11 @@ const markDone = () => {
   convo.markDone(props.user.email, props.user.name);
   props.currentDocument.removeConversation(convo.conversationId);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.RESOLVED, convo.getValues());
-
-  const group = overlappingComments.value.find((g) => g.includes(props.data));
-  if (!group) return;
-  const index = group.findIndex((c) => c.conversationId === props.data.conversationId);
-  if (index > -1) group.splice(index, 1);
-  if (group.length === 1) {
-    const conversation = group[0];
-    const groupIndex = overlappingComments.value.findIndex((g) => g.includes(conversation));
-
-    overlappingComments.value.splice(groupIndex, 1);
-    conversation.group = false;
-  }
 }
 
 const cancelComment = () => {
   activeComment.value = null;
+  pendingComment.value = null;
   if (!props.data.comments.length) {
     cleanConversations();
   }
@@ -144,28 +165,26 @@ const isActiveComment = computed(() => {
   return activeComment.value === props.data.conversationId;
 });
 
-const trackContainers = (e) => {
-  currentElement.value = e;
-  const conversations = props.currentDocument.conversations;
-  const currentConversation = conversations.find((c) => c.conversationId === props.data.conversationId);
-  if (!currentConversation) return;
-  currentConversation.conversationElement = e;
-}
+
+onMounted(() => {
+  emit('ready', props.data.conversationId, currentElement);
+});
 </script>
 
 <template>
   <div
-      v-if="areDocumentsReady && (!props.data.group || (props.data.group && props.showGrouped))"
+      v-if="areDocumentsReady"
       class="comments-dialog"
+      :class="{ 'is-active': isActiveComment }"
       @click.stop.prevent="setFocus"
       v-click-outside="handleClickOutside"
-      :style="getSidebarCommentStyle"
       :id="data.conversationId"
-      :ref="trackContainers">
+      :style="getSidebarCommentStyle"
+      ref="currentElement">
 
-    <div v-for="(item, index) in data.comments">
+    <div v-for="(item, index) in data.comments" class="comment-container">
       <div class="card-section comment-header">
-        <div class="comment-header">
+        <div class="comment-header-left">
           <div class="avatar">
             <Avatar :user="item.user" />
           </div>
@@ -202,7 +221,9 @@ const trackContainers = (e) => {
       </div>
     </div>
 
-    <div class="card-section comment-footer" v-if="!getConfig.readOnly && isActiveComment && !props.data.markedDone">
+    <div
+        class="card-section comment-footer"
+        v-if="!getConfig.readOnly && isActiveComment && !props.data.markedDone">
       <button class="sd-button primary" @click.stop.prevent="addComment">Comment</button>
       <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
     </div>
@@ -214,15 +235,17 @@ const trackContainers = (e) => {
   position: absolute;
   display: flex;
   flex-direction: column;
-  position: absolute;
-  padding: 16px;
+  padding: 12px;
   border-radius: 12px;
   background-color: #EDEDED;
   transition: background-color 250ms ease;
-  -webkit-box-shadow: 0px 0px 2px 2px rgba(50, 50, 50, 0.15);
-  -moz-box-shadow: 0px 0px 2px 2px rgba(50, 50, 50, 0.15);
-  box-shadow: 0px 0px 2px 2px rgba(50, 50, 50, 0.15);
+  -webkit-box-shadow: 0px 0px 1px 1px rgba(50, 50, 50, 0.15);
+  -moz-box-shadow: 0px 0px 1px 1px rgba(50, 50, 50, 0.15);
+  box-shadow: 0px 0px 1px 1px rgba(50, 50, 50, 0.15);
   z-index: 5;
+}
+.is-active {
+  z-index: 10;
 }
 .overflow-menu {
   flex-shrink: 1;
@@ -243,16 +266,14 @@ const trackContainers = (e) => {
 .overflow-menu i:hover {
   background-color: #DBDBDB;
 }
-.card-section {
-  margin: 5px 0;
-}
 
 .comment-entry {
   flex-grow: 1;
+  margin: 5px 0;
 }
 .comment-entry input {
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 6px 10px;
   outline: none;
   border: 1px solid #DBDBDB;
   width: 100%;
@@ -262,6 +283,11 @@ const trackContainers = (e) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.comment-header-left {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .avatar {
   margin-right: 10px;
@@ -273,20 +299,26 @@ const trackContainers = (e) => {
 }
 .user-name {
   font-weight: 600;
+  line-height: 1.2em;
 }
 .user-timestamp {
+  line-height: 1.2em;
   font-size: 12px;
   color: #999;
 }
 .sd-button {
   margin-right: 5px;
+  font-size: 12px;
 }
 .comment {
   font-size: 14px;
-  margin: 10px 0;
+  margin: 5px 0;
 }
 .conversation-item {
   border-bottom: 1px solid #DBDBDB;
   padding-bottom: 10px;
+}
+.comment-footer {
+  margin: 5px 0;
 }
 </style>
