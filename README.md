@@ -1,6 +1,6 @@
 # 🦋️📝️ SuperDoc
 
-### ▶ The modern document editor for the web
+### The modern document editor for the web
 
 ## Features
 * ✅ Easily view and edit DOCX and PDF documents online
