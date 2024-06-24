@@ -12,7 +12,7 @@ const commentsStore = useCommentsStore();
 const { COMMENT_EVENTS } = commentsStore;
 const { getConfig, activeComment, pendingComment, floatingCommentsOffset } = storeToRefs(commentsStore);
 const { areDocumentsReady } = superdocStore;
-const { selectionPosition } = storeToRefs(superdocStore);
+const { selectionPosition, documentScroll } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
 const props = defineProps({
@@ -115,7 +115,7 @@ const getSidebarCommentStyle = computed(() => {
     const bounds = props.data.selection.selectionBounds;
     const parentTop = props.parent.getBoundingClientRect().top;
     const currentBounds = currentElement.value.getBoundingClientRect();
-    style.top = bounds.top + selectionBounds.top + 'px';
+    style.top = bounds.top + selectionBounds.top + documentScroll.value.scrollTop + 'px';
     style.width = 300 + 'px';
   }
 

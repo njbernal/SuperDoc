@@ -1,10 +1,9 @@
 <script setup>
-import { getCurrentInstance, computed, ref, nextTick } from 'vue';
+import { getCurrentInstance, computed, ref, nextTick, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useCommentsStore } from '@/stores/comments-store';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import useConversation from './use-conversation';
-import useSelection from '@/helpers/use-selection';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
@@ -13,9 +12,8 @@ const {
   documentsWithConverations,
   activeComment,
   floatingCommentsOffset,
-  visibleConversations
 } = storeToRefs(commentsStore);
-const { documents } = storeToRefs(superdocStore);
+const { documents, documentScroll } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
 const emit = defineEmits(['highlight-click']);
@@ -66,7 +64,7 @@ const getStyle = (conversation) => {
   const { selection } = conversation
   const containerBounds = selection.getContainerLocation(props.parent)
   const placement = conversation.selection.selectionBounds;
-  const top = parseFloat(placement.top) + containerBounds.top;
+  const top = parseFloat(placement.top) + containerBounds.top + documentScroll.value.scrollTop;
   return {
     position: 'absolute',
     top: top + 'px',
@@ -77,14 +75,7 @@ const getStyle = (conversation) => {
 }
 
 const setFloatingCommentOffset = (conversation, e) => {
-  const floatingConvo = visibleConversations.value.find((c) => c.id === conversation.conversationId);
-  const convoTop = conversation.selection.getContainerLocation(props.parent).top;
-
-  const parentTop = props.parent.getBoundingClientRect().top;
-  const top = floatingConvo.position.top;
-  const eTop = e.target.getBoundingClientRect().top;
-
-  floatingCommentsOffset.value = conversation.selection.selectionBounds.top; //top - eTop + parentTop;
+  floatingCommentsOffset.value = conversation.selection.selectionBounds.top;
 }
 
 const handleHighlightClick = (conversation, e) => {
@@ -98,6 +89,12 @@ const getAllConversations = computed(() => {
   return documentsWithConverations.value.reduce((acc, doc) => {
     return acc.concat(doc.conversations);
   }, []);
+});
+
+watch(activeComment, (newVal) => {
+  if (!newVal) return;
+  const element = document.getElementById(newVal)
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
 defineExpose({
@@ -114,6 +111,7 @@ defineExpose({
           v-for="conversation in getAllConversations"
           class="comment-anchor sd-highlight"
           @click="(e) => handleHighlightClick(conversation, e)"
+          :id="conversation.conversationId"
           :data-id="conversation.conversationId"
           :style="getStyle(conversation)"></div>
     </div>
@@ -133,8 +131,5 @@ defineExpose({
   z-index: 3;
   border-radius: 4px;
   transition: background-color 250ms ease;
-}
-.comments-container {
-  /* pointer-events: none;  */
 }
 </style>
