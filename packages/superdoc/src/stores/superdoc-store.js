@@ -17,7 +17,13 @@ export const useSuperdocStore = defineStore('superdoc', () => {
   const activeSelection = ref(null);
   const selectionPosition = ref(null);
 
+  const documentScroll = reactive({
+    scrollTop: 0,
+    scrollLeft: 0,
+  })
+
   const init = (config) => {
+    console.debug('Initializing Superdoc with config', config);
     const { documents: docs, modules: configModules, user: configUser } = config;
     
     // Init current user
@@ -73,6 +79,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     documentContainers,
     documentBounds,
     pages,
+    documentScroll,
 
     selectionPosition,
     activeSelection,

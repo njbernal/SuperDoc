@@ -257,7 +257,7 @@ onMounted(async () => {
 <style lang="postcss">
 .superdoc-viewer {
   @nested-import 'pdfjs-dist/web/pdf_viewer.css';
-  
+
   position: relative;
   display: flex;
   flex-direction: column;

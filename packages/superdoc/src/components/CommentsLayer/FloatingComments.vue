@@ -15,7 +15,7 @@ const {
   sortedConversations,
   activeComment
 } = storeToRefs(commentsStore);
-const { user } = storeToRefs(superdocStore);
+const { user, documentScroll } = storeToRefs(superdocStore);
 
 const props = defineProps({
   currentDocument: {
@@ -54,7 +54,7 @@ const handleDialogReady = (dialogId, elementRef) => {
   const selectionBounds = dialog.conversation.selection.getContainerLocation(props.parent)
   const position = elementRef.value.getBoundingClientRect();
   const selection = dialog.conversation.selection.selectionBounds;
-  const top = parseFloat(selection.top) + selectionBounds.top;
+  const top = parseFloat(selection.top) + selectionBounds.top + documentScroll.value.scrollTop;
   const left = parseFloat(selection.left) + position.left;
   dialog.position = {
     top,

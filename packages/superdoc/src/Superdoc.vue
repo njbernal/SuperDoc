@@ -1,5 +1,5 @@
 <script setup>
-import { getCurrentInstance, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { getCurrentInstance, ref, onMounted, onBeforeUnmount, nextTick, computed, reactive } from 'vue'
 import { storeToRefs } from 'pinia';
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
@@ -20,7 +20,8 @@ const {
   documentContainers,
   areDocumentsReady,
   selectionPosition,
-  activeSelection
+  activeSelection,
+  documentScroll
 } = storeToRefs(superdocStore);
 const { handlePageReady, modules, user, getDocument } = superdocStore;
 
@@ -36,6 +37,7 @@ commentsStore.proxy = proxy;
 
 // Refs
 const layers = ref(null);
+const documentContainer = ref(null);
 
 // Comments layer
 const commentsLayer = ref(null);
@@ -68,20 +70,22 @@ const handleSelectionChange = (selection) => {
     top = selection.selectionBounds.bottom + containerBounds.top;
   }
 
+  const layerBounds = layers.value.getBoundingClientRect();
+  const hasScrollBars = layers.value.scrollHeight > layers.value.clientHeight;
+  const toolsLeft = hasScrollBars ? layerBounds.width - 13 : layerBounds.width - 25;
   toolsMenuPosition.value = {
     top: top - 25 + 'px',
-    right: '-25px',
+    left: toolsLeft + 'px',
     zIndex: 10,
   };
 }
 
 const setSelectionPosition = (selection) => {
   activeSelection.value = selection;
-
   const containerBounds = selection.getContainerLocation(layers.value)
   
   let left = selection.selectionBounds.left;
-  let top = selection.selectionBounds.top + containerBounds.top;
+  let top = selection.selectionBounds.top + containerBounds.top + documentScroll.value.scrollTop;
 
   // Flip top/bottom or left/right if reverse selection
   if (selection.selectionBounds.right - selection.selectionBounds.left < 0) left = selection.selectionBounds.right;
@@ -127,7 +131,7 @@ const handleToolClick = (tool) => {
 
 const handleDocumentMouseDown = (e) => {
   if (pendingComment.value) return;
-  selectionPosition.value = null;;
+  selectionPosition.value = null;
 }
 
 const handleHighlightClick = () => {
@@ -138,10 +142,30 @@ const cancelPendingComment = () => {
   selectionPosition.value = null;
 }
 
+const handleScroll = () => {
+  documentScroll.value.scrollTop = layers.value.scrollTop;
+  documentScroll.value.scrollLeft = layers.value.scrollLeft;
+}
+
+// Get current scroll position of the layers container to adjust the sidebar
+const getRightSidebarPosition = computed(() => {
+  const style = {
+    top: documentScroll.value.scrollTop * -1 + 'px',
+    minWidth: '310px',
+  }
+  return style;
+})
+
 onMounted(() => {
   if ('comments' in modules && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
-  }
+  };
+
+  // Track resizing of the documents layer
+  const observer = new ResizeObserver(() => {
+    toolsMenuPosition.value = null;
+  });
+  observer.observe(layers.value);
 })
 
 onBeforeUnmount(() => {
@@ -151,28 +175,28 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-<div class="superdoc">
-  <div class="layers" ref="layers">
+<div class="superdoc" style="height: 100%; width: 100%;">
+  <div
+      v-if="toolsMenuPosition && !getConfig?.readOnly" 
+      class="tools"
+      :style="toolsMenuPosition">
+    <i class="fas fa-comment-alt-lines" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')"></i>
+  </div>
 
-    <div
-        v-if="toolsMenuPosition && !getConfig?.readOnly" 
-        class="tools"
-        :style="toolsMenuPosition">
-      <i class="fas fa-comment-alt-lines" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')"></i>
-    </div>
+  <div class="layers" ref="layers" @scroll="handleScroll">
 
-    <div
+    <div class="document" ref="documentContainer">
+      <div
         v-if="!getConfig?.readOnly && selectionPosition"
         :style="selectionPosition" class="sd-highlight sd-initial-highlight">
-    </div>
+      </div>
 
-    <div class="document">
       <!-- Fields layer -->
       <HrbrFieldsLayer
           v-if="'hrbr-fields' in modules && layers"
           :fields="modules['hrbr-fields']"
           class="comments-layer"
-          style="z-index: 5; background-color: blue;"
+          style="z-index: 5;"
           ref="hrbrFieldsLayer" />
 
       <!-- On-document comments layer -->
@@ -205,7 +229,7 @@ onBeforeUnmount(() => {
     </div>
   </div>
 
-  <div class="right-sidebar" v-if="(pendingComment || documentsWithConverations.length) && layers && isReady">
+  <div class="right-sidebar" v-if="(pendingComment || documentsWithConverations.length) && layers && isReady" :style="getRightSidebarPosition">
     <CommentDialog
         v-if="pendingComment"
         :data="pendingComment"
@@ -255,9 +279,6 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   height: 100%;
-}
-.layers {
-  position: relative;
 }
 
 /* Document Styles */
@@ -311,6 +332,15 @@ onBeforeUnmount(() => {
   background-color: #DBDBDB;
 }
 
+.layers {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+.document {
+  position: relative;
+}
 @media (max-width: 768px) {
   .sub-document {
     max-width: 100%;
