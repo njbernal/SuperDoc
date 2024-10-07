@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, reactive, computed, unref } from 'vue';
-import { comments_module_events } from '@common/event-types.js';
+import { comments_module_events } from '@harbour-enterprises/common';
 import { useSuperdocStore } from '@/stores/superdoc-store';
 import useConversation from '../components/CommentsLayer/use-conversation';
 
@@ -19,6 +19,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const commentDialogs = ref([]);
   const overlappingComments = ref([]);
   const overlappedIds = new Set([]);
+  const suppressInternalExternal = ref(false);
 
   // Floating comments
   const floatingCommentsOffset = ref(0);
@@ -41,6 +42,7 @@ export const useCommentsStore = defineStore('comments', () => {
     const selection = { ...superdocStore.activeSelection };
     selection.selectionBounds = { ...selection.selectionBounds };
 
+    superdocStore.selectionPosition.source = null;
     pendingComment.value = getPendingComment(selection);
     activeComment.value = pendingComment.value.conversationId;
   };
@@ -164,11 +166,11 @@ export const useCommentsStore = defineStore('comments', () => {
   return {
     COMMENT_EVENTS,
     hasInitializedComments,
-    getConfig,
     activeComment,
     commentDialogs,
     overlappingComments,
     overlappedIds,
+    suppressInternalExternal,
     pendingComment,
 
     // Floating comments

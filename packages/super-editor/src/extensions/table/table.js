@@ -1,0 +1,66 @@
+import { Node, Attribute } from '@core/index.js';
+
+
+export const Table = Node.create({
+  name: 'table',
+
+  group: 'block',
+
+  content: 'tableRow*',
+
+  tableRole: 'table',
+
+  addOptions() {
+    return {
+      htmlAttributes: {},
+    };
+  },
+
+  parseDOM() {
+    return [{ tag: 'table' }];
+  },
+
+  addAttributes() {
+    return {
+      tableWidth: {
+        renderDOM: ({ tableWidth }) => {
+          if (!tableWidth) return {};
+          const { width, type = 'auto' } = tableWidth;
+          return { style: `min-width: ${width}px;` }
+        }
+      },
+      gridColumnWidths: { rendered: false, default: [], },
+      tableStyleId: { rendered: false, },
+      tableIndent: {
+        renderDOM: ({ tableIndent }) => {
+          if (!tableIndent) return {};
+
+          const { width, type = 'dxa' } = tableIndent;
+          let style = '';
+          if (width) style += `margin-left: ${width}px;`;
+          return { style }
+        }
+      },
+      tableLayout: { rendered: false, },
+      borders: {
+        default: {},
+        renderDOM({ borders = {} }) {
+          if (!borders) return {};
+          const style = Object.entries(borders).reduce((acc, [key, { size, color }]) => {
+            return `${acc}border-${key}: ${size}px solid ${color || 'black'};`;
+          }, 'border-collapse: collapse;');
+          return { style }
+        }
+      },
+    };
+  },
+
+  renderDOM({ htmlAttributes }) {
+    const attributes = Attribute.mergeAttributes(
+      this.options.htmlAttributes, 
+      htmlAttributes,
+    );
+    return ['table', attributes, 0];
+  },
+
+});

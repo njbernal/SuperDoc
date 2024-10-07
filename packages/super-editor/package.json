@@ -1,0 +1,54 @@
+{
+  "name": "@harbour-enterprises/super-editor",
+  "version": "0.0.1-alpha.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/super-editor.es.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "module": "./dist/super-editor.es.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "color2k": "^2.0.3",
+    "jszip": "^3.10.1",
+    "prosemirror-commands": "^1.5.2",
+    "prosemirror-dropcursor": "^1.8.1",
+    "prosemirror-history": "^1.4.0",
+    "prosemirror-keymap": "^1.2.2",
+    "prosemirror-model": "^1.21.0",
+    "prosemirror-schema-basic": "^1.2.2",
+    "prosemirror-schema-list": "^1.3.0",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-tables": "^1.4.0",
+    "prosemirror-transform": "^1.9.0",
+    "prosemirror-view": "^1.33.8",
+    "tippy.js": "^6.3.7",
+    "uuidv4": "^6.2.13",
+    "vue": "^3.4.21",
+    "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^24.1.0",
+    "naive-ui": "^2.38.2",
+    "postcss-nested": "^6.0.1",
+    "postcss-nested-import": "^1.3.0",
+    "vite": "^5.3.6",
+    "vite-plugin-node-polyfills": "^0.22.0",
+    "vitest": "^1.6.0",
+    "vue-draggable-next": "^2.2.1"
+  }
+}

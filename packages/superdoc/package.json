@@ -1,44 +1,38 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "1.0.0-alpha.30",
+  "version": "1.0.0-alpha.64",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "import": "./dist/superdoc.es.js",
-      "require": "./dist/superdoc.cjs.js"
+      "import": "./dist/superdoc.es.js"
     },
     "./style.css": "./dist/style.css"
   },
-  "main": "./dist/superdoc.cjs.js",
+  "main": "./dist/superdoc.es.js",
   "module": "./dist/superdoc.es.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "vite build"
   },
   "dependencies": {
+    "@harbour-enterprises/super-editor": "0.0.1-alpha.0",
     "eventemitter3": "^5.0.1",
-    "jszip": "^3.10.1",
-    "lodash-es": "^4.17.21",
-    "pdfjs-dist": "^4.3.136",
+    "pdfjs-dist": "4.3.136",
     "pinia": "^2.1.7",
-    "prosemirror-model": "^1.21.0",
-    "prosemirror-schema-basic": "^1.2.2",
-    "prosemirror-schema-list": "^1.3.0",
-    "prosemirror-view": "^1.33.6",
-    "uuid": "^9.0.1",
+    "tippy": "^0.0.0",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vue": "^3.4.21",
-    "xml-js": "^1.6.11"
+    "yjs": "^13.6.18"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
-    "naive-ui": "^2.38.2",
+    "naive-ui": "^2.39.0",
     "postcss-nested": "^6.0.1",
     "postcss-nested-import": "^1.3.0",
-    "vite": "^5.3.6"
-  },
-  "repository": "https://github.com/Harbour-Enterprises/Superdoc.git"
+    "vite": "^5.3.6",
+    "vue-draggable-next": "^2.2.1"
+  }
 }

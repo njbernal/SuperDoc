@@ -66,35 +66,43 @@ body {
 .primary:hover {
   background-color: #0D3FCC;
 }
-
-.sd-highlight {
-  position: absolute;
-  border-radius: 33px;
-  background-color: #DDAF0955;
-  mix-blend-mode: multiply;
-  transition: background-color 250ms ease;
-}
-.sd-initial-highlight {
-  background-color: #1355ff7F;
-}
-.sd-highlight:hover {
-  background-color: #DDAF0999;
-}
-.sd-highlight-active {
-  background-color: #1355ff7F;
-  cursor: pointer;
-}
 .comment-box {
   width: 300px;
 }
 .superdoc {
-  min-height: 100%;
   display: flex;
+}
+.superdoc .ProseMirror p {
   margin: 0;
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
+
+.superdoc-field {
+  border-radius: 8px;
+  padding: 12px;
+  outline: none;
+  border: 1px solid #DBDBDB;
+  width: 100%;
+}
+.superdoc-field:focus,
+.superdoc-field:active {
+  border: 1px solid #1355FF;
+}
+.superdoc-field .ProseMirror {
+  border: 0;
+  outline: 0;
+  margin: 0;
+}
+.super-editor-placeholder::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+  pointer-events: none;
+  display: block;
+  height: 0;
+}
+
 @media (max-width: 768px) {
 
 }

@@ -13,7 +13,7 @@ const {
   activeComment,
   floatingCommentsOffset,
 } = storeToRefs(commentsStore);
-const { documents, documentScroll } = storeToRefs(superdocStore);
+const { documents, activeZoom } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
 const emit = defineEmits(['highlight-click']);
@@ -55,33 +55,43 @@ const addCommentEntry = (selection) => {
   const newConvo = useConversation(params);
   activeComment.value = newConvo.conversationId;
 
-
   matchedDocument.conversations.push(newConvo);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.NEW, newConvo.getValues());
 }
 
 const getStyle = (conversation) => {
-  const { selection } = conversation
+  const { selection, conversationId } = conversation
   const containerBounds = selection.getContainerLocation(props.parent)
   const placement = conversation.selection.selectionBounds;
-  const top = parseFloat(placement.top) + containerBounds.top + documentScroll.value.scrollTop;
+  const top = (parseFloat(placement.top) + containerBounds.top) * activeZoom.value;
+
+  const internalHighlightColor = '#078383';
+  const externalHighlightColor = '#B1124B';
+
+  let opacity = '33';
+  activeComment.value === conversationId ? opacity = '66' : '33';
+  let fillColor = conversation.isInternal ? internalHighlightColor : externalHighlightColor;
+  fillColor += opacity;
+
   return {
     position: 'absolute',
-    top: top + 'px',
+    top: parseFloat(placement.top) + 'px',
     left: placement.left + 'px',
-    width: placement.right - placement.left + 'px',
-    height: placement.bottom - placement.top + 'px',
+    width: (placement.right - placement.left) + 'px',
+    height: (placement.bottom - placement.top) + 'px',
+    backgroundColor: fillColor,
+    pointerEvents: conversation.suppressClick ? 'none' : 'auto',
   }
 }
 
-const setFloatingCommentOffset = (conversation, e) => {
+const setFloatingCommentOffset = (conversation) => {
   floatingCommentsOffset.value = conversation.selection.selectionBounds.top;
 }
 
-const handleHighlightClick = (conversation, e) => {
+const activateComment = (conversation) => {
   conversation.isFocused = true;
   activeComment.value = conversation.conversationId;
-  setFloatingCommentOffset(conversation, e);
+  setFloatingCommentOffset(conversation);
   emit('highlight-click', conversation);
 }
 
@@ -98,7 +108,9 @@ watch(activeComment, (newVal) => {
 });
 
 defineExpose({
-  addCommentEntry
+  addCommentEntry,
+  activateComment,
+  setFloatingCommentOffset
 });
 
 </script>
@@ -107,11 +119,9 @@ defineExpose({
   <div class="comments-container" id="commentsContainer">
     <div class="comments-layer">
       <div
-          :class="{ 'sd-highlight-active': activeComment === conversation.conversationId }"
           v-for="conversation in getAllConversations"
           class="comment-anchor sd-highlight"
-          @click="(e) => handleHighlightClick(conversation, e)"
-          :id="conversation.conversationId"
+          @click="(e) => activateComment(conversation, e)"
           :data-id="conversation.conversationId"
           :style="getStyle(conversation)"></div>
     </div>
@@ -131,5 +141,11 @@ defineExpose({
   z-index: 3;
   border-radius: 4px;
   transition: background-color 250ms ease;
+}
+.bypass {
+  display: none;
+}
+.comments-container {
+  /* pointer-events: none;  */
 }
 </style>

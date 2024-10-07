@@ -1,13 +1,24 @@
 import { defineStore } from 'pinia';
 import { ref, reactive, computed } from 'vue';
+import { useCommentsStore } from './comments-store';
 import useDocument from '@/composables/use-document';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
 
+  const commentsStore = useCommentsStore();
   const documents = ref([]);
   const documentContainers = ref([]);
   const documentBounds = ref([]);
   const pages = reactive({});
+  const documentUsers = ref([]);
+  const activeZoom = ref(1);
+
+  const users = ref([
+    { name: 'Nick Bernal', email: 'nick@harbourshare.com' },
+    { name: 'Artem Nistuley', email: 'nick@harbourshare.com' },
+    { name: 'Matthew Connelly', email: 'matthew@harbourshare.com' },
+    { name: 'Eric Doversberger', email: 'eric@harbourshare.com'} 
+  ])
 
   const isReady = ref(false);
 
@@ -15,7 +26,26 @@ export const useSuperdocStore = defineStore('superdoc', () => {
   const modules = reactive({});
   
   const activeSelection = ref(null);
-  const selectionPosition = ref(null);
+  const selectionPosition = ref({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    source: null,
+  })
+
+  const reset = () => {
+    documents.value = [];
+    documentContainers.value = [];
+    documentBounds.value = [];
+    Object.assign(pages, {});
+    documentUsers.value = [];
+    isReady.value = false;
+    user.name = null;
+    user.email = null;
+    Object.assign(modules, {});
+    activeSelection.value = null;
+  }
 
   const documentScroll = reactive({
     scrollTop: 0,
@@ -23,9 +53,11 @@ export const useSuperdocStore = defineStore('superdoc', () => {
   })
 
   const init = (config) => {
-    console.debug('Initializing Superdoc with config', config);
-    const { documents: docs, modules: configModules, user: configUser } = config;
-    
+    reset();
+    const { documents: docs, modules: configModules, user: configUser, users: configUsers } = config;
+
+    documentUsers.value = configUsers || [];
+
     // Init current user
     Object.assign(user, configUser);
   
@@ -34,9 +66,14 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // Initialize document composables
     docs.forEach((doc) => {
-      const smartDoc = useDocument(doc);
+      const smartDoc = useDocument(doc, config);
       documents.value.push(smartDoc);
     });
+
+    if ('comments' in modules) {
+      commentsStore.suppressInternalExternal = modules.comments.suppressInternalExternal || false;
+    }
+    isReady.value = true;
   };
 
   const areDocumentsReady = computed(() => {
@@ -44,6 +81,10 @@ export const useSuperdocStore = defineStore('superdoc', () => {
       if (!obj.isReady) return false;
     }
     return true;
+  });
+
+  const getAttachments = computed(() => {
+    return documents.value.map((doc) => doc.attachments).flat(1);
   });
 
   const getDocument = (documentId) => documents.value.find((doc) => doc.id === documentId);
@@ -59,7 +100,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     return {
       top: totalHeight,
     }
-  }
+  };
 
   const handlePageReady = (documentId, index, containerBounds) => {
     if (!pages[documentId]) pages[documentId] = [];
@@ -75,10 +116,14 @@ export const useSuperdocStore = defineStore('superdoc', () => {
   };
 
   return {
+    commentsStore,
     documents,
     documentContainers,
     documentBounds,
     pages,
+    documentUsers,
+    users,
+    activeZoom,
     documentScroll,
 
     selectionPosition,
@@ -91,11 +136,12 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     
     // Getters
     areDocumentsReady,
+    getAttachments,
 
     // Actions
     init,
     handlePageReady,
     getDocument,
-    getPageBounds
+    getPageBounds,
   }
 });

@@ -9,31 +9,30 @@ export default defineConfig((data) => {
       vue(),
     ],
     build: {
-      target: 'es2022',
+      target: 'es2020',
       lib: {
         entry: "src/index.js",
-        formats: ['es', 'cjs'],
+        formats: ['es'],
         name: "SuperDoc",
         fileName: (format) => `superdoc.${format}.js`
       },
+      rollupOptions: {
+        external: ['vite-plugin-node-polyfills/shims/global']
+      },
       minify: false,
       sourcemap: true,
-      esbuild: {
-        drop: [],
-      },
     },
     optimizeDeps: {
+      include: ['pdfjs-dist'],
       esbuildOptions: {
-        target: 'es2022',
+        target: 'es2020',
       },
-    },
-    rollupOptions: {
     },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
-        '@assets': fileURLToPath(new URL('./src/assets', import.meta.url)),
-        '@common': fileURLToPath(new URL('../../common', import.meta.url)),
+        '@core': fileURLToPath(new URL('./src/core', import.meta.url)),
+        '@stores': fileURLToPath(new URL('./src/stores', import.meta.url)),
       },
       extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     },
