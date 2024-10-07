@@ -150,7 +150,7 @@ function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, li
         parentAttributes: item?.attributes || null,
       }
 
-      const newListItem = createListItem(schemaElements, nodeAttributes, marks);
+      const newListItem = createListItem(schemaElements, nodeAttributes, []);
       parsedListItems.push(newListItem);
     }
 
@@ -163,7 +163,7 @@ function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, li
         ;
       const lastItem = parsedListItems[parsedListItems.length - 1];
       if (!lastItem) {
-        parsedListItems.push(createListItem([sublist], nodeAttributes, marks));
+        parsedListItems.push(createListItem([sublist], nodeAttributes, []));
       } else {
         lastItem.content.push(sublist);
       }
