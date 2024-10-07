@@ -29,7 +29,6 @@ export const ListItem = Node.create({
   addAttributes() {
     return {
 
-      // The DOCX character for this list item (ie: ●, ▪)
       // lvlText: { 
       //   default: null,
       //   renderDOM: (attrs) => {
