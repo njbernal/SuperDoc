@@ -206,22 +206,6 @@ onMounted(async () => {
   </div>
 </template>
 
-<style>
-*,
-::before,
-::after {
-  box-sizing: border-box;
-}
-
-.ProseMirror p {
-  margin: 0;
-  padding: 0;
-}
-.comment-highlight {
-  /* background-color: red; */
-}
-</style>
-
 <style scoped>
 .dev-app {
   --header-height: 154px;
