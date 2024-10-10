@@ -72,12 +72,6 @@ body {
 .superdoc {
   display: flex;
 }
-.superdoc .ProseMirror p {
-  margin: 0;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-}
 
 .superdoc-field {
   border-radius: 8px;
