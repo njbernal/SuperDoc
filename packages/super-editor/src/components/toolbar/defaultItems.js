@@ -695,7 +695,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
     undo,
     overflow,
     documentMode,
-    search,
   ].map((item) => item.name);
   
   const isStickyItem = (item) => toolbarItemsSticky.includes(item.name);
