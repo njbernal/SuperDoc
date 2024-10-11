@@ -45,6 +45,7 @@ export class Editor extends EventEmitter {
     mode: 'docx',
     converter: null,
     fileSource: null,
+    initialState: null,
     documentId: null,
     injectCSS: true,
     extensions: [],
@@ -417,13 +418,17 @@ export class Editor extends EventEmitter {
    */
   #createView() {
     let doc;
-
     try {
       if (this.options.mode === 'docx') {
         doc = createDocument(
           this.converter,
           this.schema,
         );
+
+        // Use user-provided static state
+        if (this.options.initialState) {
+          doc = DOMParser.fromSchema(this.schema).parse(this.options.initialState);
+        };
       } else if (this.options.mode === 'text') {
         if (this.options.content) {
           doc = DOMParser.fromSchema(this.schema).parse(this.options.content);

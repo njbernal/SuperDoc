@@ -22,6 +22,12 @@ const props = defineProps({
     required: false,
   },
 
+  state: {
+    type: Object,
+    required: false,
+    default: () => null,
+  },
+
   options: {
     type: Object,
     required: false,
@@ -41,6 +47,7 @@ const initEditor = async () => {
     mode: 'docx',
     element: editorElem.value,
     fileSource: props.fileSource,
+    initialState: props.state,
     extensions: getStarterExtensions(),
     documentId: props.documentId,
     content,

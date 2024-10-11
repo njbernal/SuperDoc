@@ -492,6 +492,7 @@ const handlePdfClick = (e) => {
         <SuperEditor
             v-if="doc.type === DOCX"
             :file-source="doc.data"
+            :state="doc.state"
             :document-id="doc.id"
             :options="{ ...editorOptions, id: doc.id }" />
 
