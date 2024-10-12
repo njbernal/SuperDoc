@@ -240,8 +240,8 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
   }
 
   const tblPr = styleTag.elements.find((el) => el.name === 'w:tblPr');
-  if (tblPr) {
-    const tableBorders = tblPr?.elements.find((el) => el.name === 'w:tblBorders');
+  if (tblPr && tblPr.elements) {
+    const tableBorders = tblPr?.elements?.find((el) => el.name === 'w:tblBorders');
     const { elements: borderElements = [] } = tableBorders || {};
     const { borders, rowBorders } = processTableBorders(borderElements);
     if (borders) stylesToReturn.borders = borders;
