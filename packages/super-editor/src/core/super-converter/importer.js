@@ -183,8 +183,10 @@ export class DocxImporter {
     const graphicData = graphic.elements.find((el) => el.name === 'a:graphicData');
 
     const picture = graphicData.elements.find((el) => el.name === 'pic:pic');
-    const blipFill = picture.elements.find((el) => el.name === 'pic:blipFill');
-    const blip = blipFill.elements.find((el) => el.name === 'a:blip');
+    if (!picture || !picture.elements) return null;
+  
+    const blipFill = picture.elements?.find((el) => el.name === 'pic:blipFill');
+    const blip = blipFill?.elements?.find((el) => el.name === 'a:blip');
 
     const positionHTag = node.elements.find((el) => el.name === 'wp:positionH');
     const positionH = positionHTag?.elements.find((el) => el.name === 'wp:posOffset')

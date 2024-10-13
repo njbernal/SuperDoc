@@ -43,6 +43,8 @@ export function handleImageImport(node, currentFileName, docx) {
   const graphicData = graphic.elements.find((el) => el.name === 'a:graphicData');
 
   const picture = graphicData.elements.find((el) => el.name === 'pic:pic');
+  if (!picture || !picture.elements) return null;
+
   const blipFill = picture.elements.find((el) => el.name === 'pic:blipFill');
   const blip = blipFill.elements.find((el) => el.name === 'a:blip');
 
