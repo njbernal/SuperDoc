@@ -19,11 +19,11 @@ export default defineConfig((data) => {
       rollupOptions: {
         external: ['vite-plugin-node-polyfills/shims/global']
       },
-      minify: false,
-      sourcemap: true,
+      minify: true,
+      sourcemap: false,
     },
     optimizeDeps: {
-      include: ['pdfjs-dist'],
+      include: ['pdfjs-dist', 'yjs'],
       esbuildOptions: {
         target: 'es2020',
       },

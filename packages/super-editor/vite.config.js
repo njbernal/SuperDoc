@@ -30,8 +30,8 @@ export default defineConfig(({ mode }) => {
           }
         }
       },
-      minify: false,
-      sourcemap: true,
+      minify: true,
+      sourcemap: false,
       esbuild: {
         drop: [],
       },

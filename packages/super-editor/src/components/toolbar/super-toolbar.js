@@ -75,7 +75,8 @@ export class SuperToolbar extends EventEmitter {
 
   setZoom(percent_int) {
     const percent = percent_int / 100;
-    const item = this.toolbarItems.find(item => item.name.value === 'zoom');
+    const allItems = [...this.toolbarItems, ...this.overflowItems];
+    const item = allItems.find(item => item.name.value === 'zoom');
     this.#interceptedCommands.setZoom({ item, argument: percent });
   }
 
