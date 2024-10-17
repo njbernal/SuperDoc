@@ -16,14 +16,27 @@ export default defineConfig((data) => {
         name: "SuperDoc",
         fileName: (format) => `superdoc.${format}.js`
       },
-      rollupOptions: {
-        external: ['vite-plugin-node-polyfills/shims/global']
-      },
       minify: true,
       sourcemap: false,
+      rollupOptions: {
+        external: [
+          'vite-plugin-node-polyfills/shims/global',
+          'yjs',
+          '@hocuspocus/provider',
+          'pdfjs-dist',
+          'vite-plugin-node-polyfills'
+        ],
+        output: {
+          manualChunks: {
+            vue: ['vue'],
+            BlankDOCX: ['@harbour-enterprises/common/data/blank.docx?url'],
+            SuperEditor: ['@harbour-enterprises/super-editor'],
+          }
+        }
+      }
     },
     optimizeDeps: {
-      include: ['pdfjs-dist', 'yjs'],
+      include: ['pdfjs-dist', 'yjs', '@hocuspocus/provider'],
       esbuildOptions: {
         target: 'es2020',
       },
