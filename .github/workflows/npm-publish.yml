@@ -31,6 +31,11 @@ jobs:
           npm i
           cd ../..
 
+      - name: Configure Git Credentials
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Update version
         run: |
           git config user.email "superdoc@harbourshare.com"
@@ -40,11 +45,13 @@ jobs:
           git add .
           git commit -m "Bump version"
           git push
+        env:
+          GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
 
       - name: Publish
         run: |
           cd packages/superdoc
           npm publish --access public
         env:
-          TOKEN: ${{ secrets.SUPERDOC_PAT }}
+          GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
