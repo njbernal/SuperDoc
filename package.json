@@ -20,5 +20,5 @@
   "dependencies": {
     "@changesets/cli": "^2.27.9"
   },
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
