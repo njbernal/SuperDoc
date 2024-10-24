@@ -36,7 +36,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update version
+      - name: Update versions
         run: |
           cd packages/superdoc
           npm version patch
