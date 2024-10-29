@@ -41,6 +41,7 @@ jobs:
           cd packages/superdoc
           npm version patch
           git add .
+          git commit -m "Bump version"
           git push
         env:
           GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
