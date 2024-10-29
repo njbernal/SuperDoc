@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
@@ -12,6 +14,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -44,7 +47,7 @@ jobs:
           cd packages/superdoc
           npm version patch
           git add .
-          git commit -m "Bump version"
+          git commit -m "[skip ci] Bump version"
           git push
         env:
           GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
