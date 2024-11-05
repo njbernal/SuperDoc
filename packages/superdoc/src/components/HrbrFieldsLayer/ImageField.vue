@@ -45,7 +45,9 @@ const imageValue = computed(() => {
   if (typeof props.field.value === 'string') return props.field.value;
 
   const annotationIndex = multipleInputAnnotations.value.findIndex(annotation => annotation.originalAnnotationId === props.optionId);
-  const attachment = getAttachments.value.find(a => a.id === props.field.value[annotationIndex]?.referenceattachmentid || a.id === props.field.value[annotationIndex]?.userattachmentid);
+  const attachmentIndex = props.field.originalJSON.multiple ? annotationIndex : 0;
+  
+  const attachment = getAttachments.value.find(a => a.id === props.field.value[attachmentIndex]?.referenceattachmentid || a.id === props.field.value[attachmentIndex]?.userattachmentid);
   return attachment?.base64data || '';
 });
 
