@@ -1,11 +1,15 @@
 import he from 'he';
-import {EditorState} from 'prosemirror-state';
-import {DOMParser as PMDOMParser} from 'prosemirror-model';
-import {SuperConverter} from './SuperConverter.js';
-import {toKebabCase} from '@harbour-enterprises/common';
-import {inchesToTwips, pixelsToHalfPoints, pixelsToTwips} from './helpers.js';
-import {generateDocxRandomId} from '@helpers/generateDocxRandomId.js';
-import {TrackDeleteMarkName, TrackInsertMarkName, TrackMarksMarkName} from "@extensions/track-changes/constants.js";
+import { DOMParser as PMDOMParser } from 'prosemirror-model';
+import { SuperConverter } from './SuperConverter.js';
+import { toKebabCase } from '@harbour-enterprises/common';
+import { inchesToTwips, pixelsToHalfPoints, pixelsToTwips } from './helpers.js';
+import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
+import {
+  TrackDeleteMarkName,
+  TrackInsertMarkName,
+  TrackFormatMarkName
+} from "@extensions/track-changes/constants.js";
+
 
 /**
  * @typedef {Object} ExportParams
