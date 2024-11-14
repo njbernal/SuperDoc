@@ -57,7 +57,6 @@ commentsStore.proxy = proxy;
 
 // Refs
 const layers = ref(null);
-const documentContainer = ref(null);
 
 // Comments layer
 const commentsLayer = ref(null);
@@ -127,6 +126,10 @@ const onEditorFocus = ({ editor }) => {
   proxy.$superdoc.setActiveEditor(editor);
 }
 
+const onEditorDocumentLocked = ({ editor, isLocked, lockedBy }) => {
+  proxy.$superdoc.lockSuperdoc(isLocked, lockedBy);
+}
+
 const onEditorSelectionChange = ({ editor, transaction }) => {
   const { documentId } = editor.options;
   const { $from, $to } = transaction.selection;
@@ -136,6 +139,8 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
 
   const layerBounds = layers.value.getBoundingClientRect();
   const bounds = getSelectionBoundingBox();
+  if (!bounds || !layerBounds) return;
+
   const selectionBounds = {
     top: (bounds.top - layerBounds.top) / activeZoom.value,
     left: (bounds.left - layerBounds.left) / activeZoom.value,
@@ -246,19 +251,25 @@ const onCommentClicked = ({ conversation }) => {
   activeComment.value = conversationId;
 }
 
-const editorOptions = computed(() => {
-  return {
+const editorOptions = (doc) => {
+  const options = {
+    documentId: doc.id,
     user: proxy.$superdoc.user,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
     onFocus: onEditorFocus,
+    onDocumentLocked: onEditorDocumentLocked,
     onSelectionUpdate: onEditorSelectionChange,
-    onCommentsLoaded,
-    onCommentClicked,
-    onCommentsUpdate: onEditorCommentsUpdate,
-    documentMode: proxy.$documentMode,
+    // onCommentsLoaded,
+    // onCommentClicked,
+    // onCommentsUpdate: onEditorCommentsUpdate,
+    ydoc: doc.ydoc,
+    collaborationProvider: doc.provider || null,
+    isNewFile: doc.isNewFile || false,
   }
-});
+
+  return options;
+};
 
 const isCommentsEnabled = computed(() => 'comments' in modules);
 const showCommentsSidebar = computed(() => {
@@ -325,6 +336,7 @@ const handleSelectionChange = (selection) => {
     source: selection.source,
   });
 
+  if (!selectionPosition.value) return;
   const selectionIsWideEnough = Math.abs(selectionPosition.value.left - selectionPosition.value.right) > 5;
   const selectionIsTallEnough = Math.abs(selectionPosition.value.top - selectionPosition.value.bottom) > 5;
   if (!selectionIsWideEnough || !selectionIsTallEnough) {
@@ -433,12 +445,10 @@ const handlePdfClick = (e) => {
   isDragging.value = true;
   handleSelectionStart(e);
 }
-
 </script>
 
 <template>
 <div class="superdoc">
-
   <div class="layers" ref="layers">
 
     <!-- Floating tools menu (shows up when user has text selection)-->
@@ -494,12 +504,12 @@ const handlePdfClick = (e) => {
             :file-source="doc.data"
             :state="doc.state"
             :document-id="doc.id"
-            :options="{ ...editorOptions, id: doc.id }" />
+            :options="editorOptions(doc)" />
 
           <!-- omitting field props -->
           <HtmlViewer
               v-if="doc.type === HTML"
-              @ready="(id) => handleDocumentReady(id, null)" 
+              @ready="(id) => handleDocumentReady(id, null)"
               @selection-change="handleSelectionChange"
               :file-source="doc.data"
               :document-id="doc.id" />
@@ -525,7 +535,6 @@ const handlePdfClick = (e) => {
   </div>
 </div>
 </template>
-
 
 <style scoped>
 .selection-layer {
@@ -618,7 +627,7 @@ const handlePdfClick = (e) => {
   height: 50px;
   background-color: rgba(219, 219, 219, 0.6);
   border-radius: 12px;
-  z-index: 9999999;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -645,9 +654,11 @@ const handlePdfClick = (e) => {
   width: 100%;
   overflow: auto;
 }
+
 .document {
   position: relative;
 }
+
 @media (max-width: 768px) {
   .sub-document {
     max-width: 100%;

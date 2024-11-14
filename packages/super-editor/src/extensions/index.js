@@ -8,6 +8,8 @@ import { TextIndent } from './text-indent/index.js';
 import { LineHeight } from './line-height/index.js';
 import { FormatCommands } from './format-commands/index.js';
 import { DropCursor } from './dropcursor/index.js';
+import { Collaboration } from './collaboration/index.js';
+import { CollaborationCursor } from './collaboration-cursor/index.js';
 
 // Nodes extensions
 import { Document } from './document/index.js';
@@ -78,7 +80,7 @@ const getStarterExtensions = () => {
     Document,
     FontFamily,
     FontSize,
-    History,
+    // History,
     Heading,
     Italic,
     ListItem,
@@ -107,6 +109,8 @@ const getStarterExtensions = () => {
     Image,
     BookmarkStart,
     Mention,
+    Collaboration,
+    CollaborationCursor,
     TrackChanges,
     TrackInsert,
     TrackDelete,
@@ -115,7 +119,7 @@ const getStarterExtensions = () => {
 };
 
 export {
-  History,
+  // History,
   Heading,
   Document,
   Text,
@@ -155,6 +159,8 @@ export {
   BookmarkStart,
   PopoverPlugin,
   Mention,
+  Collaboration,
+  CollaborationCursor,
   TrackChanges,
   TrackInsert,
   TrackDelete,

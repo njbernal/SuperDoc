@@ -56,12 +56,8 @@ const editorOptions = computed(() => {
     user,
     onCreate,
     onCommentClicked,
-    users: [
-      { name: 'Nick Bernal', email: 'nick@harbourshare.com' },
-      { name: 'Artem Nistuley', email: 'nick@harbourshare.com' },
-      { name: 'Matthew Connelly', email: 'matthew@harbourshare.com' },
-      { name: 'Eric Doversberger', email: 'eric@harbourshare.com'} 
-    ],
+    suppressSkeletonLoader: true,
+    users: [], // For comment @-mentions, only users that have access to the document
   }
 });
 

@@ -4,6 +4,7 @@ import { SuperConverter } from './SuperConverter.js';
 import { toKebabCase } from '@harbour-enterprises/common';
 import { inchesToTwips, pixelsToHalfPoints, pixelsToTwips } from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
+import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import {
   TrackDeleteMarkName,
   TrackInsertMarkName,
@@ -47,7 +48,6 @@ import {
  * @property {string} type The mark type
  * @property {Object} attrs Any attributes for this mark
  */
-
 
 
 /**
@@ -200,7 +200,7 @@ function translateDocumentNode(params) {
   const node = {
     name: 'w:document',
     elements: [translatedBodyNode],
-    attributes: params.node.attrs.attributes,
+    attributes: DEFAULT_DOCX_DEFS,
   }
 
   return [node, params];
@@ -957,8 +957,9 @@ function prepareCheckboxAnnotation(node) {
 function prepareParagraphAnnotation(node, params) {
   const { attrs = {} } = node;
 
-  const parser = new DOMParser();
+  const parser = new window.DOMParser();
   const paragraphHtml = parser.parseFromString(attrs.rawHtml,'text/html');
+
   const state = EditorState.create({
     doc: PMDOMParser.fromSchema(params.editorSchema).parse(paragraphHtml)
   });
@@ -1279,9 +1280,6 @@ export class DocxExporter {
 
   #generateXml(node) {
     const { name, elements, attributes } = node;
-    if (!name)  {
-      console.debug('NO NAME', node);
-    }
     let tag = `<${name}`;
 
     for (let attr in attributes) {
