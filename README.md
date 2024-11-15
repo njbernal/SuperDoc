@@ -2,6 +2,11 @@
 
 ### The modern collaborative document editor for the web
 
+[![Documentation](https://img.shields.io/badge/docs-available-1355ff.svg)](https://bookish-barnacle-oz1qpw9.pages.github.io/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-1355ff.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![npm version](https://img.shields.io/npm/v/@harbour-enterprises/superdoc.svg?color=1355ff)](https://www.npmjs.com/package/@harbour-enterprises/superdoc)
+
+
 ## Features
 * ✅ View and edit DOCX and PDF documents online
 * ✅ Has excellent MS Word compatibility supporting importing/exporting, advanced formatting, comments, tracked changes, and more 
@@ -13,6 +18,9 @@
 
 ## Demo
 -- coming soon --
+
+## Documentation
+For full documentation, visit [SuperDocumentation](https://bookish-barnacle-oz1qpw9.pages.github.io/).
 
 ## Contact
 [✉️️ Email us](mailto:hello@harbourshare.com?subject=[SuperDoc]%20Project&20inquiry)
