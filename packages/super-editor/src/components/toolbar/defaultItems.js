@@ -1,6 +1,7 @@
 import { undoDepth, redoDepth } from 'prosemirror-history';
 import { h, onDeactivated } from 'vue';
 
+import { scrollToElement } from './scroll-helpers';
 import { sanitizeNumber } from './helpers';
 import { useToolbarItem } from './use-toolbar-item';
 import IconGrid from './IconGrid.vue';
@@ -340,18 +341,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
           const anchorName = link.attributes.value?.href?.slice(1);
           const container = superToolbar.activeEditor.element;
           const anchor = container.querySelector(`a[name='${anchorName}']`);
-          if (anchor) {
-            switch (anchorName) {
-              case '_top':
-                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                break;
-              case '_bottom':
-                container.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                break;
-              default:
-                anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }
+          if (anchor) scrollToElement(anchor);
         }
       })
     ]);
