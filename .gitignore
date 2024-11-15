@@ -5,6 +5,7 @@ logs
 .temp
 node_modules
 dist
+!docs/.vuepress/dist
 dist-ssr
 *.local
 .env
