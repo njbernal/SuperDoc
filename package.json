@@ -15,10 +15,17 @@
     "reset": "npm run clean:packages && rm -rf ./node_modules && rm -rf ./packages/*/node_modules && rm -rf ./package-lock.json && npm install",
     "publish": "npm run build && cd packages/superdoc && npm publish --access public",
     "fix:prettier": "prettier --write \"**/*.{js,css,vue}\"",
-    "lint:prettier": "prettier --check \"**/*.{js,css,vue}\""
+    "lint:prettier": "prettier --check \"**/*.{js,css,vue}\"",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
   },
   "devDependencies": {
+    "@vuepress/bundler-vite": "^2.0.0-rc.18",
+    "@vuepress/plugin-redirect": "^2.0.0-rc.60",
+    "@vuepress/theme-default": "^2.0.0-rc.60",
     "prettier": "3.3.3",
-    "rollup": "^4.26.0"
+    "rollup": "^4.26.0",
+    "sass-embedded": "^1.80.7",
+    "vuepress": "^2.0.0-rc.18"
   }
 }

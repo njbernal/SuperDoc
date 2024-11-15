@@ -28,3 +28,8 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# VuePress
+.vuepress/.temp
+.vuepress/.cache
+.vuepress/dist
