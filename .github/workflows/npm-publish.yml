@@ -42,6 +42,7 @@ jobs:
       - name: Update versions
         run: |
           cd packages/superdoc
+          cp README.md packages/superdoc/README.md
           npm version patch
           git add .
           git commit -m "[skip ci] Bump version"
