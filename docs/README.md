@@ -91,6 +91,10 @@ const superdoc = new Superdoc({
 })
 ```
 
+## License
+This project is licensed under the GNU Affero General Public License v3.0
+[See license](/license)
+
 ## Contact
 [✉️️ Email us](mailto:hello@harbourshare.com?subject=[SuperDoc]%20Project&20inquiry)
 \
