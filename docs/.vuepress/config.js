@@ -3,6 +3,7 @@ import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 
 export default defineUserConfig({
+  base: '/Harbour-Enterprises/SuperDoc/',
   bundler: viteBundler(),
   theme: defaultTheme({}),
 
