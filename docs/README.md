@@ -25,6 +25,35 @@ You can install from npm
 npm install @harbour-enterprises/superdoc
 ```
 
+## Packages
+There are two main packages in the repo:
+```
+/packages/super-editor  // SuperEditor
+/packages/superdoc      // SuperDoc
+```
+
+### Packages: SuperDoc
+This is the main package you'll want to use (and what is currently published to npm). This package includes SuperEditor.
+
+For a quick developer playground:
+```bash:no-line-numbers
+cd packages/superdoc
+npm install && npm run dev
+```
+
+This will run **SuperdocDev.vue**, with a quick (Vue 3) based example of how to instantiate SuperDoc.
+
+### Packages: SuperEditor
+This is our .docx editor and renderer (including the toolbar). It is included inside SuperDoc.
+
+For a quick developer playground of just SuperEditor:
+```bash:no-line-numbers
+cd packages/super-editor
+npm install && npm run dev
+```
+
+We recommend using SuperDoc mainly in your applications, but there are advanced use cases where you'll want to use the SuperEditor library directly (e.g. Running a SuperEditor for .docx parsing in a NodeJS environment in the backend).
+
 ## Basic setup
 ```js:no-line-numbers
 import '@harbour-enterprises/superdoc/style.css';
@@ -73,7 +102,7 @@ const config = {
     name: 'Superdoc User',
     email: 'superdoc@harbourshare.com',
     image: 'image-url.jpg'
-  }
+  }.
 
   // Optional: A DOM element ID to render the toolbar into
   toolbar: 'superdoc-toolbar',
@@ -92,7 +121,8 @@ const config = {
       readOnly: false, // Optional: Comments are read-only. Defaults to false
       allowResolve: true, // Optional: Allow comment resolution. Defaults to true
       suppressInternalExternal: false // Optional: Don't separate comments into internal/external. Defaults to false
-    }
+    },
+
   },
 
   // Optional: events - pass in your own functions for each
