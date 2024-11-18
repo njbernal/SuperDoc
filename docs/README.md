@@ -25,13 +25,27 @@ You can install from npm
 npm install @harbour-enterprises/superdoc
 ```
 
-## Usage
-```javascript:no-line-numbers
+## Basic setup
+```js:no-line-numbers
 import '@harbour-enterprises/superdoc/style.css';
 import { Superdoc } from '@harbour-enterprises/superdoc';
+```
 
-// Instantiate Superdoc, pass in a config
+## Initialize SuperDoc
+```js:no-line-numbers
 const superdoc = new Superdoc({
+  selector: '#superdoc',  // Required: DOM element ID for rendering
+  documents: [{           // Required: At least one document
+    id: 'my-doc-id',         // Required: Unique document identifier
+    type: 'docx',         // Required: 'pdf', 'docx', or 'html'
+    data: fileObject      // Optional: JS File object (if not using collaboration)
+  }]
+});
+```
+
+## Configuration options
+```js:no-line-numbers
+const config = {
   // Optional: Give the superdoc an id
   superdocId: 'my-superdoc-id',
 
