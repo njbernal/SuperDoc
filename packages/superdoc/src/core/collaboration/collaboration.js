@@ -1,4 +1,5 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 import { Doc as YDoc } from 'yjs';
 
@@ -29,6 +30,11 @@ function createAwarenessHandler(context, states) {
  * @returns {Object} The provider and socket
  */
 function createProvider({ config, user, documentId }) {
+  config.socket = new HocuspocusProviderWebsocket({
+    url: config.url,
+    token: 'token',
+  });
+  config.providerType = 'hocuspocus';
   const providers = {
     hocuspocus: () => createHocuspocusProvider({ config, user, documentId }),
   };
