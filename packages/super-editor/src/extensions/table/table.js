@@ -45,13 +45,21 @@ export const Table = Node.create({
         }
       },
       tableLayout: { rendered: false, },
+      borderCollapse: {
+        default: null,
+        rendered: false,
+      },
+      tableCellSpacing: {
+        default: null,
+        rendered: false,
+      },
       borders: {
         default: () => ({}),
-        renderDOM({ borders = {} }) {
+        renderDOM({ borders, borderCollapse }) {
           if (!borders) return {};
           const style = Object.entries(borders).reduce((acc, [key, { size, color }]) => {
             return `${acc}border-${key}: ${size}px solid ${color || 'black'};`;
-          }, 'border-collapse: collapse;');
+          }, `border-collapse: ${borderCollapse || 'collapse'};`);
           return { style }
         }
       },

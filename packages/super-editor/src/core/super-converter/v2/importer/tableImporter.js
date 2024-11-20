@@ -82,6 +82,15 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
       }
     }
     
+    const tblCellSpacing = tblPr.elements.find((el) => el.name === 'w:tblCellSpacing');
+    if (tblCellSpacing) {
+      attrs['tableCellSpacing'] = {
+        w: tblCellSpacing.attributes['w:w'],
+        type: tblCellSpacing.attributes['w:type'],
+      };
+      attrs['borderCollapse'] = 'separate';
+    }
+    
     // TODO: What does this do?
     // const tblLook = tblPr.elements.find((el) => el.name === 'w:tblLook');
     const tblGrid = node.elements.find((el) => el.name === 'w:tblGrid');
@@ -92,7 +101,7 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
     const borderData = Object.keys(borders)?.length ? borders : referencedStyles?.borders;
     const borderRowData = Object.keys(rowBorders)?.length ? rowBorders : referencedStyles?.rowBorders;
     attrs['borders'] = borderData;
-
+    
     const content = rows.map((row) => handleTableRowNode(
       row,
       borderRowData,
@@ -156,7 +165,7 @@ export function handleTableCellNode(node, styleTag, docx, nodeListHandler, insid
   if (fontSize) attributes['fontSize'] = fontSize;
   if (fontFamily) attributes['fontFamily'] = fontFamily['ascii'];
   if (inlineBorders) attributes['borders'] = inlineBorders;
-
+  
   return {
     type: 'tableCell',
     content: nodeListHandler.handler(node.elements, docx, insideTrackChange),
@@ -171,7 +180,7 @@ const processBorder = (borders, direction) => {
     const color = borderAttrs['w:color'];
     if (color) border['color'] = `#${color}`;
     const size = borderAttrs['w:sz'];
-    if (size) border['size'] = halfPointToPixels(size);
+    if (size) border['size'] = eigthPointsToPixels(size);
     return border;
   }
   return null;
@@ -282,13 +291,14 @@ function processTableBorders(borderElements) {
     const color = attributes['w:color'];
     const size = attributes['w:sz'];
     if (color && color !== 'auto') attrs['color'] = color.startsWith('#') ? color : `#${color}`;
-    if (size && size !== 'auto') attrs['size'] = halfPointToPixels(size);
+    if (size && size !== 'auto') attrs['size'] = eigthPointsToPixels(size);
 
     const rowBorderNames = ['insideH', 'insideV'];
     if (rowBorderNames.includes(borderName)) rowBorders[borderName] = attrs;
     borders[borderName] = attrs;
   });
 
+  //debugger
   return {
     borders,
     rowBorders
@@ -304,7 +314,7 @@ function processTableBorders(borderElements) {
  * @param {boolean} insideTrackChange
  * @returns {*}
  */
-export function handleTableRowNode(node, rowBorders, styleTag, docx, nodeListHandler, insideTrackChange) {
+export function handleTableRowNode(node, rowBorders, styleTag, docx, nodeListHandler,  insideTrackChange) {
   const attrs = {};
 
   const tPr = node.elements.find((el) => el.name === 'w:trPr');
