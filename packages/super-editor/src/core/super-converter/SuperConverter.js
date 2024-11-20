@@ -207,7 +207,7 @@ class SuperConverter {
     const relationships = relsData.elements.find(x => x.name === 'Relationships');
     relationships.elements.push(...rels);
     relationships.elements.forEach(element => {
-      element.attributes.Target = element.attributes.Target.replace(/&/g,'&amp;').replace(/-/g,'&#45;');
+      element.attributes.Target = element.attributes?.Target?.replace(/&/g,'&amp;').replace(/-/g,'&#45;');
     })
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   }

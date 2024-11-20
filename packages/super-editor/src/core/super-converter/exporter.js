@@ -1,5 +1,6 @@
 import he from 'he';
 import { DOMParser as PMDOMParser } from 'prosemirror-model';
+import { EditorState } from 'prosemirror-state';
 import { SuperConverter } from './SuperConverter.js';
 import { toKebabCase } from '@harbour-enterprises/common';
 import {inchesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsToTwips} from './helpers.js';
@@ -996,7 +997,7 @@ function translateImageNode(params, imageSize) {
   };
   
   if (!imageId) {
-    const type = attrs.imageSrc.split(';')[0].split('/')[1];
+    const type = attrs.imageSrc?.split(';')[0].split('/')[1];
     const imageUrl = `media/${attrs.fieldId}.${type}`;
     imageId = addNewImageRelationship(params, imageUrl);
 
