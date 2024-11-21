@@ -6,6 +6,7 @@ import '@harbour-enterprises/common/icons/icons.css';
 import EventEmitter from 'eventemitter3'
 import { Doc as YDoc, Array as YArray } from 'yjs';
 import { v4 as uuidv4 } from 'uuid';
+import { HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 
 import { DOCX, PDF, HTML, documentTypes } from '@harbour-enterprises/common';
 import { SuperToolbar } from '@harbour-enterprises/super-editor';
@@ -84,6 +85,7 @@ export class Superdoc extends EventEmitter {
 
     this.user = config.user; // The current user
     this.users = config.users || []; // All users who have access to this superdoc
+    this.socket = null;
 
     // Toolbar
     this.toolbarElement = config.toolbar;
@@ -163,6 +165,10 @@ export class Superdoc extends EventEmitter {
   async #initCollaboration(collaborationModuleConfig) {
     if (!collaborationModuleConfig) return;
 
+    this.socket = new HocuspocusProviderWebsocket({
+      url: collaborationModuleConfig.url,
+    });
+
     // Initialize global superdoc sync - for comments, etc.
     // TODO: Leaving it in here for reference as this will be complete soon.
     // this.ydoc = new YDoc();
@@ -183,11 +189,12 @@ export class Superdoc extends EventEmitter {
         config: collaborationModuleConfig,
         user: this.config.user,
         documentId: doc.id,
+        socket: this.socket,
       };
 
-      const { provider, socket, ydoc } = createProvider(options);
+      const { provider, ydoc } = createProvider(options);
       doc.provider = provider;
-      doc.socket = socket;
+      doc.socket = this.socket;
       doc.ydoc = ydoc;
       provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(this, states));
 

@@ -1,5 +1,4 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
-import { HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 import { Doc as YDoc } from 'yjs';
 
@@ -29,14 +28,10 @@ function createAwarenessHandler(context, states) {
  * @param {string} param.documentId The document ID
  * @returns {Object} The provider and socket
  */
-function createProvider({ config, user, documentId }) {
-  config.socket = new HocuspocusProviderWebsocket({
-    url: config.url,
-    token: 'token',
-  });
+function createProvider({ config, user, documentId, socket }) {
   config.providerType = 'hocuspocus';
   const providers = {
-    hocuspocus: () => createHocuspocusProvider({ config, user, documentId }),
+    hocuspocus: () => createHocuspocusProvider({ config, user, documentId, socket }),
   };
   return providers[config.providerType]();
 };
@@ -50,14 +45,13 @@ function createProvider({ config, user, documentId }) {
  * @param {string} param.documentId The document ID
  * @returns {Object} The provider and socket
  */
-function createHocuspocusProvider({ config, user, documentId }) {
+function createHocuspocusProvider({ config, user, documentId, socket }) {
   const ydoc = new YDoc({ gc: false });
   const provider = new HocuspocusProvider({
-    websocketProvider: config.socket,
+    websocketProvider: socket,
     name: documentId,
     document: ydoc,
-    token: config.token || 'token',
-    preserveConnection: false,
+    token: config.token || '',
     onAuthenticationFailed,
     onDisconnect,
   });
