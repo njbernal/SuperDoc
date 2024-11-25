@@ -9,7 +9,6 @@ import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 import EditorInputs from './EditorInputs.vue';
 
-
 /* For local dev */
 let superdoc = shallowRef(null);
 let activeEditor = shallowRef(null);
@@ -73,6 +72,7 @@ const init = async () => {
     },
     onEditorCreate,
   }
+
   superdoc.value = new Superdoc(config);
 };
 

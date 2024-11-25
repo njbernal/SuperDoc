@@ -3,6 +3,8 @@ import { fileURLToPath, URL } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import vue from '@vitejs/plugin-vue'
 
+import { version } from './package.json';
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command}) => {
@@ -10,6 +12,9 @@ export default defineConfig(({ mode, command}) => {
   if (mode !== 'test') plugins.push(nodePolyfills());
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(version),
+    },
     plugins,
     build: {
       target: 'es2022',

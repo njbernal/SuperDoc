@@ -32,6 +32,8 @@ export class Superdoc extends EventEmitter {
 
   config;
 
+  version;
+
   documentMode;
 
   version;
@@ -73,6 +75,7 @@ export class Superdoc extends EventEmitter {
       ...config
     }
 
+    this.version = __APP_VERSION__;
     this.superdocId = config.superdocId || uuidv4();
     console.debug('🦋 [superdoc] Superdoc ID:', this.superdocId);
 
