@@ -34,6 +34,7 @@ export default defineConfig(({ mode, command}) => {
           'docx-zipper': '@harbour-enterprises/super-editor/docx-zipper',
           'toolbar': '@harbour-enterprises/super-editor/toolbar',
           'super-input': '@harbour-enterprises/super-editor/super-input',
+          'common': '@harbour-enterprises/common',
         },
         external: [
           'yjs',
