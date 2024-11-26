@@ -17,6 +17,9 @@
     "./docx-zipper": {
       "import": "./dist/docx-zipper.es.js"
     },
+    "./super-editor": {
+      "import": "./dist/super-editor.es.js"
+    },
     "./style.css": "./dist/style.css"
   },
   "main": "./dist/superdoc.es.js",
