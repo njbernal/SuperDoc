@@ -16,7 +16,8 @@
     "reset": "npm run clean:packages && rm -rf ./node_modules && rm -rf ./packages/*/node_modules && rm -rf ./package-lock.json && npm install",
     "publish": "npm run build && cd packages/superdoc && npm publish --access public",
     "fix:prettier": "prettier --write \"**/*.{js,css,vue}\"",
-    "lint:prettier": "prettier --check \"**/*.{js,css,vue}\""
+    "lint:prettier": "prettier --check \"**/*.{js,css,vue}\"",
+    "prettier": "if [ \"$(echo $npm_config_argv | grep -o '\"remain\":\\[\\]' | wc -l)\" -eq 1 ]; then echo 'Error: No arguments passed to prettier'; exit 1; fi && npx prettier --write"
   },
   "devDependencies": {
     "prettier": "3.3.3",
