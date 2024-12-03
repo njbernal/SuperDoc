@@ -823,6 +823,7 @@ function translateTableCell(params) {
  */
 function generateTableCellProperties(node) {
   const elements = [];
+
   const { attrs } = node;
   const { width, cellWidthType = 'dxa', background = {}, colspan } = attrs;
 
@@ -867,8 +868,8 @@ function generateTableCellProperties(node) {
     elements.push(vertAlignElement);
   }
   
-  const { borders } = attrs;
-  if (Object.keys(borders).length) {
+  const { borders = {} } = attrs;
+  if (!!borders && Object.keys(borders).length) {
     const cellBordersElement = {
       name: 'w:tcBorders',
       elements: Object.entries(borders).map(([key, value]) => ({

@@ -181,16 +181,6 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <div class="dev-app__inputs-panel">
-          <div class="dev-app__inputs-panel-content">
-            <EditorInputs
-              v-bind="{ activeSigner, signersListInfo }" 
-              @dragged-input-id-change="updateDraggedInputId"
-              @active-signer-change="updateActiveSigner"
-            />
-          </div>
-        </div>
-
         <div class="dev-app__view">
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">
@@ -261,9 +251,8 @@ onMounted(async () => {
 }
 
 .dev-app__main {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 300px;
-  overflow-y: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .dev-app__view {
