@@ -23,12 +23,10 @@ jobs:
             
             // Prepare the Linear issue creation query
             const query = `
-              mutation CreateIssue($input: CreateIssueInput!) {
+              mutation IssueCreate($input: IssueCreateInput!) {
                 issueCreate(input: $input) {
-                  success
                   issue {
-                    id
-                    identifier
+                    id,
                     url
                   }
                 }
@@ -40,7 +38,6 @@ jobs:
                 teamId: LINEAR_TEAM_ID,
                 title: issue.title,
                 description: `${issue.body}\n\nCreated from GitHub Issue: ${issue.html_url}`,
-                // You can add additional fields here like priority, labels, etc.
               }
             };
             
