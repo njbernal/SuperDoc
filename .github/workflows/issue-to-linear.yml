@@ -61,15 +61,6 @@ jobs:
                 throw new Error(`Linear API Error: ${JSON.stringify(data.errors)}`);
               }
               
-              // Comment on the GitHub issue with the Linear link
-              const linearIssue = data.data.issueCreate.issue;
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                body: `✅ Linear issue created: ${linearIssue.url}`
-              });
-              
             } catch (error) {
               core.setFailed(`Action failed: ${error}`);
             }
