@@ -82,9 +82,6 @@ export class Superdoc extends EventEmitter {
     this.version = __APP_VERSION__;
     this.superdocId = config.superdocId || uuidv4();
 
-    // Preprocess documents to transform URLs into file objects
-    this.documents = this.config.documents;
-
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
 
@@ -100,7 +97,6 @@ export class Superdoc extends EventEmitter {
     this.toolbar = null;
     this.isDev = this.config.isDev || false;
 
-    this.superdocStore.init(this.config);
     this.activeEditor = null;
 
     this.app.mount(this.config.selector);
@@ -136,6 +132,7 @@ export class Superdoc extends EventEmitter {
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.version = this.config.version;
+    this.superdocStore.init(this.config);
   }
 
   #initListeners() {
@@ -154,7 +151,7 @@ export class Superdoc extends EventEmitter {
     * @param {Object} config
   */
   async #initCollaboration({ collaboration: collaborationModuleConfig } = {}) {
-    if (!collaborationModuleConfig) return;
+    if (!collaborationModuleConfig) return this.config.documents;
 
     this.socket = new HocuspocusProviderWebsocket({
       url: collaborationModuleConfig.url,
@@ -174,7 +171,7 @@ export class Superdoc extends EventEmitter {
 
     // Initialize individual document sync
     const processedDocuments = [];
-    this.documents.forEach((doc) => {
+    this.config.documents.forEach((doc) => {
 
       const options = {
         config: collaborationModuleConfig,
@@ -193,7 +190,7 @@ export class Superdoc extends EventEmitter {
       processedDocuments.push(doc);
     });
 
-    this.documents = processedDocuments;
+    return processedDocuments;
   }
 
   broadcastDocumentReady() {
@@ -294,7 +291,7 @@ export class Superdoc extends EventEmitter {
    * @param {boolean} lock 
    */
   setLocked(lock = true) {
-    this.documents.forEach((doc) => {
+    this.config.documents.forEach((doc) => {
       const metaMap = doc.ydoc.getMap('meta');
       doc.ydoc.transact(() => {
         metaMap.set('locked', lock);

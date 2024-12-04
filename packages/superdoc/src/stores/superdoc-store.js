@@ -102,11 +102,11 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // If in collaboration mode, return the document as is
     if (currentConfig.value?.modules.collaboration && !doc.isNewFile) {
-      return { ...doc, data: null, url: null, provider: doc.provider, socket: doc.socket };
+      return { ...doc, data: null, url: null };
     }
 
     // If we already have a File object, return it
-    else if (doc.data) return doc;
+    if (doc.data) return doc;
 
     // If we don't have data, but have a URL and no type, we have an error
     else if (!doc.data && doc.url && !doc.type) {
@@ -118,7 +118,8 @@ export const useSuperdocStore = defineStore('superdoc', () => {
       const fileObject = await getFileObject(doc.url, doc.name || 'document', doc.type);
       return { ...doc, data: fileObject };
     }
-
+    // Invalid configuration
+    throw new Error('Document could not be initialized:', doc);
   };
 
   const areDocumentsReady = computed(() => {
