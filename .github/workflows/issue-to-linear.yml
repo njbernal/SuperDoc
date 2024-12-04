@@ -7,6 +7,7 @@ on:
 env:
   LINEAR_TEAM_ID: 79bad215-a49a-4788-ad7e-cc7a77551325
   LINEAR_TOKEN: ${{ secrets.LINEAR_TOKEN }}
+  LINEAR_STATE_ID: a01c9bd3-963b-43dc-8ae5-ff98297682aa # Triage
 
 jobs:
   create-linear-issue:
@@ -18,6 +19,7 @@ jobs:
           script: |
             const LINEAR_TOKEN = process.env.LINEAR_TOKEN;
             const LINEAR_TEAM_ID = process.env.LINEAR_TEAM_ID;
+            const LINEAR_STATE_ID = process.env.LINEAR_STATE_ID;
             
             const issue = context.payload.issue;
             
@@ -38,6 +40,7 @@ jobs:
                 teamId: LINEAR_TEAM_ID,
                 title: issue.title,
                 description: `${issue.body}\n\nCreated from GitHub Issue: ${issue.html_url}`,
+                stateId: LINEAR_STATE_ID,
               }
             };
             
