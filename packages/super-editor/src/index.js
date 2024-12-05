@@ -6,6 +6,7 @@ import { getStarterExtensions } from '@extensions/index.js';
 import { SuperToolbar } from '@components/toolbar/super-toolbar.js';
 import { DocxZipper, helpers } from '@core/index.js';
 import { Editor } from '@core/Editor.js';
+import { createZip } from '@core/super-converter/zipper.js';
 import SuperEditor from '@components/SuperEditor.vue';
 import BasicUpload from './dev/components/BasicUpload.vue';
 import Toolbar from '@components/toolbar/Toolbar.vue';
@@ -39,4 +40,5 @@ export {
   getMarksFromSelection,
   getActiveFormatting,
   getStarterExtensions,
+  createZip,
 }

@@ -23,6 +23,9 @@
     "./common": {
       "import": "./dist/common.es.js"
     },
+    "./zipper": {
+      "import": "./dist/zipper.es.js"
+    },
     "./style.css": "./dist/style.css"
   },
   "main": "./dist/superdoc.es.js",
