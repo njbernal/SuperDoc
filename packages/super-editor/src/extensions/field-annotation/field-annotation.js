@@ -349,6 +349,8 @@ export const FieldAnnotation = Node.create({
       }) => {
         if (!dispatch) return true;
 
+        // Specify that we are updating annotations so they are not detected as deletions
+        tr.setMeta('fieldAnnotationUpdate');
         annotations
           .forEach((annotation) => {
             let { pos, node } = annotation;
