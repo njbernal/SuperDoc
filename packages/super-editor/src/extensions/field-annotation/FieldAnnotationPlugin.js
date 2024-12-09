@@ -1,4 +1,5 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
+import { Slice, Fragment } from 'prosemirror-model';
 import { trackFieldAnnotationsDeletion } from './fieldAnnotationHelpers/trackFieldAnnotationsDeletion.js';
 
 export const FieldAnnotationPlugin = (options = {}) => {
@@ -61,6 +62,17 @@ export const FieldAnnotationPlugin = (options = {}) => {
           return true;
         }
 
+        return false;
+      },
+      
+      handlePaste(view, event, slice) {
+        const content = slice.content.content.filter(item => item.type.name === 'fieldAnnotation')
+        if (content.length) {
+          editor.emit('fieldAnnotationPaste', {
+            content,
+            editor,
+          });
+        }
         return false;
       },
 
