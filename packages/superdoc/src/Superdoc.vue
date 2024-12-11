@@ -255,6 +255,7 @@ const editorOptions = (doc) => {
   const options = {
     documentId: doc.id,
     user: proxy.$superdoc.user,
+    colors: proxy.$superdoc.colors,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
     onFocus: onEditorFocus,

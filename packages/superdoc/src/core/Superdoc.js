@@ -44,6 +44,7 @@ export class Superdoc extends EventEmitter {
     documentMode: 'viewing',
     documents: [], // The documents to load
 
+    colors: [], // Optional: Colors to use for user awareness
     user: { name: null, email: null }, // The current user of this superdoc
     users: [], // Optional: All users of this superdoc (can be used for @-mentions)
 
@@ -83,6 +84,7 @@ export class Superdoc extends EventEmitter {
 
     this.version = __APP_VERSION__;
     this.superdocId = config.superdocId || uuidv4();
+    this.colors = this.config.colors;
 
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
@@ -188,7 +190,6 @@ export class Superdoc extends EventEmitter {
       doc.provider = provider;
       doc.socket = this.socket;
       doc.ydoc = ydoc;
-      provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(this, states));
 
       console.debug('🦋 [superdoc] Document:', doc);
       processedDocuments.push(doc);

@@ -10,11 +10,11 @@ import { Doc as YDoc } from 'yjs';
  * @param {*} states The awareness states
  * @returns {void}
  */
-function createAwarenessHandler(context, states) {
+function createAwarenessHandler(context, states, colors) {
   // Context is the superdoc instance
   // Since co-presence is handled outside of superdoc,
   // we need to emit an awareness-update event
-  context.emit('awareness-update', awarenessStatesToArray(states));
+  context.emit('awareness-update', awarenessStatesToArray(states, colors));
 }
 
 /**
@@ -56,7 +56,7 @@ function createHocuspocusProvider({ config, user, documentId, socket }) {
     onConnect,
     onDisconnect,
   });
-
+  
   provider.setAwarenessField('user', user);
   return { provider, ydoc };
 };

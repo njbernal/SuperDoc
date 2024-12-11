@@ -49,6 +49,7 @@ export class Editor extends EventEmitter {
     user: null,
     media: {},
     mode: 'docx',
+    colors: [],
     converter: null,
     fileSource: null,
     initialState: null,
