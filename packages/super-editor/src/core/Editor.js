@@ -83,6 +83,7 @@ export class Editor extends EventEmitter {
   constructor(options) {
     super();
 
+    options.element = options.isHeadless ? null : options.element || document.createElement('div');
     this.#checkHeadless(options);
     this.setOptions(options);
     this.setDocumentMode(options.documentMode);
@@ -316,6 +317,7 @@ export class Editor extends EventEmitter {
    * since we need to insert the data only after the provider has synced.
    */
   #insertNewFileData() {
+    if (!this.options.isNewFile) return;
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     this.view.dispatch(tr);
@@ -333,7 +335,6 @@ export class Editor extends EventEmitter {
    * @param options List of options.
    */
   setOptions(options) {
-    options.element = options.element || document.createElement('div');
     this.options = {
       ...this.options,
       ...options,

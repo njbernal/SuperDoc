@@ -53,6 +53,7 @@ function createHocuspocusProvider({ config, user, documentId, socket }) {
     document: ydoc,
     token: config.token || '',
     onAuthenticationFailed,
+    onConnect,
     onDisconnect,
   });
 
@@ -62,6 +63,10 @@ function createHocuspocusProvider({ config, user, documentId, socket }) {
 
 const onAuthenticationFailed = (data) => {
   console.warn('🔒 [superdoc] Authentication failed', data);
+}
+
+const onConnect = () => {
+  console.warn('🔌 [superdoc] Connected');
 }
 
 const onDisconnect = (data) => {

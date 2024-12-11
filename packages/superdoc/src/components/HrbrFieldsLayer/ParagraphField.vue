@@ -19,11 +19,9 @@ const props = defineProps({
 });
 
 const getStyle = computed(() => {
+  const fontSize = props.styleOverride?.originalFontSize || 120;
   return {
-    /* commented out to allow paragraph to grow with content */
-
-    // maxHeight: props.styleOverride.coordinates?.minHeight,
-    // maxWidth: props.styleOverride.coordinates?.minWidth,
+    fontSize: `${fontSize / 10}px`,
   }
 });
 

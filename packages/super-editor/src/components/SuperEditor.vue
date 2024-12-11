@@ -38,7 +38,8 @@ const props = defineProps({
 });
 
 const editorReady = ref(false);
-const editor = shallowRef();
+let editor;
+
 const editorElem = ref(null);
 let dataPollTimeout;
 
@@ -88,7 +89,7 @@ const initializeData = async () => {
 };
 
 const initEditor = async (content, media = {}) => {
-  editor.value = new Editor({
+  editor = new Editor({
     mode: 'docx',
     element: editorElem.value,
     fileSource: props.fileSource,
@@ -99,7 +100,12 @@ const initEditor = async (content, media = {}) => {
     users: [], // For comment @-mentions, only users that have access to the document
     ...props.options,
     onCollaborationReady,
+    onCreate,
   });
+};
+
+const onCreate = () => {
+  editorReady.value = true; 
 };
 
 const onCollaborationReady = (data) => {
@@ -114,8 +120,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopPolling();
-  editor.value?.destroy();
-  editor.value = null;
+  editor?.destroy();
+  editor = null;
 });
 </script>
 

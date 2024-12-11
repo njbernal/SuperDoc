@@ -72,13 +72,13 @@ export const Collaboration = Extension.create({
 const createSyncPlugin = (ydoc, editor) => {
   const fragment = ydoc.getXmlFragment("supereditor");
 
-  console.debug('--- Setting initial content ---', editor.options.content)
   const onFirstRender = () => {
+    if (!editor.options.isNewFile) return;
+    console.debug('[super-editor] createSyncPlugin')
     const metaMap = ydoc.getMap('meta');
     metaMap.set('docx', editor.options.content);
   };
 
-  window.supereditor = editor;
   return [ySyncPlugin(fragment, { onFirstRender }), fragment];
 };
 
