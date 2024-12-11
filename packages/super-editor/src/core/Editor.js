@@ -301,7 +301,6 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
-    this.options.isNewFile = false;
     const postSyncInit = () => {
       provider.off('synced', postSyncInit);
       this.#insertNewFileData();
@@ -319,6 +318,7 @@ export class Editor extends EventEmitter {
    */
   #insertNewFileData() {
     if (!this.options.isNewFile) return;
+    this.options.isNewFile = false;
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     this.view.dispatch(tr);
