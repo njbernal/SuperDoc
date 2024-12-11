@@ -184,12 +184,14 @@ export class Superdoc extends EventEmitter {
         user: this.config.user,
         documentId: doc.id,
         socket: this.socket,
+        superdocInstance: this,
       };
 
       const { provider, ydoc } = createProvider(options);
       doc.provider = provider;
       doc.socket = this.socket;
       doc.ydoc = ydoc;
+      doc.type = DOCX;
 
       console.debug('🦋 [superdoc] Document:', doc);
       processedDocuments.push(doc);

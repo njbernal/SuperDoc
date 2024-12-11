@@ -114,10 +114,6 @@ const initSyncListener = (ydoc, editor, extension) => {
   const provider = editor.options.collaborationProvider;
   if (!provider) return;
 
-  provider.on("disconnect", () => {
-    this.editor.view.destroy();
-  });
-
   const emit = () => {
     extension.options.isReady = true;
     provider.off('synced', emit);

@@ -28,10 +28,10 @@ function createAwarenessHandler(context, states, colors) {
  * @param {string} param.documentId The document ID
  * @returns {Object} The provider and socket
  */
-function createProvider({ config, user, documentId, socket }) {
+function createProvider({ config, user, documentId, socket, superdocInstance }) {
   config.providerType = 'hocuspocus';
   const providers = {
-    hocuspocus: () => createHocuspocusProvider({ config, user, documentId, socket }),
+    hocuspocus: () => createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }),
   };
   return providers[config.providerType]();
 };
@@ -45,7 +45,8 @@ function createProvider({ config, user, documentId, socket }) {
  * @param {string} param.documentId The document ID
  * @returns {Object} The provider and socket
  */
-function createHocuspocusProvider({ config, user, documentId, socket }) {
+function createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }) {
+
   const ydoc = new YDoc({ gc: false });
   const provider = new HocuspocusProvider({
     websocketProvider: socket,
@@ -53,8 +54,8 @@ function createHocuspocusProvider({ config, user, documentId, socket }) {
     document: ydoc,
     token: config.token || '',
     onAuthenticationFailed,
-    onConnect,
-    onDisconnect,
+    onConnect: () => onConnect(superdocInstance),
+    onDisconnect: () => onDisconnect(superdocInstance),
   });
   
   provider.setAwarenessField('user', user);
@@ -63,14 +64,21 @@ function createHocuspocusProvider({ config, user, documentId, socket }) {
 
 const onAuthenticationFailed = (data) => {
   console.warn('🔒 [superdoc] Authentication failed', data);
-}
+};
 
-const onConnect = () => {
+const destroyView = (superdocInstance) => {
+  const editor = superdocInstance.superdocStore.documents[0].getEditor();
+  editor?.view?.destroy();
+};
+
+const onConnect = (superdocInstance) => {
   console.warn('🔌 [superdoc] Connected');
+  destroyView(superdocInstance);
 }
 
-const onDisconnect = (data) => {
-  console.warn('🔌 [superdoc] Disconnected', data);
+const onDisconnect = (superdocInstance) => {
+  console.warn('🔌 [superdoc] Disconnected');
+  destroyView(superdocInstance);
 }
 
 export { createAwarenessHandler, createProvider };
