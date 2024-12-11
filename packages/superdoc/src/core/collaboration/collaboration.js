@@ -71,12 +71,12 @@ const getEditor = (superdocInstance) => {
 
 const onConnect = (superdocInstance) => {
   const editor = getEditor(superdocInstance);
-  console.warn('🔌 [superdoc] Connected');
-  if (superdocInstance.config.documents[0]) editor?.view?.destroy();
+  console.warn('🔌 [superdoc] Connected -- ', superdocInstance.config.documents[0]);
+  if (superdocInstance.config.documents[0]?.hasDisconnected) editor?.view?.destroy();
 };
 
 const onDisconnect = (superdocInstance) => {
-  console.warn('🔌 [superdoc] Disconnected');
+  console.warn('🔌 [superdoc] Disconnected', superdocInstance.config.documents[0]);
   const editor = getEditor(superdocInstance);
   superdocInstance.config.documents[0].hasDisconnected = true;
   editor?.view?.destroy();
