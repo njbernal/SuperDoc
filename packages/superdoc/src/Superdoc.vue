@@ -27,7 +27,6 @@ const emit = defineEmits(['selection-update']);
 const {
   documents,
   isReady,
-  documentContainers,
   areDocumentsReady,
   selectionPosition,
   activeSelection,
@@ -496,7 +495,7 @@ const handlePdfClick = (e) => {
           :user="user"
           @highlight-click="handleHighlightClick" />
 
-      <div class="sub-document" v-for="doc in documents" :key="doc.id" ref="documentContainers">
+      <div class="sub-document" v-for="doc in documents" :key="doc.id">
         <!-- PDF renderer -->
 
         <PdfViewer

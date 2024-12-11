@@ -46,7 +46,6 @@ function createProvider({ config, user, documentId, socket, superdocInstance }) 
  * @returns {Object} The provider and socket
  */
 function createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }) {
-
   const ydoc = new YDoc({ gc: false });
   const provider = new HocuspocusProvider({
     websocketProvider: socket,
@@ -66,19 +65,21 @@ const onAuthenticationFailed = (data) => {
   console.warn('🔒 [superdoc] Authentication failed', data);
 };
 
-const destroyView = (superdocInstance) => {
-  const editor = superdocInstance.superdocStore.documents[0].getEditor();
-  editor?.view?.destroy();
+const getEditor = (superdocInstance) => {
+  return superdocInstance.superdocStore.documents[0].getEditor();
 };
 
 const onConnect = (superdocInstance) => {
+  const editor = getEditor(superdocInstance);
   console.warn('🔌 [superdoc] Connected');
-  destroyView(superdocInstance);
-}
+  if (superdocInstance.config.documents[0]) editor?.view?.destroy();
+};
 
 const onDisconnect = (superdocInstance) => {
   console.warn('🔌 [superdoc] Disconnected');
-  destroyView(superdocInstance);
-}
+  const editor = getEditor(superdocInstance);
+  superdocInstance.config.documents[0].hasDisconnected = true;
+  editor?.view?.destroy();
+};
 
 export { createAwarenessHandler, createProvider };
