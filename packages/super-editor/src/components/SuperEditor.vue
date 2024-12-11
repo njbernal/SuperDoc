@@ -99,17 +99,15 @@ const initEditor = async (content, media = {}) => {
     media,
     users: [], // For comment @-mentions, only users that have access to the document
     ...props.options,
-    onCollaborationReady,
-    onCreate,
   });
-};
 
-const onCreate = () => {
-  editorReady.value = true; 
-};
+  editor.on('create', () => {
+    editorReady.value = true;
+  });
 
-const onCollaborationReady = (data) => {
-  editorReady.value = true; 
+  editor.on('collaborationUpdate', () => {
+    editorReady.value = true;
+  });
 };
 
 onMounted(() => {
