@@ -119,8 +119,6 @@ export class SuperToolbar extends EventEmitter {
     if (el) this.toolbar = this.app.mount(el);
     this.activeEditor = config.editor || null;
 
-    this.#initDefaultFonts();
-
     this.#updateToolbarState();
   }
 
@@ -157,6 +155,7 @@ export class SuperToolbar extends EventEmitter {
   }
 
   #initDefaultFonts() {
+    if (!this.activeEditor || !this.activeEditor.converter) return;
     const { typeface = 'Arial', fontSizePt = 12 } = this.activeEditor.converter.getDocumentDefaultStyles() ?? {};
     const fontSizeItem = this.toolbarItems.find(item => item.name.value === 'fontSize');
     fontSizeItem.defaultLabel.value = fontSizePt;
@@ -171,7 +170,8 @@ export class SuperToolbar extends EventEmitter {
    */
   #updateToolbarState() {
     this.#updateToolbarHistory();
-  
+    this.#initDefaultFonts();
+
     // Decativate toolbar items if no active editor
     // This will skip buttons that are marked as allowWithoutEditor
     if (!this.activeEditor || this.documentMode === 'viewing') return this.#deactivateAll();
