@@ -387,6 +387,14 @@ export class Superdoc extends EventEmitter {
   destroy() {
     if (!this.app) return;
     this.log('[superdoc] Unmounting app');
+
+    this.config.documents.forEach((doc) => {
+      doc.ydoc.destroy();
+      doc.provider.destroy();
+    });
+
+    this.superdocStore.reset();
+
     this.app.unmount();
     this.removeAllListeners();
     delete this.app.config.globalProperties.$config;
