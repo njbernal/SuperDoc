@@ -11,6 +11,7 @@ class DocxZipper {
     this.zip = new JSZip();
     this.files = [];
     this.media = {};
+    this.mediaFiles = {};
   }
 
   /** 
@@ -49,6 +50,12 @@ class DocxZipper {
 
       else if (zipEntry.name.startsWith('word/media')) {
         const blob = await zipEntry.async('blob');
+
+        // Create an Object of media Uint8Arrays for collaboration
+        // These will be shared via ydoc
+        const fileUint8Array = await zipEntry.async('uint8array');
+        this.mediaFiles[zipEntry.name] = fileUint8Array;
+
         const file = new File([blob], zipEntry.name, { type: blob.type });
         const imageUrl = URL.createObjectURL(file);
         this.media[zipEntry.name] = imageUrl;

@@ -178,6 +178,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // Actions
     init,
+    reset,
     handlePageReady,
     getDocument,
     getPageBounds,

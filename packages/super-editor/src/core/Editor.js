@@ -1,7 +1,7 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from "prosemirror-model"
-import { yXmlFragmentToProseMirrorRootNode, prosemirrorJSONToYDoc } from 'y-prosemirror';
+import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
 import { EventEmitter } from './EventEmitter.js';
 import { ExtensionService } from './ExtensionService.js';
 import { CommandService } from './CommandService.js';
@@ -13,9 +13,10 @@ import { isActive } from './helpers/isActive.js';
 import { createStyleTag } from './utilities/createStyleTag.js';
 import { initComments } from '@features/index.js';
 import { style } from './config/style.js';
-import DocxZipper from '@core/DocxZipper.js';
 import { trackedTransaction } from "@extensions/track-changes/trackChangesHelpers/trackedTransaction.js";
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
+import { getMediaObjectUrls } from '@core/utilities/imageBlobs.js';
+import DocxZipper from '@core/DocxZipper.js';
 
 
 /**
@@ -48,6 +49,7 @@ export class Editor extends EventEmitter {
     content: '', // XML content
     user: null,
     media: {},
+    mediaFiles: {},
     mode: 'docx',
     colors: [],
     converter: null,
@@ -456,6 +458,20 @@ export class Editor extends EventEmitter {
    */
   #initMedia() {
     this.storage.image.media = this.options.media;
+    const metaMap = this.options.ydoc?.getMap('meta');
+    if (!metaMap) return;
+
+    // If we have media in the meta map, it means someone else initialized it
+    // We create local blob urls for the media
+    const media = metaMap?.get('media');
+    if (metaMap && media) {
+      this.storage.image.media = getMediaObjectUrls(media);
+    }
+  
+    // Otherwise, we are creating a new file and need to set the media
+    else if (metaMap && this.options.isNewFile) {
+      metaMap.set('media', this.options.mediaFiles);
+    }
   }
 
   /**
@@ -468,9 +484,7 @@ export class Editor extends EventEmitter {
     const zipper = new DocxZipper();
     const xmlFiles = await zipper.getDocxData(fileSource);
     const mediaFiles = zipper.media;
-
-    const documentXml = xmlFiles.find((f) => f.name === 'word/document.xml');
-    return [xmlFiles, mediaFiles];
+    return [xmlFiles, mediaFiles, zipper.mediaFiles];
   }
 
   /**
@@ -733,7 +747,12 @@ export class Editor extends EventEmitter {
    */
   async exportDocx({ isFinalDoc = false } = {}) {
     const json = this.getJSON();
-    const documentXml = await this.converter.exportToDocx(json, this.schema, isFinalDoc);
+    const documentXml = await this.converter.exportToDocx(
+      json,
+      this.schema,
+      this.storage.image.media,
+      isFinalDoc
+    );
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const media = this.converter.addedMedia;
