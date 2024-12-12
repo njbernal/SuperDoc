@@ -3,7 +3,7 @@
  * @param {Object} media Object where keys are docx file names and values are Uint8Arrays
  * @returns {Object} Object where keys are docx file names and values are blob URLs
  */
-export const initBlobs = (media) => {
+export const getMediaObjectUrls = (media) => {
   const blobUrls = {};
   Object.keys(media).forEach((key) => {
     const uint8Array = media[key];

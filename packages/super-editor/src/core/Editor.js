@@ -15,7 +15,7 @@ import { initComments } from '@features/index.js';
 import { style } from './config/style.js';
 import { trackedTransaction } from "@extensions/track-changes/trackChangesHelpers/trackedTransaction.js";
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { initBlobs } from '@core/utilities/imageBlobs.js';
+import { getMediaObjectUrls } from '@core/utilities/imageBlobs.js';
 import DocxZipper from '@core/DocxZipper.js';
 
 
@@ -465,7 +465,7 @@ export class Editor extends EventEmitter {
     // We create local blob urls for the media
     const media = metaMap?.get('media');
     if (metaMap && media) {
-      this.storage.image.media = initBlobs(media);
+      this.storage.image.media = getMediaObjectUrls(media);
     }
   
     // Otherwise, we are creating a new file and need to set the media
@@ -756,7 +756,7 @@ export class Editor extends EventEmitter {
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const media = this.converter.addedMedia;
-g
+
     const updatedDocs = {
       'word/document.xml': String(documentXml),
       'word/_rels/document.xml.rels': String(rels),
