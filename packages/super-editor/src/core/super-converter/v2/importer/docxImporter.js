@@ -75,7 +75,7 @@ export const defaultNodeListHandler = () => {
     tabNodeEntityHandler,
     standardNodeHandlerEntity, //this should be the last one, bcs this parses everything!!!
   ];
-
+  
   const handler = createNodeListHandler(entities);
   return {
     handler,
@@ -92,9 +92,10 @@ const createNodeListHandler = (nodeHandlers) => {
    * @param {XmlNode[]} elements
    * @param {ParsedDocx} docx
    * @param {boolean} insideTrackChange
+   * @param {string} filename
    * @return {{type: string, content: *, attrs: {attributes}}[]}
    */
-  const nodeListHandlerFn = (elements, docx, insideTrackChange) => {
+  const nodeListHandlerFn = (elements, docx, insideTrackChange, filename) => {
     if (!elements || !elements.length) return [];
     const processedElements = [];
 
@@ -107,7 +108,8 @@ const createNodeListHandler = (nodeHandlers) => {
           nodesToHandle,
           docx,
           { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
-          insideTrackChange
+          insideTrackChange,
+          filename
         );
         return result;
       }, { nodes: [], consumed: 0 });
