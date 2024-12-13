@@ -633,7 +633,8 @@ function preProcessVerticalMergeCells(table) {
   const { content } = table;
   for (let rowIndex = 0; rowIndex < content.length; rowIndex++) {
     const row = content[rowIndex];
-    for (let cellIndex = 0; cellIndex < row.content.length; cellIndex++) {
+    if (!row.content) continue;
+    for (let cellIndex = 0; cellIndex < row.content?.length; cellIndex++) {
       const cell = row.content[cellIndex];
       const { attrs } = cell;
       if (attrs.rowspan > 1) {

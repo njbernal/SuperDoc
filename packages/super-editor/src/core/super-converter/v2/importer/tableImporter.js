@@ -97,15 +97,19 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
     const borderRowData = Object.keys(rowBorders)?.length ? rowBorders : referencedStyles?.rowBorders;
     attrs['borders'] = borderData;
 
-    const content = rows.map((row) => handleTableRowNode(
-      row,
-      node,
-      borderRowData,
-      tblStyleTag,
-      docx,
-      nodeListHandler,
-      insideTrackChange)
-    );
+    const content = [];
+    rows.forEach((row) => {
+      const result = handleTableRowNode(
+        row,
+        node,
+        borderRowData,
+        tblStyleTag,
+        docx,
+        nodeListHandler,
+        insideTrackChange
+      );
+      if (result.content?.length) content.push(result);
+    });
     
     return {
       type: 'table',
@@ -173,7 +177,7 @@ export function handleTableCellNode(node, row, table, styleTag, docx, nodeListHa
     const remainingRows = rows.slice(currentRowIndex + 1);
 
     const cellsInRow = row.elements.filter((el) => el.name === 'w:tc');
-    const cellIndex = cellsInRow.findIndex((el) => el === node);
+    let cellIndex = cellsInRow.findIndex((el) => el === node);
     const mergedCells = [];
     let rowspan = 1;
 
@@ -181,12 +185,15 @@ export function handleTableCellNode(node, row, table, styleTag, docx, nodeListHa
     for (let remainingRow of remainingRows) {
       const firstCell = remainingRow.elements.findIndex((el) => el.name === 'w:tc');
       const cellAtIndex = remainingRow.elements[firstCell + cellIndex];
+
+      if (!cellAtIndex) break;
+
       const convertedCell = handleTableCellNode(cellAtIndex, remainingRow, table, styleTag, docx, nodeListHandler, insideTrackChange);
       mergedCells.push(convertedCell);
 
       const vMerge = getTableCellMergeTag(cellAtIndex);
-      const { attributes: vMergeAttrs } = vMerge || {};
-      if (!vMerge && !vMergeAttrs) {
+      const { attributes: currentCellMergeAttrs } = vMerge || {};
+      if ((!vMerge && !currentCellMergeAttrs) || (currentCellMergeAttrs && currentCellMergeAttrs['w:val'] === 'restart')) {
         // We have reached the end of the vertically merged cells
         break;
       }
@@ -196,7 +203,7 @@ export function handleTableCellNode(node, row, table, styleTag, docx, nodeListHa
       remainingRow.elements.splice(firstCell + cellIndex, 1);
     };
     attributes['rowspan'] = rowspan;
-    attributes['mergedCells'] = mergedCells;
+    attributes['mergedCells'] = rowspan > 1 ? mergedCells : [];
   }
 
   return {
@@ -371,6 +378,7 @@ export function handleTableRowNode(node, table, rowBorders, styleTag, docx, node
 
   const cellNodes = node.elements.filter((el) => el.name === 'w:tc');
   const content =  cellNodes?.map((n) => handleTableCellNode(n, node, table, styleTag, docx, nodeListHandler, insideTrackChange)) || [];
+
   const newNode = {
     type: 'tableRow',
     content,
