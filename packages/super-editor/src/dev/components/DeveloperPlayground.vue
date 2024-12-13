@@ -295,7 +295,8 @@ onMounted(async () => {
   overflow-y: auto;
   scrollbar-width: none;
 }
-.super-editor {
+
+:deep(.super-editor) {
   border: 1px solid #dbdbdb;
 }
 </style>
