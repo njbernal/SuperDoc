@@ -42,6 +42,7 @@ export class Superdoc extends EventEmitter {
     superdocId: null,
     selector: '#superdoc', // The selector to mount the superdoc into
     documentMode: 'viewing',
+    role: null, // The role of the user in this superdoc: editor, viewer, suggester
     documents: [], // The documents to load
 
     colors: [], // Optional: Colors to use for user awareness
@@ -191,6 +192,7 @@ export class Superdoc extends EventEmitter {
       doc.provider = provider;
       doc.socket = this.socket;
       doc.ydoc = ydoc;
+      doc.role = this.config.role;
 
       console.debug('🦋 [superdoc] Document:', doc);
       processedDocuments.push(doc);
@@ -240,9 +242,9 @@ export class Superdoc extends EventEmitter {
   addToolbar() {
     const config = {
       element: this.toolbarElement || null,
-      onToolbarCommand: this.onToolbarCommand.bind(this),
       isDev: this.isDev || false,
       toolbarGroups: this.config.toolbarGroups,
+      role: this.config.role,
     }
 
     this.toolbar = new SuperToolbar(config);

@@ -250,11 +250,20 @@ const onCommentClicked = ({ conversation }) => {
   activeComment.value = conversationId;
 }
 
+const getDocumentMode = (doc) => {
+  const { role } = doc;
+  if (role === 'editor') return 'editing';
+  if (role === 'suggester') return 'suggestng';
+  return 'viewing';
+};
+
 const editorOptions = (doc) => {
   const options = {
     documentId: doc.id,
     user: proxy.$superdoc.user,
     colors: proxy.$superdoc.colors,
+    role: doc.role,
+    documentMode: getDocumentMode(doc),
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
     onFocus: onEditorFocus,

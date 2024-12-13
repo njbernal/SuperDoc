@@ -13,6 +13,7 @@ export class SuperToolbar extends EventEmitter {
   config = {
     element: null,
     toolbarGroups: ['left', 'center', 'right'],
+    role: null,
   }
 
   #interceptedCommands = {
@@ -29,10 +30,8 @@ export class SuperToolbar extends EventEmitter {
 
     setDocumentMode: ({ item, argument }) => {
       if (!argument) return;
-      this.emit('superdoc-command', { item, argument });
 
-      if (argument) this.documentMode = argument.toLowerCase();
-      if (this.documentMode === 'viewing') this.#deactivateAll();
+      this.emit('superdoc-command', { item, argument });
     },
 
     setFontSize: ({ item, argument }) => {
@@ -104,6 +103,7 @@ export class SuperToolbar extends EventEmitter {
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
+    this.role = config.role || null;
     
     this.#makeToolbarItems(this, config.isDev);
 
@@ -148,7 +148,7 @@ export class SuperToolbar extends EventEmitter {
   }
 
   #makeToolbarItems(superToolbar, isDev = false) {
-    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, window.innerWidth);
+    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, window.innerWidth, this.role);
     this.toolbarItems = defaultItems;
     this.overflowItems = overflowItems;
     this.#updateToolbarState();

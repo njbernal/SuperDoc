@@ -15,7 +15,6 @@ import { initComments } from '@features/index.js';
 import { style } from './config/style.js';
 import { trackedTransaction } from "@extensions/track-changes/trackChangesHelpers/trackedTransaction.js";
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { getMediaObjectUrls } from '@core/utilities/imageBlobs.js';
 import DocxZipper from '@core/DocxZipper.js';
 
 
@@ -52,6 +51,7 @@ export class Editor extends EventEmitter {
     mediaFiles: {},
     fonts: {},
     mode: 'docx',
+    role: null,
     colors: [],
     converter: null,
     fileSource: null,
@@ -90,7 +90,6 @@ export class Editor extends EventEmitter {
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
     this.#checkHeadless(options);
     this.setOptions(options);
-    this.setDocumentMode(options.documentMode);
 
     let modes = {
       docx: () => this.#init(this.options),
@@ -118,6 +117,7 @@ export class Editor extends EventEmitter {
 
     this.#createView();
     this.#initDefaultStyles();
+    this.setDocumentMode(options.documentMode);
 
     // If we are running headless, we can stop here
     if (this.options.isHeadless) return;
@@ -266,14 +266,14 @@ export class Editor extends EventEmitter {
 
     // Viewing mode: Not editable, no tracked changes, no comments
     if (this.documentMode === 'viewing') {
-      this.unregisterPlugin('comments');
+      // this.unregisterPlugin('comments');
       this.commands.toggleTrackChangesShowOriginal();
       this.setEditable(false, false);
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
     else if (this.documentMode === 'suggesting') {
-      this.#registerPluginByNameIfNotExists('comments')
+      // this.#registerPluginByNameIfNotExists('comments')
       this.#registerPluginByNameIfNotExists('TrackChangesBase');
       this.commands.disableTrackChangesShowOriginal();
       this.commands.enableTrackChanges();
@@ -283,7 +283,7 @@ export class Editor extends EventEmitter {
     // Editing: Editable, tracked changes plguin disabled, comments
     else if (this.documentMode === 'editing') {
       this.#registerPluginByNameIfNotExists('TrackChangesBase');
-      this.#registerPluginByNameIfNotExists('comments');
+      // this.#registerPluginByNameIfNotExists('comments');
       this.commands.disableTrackChangesShowOriginal();
       this.commands.disableTrackChanges();
       this.setEditable(true, false);

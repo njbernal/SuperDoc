@@ -13,7 +13,7 @@ const closeDropdown = (dropdown) => {
   dropdown.expand.value = false;
 };
 
-export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
+export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role) => {
   // bold
   const bold = useToolbarItem({
     type: 'button',
@@ -634,6 +634,18 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
     active: false,
   });
 
+  const getDocumentOptionsAfterRole = (role, documentOptions) => {
+    if (role === 'editor') return documentOptions;
+    else if (role === 'suggester') return documentOptions.filter((option) => option.value !== 'editing');
+    else if (role === 'viewer') return documentOptions.filter((option) => option.value === 'viewing');
+  };
+
+  const getDefaultLabel = (role) => {
+    if (role === 'editor') return 'Editing';
+    if (role === 'suggester') return 'Suggesting';
+    if (role === 'viewer') return 'Viewing';
+  };
+
   const documentMode = useToolbarItem({
     type: 'dropdown',
     name: 'documentMode',
@@ -641,8 +653,8 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
     allowWithoutEditor: true,
     tooltip: 'Document editing mode',
     icon: 'fal fa-user-edit',
-    defaultLabel: 'Editing',
-    label: 'Editing',
+    defaultLabel: getDefaultLabel(role),
+    label: getDefaultLabel(role),
     hasCaret: true,
     isWide: true,
     style: { display: 'flex', justifyContent: 'flex-end' },
@@ -668,9 +680,10 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth) => {
   ];
 
   function renderDocumentMode(renderDocumentButton) {
+    const optionsAfterRole = getDocumentOptionsAfterRole(role, documentOptions);
     return h(DocumentMode, 
       {
-        options: documentOptions,
+        options: optionsAfterRole,
         onSelect: (item) => {
           closeDropdown(renderDocumentButton);
           const { label, icon } = item;
