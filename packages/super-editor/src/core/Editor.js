@@ -136,7 +136,6 @@ export class Editor extends EventEmitter {
     this.on('commentClick', this.options.onCommentClicked);
     this.on('commentsUpdate', this.options.onCommentsUpdate);
     this.on('locked', this.options.onDocumentLocked);
-    this.on('collaborationUpdate', this.options.onCollaborationReady);
 
     // this.#loadComments();
     this.initializeCollaborationData()
@@ -298,7 +297,9 @@ export class Editor extends EventEmitter {
   initializeCollaborationData() {
     const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')?.options.isReady;
     if (hasData) {
-      this.emit('collaborationUpdate', { editor: this, ydoc: this.options.ydoc });
+      setTimeout(() => {
+        this.emit('collaborationUpdate', { editor: this, ydoc: this.options.ydoc });
+      }, 150)
     }
 
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
@@ -765,7 +766,7 @@ export class Editor extends EventEmitter {
       'word/document.xml': String(documentXml),
       'word/_rels/document.xml.rels': String(rels),
     };
-    
+
     const zipper = new DocxZipper();
     const result = await zipper.updateZip({
       docx: this.options.content,

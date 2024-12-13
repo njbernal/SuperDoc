@@ -103,10 +103,6 @@ const initEditor = async (content, media = {}, mediaFiles = {}, fonts = {}) => {
     ...props.options,
   });
 
-  editor.on('create', () => {
-    editorReady.value = true;
-  });
-
   editor.on('collaborationUpdate', () => {
     editorReady.value = true;
   });

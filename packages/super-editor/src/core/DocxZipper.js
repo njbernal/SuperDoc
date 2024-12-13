@@ -67,7 +67,6 @@ class DocxZipper {
 
       else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
         const uint8array = await zipEntry.async('uint8array');
-        console.debug('FOUND FONT', zipEntry.name, uint8array);
         this.fonts[zipEntry.name] = uint8array;
       }
     }
