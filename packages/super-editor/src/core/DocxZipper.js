@@ -50,7 +50,7 @@ class DocxZipper {
         });
       }
 
-      else if (zipEntry.name.startsWith('word/media')) {
+      else if (zipEntry.name.startsWith('word/media') && zipEntry.name !== 'word/media/') {
         const blob = await zipEntry.async('blob');
 
         // Create an Object of media Uint8Arrays for collaboration
@@ -65,9 +65,10 @@ class DocxZipper {
         this.media[zipEntry.name] = imageUrl;
       }
 
-      else if (zipEntry.name.startsWith('word/fonts')) {
-        const blob = await zipEntry.async('blob');
-        this.fonts[zipEntry.name] = blob;
+      else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
+        const uint8array = await zipEntry.async('uint8array');
+        console.debug('FOUND FONT', zipEntry.name, uint8array);
+        this.fonts[zipEntry.name] = uint8array;
       }
     }
     
@@ -123,16 +124,12 @@ class DocxZipper {
     if (originalDocxFile) {
       zip = await this.exportFromOriginalFile(originalDocxFile, updatedDocs, media);
     } else {
-      zip = await this.exportFromCollaborativeDocx(docx, updatedDocs, media);
+      zip = await this.exportFromCollaborativeDocx(docx, updatedDocs, media, fonts);
     }
 
     // If we are headless we don't have 'blob' support, so export as 'nodebuffer'
     const exportType = isHeadless ? 'nodebuffer' : 'blob';
     return await zip.generateAsync({ type: exportType });
-  }
-
-  async blobToArrayBuffer(blob) {
-    return await blob.arrayBuffer();
   }
 
   /**
@@ -152,16 +149,14 @@ class DocxZipper {
       zip.file(file.name, content);
     };
 
-    // Export media files
-    Object.entries(media).forEach(([name, data]) => {
-      const binaryData = Buffer.from(data, 'base64');
-      zip.file(`word/media/${name}`, data);
+    Object.keys(media).forEach((name) => {
+      const binaryData = Buffer.from(media[name], 'base64');
+      zip.file(`word/media/${name}`, binaryData);
     });
 
     // Export font files
-    for (const [fontName, fontBlob] of Object.entries(fonts)) {
-      const arrayBuffer = await this.blobToArrayBuffer(fontBlob);
-      zip.file(fontName, arrayBuffer);
+    for (const [fontName, fontUintArray] of Object.entries(fonts)) {
+      zip.file(fontName, fontUintArray);
     }
 
     await this.updateContentTypes(zip, media);

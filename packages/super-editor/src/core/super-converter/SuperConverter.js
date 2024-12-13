@@ -197,7 +197,15 @@ class SuperConverter {
 
   async exportToDocx(jsonData, editorSchema, documentMedia, isFinalDoc = false) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
-    const [result, params] = exportSchemaToJson({ node: jsonData, bodyNode, relationships: [], documentMedia: {}, isFinalDoc, editorSchema });
+    const [result, params] = exportSchemaToJson({
+      node: jsonData,
+      bodyNode,
+      relationships: [],
+      documentMedia: {},
+      media: {},
+      isFinalDoc,
+      editorSchema
+    });
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
     

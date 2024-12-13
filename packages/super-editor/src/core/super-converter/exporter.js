@@ -1278,19 +1278,19 @@ function getTranslationByAnnotationType(annotationType) {
 function translateFieldAnnotation(params) {
   const { node , isFinalDoc } = params;
   const { attrs = {} } = node;
- 
+
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
-  
+
   const processedNode = annotationHandler(params);
   let sdtContentElements = [processedNode];
-  
+
   if (attrs.type === 'html') {
     sdtContentElements = [
         ...processedNode.elements
     ];
   }
-  
+
   if (isFinalDoc) {
     return annotationHandler(params);
   }
