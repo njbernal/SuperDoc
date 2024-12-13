@@ -260,9 +260,11 @@ export class Editor extends EventEmitter {
   }
 
   setDocumentMode(documentMode) {
-    const cleanedMode = documentMode?.toLowerCase() || 'editing';
+    let cleanedMode = documentMode?.toLowerCase() || 'editing';
     if (!this.extensionService) return;
 
+    if (this.options.role === 'viewer') cleanedMode = 'viewing';
+    if (this.options.role === 'suggester' && cleanedMode === 'editing') cleanedMode = 'suggesting';
     // Viewing mode: Not editable, no tracked changes, no comments
     if (cleanedMode === 'viewing') {
       // this.unregisterPlugin('comments');

@@ -217,6 +217,12 @@ onMounted(async () => {
   </div>
 </template>
 
+<style>
+.super-editor {
+  border: 1px solid #dbdbdb;
+}
+</style>
+
 <style scoped>
 .dev-app {
   --header-height: 154px;

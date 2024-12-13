@@ -103,7 +103,7 @@ export class SuperToolbar extends EventEmitter {
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
-    this.role = config.role || null;
+    this.role = config.role || 'editor';
     
     this.#makeToolbarItems(this, config.isDev);
 

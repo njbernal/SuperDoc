@@ -275,6 +275,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeEditing() {
+    if (this.config.role !== 'editor') return this.#setModeSuggesting();
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
@@ -283,6 +284,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeSuggesting() {
+    if (!['editor', 'suggester'].includes(this.options.role)) return this.#setModeViewing();
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
