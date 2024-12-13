@@ -13,11 +13,10 @@ export const handleListNode = (nodes, docx, nodeListHandler, insideTrackChange) 
   const node = carbonCopy(nodes[0])
 
   let schemaNode;
-
+  
   // We need to pre-process paragraph nodes to combine various possible elements we will find ie: lists, links.
   const processedElements = preProcessNodesForFldChar(node.elements);
   node.elements = processedElements;
-
 
   const pPr = node.elements.find(el => el.name === 'w:pPr');
 
@@ -39,9 +38,10 @@ export const handleListNode = (nodes, docx, nodeListHandler, insideTrackChange) 
         possibleList = siblings.shift();
       }
     }
-
+    
+    const listNodes = handleListNodes(listItems, docx, nodeListHandler, 0);
     return {
-      nodes: [handleListNodes(listItems, docx, nodeListHandler, 0)],
+      nodes: [listNodes],
       consumed: listItems.filter(i => i.seen).length
     };
   } else {
@@ -73,8 +73,16 @@ export const listHandlerEntity = {
  * @param {number} [listLevel=0] - The current indentation level of the list.
  * @returns {Object} The processed list node with structured content.
  */
-function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, listLevel = 0, path = '') {
-
+function handleListNodes(
+  listItems,
+  docx,
+  nodeListHandler,
+  insideTrackChange,
+  listLevel = 0,
+  actualListLevel = 0,
+  currentListNumId = null,
+  path = ''
+) {
   const parsedListItems = [];
   let overallListType;
   let listStyleType;
@@ -86,7 +94,12 @@ function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, li
   }
 
   let listItemIndices = {};
-  let listItemNumbering = {};
+  const initialpPr = listItems[0].elements.find((el) => el.name === 'w:pPr');
+  const initialNumPr = initialpPr?.elements?.find((el) => el.name === 'w:numPr');
+  const initialNumIdTag = initialNumPr?.elements?.find((el) => el.name === 'w:numId') || {};
+  const { attributes: numIdAttrs = {} } = initialNumIdTag;
+  currentListNumId = numIdAttrs['w:val'];
+  actualListLevel = parseInt(initialNumPr?.elements?.find((el) => el.name === 'w:ilvl')?.attributes['w:val']) || 0;
 
   for (let [index, item] of listItems.entries()) {
     // Skip items we've already processed
@@ -119,10 +132,14 @@ function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, li
     } = getNodeNumberingDefinition(attributes, listLevel, docx);
     listStyleType = listOrderingType;
     const intLevel = parseInt(ilvl);
+   
+    const isRoot = actualListLevel === intLevel && numId === currentListNumId;
+    const isDifferentList = numId !== currentListNumId;
+    const isNested = listLevel < intLevel || (listLevel === intLevel && isDifferentList);
 
-    // Append node if it belongs on this list level
+    // If this node belongs on this list level, add it to the list
     const nodeAttributes = {};
-    if (listLevel === intLevel) {
+    if (isRoot) {
       overallListType = listType;
       item.seen = true;
 
@@ -170,11 +187,18 @@ function handleListNodes(listItems, docx, nodeListHandler, insideTrackChange, li
 
     // If this item belongs in a deeper list level, we need to process it by calling this function again
     // But going one level deeper.
-    else if (listLevel < intLevel) {
+    else if (isNested) {
       const newPath = [...path, listItemIndices[listLevel]];
       const sublist = handleListNodes(
-        listItems.slice(index), docx, nodeListHandler, insideTrackChange, listLevel + 1, newPath)
-        ;
+        listItems.slice(index),
+        docx,
+        nodeListHandler,
+        insideTrackChange,
+        listLevel + 1,
+        listLevel,
+        numId,
+        newPath
+      );
       const lastItem = parsedListItems[parsedListItems.length - 1];
       if (!lastItem) {
         parsedListItems.push(createListItem([sublist], nodeAttributes, []));
@@ -268,7 +292,7 @@ const unorderedListTypes = [
  * @param {ParsedDocx} docx
  * @returns
  */
-function getNodeNumberingDefinition(attributes, level, docx) {
+export function getNodeNumberingDefinition(attributes, level, docx) {
   if (!attributes) return;
 
   const def = docx['word/numbering.xml'];
@@ -277,8 +301,8 @@ function getNodeNumberingDefinition(attributes, level, docx) {
   const { elements } = def;
   const listData = elements[0];
 
-  const { paragraphProperties } = attributes;
-  const { elements: listStyles } = paragraphProperties;
+  const { paragraphProperties = {} } = attributes;
+  const { elements: listStyles = [] } = paragraphProperties;
   const numPr = listStyles.find(style => style.name === 'w:numPr');
   if (!numPr) {
     return {};
@@ -312,7 +336,10 @@ function getNodeNumberingDefinition(attributes, level, docx) {
   // Properties - there can be run properties and paragraph properties
   const pPr = currentLevel.elements.find(style => style.name === 'w:pPr');
   let listpPrs, listrPrs;
-  if (pPr) listpPrs = _processListParagraphProperties(pPr);
+  
+  if (pPr) {
+    listpPrs = _processListParagraphProperties(pPr);
+  }
 
   const rPr = currentLevel.elements.find(style => style.name === 'w:rPr');
   if (rPr) listrPrs = _processListRunProperties(rPr);
@@ -364,3 +391,9 @@ function _processListRunProperties(data) {
   return runProperties;
 }
 
+function _getIndentValueFromAttributes(attributes) {
+  const { paragraphProperties } = attributes;
+  if (!paragraphProperties) return null;
+  const indent = paragraphProperties.elements.find(style => style.name === 'w:ind');
+  return parseInt(indent?.attributes['w:left']);
+}
