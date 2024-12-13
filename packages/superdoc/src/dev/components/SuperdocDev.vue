@@ -43,8 +43,9 @@ const init = async () => {
     selector: '#superdoc',
     toolbar: 'toolbar',
     // toolbarGroups: ['center'],
-    toolbarGroups: ['left', 'center', 'right'],
+    role: 'editor',
     documentMode: 'editing',
+    toolbarGroups: ['left', 'center', 'right'],
     isDev: true,
     user: {
       name: 'Super Document Jr.',

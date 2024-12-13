@@ -41,8 +41,8 @@ export class Superdoc extends EventEmitter {
   config = {
     superdocId: null,
     selector: '#superdoc', // The selector to mount the superdoc into
-    documentMode: 'viewing',
-    role: null, // The role of the user in this superdoc: editor, viewer, suggester
+    documentMode: 'editing',
+    role: 'editor', // The role of the user in this superdoc: editor, viewer, suggester
     documents: [], // The documents to load
 
     colors: [], // Optional: Colors to use for user awareness
@@ -132,7 +132,7 @@ export class Superdoc extends EventEmitter {
     this.app = app;
     this.pinia = pinia;
     this.app.config.globalProperties.$config = this.config;
-    this.app.config.globalProperties.$documentMode = this.documentMode;
+    this.app.config.globalProperties.$documentMode = this.config.documentMode;
 
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;

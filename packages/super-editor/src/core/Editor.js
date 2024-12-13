@@ -32,8 +32,6 @@ export class Editor extends EventEmitter {
 
   view;
 
-  documentMode;
-
   isFocused = false;
   
   #css;
@@ -50,8 +48,9 @@ export class Editor extends EventEmitter {
     media: {},
     mediaFiles: {},
     fonts: {},
+    documentMode: 'editing',
     mode: 'docx',
-    role: null,
+    role: 'editor',
     colors: [],
     converter: null,
     fileSource: null,
@@ -261,18 +260,18 @@ export class Editor extends EventEmitter {
   }
 
   setDocumentMode(documentMode) {
-    this.documentMode = documentMode?.toLowerCase() || 'viewing';
+    const cleanedMode = documentMode?.toLowerCase() || 'editing';
     if (!this.extensionService) return;
 
     // Viewing mode: Not editable, no tracked changes, no comments
-    if (this.documentMode === 'viewing') {
+    if (cleanedMode === 'viewing') {
       // this.unregisterPlugin('comments');
       this.commands.toggleTrackChangesShowOriginal();
       this.setEditable(false, false);
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
-    else if (this.documentMode === 'suggesting') {
+    else if (cleanedMode === 'suggesting') {
       // this.#registerPluginByNameIfNotExists('comments')
       this.#registerPluginByNameIfNotExists('TrackChangesBase');
       this.commands.disableTrackChangesShowOriginal();
@@ -281,7 +280,7 @@ export class Editor extends EventEmitter {
     }
 
     // Editing: Editable, tracked changes plguin disabled, comments
-    else if (this.documentMode === 'editing') {
+    else if (cleanedMode === 'editing') {
       this.#registerPluginByNameIfNotExists('TrackChangesBase');
       // this.#registerPluginByNameIfNotExists('comments');
       this.commands.disableTrackChangesShowOriginal();
