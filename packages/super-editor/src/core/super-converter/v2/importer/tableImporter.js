@@ -1,7 +1,6 @@
 import {
   twipsToPixels,
   twipsToInches,
-  halfPointToPixels,
   eigthPointsToPixels,
   halfPointToPoints
 } from "../../helpers.js";
@@ -19,10 +18,6 @@ export const handleAllTableNodes = (nodes, docx, nodeListHandler, insideTrackCha
   switch (node.name) {
     case 'w:tbl':
       return { nodes: [handleTableNode(node, docx, nodeListHandler)], consumed: 1 };
-    case 'w:tr':
-      return { nodes: [handleTableRowNode(node, undefined, docx, nodeListHandler, insideTrackChange)], consumed: 1 };
-    case 'w:tc':
-      return { nodes: [handleTableCellNode(node, docx, nodeListHandler, insideTrackChange)], consumed: 1 };
   }
 
   return { nodes: [], consumed: 0 };
@@ -101,9 +96,10 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
     const borderData = Object.keys(borders)?.length ? borders : referencedStyles?.borders;
     const borderRowData = Object.keys(rowBorders)?.length ? rowBorders : referencedStyles?.rowBorders;
     attrs['borders'] = borderData;
-    
+
     const content = rows.map((row) => handleTableRowNode(
       row,
+      node,
       borderRowData,
       tblStyleTag,
       docx,
@@ -127,7 +123,7 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
  * @param {boolean} insideTrackChange
  * @returns {{type: string, content: (*|*[]), attrs: {}}}
  */
-export function handleTableCellNode(node, styleTag, docx, nodeListHandler, insideTrackChange) {
+export function handleTableCellNode(node, row, table, styleTag, docx, nodeListHandler, insideTrackChange) {
   const tcPr = node.elements.find((el) => el.name === 'w:tcPr');
   const borders = tcPr?.elements?.find((el) => el.name === 'w:tcBorders');
   const inlineBorders = processInlineCellBorders(borders);
@@ -135,6 +131,9 @@ export function handleTableCellNode(node, styleTag, docx, nodeListHandler, insid
   const tcWidth = tcPr?.elements?.find((el) => el.name === 'w:tcW');
   const width = tcWidth ? twipsToInches(tcWidth.attributes['w:w']) : null;
   const widthType = tcWidth?.attributes['w:type'];
+
+  const vMerge = getTableCellMergeTag(node);
+  const { attributes: vMergeAttrs } = vMerge || {};
 
   // TODO: Do we need other background attrs?
   const backgroundColor = tcPr?.elements?.find((el) => el.name === 'w:shd');
@@ -165,13 +164,53 @@ export function handleTableCellNode(node, styleTag, docx, nodeListHandler, insid
   if (fontSize) attributes['fontSize'] = fontSize;
   if (fontFamily) attributes['fontFamily'] = fontFamily['ascii'];
   if (inlineBorders) attributes['borders'] = inlineBorders;
-  
+
+  // Tables can have vertically merged cells, indicated by the vMergeAttrs
+  if (vMerge) attributes['vMerge'] = vMergeAttrs || 'merged';
+  if (vMergeAttrs && vMergeAttrs['w:val'] === 'restart') {
+    const rows = table.elements.filter((el) => el.name === 'w:tr');
+    const currentRowIndex = rows.findIndex((r) => r === row);
+    const remainingRows = rows.slice(currentRowIndex + 1);
+
+    const cellsInRow = row.elements.filter((el) => el.name === 'w:tc');
+    const cellIndex = cellsInRow.findIndex((el) => el === node);
+    const mergedCells = [];
+    let rowspan = 1;
+
+    // Iterate through all remaining rows after the current cell, and find all cells that need to be merged
+    for (let remainingRow of remainingRows) {
+      const firstCell = remainingRow.elements.findIndex((el) => el.name === 'w:tc');
+      const cellAtIndex = remainingRow.elements[firstCell + cellIndex];
+      const convertedCell = handleTableCellNode(cellAtIndex, remainingRow, table, styleTag, docx, nodeListHandler, insideTrackChange);
+      mergedCells.push(convertedCell);
+
+      const vMerge = getTableCellMergeTag(cellAtIndex);
+      const { attributes: vMergeAttrs } = vMerge || {};
+      if (!vMerge && !vMergeAttrs) {
+        // We have reached the end of the vertically merged cells
+        break;
+      }
+
+      // This cell is part of a merged cell, merge it (remove it from its row)
+      rowspan++;
+      remainingRow.elements.splice(firstCell + cellIndex, 1);
+    };
+    attributes['rowspan'] = rowspan;
+    attributes['mergedCells'] = mergedCells;
+  }
+
   return {
     type: 'tableCell',
     content: nodeListHandler.handler(node.elements, docx, insideTrackChange),
     attrs: attributes,
   }
 }
+
+const getTableCellMergeTag = (node) => {
+  const tcPr = node.elements.find((el) => el.name === 'w:tcPr');
+  const vMerge = tcPr?.elements?.find((el) => el.name === 'w:vMerge');
+  return vMerge;
+};
 
 const processBorder = (borders, direction) => {
   const borderAttrs = borders?.elements?.find((el) => el.name === `w:${direction}`)?.attributes;
@@ -313,7 +352,7 @@ function processTableBorders(borderElements) {
  * @param {boolean} insideTrackChange
  * @returns {*}
  */
-export function handleTableRowNode(node, rowBorders, styleTag, docx, nodeListHandler,  insideTrackChange) {
+export function handleTableRowNode(node, table, rowBorders, styleTag, docx, nodeListHandler,  insideTrackChange) {
   const attrs = {};
 
   const tPr = node.elements.find((el) => el.name === 'w:trPr');
@@ -331,7 +370,7 @@ export function handleTableRowNode(node, rowBorders, styleTag, docx, nodeListHan
   }
 
   const cellNodes = node.elements.filter((el) => el.name === 'w:tc');
-  const content = cellNodes?.map((n) => handleTableCellNode(n, styleTag, docx, nodeListHandler, insideTrackChange)) || [];
+  const content =  cellNodes?.map((n) => handleTableCellNode(n, node, table, styleTag, docx, nodeListHandler, insideTrackChange)) || [];
   const newNode = {
     type: 'tableRow',
     content,

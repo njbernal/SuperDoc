@@ -36,7 +36,9 @@ export const TableCell = Node.create({
       },
       widthType: { default: 'auto', rendered: false, },
       colspan: { default: 1, },
-      rowspan: { default: 1, },
+      rowspan: {
+        default: 1,
+      },
       background: {
         renderDOM ({ background }) {
           if (!background) return {};
@@ -77,7 +79,14 @@ export const TableCell = Node.create({
             }).join(' ');
           return { style };
         }
-      }
+      },
+      mergedCells: {
+        rendered: false,
+        default: [],
+      },
+      vMerge: {
+        rendered: false,
+      },
     }
   },
 });

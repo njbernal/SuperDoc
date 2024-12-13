@@ -611,6 +611,7 @@ function translateLineBreak(params) {
  * @returns {XmlReadyNode} The translated table node
  */
 function translateTable(params) {
+  params.node = preProcessVerticalMergeCells(params.node);
   const elements = translateChildNodes(params);
   const tableProperties = generateTableProperties(params.node);
   const gridProperties = generateTableGrid(params.node);
@@ -622,6 +623,30 @@ function translateTable(params) {
     elements,
   }
 }
+
+/**
+ * Restore vertically merged cells from a table
+ * @param {ExportParams.node} table The table node
+ * @returns {ExportParams.node} The table node with merged cells restored
+ */
+function preProcessVerticalMergeCells(table) {
+  const { content } = table;
+  for (let rowIndex = 0; rowIndex < content.length; rowIndex++) {
+    const row = content[rowIndex];
+    for (let cellIndex = 0; cellIndex < row.content.length; cellIndex++) {
+      const cell = row.content[cellIndex];
+      const { attrs } = cell;
+      if (attrs.rowspan > 1) {
+        const { mergedCells } = attrs;
+        const rowsToChange = content.slice(rowIndex + 1, rowIndex + attrs.rowspan);
+        rowsToChange.forEach((rowToChange, mergedIndex) => {
+          rowToChange.content.splice(cellIndex, 0, mergedCells[mergedIndex]);
+        });
+      }
+    }
+  }
+  return table;
+};
 
 function translateTab(params) {
   const attributes = {}
@@ -686,11 +711,13 @@ function generateTableProperties(node) {
     elements.push(tableLayoutElement);
   }
 
-  const tableWidthElement = {
-    name: 'w:tblW',
-    attributes: { 'w:w': inchesToTwips(tableWidth), 'w:type': tableWidthType }
+  if (tableWidth && tableWidth.width) {
+    const tableWidthElement = {
+      name: 'w:tblW',
+      attributes: { 'w:w': pixelsToTwips(tableWidth.width), 'w:type': tableWidth.type }
+    }
+    elements.push(tableWidthElement);
   }
-  elements.push(tableWidthElement);
   
   if (tableCellSpacing) {
     elements.push({
@@ -813,6 +840,7 @@ function generateTableRowProperties(node) {
 function translateTableCell(params) {
   const elements = translateChildNodes(params);
   const cellProps = generateTableCellProperties(params.node);
+
   elements.unshift(cellProps);
   return {
     name: 'w:tc',
@@ -872,6 +900,15 @@ function generateTableCellProperties(node) {
     }
     elements.push(vertAlignElement);
   }
+
+  const { vMerge } = attrs;
+  if (vMerge) {
+    const vMergeElement = {
+      name: 'w:vMerge',
+      attributes: { 'w:val': null }
+    }
+    elements.push(vMergeElement);
+  };
   
   const { borders = {} } = attrs;
   if (!!borders && Object.keys(borders).length) {
