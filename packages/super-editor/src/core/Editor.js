@@ -50,6 +50,7 @@ export class Editor extends EventEmitter {
     user: null,
     media: {},
     mediaFiles: {},
+    fonts: {},
     mode: 'docx',
     colors: [],
     converter: null,
@@ -487,7 +488,8 @@ export class Editor extends EventEmitter {
     const zipper = new DocxZipper();
     const xmlFiles = await zipper.getDocxData(fileSource);
     const mediaFiles = zipper.media;
-    return [xmlFiles, mediaFiles, zipper.mediaFiles];
+
+    return [xmlFiles, mediaFiles, zipper.mediaFiles, zipper.fonts];
   }
 
   /**
@@ -769,7 +771,8 @@ export class Editor extends EventEmitter {
       docx: this.options.content,
       updatedDocs: updatedDocs,
       originalDocxFile: this.options.fileSource,
-      media
+      media,
+      fonts: this.options.fonts,
     });
 
     return result

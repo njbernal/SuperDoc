@@ -12,6 +12,7 @@ class DocxZipper {
     this.files = [];
     this.media = {};
     this.mediaFiles = {};
+    this.fonts = {};
   }
 
   /** 
@@ -40,6 +41,7 @@ class DocxZipper {
     const validTypes = ['xml', 'rels'];
     for (const file of files) {
       const [_, zipEntry] = file;
+
       if (validTypes.some((validType) => zipEntry.name.endsWith(validType))) {
         const content = await zipEntry.async("string")
         this.files.push({
@@ -61,6 +63,11 @@ class DocxZipper {
         const file = new File([blob], zipEntry.name, { type: blob.type });
         const imageUrl = URL.createObjectURL(file);
         this.media[zipEntry.name] = imageUrl;
+      }
+
+      else if (zipEntry.name.startsWith('word/fonts')) {
+        const blob = await zipEntry.async('blob');
+        this.fonts[zipEntry.name] = blob;
       }
     }
     
@@ -107,11 +114,12 @@ class DocxZipper {
     return zip;
   }
 
-  async updateZip({ docx, updatedDocs, originalDocxFile, media }) {
+  async updateZip({ docx, updatedDocs, originalDocxFile, media, fonts }) {
     const isHeadless = navigator?.isHeadless;
 
     // We use a different re-zip process if we have the original docx vs the docx xml metadata
     let zip;
+
     if (originalDocxFile) {
       zip = await this.exportFromOriginalFile(originalDocxFile, updatedDocs, media);
     } else {
@@ -123,13 +131,18 @@ class DocxZipper {
     return await zip.generateAsync({ type: exportType });
   }
 
+  async blobToArrayBuffer(blob) {
+    return await blob.arrayBuffer();
+  }
+
   /**
    * Export the Editor content to a docx file, updating changed docs
    * @param {Object} docx An object containing the unzipped docx files (keys are relative file names)
    * @param {Object} updatedDocs An object containing the updated docs (keys are relative file names)
    * @returns {Promise<JSZip>} The unzipped but updated docx file ready for zipping
    */
-  async exportFromCollaborativeDocx(docx, updatedDocs, media) {
+  async exportFromCollaborativeDocx(docx, updatedDocs, media, fonts) {
+
     const zip = new JSZip();
     for (const file of docx) {
       let content = file.content;
@@ -139,9 +152,17 @@ class DocxZipper {
       zip.file(file.name, content);
     };
 
-    Object.keys(media).forEach((name) => {
-      zip.file(`word/media/${name}`, media[name]);
+    // Export media files
+    Object.entries(media).forEach(([name, data]) => {
+      const binaryData = Buffer.from(data, 'base64');
+      zip.file(`word/media/${name}`, data);
     });
+
+    // Export font files
+    for (const [fontName, fontBlob] of Object.entries(fonts)) {
+      const arrayBuffer = await this.blobToArrayBuffer(fontBlob);
+      zip.file(fontName, arrayBuffer);
+    }
 
     await this.updateContentTypes(zip, media);
     return zip;

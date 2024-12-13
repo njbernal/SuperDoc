@@ -92,6 +92,7 @@ const createSyncPlugin = (ydoc, editor) => {
     console.debug('[super-editor] createSyncPlugin')
     const metaMap = ydoc.getMap('meta');
     metaMap.set('docx', editor.options.content);
+    metaMap.set('fonts', editor.options.fonts);
   };
 
   return [ySyncPlugin(fragment, { onFirstRender }), fragment];

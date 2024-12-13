@@ -69,12 +69,12 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
 
 
 const initializeData = async () => {
-  let docx = null, media = null, mediaFiles = null;
+  let docx = null, media = null, mediaFiles = null, fonts = null;
 
   // If we have the file, initialize immediately from file
   if (props.fileSource) {
-    [docx, media, mediaFiles] = await Editor.loadXmlData(props.fileSource);
-    return initEditor(docx, media, mediaFiles);
+    [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(props.fileSource);
+    return initEditor(docx, media, mediaFiles, fonts);
   } 
   
   // If we are in collaboration mode, wait for the docx data to be available
@@ -88,7 +88,7 @@ const initializeData = async () => {
   } 
 };
 
-const initEditor = async (content, media = {}, mediaFiles = {}) => {
+const initEditor = async (content, media = {}, mediaFiles = {}, fonts = {}) => {
   editor = new Editor({
     mode: 'docx',
     element: editorElem.value,
@@ -98,6 +98,7 @@ const initEditor = async (content, media = {}, mediaFiles = {}) => {
     content,
     media,
     mediaFiles,
+    fonts,
     users: [], // For comment @-mentions, only users that have access to the document
     ...props.options,
   });
