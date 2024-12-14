@@ -509,6 +509,12 @@ function translateList(params) {
     content.forEach((contentNode) => {
       const outputNode = exportSchemaToJson({ ...params, node: contentNode });
       const pPr = getListParagraphProperties(listNode, level, type);
+      const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
+      if (!content.length) {
+        const spacer = { name: 'w:p', elements: [] };
+        return listNodes.push(spacer);
+      }
+
       outputNode.elements.unshift(pPr);
       listNodes.push(outputNode);
     })
