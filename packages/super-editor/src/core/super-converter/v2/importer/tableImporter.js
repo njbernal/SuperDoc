@@ -363,7 +363,7 @@ export function handleTableRowNode(node, table, rowBorders, styleTag, docx, node
   const attrs = {};
 
   const tPr = node.elements.find((el) => el.name === 'w:trPr');
-  const rowHeightTag = tPr?.elements.find((el) => el.name === 'w:trHeight');
+  const rowHeightTag = tPr?.elements?.find((el) => el.name === 'w:trHeight');
   const rowHeight = rowHeightTag?.attributes['w:val'];
   const rowHeightRule = rowHeightTag?.attributes['w:hRule'];
 
