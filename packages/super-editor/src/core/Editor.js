@@ -135,6 +135,7 @@ export class Editor extends EventEmitter {
     this.on('commentClick', this.options.onCommentClicked);
     this.on('commentsUpdate', this.options.onCommentsUpdate);
     this.on('locked', this.options.onDocumentLocked);
+    this.on('collaborationReady', this.options.onCollaborationReady);
 
     // this.#loadComments();
     this.initializeCollaborationData()
@@ -299,7 +300,7 @@ export class Editor extends EventEmitter {
     const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')?.options.isReady;
     if (hasData) {
       setTimeout(() => {
-        this.emit('collaborationUpdate', { editor: this, ydoc: this.options.ydoc });
+        this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
       }, 150)
     }
 

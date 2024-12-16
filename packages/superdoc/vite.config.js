@@ -1,14 +1,25 @@
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { visualizer } from 'rollup-plugin-visualizer';
 import vue from '@vitejs/plugin-vue'
 
 import { version } from './package.json';
 
+const visualizerConfig = {
+  filename: './dist/bundle-analysis.html',
+  template: 'treemap',
+  gzipSize: true,
+  brotliSize: true,
+  open: true
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command}) => {
-  const plugins = [vue()];
+  const plugins = [
+    vue(),
+    // visualizer(visualizerConfig)
+  ];
   if (mode !== 'test') plugins.push(nodePolyfills());
 
   return {

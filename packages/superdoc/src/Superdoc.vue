@@ -56,6 +56,7 @@ commentsStore.proxy = proxy;
 
 // Refs
 const layers = ref(null);
+const isCollaborationReady = ref(false);
 
 // Comments layer
 const commentsLayer = ref(null);
@@ -250,6 +251,10 @@ const onCommentClicked = ({ conversation }) => {
   activeComment.value = conversationId;
 }
 
+const onEditorCollaborationReady = ({ editor }) => {
+  proxy.$superdoc.emit('collaboration-ready', { editor });
+}
+
 const editorOptions = (doc) => {
   const options = {
     documentId: doc.id,
@@ -262,6 +267,7 @@ const editorOptions = (doc) => {
     onFocus: onEditorFocus,
     onDocumentLocked: onEditorDocumentLocked,
     onSelectionUpdate: onEditorSelectionChange,
+    onCollaborationReady: onEditorCollaborationReady,
     // onCommentsLoaded,
     // onCommentClicked,
     // onCommentsUpdate: onEditorCommentsUpdate,

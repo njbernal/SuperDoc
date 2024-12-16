@@ -21,6 +21,7 @@
     "prettier": "if [ \"$(echo $npm_config_argv | grep -o '\"remain\":\\[\\]' | wc -l)\" -eq 1 ]; then echo 'Error: No arguments passed to prettier'; exit 1; fi && npx prettier --write"
   },
   "devDependencies": {
+    "rollup-plugin-visualizer": "^5.12.0",
     "prettier": "3.3.3",
     "rollup": "^4.26.0"
   }

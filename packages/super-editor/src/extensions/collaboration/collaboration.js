@@ -133,7 +133,7 @@ const initSyncListener = (ydoc, editor, extension) => {
   const emit = () => {
     extension.options.isReady = true;
     provider.off('synced', emit);
-    editor.emit('collaborationUpdate', { editor, ydoc });
+    editor.emit('collaborationReady', { editor, ydoc });
   };
 
   if (provider.synced) return emit();

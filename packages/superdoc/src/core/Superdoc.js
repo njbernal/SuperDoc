@@ -65,6 +65,7 @@ export class Superdoc extends EventEmitter {
     onLocked: () => null,
     onPdfDocumentReady: () => null,
     onSidebarToggle: () => null,
+    onCollaborationReady: () => null,
 
     // Image upload handler
     // async (file) => url;
@@ -151,6 +152,7 @@ export class Superdoc extends EventEmitter {
     this.on('locked', this.config.onLocked);
     this.on('pdf-document-ready', this.config.onPdfDocumentReady);
     this.on('sidebar-toggle', this.config.onSidebarToggle);
+    this.on('collaboration-ready', this.config.onCollaborationReady);
   }
 
 
