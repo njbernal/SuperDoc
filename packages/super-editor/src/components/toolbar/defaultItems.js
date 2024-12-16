@@ -612,19 +612,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     overflow,
   ].map((item) => item.name);
 
-  const toolbarItemsTablet = [
-    ...toolbarItemsMobile,
-    ...[
-      fontButton,
-      fontSize,
-      alignment,
-      bulletedList,
-      numberedList,
-      overflow,
-    ].map((item) => item.name),
-  ];
-
-
   const copyFormat = useToolbarItem({
     type: 'button',
     name: 'copyFormat',

@@ -4,7 +4,6 @@ import '@harbour-enterprises/super-editor/style.css';
 import '@harbour-enterprises/common/icons/icons.css';
 
 import EventEmitter from 'eventemitter3'
-import { Doc as YDoc, Array as YArray } from 'yjs';
 import { v4 as uuidv4 } from 'uuid';
 import { HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 
@@ -12,7 +11,7 @@ import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperToolbar } from '@harbour-enterprises/super-editor';
 import { createAwarenessHandler, createProvider } from './collaboration/collaboration';
 import { createSuperdocVueApp } from './create-app';
-
+import { shuffleArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 
 /**
  * @typedef {Object} SuperdocUser The current user of this superdoc
@@ -83,6 +82,9 @@ export class Superdoc extends EventEmitter {
       ...config
     }
 
+    this.config.colors = shuffleArray(this.config.colors);
+    this.userColorMap = new Map();
+    this.colorIndex = 0;
     this.version = __APP_VERSION__;
     this.superdocId = config.superdocId || uuidv4();
     this.colors = this.config.colors;
@@ -180,6 +182,7 @@ export class Superdoc extends EventEmitter {
     const processedDocuments = [];
     this.config.documents.forEach((doc) => {
 
+      this.config.user.color = this.colors[0];
       const options = {
         config: collaborationModuleConfig,
         user: this.config.user,
@@ -193,8 +196,7 @@ export class Superdoc extends EventEmitter {
       doc.socket = this.socket;
       doc.ydoc = ydoc;
       doc.role = this.config.role;
-
-      console.debug('🦋 [superdoc] Document:', doc);
+      provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(this, states));
       processedDocuments.push(doc);
     });
 
@@ -284,7 +286,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeSuggesting() {
-    if (!['editor', 'suggester'].includes(this.options.role)) return this.#setModeViewing();
+    if (!['editor', 'suggester'].includes(this.config.role)) return this.#setModeViewing();
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();

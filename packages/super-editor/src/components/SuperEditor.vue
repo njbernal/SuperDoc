@@ -104,7 +104,9 @@ const initEditor = async (content, media = {}, mediaFiles = {}, fonts = {}) => {
   });
 
   editor.on('collaborationUpdate', () => {
-    editorReady.value = true;
+    setTimeout(() => {
+      editorReady.value = true;
+    }, 250);
   });
 };
 

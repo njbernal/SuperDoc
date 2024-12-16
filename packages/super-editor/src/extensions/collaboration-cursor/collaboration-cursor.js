@@ -1,6 +1,5 @@
 import { Extension } from '@core/index.js';
 import { yCursorPlugin } from 'y-prosemirror'
-import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 
 export const CollaborationCursor = Extension.create({
   name: 'collaborationCursor',
@@ -27,21 +26,9 @@ export const CollaborationCursor = Extension.create({
     const { collaborationProvider: provider = null } = this.editor.options;
     if (!provider) return [];
 
-    // Track initial users
-    this.storage.users = onAwarenessUpdate(provider, this.editor.options.colors);
-
-    // Set the awareness update handler
-    provider.awareness.on('update', () => {
-      this.storage.users = onAwarenessUpdate(provider, this.editor.options.colors);
-    });
     return [yCursorPlugin(provider.awareness, { cursorBuilder: customCursors })];
   },
 });
-
-const onAwarenessUpdate = (provider, colors) => {
-  if (!provider) return;
-  return awarenessStatesToArray(provider.awareness.states, colors)
-}
 
 const customCursors = (user) => {
   const cursor = document.createElement('span')
