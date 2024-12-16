@@ -58,7 +58,7 @@ export const handleParagraphNode = (nodes, docx, nodeListHandler, insideTrackCha
       };
     }
 
-    const indent = pPr?.elements.find((el) => el.name === 'w:ind');
+    const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
     if (indent) {
       const { 'w:left': left, 'w:right': right, 'w:firstLine': firstLine } = indent.attributes;
       schemaNode.attrs['indent'] = {
@@ -71,13 +71,13 @@ export const handleParagraphNode = (nodes, docx, nodeListHandler, insideTrackCha
       schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentVal)}in`;
     }
 
-    const justify = pPr?.elements.find((el) => el.name === 'w:jc');
+    const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
     if (justify) {
       schemaNode.attrs['textAlign'] = justify.attributes['w:val'];
     }
 
     const { lineSpaceAfter, lineSpaceBefore } = getDefaultStyleDefinition(defaultStyleId, docx);
-    const spacing = pPr?.elements.find((el) => el.name === 'w:spacing');
+    const spacing = pPr?.elements?.find((el) => el.name === 'w:spacing');
     if (spacing) {
       const {
         'w:after': lineSpaceAfterInLine,
