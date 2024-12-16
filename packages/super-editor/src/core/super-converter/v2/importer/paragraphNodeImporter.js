@@ -43,8 +43,8 @@ export const handleParagraphNode = (nodes, docx, nodeListHandler, insideTrackCha
   if ('attributes' in node) {
     const defaultStyleId = node.attributes['w:rsidRDefault'];
 
-    const pPr = node.elements.find((el) => el.name === 'w:pPr');
-    const styleTag = pPr?.elements.find((el) => el.name === 'w:pStyle');
+    const pPr = node.elements?.find((el) => el.name === 'w:pPr');
+    const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
     if (styleTag) {
       schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
       
