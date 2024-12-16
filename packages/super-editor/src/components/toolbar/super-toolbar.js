@@ -230,18 +230,12 @@ export class SuperToolbar extends EventEmitter {
 
     this.log('(emmitCommand) Command:', command, item, argument);
 
-    // Attempt to run the command on the active editor.
-    if (!this.activeEditor) {
-      this.log('(emmitCommand) No active editor');
-      return;
-    }
-
     // Check if we have a custom or overloaded command defined
     if (command in this.#interceptedCommands) {
       return this.#interceptedCommands[command]({ item, argument });
     }
 
-    if (command in this.activeEditor.commands) {
+    if (command in this.activeEditor?.commands) {
       this.activeEditor.commands[command](argument);
       this.#updateToolbarState();
     } else {
@@ -253,7 +247,7 @@ export class SuperToolbar extends EventEmitter {
     if (!argument || !this.activeEditor) return;
       
     let command = item.command;
-    if (command in this.activeEditor.commands) {
+    if (command in this.activeEditor?.commands) {
       this.activeEditor.commands[command](argument);
       this.#updateToolbarState();
     }

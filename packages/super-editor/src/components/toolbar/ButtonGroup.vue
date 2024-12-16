@@ -104,18 +104,10 @@ const handleClickOutside = (e) => {
           class="toolbar-button toolbar-dropdown"
           @select="(key, option) => handleSelect(item, option)"
           @clickoutside="handleClickOutside">
-            <n-tooltip trigger="hover">
-              <template #trigger>
-                <ToolbarButton
-                  :toolbar-item="item"
-                  @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
-                  @buttonClick="handleToolbarButtonClick(item)" />
-              </template>
-              <div v-if="item.tooltip">
-                {{ item.tooltip }}
-                <span v-if="item.disabled.value">(disabled)</span>
-              </div>
-            </n-tooltip>
+            <ToolbarButton
+              :toolbar-item="item"
+              @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
+              @buttonClick="handleToolbarButtonClick(item)" />
       </n-dropdown>
 
       <n-tooltip trigger="hover" v-else-if="isButton(item)">

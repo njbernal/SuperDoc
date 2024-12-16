@@ -638,7 +638,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'documentMode',
     command: 'setDocumentMode',
     allowWithoutEditor: true,
-    tooltip: 'Document editing mode',
     icon: 'fal fa-user-edit',
     defaultLabel: getDefaultLabel(role),
     label: getDefaultLabel(role),
@@ -646,7 +645,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     isWide: true,
     style: { display: 'flex', justifyContent: 'flex-end' },
     inlineTextInputVisible: false,
-    hasInlineTextInput: true,
+    hasInlineTextInput: false,
     group: 'right',
     attributes: {
       dropdownPosition: 'right',

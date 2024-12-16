@@ -278,6 +278,14 @@ export class Superdoc extends EventEmitter {
 
   #setModeEditing() {
     if (this.config.role !== 'editor') return this.#setModeSuggesting();
+    if (this.superdocStore.documents.length > 0) {
+      const firstEditor = this.superdocStore.documents[0]?.getEditor();
+      if (firstEditor) {
+        this.setActiveEditor(firstEditor);
+        this.toolbar.activeEditor = firstEditor;;
+      };
+    };
+
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
@@ -295,6 +303,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeViewing() {
+    this.toolbar.activeEditor = null;
     this.superdocStore.documents.forEach((doc) => {
       doc.removeComments();
       const editor = doc.getEditor();
