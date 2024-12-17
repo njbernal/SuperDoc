@@ -546,7 +546,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: "button",
     disabled: false,
     name: "acceptTrackedChangeBySelection",
-    tooltip: "Accept Changes under selection",
+    tooltip: "Accept changes under selection",
     command: "acceptTrackedChangeBySelection",
     icon: "fa fa-calendar-check",
     group: "left",
@@ -556,7 +556,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: "button",
     disabled: false,
     name: "rejectTrackedChangeOnSelection",
-    tooltip: "Reject Changes under selection",
+    tooltip: "Reject changes under selection",
     command: "rejectTrackedChangeOnSelection",
     icon: "fa fa-calendar-xmark",
     group: "left",
@@ -623,13 +623,13 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
 
   const getDocumentOptionsAfterRole = (role, documentOptions) => {
     if (role === 'editor') return documentOptions;
-    else if (role === 'suggester') return documentOptions.filter((option) => option.value !== 'editing');
+    // else if (role === 'suggester') return documentOptions.filter((option) => option.value !== 'editing');
     else if (role === 'viewer') return documentOptions.filter((option) => option.value === 'viewing');
   };
 
   const getDefaultLabel = (role) => {
     if (role === 'editor') return 'Editing';
-    if (role === 'suggester') return 'Suggesting';
+    // if (role === 'suggester') return 'Suggesting';
     if (role === 'viewer') return 'Viewing';
   };
 
@@ -744,13 +744,14 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   // Track changes test buttons
   const devItems = [
     toggleTrackChanges, 
-    acceptTrackedChangeBySelection, 
-    rejectTrackedChangeOnSelection, 
     toggleTrackChangesOriginal, 
     toggleTrackChangesFinal
   ];
 
   if (!isDev) {
+    if (role === 'viewer') {
+      devItems.push(...[acceptTrackedChangeBySelection, rejectTrackedChangeOnSelection, ])
+    }
     toolbarItems = toolbarItems.filter((item) => !devItems.includes(item));
   }
 
