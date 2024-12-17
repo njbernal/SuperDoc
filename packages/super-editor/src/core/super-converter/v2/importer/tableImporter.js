@@ -303,10 +303,14 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
 
   const tblPr = styleTag.elements.find((el) => el.name === 'w:tblPr');
   if (tblPr && tblPr.elements) {
+    if (baseTblPr && baseTblPr.elements) {
+      tblPr.elements.push(...baseTblPr.elements);
+    }
+  
     tblPr.elements = [
-      ...baseTblPr.elements,
       ...tblPr.elements,
-    ]
+    ];
+
     const tableBorders = tblPr?.elements?.find((el) => el.name === 'w:tblBorders');
     const { elements: borderElements = [] } = tableBorders || {};
     const { borders, rowBorders } = processTableBorders(borderElements);
