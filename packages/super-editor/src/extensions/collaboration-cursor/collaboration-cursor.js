@@ -37,7 +37,7 @@ const customCursors = (user) => {
 
   const userDiv = document.createElement('div')
   userDiv.setAttribute('style', `background-color: ${user.color}`)
-  userDiv.insertBefore(document.createTextNode(user.name), null)
+  userDiv.insertBefore(document.createTextNode(user.name || user.email), null)
   cursor.insertBefore(userDiv, null)
   return cursor
 }
