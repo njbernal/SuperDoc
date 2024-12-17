@@ -255,6 +255,10 @@ const onEditorCollaborationReady = ({ editor }) => {
   proxy.$superdoc.emit('collaboration-ready', { editor });
 }
 
+const onEditorContentError = ({ error, editor }) => {
+  proxy.$superdoc.emit('content-error', { error, editor });
+}
+
 const editorOptions = (doc) => {
   const options = {
     documentId: doc.id,
@@ -268,6 +272,7 @@ const editorOptions = (doc) => {
     onDocumentLocked: onEditorDocumentLocked,
     onSelectionUpdate: onEditorSelectionChange,
     onCollaborationReady: onEditorCollaborationReady,
+    onContentError: onEditorContentError,
     // onCommentsLoaded,
     // onCommentClicked,
     // onCommentsUpdate: onEditorCommentsUpdate,

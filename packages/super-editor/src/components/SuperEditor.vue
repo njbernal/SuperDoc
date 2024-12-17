@@ -54,7 +54,7 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
     const docx = metaMap.get('docx');
     if (docx) {
       stopPolling();
-      initEditor(docx);
+      initEditor({ content: docx });
     } else if (retries > 0) {
       console.debug(`Waiting for 'docx' data... retries left: ${retries}`);
       dataPollTimeout = setTimeout(checkData, interval); // Retry after the interval
@@ -68,13 +68,21 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
 };
 
 
+const loadNewFileData = async () => {
+  try {
+    const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(props.fileSource);
+    return { content: docx, media, mediaFiles, fonts };
+  } catch (err) {
+    console.debug('Error loading new file data:', err);
+  }
+};
+
 const initializeData = async () => {
-  let docx = null, media = null, mediaFiles = null, fonts = null;
 
   // If we have the file, initialize immediately from file
   if (props.fileSource) {
-    [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(props.fileSource);
-    return initEditor(docx, media, mediaFiles, fonts);
+    const fileData = await loadNewFileData();
+    return initEditor(fileData);
   } 
   
   // If we are in collaboration mode, wait for the docx data to be available
@@ -88,7 +96,7 @@ const initializeData = async () => {
   } 
 };
 
-const initEditor = async (content, media = {}, mediaFiles = {}, fonts = {}) => {
+const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } = {}) => {
   editor = new Editor({
     mode: 'docx',
     element: editorElem.value,

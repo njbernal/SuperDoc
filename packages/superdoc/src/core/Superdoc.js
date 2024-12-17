@@ -59,6 +59,7 @@ export class Superdoc extends EventEmitter {
     // Events
     onEditorCreate: () => null,
     onEditorDestroy: () => null,
+    onContentError: () => null,
     onReady: () => null,
     onCommentsUpdate: () => null,
     onAwarenessUpdate: () => null,
@@ -153,9 +154,8 @@ export class Superdoc extends EventEmitter {
     this.on('pdf-document-ready', this.config.onPdfDocumentReady);
     this.on('sidebar-toggle', this.config.onSidebarToggle);
     this.on('collaboration-ready', this.config.onCollaborationReady);
+    this.on('content-error', this.onContentError);
   }
-
-
 
   /* **
     * Initialize collaboration if configured
@@ -204,6 +204,12 @@ export class Superdoc extends EventEmitter {
 
     return processedDocuments;
   }
+
+  onContentError({ error, editor }) {
+    const { documentId } = editor.options;
+    const doc = this.superdocStore.documents.find((d) => d.id === documentId);
+    this.config.onContentError({ error, editor, documentId: doc.id, file: doc.data });
+  };
 
   broadcastPdfDocumentReady() {
     this.emit('pdf-document-ready');

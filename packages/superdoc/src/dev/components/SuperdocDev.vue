@@ -72,10 +72,15 @@ const init = async () => {
       // }
     },
     onEditorCreate,
+    onContentError,
     // handleImageUpload: async (file) => url,
   }
 
   superdoc.value = new Superdoc(config);
+};
+
+const onContentError = ({ editor, error, documentId, file }) => {
+  console.debug('Content error on', documentId, error);
 };
 
 const exportDocx = async () => {
