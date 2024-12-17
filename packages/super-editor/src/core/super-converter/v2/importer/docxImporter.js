@@ -37,8 +37,10 @@ export const createDocumentJson = (docx) => {
   if (!json) return null;
 
   const nodeListHandler = defaultNodeListHandler();
-  if (json.elements[0].elements[0].name === 'w:body') {
-    const node = json.elements[0].elements[0];
+
+  const bodyNode = json.elements[0].elements.find((el) => el.name === 'w:body');
+  if (bodyNode) {
+    const node = bodyNode;
     const ignoreNodes = ['w:sectPr'];
     const content = node.elements?.filter((n) => !ignoreNodes.includes(n.name)) ?? [];
 
