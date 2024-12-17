@@ -103,7 +103,7 @@ const initEditor = async (content, media = {}, mediaFiles = {}, fonts = {}) => {
     ...props.options,
   });
 
-  editor.on('collaborationUpdate', () => {
+  editor.on('collaborationReady', () => {
     setTimeout(() => {
       editorReady.value = true;
     }, 250);
