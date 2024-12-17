@@ -189,7 +189,7 @@ export function handleTableCellNode(node, row, table, rowBorders, styleTag, docx
 
       if (!cellAtIndex) break;
 
-      const convertedCell = handleTableCellNode(cellAtIndex, remainingRow, table, styleTag, docx, nodeListHandler, insideTrackChange);
+      const convertedCell = handleTableCellNode(cellAtIndex, remainingRow, table, rowBorders, styleTag, docx, nodeListHandler, insideTrackChange);
       mergedCells.push(convertedCell);
 
       const vMerge = getTableCellMergeTag(cellAtIndex);
