@@ -786,7 +786,7 @@ function generateTableGrid(node) {
   const { gridColumnWidths } = node.attrs;
 
   const elements = [];
-  gridColumnWidths.forEach((width) => {
+  gridColumnWidths?.forEach((width) => {
     elements.push({
       name: 'w:gridCol',
       attributes: { 'w:w': inchesToTwips(width) }
