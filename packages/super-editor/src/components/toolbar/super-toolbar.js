@@ -110,7 +110,10 @@ export class SuperToolbar extends EventEmitter {
     let el = null;
     if (this.config.element) {
       el = document.getElementById(this.config.element);
-      if (!el) throw new Error(`[super-toolbar 🎨] Element not found: ${this.config.element}`);
+      if (!el) {
+        console.warn(`[super-toolbar 🎨] Element not found: ${this.config.element}`);
+        return;
+      };
     }
 
     this.app = createApp(Toolbar);
