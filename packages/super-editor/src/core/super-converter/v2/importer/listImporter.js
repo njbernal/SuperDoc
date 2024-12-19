@@ -449,7 +449,7 @@ function _processListParagraphProperties(data) {
   if (!elements) return paragraphProperties;
 
   elements.forEach((item) => {
-    if (!expectedTypes.includes(item.name)) throw new Error(`[numbering.xml] Unexpected list paragraph prop found: ${item.name}`);
+    if (!expectedTypes.includes(item.name)) console.warn(`[numbering.xml] Unexpected list paragraph prop found: ${item.name}`);
     const { attributes = {} } = item;
     Object.keys(attributes).forEach(key => {
       paragraphProperties[key] = attributes[key];
@@ -460,12 +460,12 @@ function _processListParagraphProperties(data) {
 
 function _processListRunProperties(data) {
   const { elements } = data;
-  const expectedTypes = ['w:rFonts', 'w:b', 'w:bCs', 'w:i', 'w:iCs', 'w:strike', 'w:dstrike', 'w:color', 'w:sz', 'w:szCs', 'w:u', 'w:bdr', 'w:shd', 'w:vertAlign', 'w:jc', 'w:spacing', 'w:w', 'w:smallCaps', 'w:position'];
+  const expectedTypes = ['w:rFonts', 'w:b', 'w:bCs', 'w:i', 'w:iCs', 'w:strike', 'w:dstrike', 'w:color', 'w:sz', 'w:szCs', 'w:u', 'w:bdr', 'w:shd', 'w:vertAlign', 'w:jc', 'w:spacing', 'w:w', 'w:smallCaps', 'w:position', 'w:lang'];
   const runProperties = {};
   if (!elements) return runProperties;
 
   elements.forEach((item) => {
-    if (!expectedTypes.includes(item.name)) throw new Error(`[numbering.xml] Unexpected list run prop found: ${item.name}`);
+    if (!expectedTypes.includes(item.name)) console.warn(`[numbering.xml] Unexpected list run prop found: ${item.name}`);
     const { attributes = {} } = item;
     Object.keys(attributes).forEach(key => {
       runProperties[key] = attributes[key];
