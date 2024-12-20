@@ -1,5 +1,5 @@
 <script setup>
-import ToolbarButtonIcon from './ToolbarButtonIcon.vue'
+import ToolbarButtonIcon from './ToolbarButtonIcon.vue';
 import { ref, computed } from 'vue';
 
 const emit = defineEmits(['buttonClick', 'textSubmit']);
@@ -44,7 +44,7 @@ const {
   hasInlineTextInput,
   minWidth,
   style,
-  attributes
+  attributes,
 } = props.toolbarItem;
 
 const inlineTextInput = ref(props.defaultLabel);
@@ -55,78 +55,74 @@ const handleClick = () => {
     inlineInput.value?.focus();
     inlineInput.value?.select();
   }
-  emit('buttonClick')
-}
+  emit('buttonClick');
+};
 
 const handleInputSubmit = () => {
   emit('textSubmit', inlineTextInput.value);
   inlineTextInput.value = '';
-}
+};
 
 const getStyle = computed(() => {
   if (style.value) return style.value;
   return {
     minWidth: props.minWidth,
-  }
-})
+  };
+});
 
 const onFontSizeInput = (event) => {
   let { value } = event.target;
   inlineTextInput.value = value.replace(/[^0-9]/g, '');
 };
-
 </script>
 
 <template>
-  <div 
-      :class="['toolbar-item', attributes.className]" 
-      :style="getStyle"
-  >
-      <div @click="handleClick"
-          class="toolbar-button"
-          :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput}">
+  <div :class="['toolbar-item', attributes.className]" :style="getStyle">
+    <div
+      @click="handleClick"
+      class="toolbar-button"
+      :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput }"
+    >
+      <ToolbarButtonIcon v-if="icon" :color="iconColor" class="toolbar-icon" :icon="icon" :name="name">
+      </ToolbarButtonIcon>
 
-        <ToolbarButtonIcon
-            v-if="icon"
-            :color="iconColor"
-            class="toolbar-icon"
-            :icon="icon"
-            :name="name">
-        </ToolbarButtonIcon>
-
-        <div class="button-label" v-if="label && !hideLabel && !inlineTextInputVisible">
-          {{label}}
-        </div>
-
-        <span v-if="inlineTextInputVisible">
-          <input
-            v-if="name === 'fontSize'"
-            v-model="inlineTextInput"
-            @input="onFontSizeInput"
-            :placeholder="label"
-            @keydown.enter.prevent="handleInputSubmit"
-            type="text"
-            class="button-text-input"
-            :id="'inlineTextInput-' + name" 
-            autoccomplete="off"
-            ref="inlineInput" />
-          <input
-            v-else
-            v-model="inlineTextInput"
-            :placeholder="label"
-            @keydown.enter.prevent="handleInputSubmit"
-            type="text"
-            class="button-text-input"
-            :id="'inlineTextInput-' + name" 
-            autoccomplete="off"
-            ref="inlineInput" />
-        </span>
-
-        <i v-if="hasCaret"
-            class="dropdown-caret fas"
-            :class="active ? 'fa-caret-up' : 'fa-caret-down'"
-            :style="{opacity: disabled ? 0.6 : 1}"></i>
+      <div class="button-label" v-if="label && !hideLabel && !inlineTextInputVisible">
+        {{ label }}
       </div>
+
+      <span v-if="inlineTextInputVisible">
+        <input
+          v-if="name === 'fontSize'"
+          v-model="inlineTextInput"
+          @input="onFontSizeInput"
+          :placeholder="label"
+          @keydown.enter.prevent="handleInputSubmit"
+          type="text"
+          class="button-text-input"
+          :id="'inlineTextInput-' + name"
+          autoccomplete="off"
+          ref="inlineInput"
+        />
+        <input
+          v-else
+          v-model="inlineTextInput"
+          :placeholder="label"
+          @keydown.enter.prevent="handleInputSubmit"
+          type="text"
+          class="button-text-input"
+          :id="'inlineTextInput-' + name"
+          autoccomplete="off"
+          ref="inlineInput"
+        />
+      </span>
+
+      <i
+        v-if="hasCaret"
+        class="dropdown-caret fas"
+        :class="active ? 'fa-caret-up' : 'fa-caret-down'"
+        :style="{ opacity: disabled ? 0.6 : 1 }"
+      ></i>
+    </div>
   </div>
 </template>
 
@@ -155,7 +151,7 @@ const onFontSizeInput = (event) => {
   position: relative;
 }
 .toolbar-button:hover {
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
 }
 .toolbar-button:active,
 .active {
@@ -175,10 +171,11 @@ const onFontSizeInput = (event) => {
   margin-left: 4px;
 }
 
-.left, .right {
+.left,
+.right {
   width: 50%;
   height: 100%;
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
   border-radius: 60%;
 }
 
@@ -193,8 +190,10 @@ const onFontSizeInput = (event) => {
   cursor: default;
   background-color: initial;
 }
-.disabled .toolbar-icon, .disabled .caret, .disabled .button-label {
-  opacity: .35;
+.disabled .toolbar-icon,
+.disabled .caret,
+.disabled .button-label {
+  opacity: 0.35;
 }
 .caret {
   font-size: 1em;

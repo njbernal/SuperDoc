@@ -14,7 +14,5 @@ export const parseFormatList = (str) => {
   if (!Array.isArray(formatList)) {
     return [];
   }
-  return formatList.filter(
-    (format) => Object.hasOwn(format, 'type') && Object.hasOwn(format, 'attrs'),
-  );
+  return formatList.filter((format) => Object.hasOwn(format, 'type') && Object.hasOwn(format, 'attrs'));
 };

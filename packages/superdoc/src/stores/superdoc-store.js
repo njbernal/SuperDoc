@@ -5,7 +5,6 @@ import { getFileObject } from '@harbour-enterprises/common';
 import useDocument from '@/composables/use-document';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
-
   const currentConfig = ref(null);
   const commentsStore = useCommentsStore();
   const documents = ref([]);
@@ -19,7 +18,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
   const user = reactive({ name: null, email: null });
   const modules = reactive({});
-  
+
   const activeSelection = ref(null);
   const selectionPosition = ref({
     left: 0,
@@ -27,7 +26,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     width: 0,
     height: 0,
     source: null,
-  })
+  });
 
   const reset = () => {
     documents.value = [];
@@ -39,12 +38,12 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     user.email = null;
     Object.assign(modules, {});
     activeSelection.value = null;
-  }
+  };
 
   const documentScroll = reactive({
     scrollTop: 0,
     scrollLeft: 0,
-  })
+  });
 
   const init = async (config) => {
     reset();
@@ -55,7 +54,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // Init current user
     Object.assign(user, configUser);
-  
+
     // Set up module config
     Object.assign(modules, configModules);
 
@@ -84,10 +83,9 @@ export const useSuperdocStore = defineStore('superdoc', () => {
         // Create composable and append to our documents
         const smartDoc = useDocument(docWithData, currentConfig.value);
         documents.value.push(smartDoc);
-
       } catch (e) {
         console.warn('[superdoc] Error initializing document:', doc, 'with error:', e, 'Skipping document.');
-      };
+      }
     }
   };
 
@@ -97,7 +95,6 @@ export const useSuperdocStore = defineStore('superdoc', () => {
    * @returns {Promise<Object>} The document object with data
    */
   const _initializeDocumentData = async (doc) => {
-
     // If in collaboration mode, return the document as is
     if (currentConfig.value?.modules.collaboration && !doc.isNewFile) {
       return { ...doc, data: null, url: null };
@@ -105,7 +102,6 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // If we already have a File object, return it
     if (doc.data) return doc;
-
     // If we don't have data, but have a URL and no type, we have an error
     else if (!doc.data && doc.url && !doc.type) {
       throw new Error('Document mime type must be specified when loading from URL');
@@ -133,13 +129,13 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     if (!matchedPage) return;
     const pageInfo = matchedPage.find((p) => p.page == page);
     if (!pageInfo || !pageInfo.container) return;
-    
+
     const containerBounds = pageInfo.container.getBoundingClientRect();
     const { height } = containerBounds;
     const totalHeight = height * (page - 1);
     return {
       top: totalHeight,
-    }
+    };
   };
 
   const handlePageReady = (documentId, index, containerBounds) => {
@@ -172,7 +168,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     user,
     modules,
-    
+
     // Getters
     areDocumentsReady,
 
@@ -182,5 +178,5 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     handlePageReady,
     getDocument,
     getPageBounds,
-  }
+  };
 });

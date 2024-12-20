@@ -5,8 +5,7 @@ export function orderedListMarker(options = {}) {
     key: new PluginKey('orderedListMarker'),
 
     appendTransaction: (transactions, oldState, newState) => {
-      let docChanges = transactions.some((tr) => tr.docChanged) 
-        && !oldState.doc.eq(newState.doc);
+      let docChanges = transactions.some((tr) => tr.docChanged) && !oldState.doc.eq(newState.doc);
 
       if (!docChanges) {
         return;
@@ -34,7 +33,7 @@ export function orderedListMarker(options = {}) {
           return;
         }
 
-        // If the current list has items without the marker attrs, 
+        // If the current list has items without the marker attrs,
         // then get all items and update listItems.
         if (listHasItemsWithoutAttrs) {
           let allItems = getAllChildListItemsOfList({ state: newState, list });
@@ -51,7 +50,8 @@ export function orderedListMarker(options = {}) {
           listNumberingType: firstItem.node.attrs.listNumberingType ?? defaultAttrs.listNumberingType,
         };
 
-        let equalFirstItemAttrs = currentAttrs.lvlText === firstItemAttrs.lvlText &&
+        let equalFirstItemAttrs =
+          currentAttrs.lvlText === firstItemAttrs.lvlText &&
           currentAttrs.listNumberingType === firstItemAttrs.listNumberingType &&
           compare(currentAttrs.listLevel, firstItemAttrs.listLevel);
 
@@ -73,19 +73,17 @@ export function orderedListMarker(options = {}) {
           let { node, pos } = listItem;
           let { lvlText, listLevel, listNumberingType } = node.attrs;
 
-          let newListLevel = [
-            ...currentAttrs.listLevel.slice(0, -1), 
-            currentAttrs.listLevel.at(-1) + 1,
-          ];
+          let newListLevel = [...currentAttrs.listLevel.slice(0, -1), currentAttrs.listLevel.at(-1) + 1];
 
-          let equalMarkerAttrs = lvlText === currentAttrs.lvlText &&
+          let equalMarkerAttrs =
+            lvlText === currentAttrs.lvlText &&
             listNumberingType === currentAttrs.listNumberingType &&
             compare(listLevel, newListLevel);
 
           if (!equalMarkerAttrs) {
             let { selection, storedMarks } = newState;
             let marks = storedMarks || (selection.$to.parentOffset && selection.$from.marks());
-            
+
             tr.setNodeMarkup(pos, undefined, {
               ...node.attrs,
               listLevel: newListLevel,
@@ -96,12 +94,12 @@ export function orderedListMarker(options = {}) {
             if (marks) {
               tr.ensureMarks(marks);
             }
-            
+
             changed = true;
           }
-          
-          currentAttrs = { 
-            ...currentAttrs, 
+
+          currentAttrs = {
+            ...currentAttrs,
             listLevel: newListLevel,
           };
         });
@@ -110,7 +108,7 @@ export function orderedListMarker(options = {}) {
       return changed ? tr : null;
     },
   });
-};
+}
 
 function getOrderedListItemsByList(state) {
   let { doc } = state;
@@ -145,11 +143,7 @@ function getAllChildListItemsOfList({ state, list }) {
   return allItems;
 }
 
-function createMarkerAttrs({
-  lvlText = '',
-  listLevel = [],
-  listNumberingType = 'decimal',
-} = {}) {
+function createMarkerAttrs({ lvlText = '', listLevel = [], listNumberingType = 'decimal' } = {}) {
   return {
     lvlText,
     listLevel,
@@ -168,11 +162,10 @@ function removeListItemMarkerAttrs(tr, listItem) {
 }
 
 function compare(a1, a2) {
-  return a1.length === a2.length &&
-    a1.every((item, index) => item === a2[index]);
+  return a1.length === a2.length && a1.every((item, index) => item === a2[index]);
 }
 
-// This is the place where we can check 
+// This is the place where we can check
 // the first item attributes and patch them as needed.
 function buildFirstListItemAttrs({ state, listItems }) {
   let { doc } = state;
@@ -190,7 +183,7 @@ function buildFirstListItemAttrs({ state, listItems }) {
   let listLevelValue = listDepth / 2;
 
   let itemHasAllAttrs = lvlText && listLevel?.length && listNumberingType;
-  
+
   if (!itemHasAllAttrs) {
     // Set default attributes.
     ({ lvlText, listLevel, listNumberingType } = defaultAttrs);

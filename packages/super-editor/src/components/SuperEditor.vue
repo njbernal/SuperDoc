@@ -5,16 +5,9 @@ import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
 import { Editor } from '@vue-3/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 
-const emit = defineEmits([
-  'editor-ready',
-  'editor-click',
-  'editor-keydown',
-  'comments-loaded',
-  'selection-update'
-]);
+const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
 
 const props = defineProps({
-
   documentId: {
     type: String,
     required: false,
@@ -36,7 +29,6 @@ const props = defineProps({
     required: false,
     default: () => ({}),
   },
-
 });
 
 const editorReady = ref(false);
@@ -69,7 +61,6 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
   checkData();
 };
 
-
 const loadNewFileData = async () => {
   try {
     const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(props.fileSource);
@@ -80,13 +71,12 @@ const loadNewFileData = async () => {
 };
 
 const initializeData = async () => {
-
   // If we have the file, initialize immediately from file
   if (props.fileSource) {
     const fileData = await loadNewFileData();
     return initEditor(fileData);
-  } 
-  
+  }
+
   // If we are in collaboration mode, wait for the docx data to be available
   else if (props.options.ydoc && props.options.collaborationProvider) {
     delete props.options.content;
@@ -95,7 +85,7 @@ const initializeData = async () => {
     provider.on('synced', () => {
       pollForMetaMapData(ydoc);
     });
-  } 
+  }
 };
 
 const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } = {}) => {
@@ -131,7 +121,7 @@ const handleSuperEditorClick = (event) => {
   if (!pmElement || !editor) {
     return;
   }
-  
+
   let isInsideEditor = pmElement.contains(event.target);
 
   if (!isInsideEditor && editor.isEditable) {
@@ -153,9 +143,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor" v-show="editorReady" 
-  @keydown="handleSuperEditorKeydown"
-  @click="handleSuperEditorClick">
+  <div class="super-editor" v-show="editorReady" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick">
     <div ref="editorElem" class="editor-element"></div>
   </div>
 
@@ -167,12 +155,12 @@ onBeforeUnmount(() => {
     <n-skeleton text :repeat="6" />
     <n-skeleton text style="width: 60%" />
 
-    <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px;"/>
+    <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px" />
     <n-skeleton text style="width: 60%" />
     <n-skeleton text :repeat="5" />
     <n-skeleton text style="width: 30%" />
 
-    <n-skeleton text style="margin-top: 50px;" />
+    <n-skeleton text style="margin-top: 50px" />
     <n-skeleton text :repeat="6" />
     <n-skeleton text style="width: 70%" />
   </div>

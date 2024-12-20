@@ -8,9 +8,7 @@ const { findChildren } = helpers;
  * @returns The array of field annotations.
  */
 export function getAllFieldAnnotations(state) {
-  let fieldAnnotations = findChildren(state.doc, (node) => (
-    node.type.name === 'fieldAnnotation'
-  ));
+  let fieldAnnotations = findChildren(state.doc, (node) => node.type.name === 'fieldAnnotation');
 
   return fieldAnnotations;
 }

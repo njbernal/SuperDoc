@@ -22,9 +22,8 @@ const getStyle = computed(() => {
   const fontSize = props.styleOverride?.originalFontSize || 120;
   return {
     fontSize: `${fontSize / 10}px`,
-  }
+  };
 });
-
 </script>
 
 <template>
@@ -33,8 +32,8 @@ const getStyle = computed(() => {
 </template>
 
 <style scoped>
-  .paragraph-field {
-    margin: 0;
-    padding: 1px;
-  }
+.paragraph-field {
+  margin: 0;
+  padding: 1px;
+}
 </style>

@@ -53,8 +53,7 @@ const keepTransactionNavigationParts = (tr, newTr, map, state) => {
   if (tr.selectionSet && map) {
     if (
       tr.selection instanceof TextSelection &&
-      (tr.selection.from < state.selection.from ||
-        tr.getMeta('inputType') === 'deleteContentBackward')
+      (tr.selection.from < state.selection.from || tr.getMeta('inputType') === 'deleteContentBackward')
     ) {
       const caretPos = map.map(tr.selection.from, -1);
       const selection = new TextSelection(newTr.doc.resolve(caretPos));
@@ -116,16 +115,8 @@ const removeTrackChangesFromTransaction = (tr, state) => {
       return;
     }
     if (step instanceof ReplaceStep && step.slice.size) {
-      const sliceWithoutDeleteMarks = removeMarksFromSlice(
-        step.slice,
-        state.schema,
-        TrackDeleteMarkName,
-      );
-      const sliceWithoutInsertMarks = removeMarksFromSlice(
-        sliceWithoutDeleteMarks,
-        state.schema,
-        TrackInsertMarkName,
-      );
+      const sliceWithoutDeleteMarks = removeMarksFromSlice(step.slice, state.schema, TrackDeleteMarkName);
+      const sliceWithoutInsertMarks = removeMarksFromSlice(sliceWithoutDeleteMarks, state.schema, TrackInsertMarkName);
       const newStep = new ReplaceStep(step.from, step.to, sliceWithoutInsertMarks, step.structure);
       newTr.step(newStep);
     } else {
@@ -250,10 +241,7 @@ const markDeletion = (tr, from, to, user, date, wid) => {
       return false;
     } else if (
       node.isInline &&
-      node.marks.find(
-        (mark) =>
-          mark.type.name === 'insertion' && mark.attrs.user === user && !mark.attrs.approved,
-      )
+      node.marks.find((mark) => mark.type.name === 'insertion' && mark.attrs.user === user && !mark.attrs.approved)
     ) {
       const removeStep = new ReplaceStep(
         deletionMap.map(Math.max(from, pos)),
@@ -309,11 +297,7 @@ const handleReplaceStep = (state, tr, step, stepIndex, newTr, map, user, date) =
       const mappedNewStepTo = newStep.getMap().map(newStep.to);
       markInsertion(trTemp, newStep.from, mappedNewStepTo, user, date, wid);
       // We condense it down to a single replace step.
-      const condensedStep = new ReplaceStep(
-        newStep.from,
-        newStep.to,
-        trTemp.doc.slice(newStep.from, mappedNewStepTo),
-      );
+      const condensedStep = new ReplaceStep(newStep.from, newStep.to, trTemp.doc.slice(newStep.from, mappedNewStepTo));
       newTr.step(condensedStep);
       const mirrorIndex = map.maps.length - 1;
       map.appendMap(condensedStep.getMap(), mirrorIndex);
@@ -353,11 +337,7 @@ const handleMarkStep = (state, step, newTr, user, date) => {
     if (formatChangeMark) {
       before = [...formatChangeMark.attrs.before];
       after = [...formatChangeMark.attrs.after];
-      newTr.removeMark(
-        Math.max(step.from, pos),
-        Math.min(step.to, pos + node.nodeSize),
-        formatChangeMark,
-      );
+      newTr.removeMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), formatChangeMark);
     } else {
       before = node.marks.map((mark) => ({
         type: mark.type.name,
@@ -407,16 +387,7 @@ export const trackTransaction = (tr, state, user) => {
       return;
     }
     if (step instanceof ReplaceStep) {
-      handleReplaceStep(
-        state,
-        tr,
-        step,
-        originalStepIndex,
-        newTr,
-        map,
-        user,
-        fixedTimeTo10MinutesString,
-      );
+      handleReplaceStep(state, tr, step, originalStepIndex, newTr, map, user, fixedTimeTo10MinutesString);
     } else if (step instanceof AddMarkStep) {
       handleMarkStep(state, step, newTr, user, fixedTimeTo10MinutesString);
     } else if (step instanceof RemoveMarkStep) {

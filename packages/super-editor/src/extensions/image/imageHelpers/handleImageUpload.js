@@ -1,4 +1,3 @@
-
 export const handleImageUpload = (file) => {
   return new Promise((resolve, reject) => {
     let reader = new FileReader();

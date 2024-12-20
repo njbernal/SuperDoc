@@ -7,7 +7,7 @@
  */
 export function chainableEditorState(transaction, state) {
   let { selection, doc, storedMarks } = transaction;
-  
+
   return {
     ...state,
     apply: state.apply.bind(state),

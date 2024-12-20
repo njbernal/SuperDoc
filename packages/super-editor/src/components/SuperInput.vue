@@ -32,7 +32,7 @@ const editor = shallowRef();
 const editorElem = ref(null);
 const isFocused = ref(false);
 
-const onTransaction = ({ editor, transaction}) => {
+const onTransaction = ({ editor, transaction }) => {
   const contents = editor.getHTML();
   emit('update:modelValue', contents);
 };
@@ -54,7 +54,7 @@ const initEditor = async () => {
   props.options.onFocus = onFocus;
   props.options.onBlur = onBlur;
   editor.value = new Editor({
-    mode: "text",
+    mode: 'text',
     content: document.getElementById('currentContent'),
     element: editorElem.value,
     extensions: getRichTextExtensions(),
@@ -75,7 +75,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="super-editor" :class="{ 'super-input-active': isFocused }">
-    <div id="currentContent" style="display: none;" v-html="modelValue"></div>
+    <div id="currentContent" style="display: none" v-html="modelValue"></div>
     <div ref="editorElem" class="editor-element"></div>
   </div>
 </template>

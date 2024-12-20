@@ -18,6 +18,6 @@ export const LineBreak = Node.create({
   addAttributes() {
     return {
       lineBreakType: { default: null },
-    }
-  }
+    };
+  },
 });

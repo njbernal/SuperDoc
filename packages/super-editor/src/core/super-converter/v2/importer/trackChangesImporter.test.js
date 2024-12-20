@@ -1,19 +1,13 @@
 import { SuperConverter } from '../../SuperConverter.js';
 import { handleTrackChangeNode, handleDelText } from './trackChangesImporter.js';
 import { createNodeListHandlerMock } from './testUtils.test.js';
-import {
-  TrackDeleteMarkName,
-  TrackInsertMarkName,
-  TrackFormatMarkName,
-} from '@extensions/track-changes/constants.js';
+import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
 import { parseXmlToJson } from '../docxHelper.js';
 import { defaultNodeListHandler } from './docxImporter.js';
 
 describe('TrackChangesImporter', () => {
   it('parses only track change nodes', () => {
-    const names = Object.keys(SuperConverter.allowedElements).filter(
-      (name) => name !== 'w:del' && name !== 'w:ins',
-    );
+    const names = Object.keys(SuperConverter.allowedElements).filter((name) => name !== 'w:del' && name !== 'w:ins');
     const nodesOfNodes = names.map((name) => [{ name }]);
     for (const nodes of nodesOfNodes) {
       const result = handleTrackChangeNode(nodes, null, null, false);

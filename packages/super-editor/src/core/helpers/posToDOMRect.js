@@ -1,4 +1,4 @@
-import { minMax } from '../utilities/minMax.js'
+import { minMax } from '../utilities/minMax.js';
 
 export function posToDOMRect(view, from, to) {
   const minPos = 0;

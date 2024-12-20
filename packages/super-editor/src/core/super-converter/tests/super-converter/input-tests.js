@@ -20,7 +20,6 @@ export function runInputTests(fileName) {
       parser = new SuperConverter({ xml: currentXML, debug: showParserLogging });
     });
 
-
     it('can create instance with XML', () => {
       expect(parser).toBeTruthy();
       expect(parser).toBeInstanceOf(SuperConverter);
@@ -32,21 +31,19 @@ export function runInputTests(fileName) {
       const schema = parser.getSchema();
     });
 
-
     it('can parse docx XML into SCHEMA', () => {
       expect(parser).toBeTruthy();
       expect(parser).toBeInstanceOf(SuperConverter);
 
       const schema = parser.getSchema();
       expect(schema).toBeTruthy();
-      
+
       // The schema begins with some expected properties
       expect(schema).toHaveProperty('content');
       expect(schema).toHaveProperty('type');
       expect(schema).toHaveProperty('attrs');
       expect(schema.type).toBe('doc');
     });
-
 
     it('correctly parses the docx body', () => {
       const schema = parser.getSchema();
@@ -92,9 +89,7 @@ export function testLists() {
   }
 
   describe('List parsing tests', () => {
-
     it('works', async () => {
-
       const zip = new DocxZipper();
       const pathName = `../../../tests/fixtures/list1/list1.docx`;
       const fileContent = await readFileAsBuffer(pathName);
@@ -106,28 +101,24 @@ export function testLists() {
       const schema = c.getSchema();
 
       expect(schema).toBeTruthy();
-      
-      const initialParent = initialJSON.elements[0].elements[0]
+
+      const initialParent = initialJSON.elements[0].elements[0];
       const parent = schema.content[0];
-      
-      const test = c.convertToSchema(initialParent)
+
+      const test = c.convertToSchema(initialParent);
 
       // console.debug('LIST1', JSON.stringify(test, null, 2));
-      
     });
   });
 }
 
 export function testInputConversion() {
   describe('Granular tests from known input', () => {
-
     let xml;
-
 
     beforeEach(() => {
       xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     });
-
 
     it('can parse document tag', () => {
       xml += '<w:document xmlns:cx1="fake-ck1"></w:document>';
@@ -144,7 +135,6 @@ export function testInputConversion() {
       expect(schema).toEqual(expectedResult);
     });
 
-
     it('can parse empty body tag', () => {
       xml += '<w:document>';
       xml += `<w:body></w:body>`;
@@ -158,11 +148,10 @@ export function testInputConversion() {
       expect(outputBody.type).toBe('body');
       expect(outputBody).toHaveProperty('attrs');
       expect(outputBody.attrs).toHaveProperty('attributes');
-      
+
       const outputAttributes = outputBody.attrs.attributes;
       expect(outputAttributes).not.toHaveProperty('sectionProperties');
     });
-
 
     it('can parse body tag with section properties', () => {
       xml += '<w:document>';
@@ -191,10 +180,9 @@ export function testInputConversion() {
       expect(outputAttributes.sectionProperties).toHaveProperty('elements');
 
       const sectionProperties = outputAttributes.sectionProperties;
-      expected = { type: 'element', name: 'w:pgSz', attributes: { 'w:w': '12240', 'w:h': '15840' } }
+      expected = { type: 'element', name: 'w:pgSz', attributes: { 'w:w': '12240', 'w:h': '15840' } };
       expect(sectionProperties.elements[0]).toEqual(expected);
     });
-
 
     it('can parse body tag with paragraphs', () => {
       xml += '<w:document>';
@@ -230,11 +218,10 @@ export function testInputConversion() {
         'w14:paraId': '755418E4',
         'w14:textId': '77777777',
         'w:rsidR': '00746728',
-        'w:rsidRDefault': '00746728'
+        'w:rsidRDefault': '00746728',
       };
       expect(p1.attrs.attributes).toEqual(expected);
     });
-
 
     it('can parse paragraphs and their runs', () => {
       xml += '<w:document>';
@@ -307,7 +294,6 @@ export function testInputConversion() {
       expect(p2.content).toHaveLength(0);
     });
 
-
     it('can parse runs and their attrs', () => {
       xml += `
         <w:document>
@@ -355,15 +341,15 @@ export function testInputConversion() {
       const runs = bodyElements[0].content;
 
       // Check the xml:space attr in the first run
-      const run1 = runs[0]
+      const run1 = runs[0];
       expect(run1).toHaveProperty('content');
-      expect(run1).toHaveProperty('attrs')
+      expect(run1).toHaveProperty('attrs');
 
       // Check the text item
       const text1 = run1.content[0];
       expect(text1.attrs).toHaveProperty('attributes');
       expect(text1.attrs.attributes).toHaveProperty('xml:space');
-      
+
       // Check run #2
       const run2 = runs[1];
       expect(run2).toHaveProperty('attrs');
@@ -376,21 +362,16 @@ export function testInputConversion() {
       expect(run2Pr).toHaveProperty('type');
       expect(run2Pr.name).toBe('w:rPr');
       expect(run2Pr.elements).toHaveLength(2);
-      
+
       const runProps = run2Pr.elements;
       expect(runProps[0].name).toBe('w:b');
       expect(runProps[1].name).toBe('w:bCs');
-
     });
-
 
     it('can parse list items', () => {
-
       // TODO
-
     });
   });
-
 
   // Tests with sample.docx for basic marks
   // TODO: Re-add these tests

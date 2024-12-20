@@ -1,4 +1,4 @@
-import { parseProperties } from "./importerHelpers.js";
+import { parseProperties } from './importerHelpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
@@ -15,14 +15,14 @@ const handleTabNode = (nodes, docx, nodeListHandler, insideTrackChange = false) 
       tabSize: attributes['w:val'] || 48,
     },
     content: [],
-  }
+  };
   return { nodes: [processedNode], consumed: 1 };
-}
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const tabNodeEntityHandler = {
   handlerName: 'runNodeHandler',
-  handler: handleTabNode
+  handler: handleTabNode,
 };

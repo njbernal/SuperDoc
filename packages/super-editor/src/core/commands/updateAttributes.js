@@ -7,6 +7,7 @@ import { getSchemaTypeNameByName } from '../helpers/getSchemaTypeNameByName.js';
  * @param typeOrName The type or name of the node/mark.
  * @param attrs The attrs of the node/mark.
  */
+//prettier-ignore
 export const updateAttributes = (typeOrName, attrs = {}) => ({ tr, state, dispatch }) => {
   let nodeType = null;
   let markType = null;
@@ -41,11 +42,7 @@ export const updateAttributes = (typeOrName, attrs = {}) => ({ tr, state, dispat
               const trimmedFrom = Math.max(pos, from);
               const trimmedTo = Math.min(pos + node.nodeSize, to);
 
-              tr.addMark(
-                trimmedFrom,
-                trimmedTo,
-                markType.create({ ...mark.attrs, ...attrs }),
-              );
+              tr.addMark(trimmedFrom, trimmedTo, markType.create({ ...mark.attrs, ...attrs }));
             }
           });
         }
@@ -54,4 +51,4 @@ export const updateAttributes = (typeOrName, attrs = {}) => ({ tr, state, dispat
   }
 
   return true;
-}
+};

@@ -16,7 +16,7 @@ export const TableCell = Node.create({
   addOptions() {
     return {
       htmlAttributes: {},
-    }
+    };
   },
 
   renderDOM({ htmlAttributes }) {
@@ -34,25 +34,25 @@ export const TableCell = Node.create({
           return { style };
         },
       },
-      widthType: { default: 'auto', rendered: false, },
-      colspan: { default: 1, },
+      widthType: { default: 'auto', rendered: false },
+      colspan: { default: 1 },
       rowspan: {
         default: 1,
       },
       background: {
-        renderDOM ({ background }) {
+        renderDOM({ background }) {
           if (!background) return {};
           const { color } = background || {};
           const style = `background-color: #${color || 'transparent'}`;
           return { style };
-        }
+        },
       },
-      verticalAlign: { 
+      verticalAlign: {
         renderDOM({ verticalAlign }) {
           if (!verticalAlign) return {};
           const style = `vertical-align: ${verticalAlign}`;
           return { style };
-        }
+        },
       },
       cellMargins: {
         renderDOM({ cellMargins }) {
@@ -63,9 +63,10 @@ export const TableCell = Node.create({
               const margin = cellMargins?.[side];
               if (margin) return `padding-${side}: ${margin}px;`;
               return '';
-            }).join(' ');
+            })
+            .join(' ');
           return { style };
-        }        
+        },
       },
       borders: {
         renderDOM({ borders }) {
@@ -77,9 +78,10 @@ export const TableCell = Node.create({
               if (border && border.val === 'none') return `border-${side}: ${border.val};`;
               if (border) return `border-${side}: ${border.size}px solid ${border.color || 'black'};`;
               return '';
-            }).join(' ');
+            })
+            .join(' ');
           return { style };
-        }
+        },
       },
       mergedCells: {
         rendered: false,
@@ -88,6 +90,6 @@ export const TableCell = Node.create({
       vMerge: {
         rendered: false,
       },
-    }
+    };
   },
 });

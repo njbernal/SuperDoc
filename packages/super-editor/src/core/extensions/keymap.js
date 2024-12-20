@@ -9,40 +9,43 @@ import { isMacOS } from '../utilities/isMacOS.js';
 export const Keymap = Extension.create({
   name: 'keymap',
 
-  addShortcuts() { 
-    const handleEnter = () => this.editor.commands.first(({ commands }) => [
-      () => commands.newlineInCode(),
-      () => commands.createParagraphNear(),
-      () => commands.liftEmptyBlock(),
-      () => commands.splitBlock(),
-    ]);
-    
-    const handleBackspace = () => this.editor.commands.first(({ commands, tr }) => [
-      () => {
-        tr.setMeta('inputType', 'deleteContentBackward');
-        return false;
-      },
-      () => commands.deleteSelection(),
-      () => commands.joinBackward(),
-      () => commands.selectNodeBackward(),
-    ]);
+  addShortcuts() {
+    const handleEnter = () =>
+      this.editor.commands.first(({ commands }) => [
+        () => commands.newlineInCode(),
+        () => commands.createParagraphNear(),
+        () => commands.liftEmptyBlock(),
+        () => commands.splitBlock(),
+      ]);
 
-    const handleDelete = () => this.editor.commands.first(({ commands }) => [
-      () => commands.deleteSelection(),
-      () => commands.joinForward(),
-      () => commands.selectNodeForward(),
-    ]);
+    const handleBackspace = () =>
+      this.editor.commands.first(({ commands, tr }) => [
+        () => {
+          tr.setMeta('inputType', 'deleteContentBackward');
+          return false;
+        },
+        () => commands.deleteSelection(),
+        () => commands.joinBackward(),
+        () => commands.selectNodeBackward(),
+      ]);
+
+    const handleDelete = () =>
+      this.editor.commands.first(({ commands }) => [
+        () => commands.deleteSelection(),
+        () => commands.joinForward(),
+        () => commands.selectNodeForward(),
+      ]);
 
     const baseKeymap = {
       Enter: handleEnter,
       'Mod-Enter': () => this.editor.commands.exitCode(),
-      'Backspace': handleBackspace,
+      Backspace: handleBackspace,
       'Mod-Backspace': handleBackspace,
       'Shift-Backspace': handleBackspace,
-      'Delete': handleDelete,
+      Delete: handleDelete,
       'Mod-Delete': handleDelete,
       'Mod-a': () => this.editor.commands.selectAll(),
-      'Tab': () => this.editor.commands.insertTabNode(),
+      Tab: () => this.editor.commands.insertTabNode(),
     };
 
     const pcBaseKeymap = {

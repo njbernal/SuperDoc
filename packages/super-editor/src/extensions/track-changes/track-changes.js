@@ -33,13 +33,8 @@ export const TrackChanges = Extension.create({
 
               tr.step(deletionStep);
               map.appendMap(deletionStep.getMap());
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackInsertMarkName)
-            ) {
-              const insertionMark = node.marks.find(
-                (mark) => mark.type.name === TrackInsertMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackInsertMarkName)) {
+              const insertionMark = node.marks.find((mark) => mark.type.name === TrackInsertMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -48,13 +43,8 @@ export const TrackChanges = Extension.create({
                   insertionMark,
                 ),
               );
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackFormatMarkName)
-            ) {
-              const formatChangeMark = node.marks.find(
-                (mark) => mark.type.name === TrackFormatMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackFormatMarkName)) {
+              const formatChangeMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -84,9 +74,7 @@ export const TrackChanges = Extension.create({
 
           doc.nodesBetween(from, to, (node, pos) => {
             if (node.marks && node.marks.find((mark) => mark.type.name === TrackDeleteMarkName)) {
-              const deletionMark = node.marks.find(
-                (mark) => mark.type.name === TrackDeleteMarkName,
-              );
+              const deletionMark = node.marks.find((mark) => mark.type.name === TrackDeleteMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -95,10 +83,7 @@ export const TrackChanges = Extension.create({
                   deletionMark,
                 ),
               );
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackInsertMarkName)
-            ) {
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackInsertMarkName)) {
               const deletionStep = new ReplaceStep(
                 map.map(Math.max(pos, from)),
                 map.map(Math.min(pos + node.nodeSize, to)),
@@ -107,13 +92,8 @@ export const TrackChanges = Extension.create({
 
               tr.step(deletionStep);
               map.appendMap(deletionStep.getMap());
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackFormatMarkName)
-            ) {
-              const formatChangeMark = node.marks.find(
-                (mark) => mark.type.name === TrackFormatMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackFormatMarkName)) {
+              const formatChangeMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
 
               formatChangeMark.attrs.before.forEach((oldMark) => {
                 tr.step(
@@ -179,11 +159,12 @@ export const TrackChanges = Extension.create({
             })
             .every((result) => result);
         },
-      
+
       acceptAllTrackedChanges:
         () =>
         ({ state, commands }) => {
-          const from = 0, to = state.doc.content.size;
+          const from = 0,
+            to = state.doc.content.size;
           return commands.acceptTrackedChangesBetween(from, to);
         },
 
@@ -214,14 +195,15 @@ export const TrackChanges = Extension.create({
           const { from, to } = state.selection;
           return commands.rejectTrackedChangesBetween(from, to);
         },
-      
+
       rejectAllTrackedChanges:
         () =>
         ({ state, commands }) => {
-          const from = 0, to = state.doc.content.size;
+          const from = 0,
+            to = state.doc.content.size;
           return commands.rejectTrackedChangesBetween(from, to);
         },
-        
+
       toggleTrackChanges:
         () =>
         ({ state }) => {

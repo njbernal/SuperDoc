@@ -7,11 +7,11 @@
 export function getMarkType(nameOrType, schema) {
   if (typeof nameOrType === 'string') {
     if (!schema.marks[nameOrType]) {
-      throw Error(`There is no mark type named '${nameOrType}' in schema.`,)
+      throw Error(`There is no mark type named '${nameOrType}' in schema.`);
     }
 
     return schema.marks[nameOrType];
   }
-  
+
   return nameOrType;
 }

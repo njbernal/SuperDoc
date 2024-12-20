@@ -11,19 +11,19 @@ export const camelizeKeys = (link_comments) => {
     Object.keys(comment).reduce((camelized, key) => {
       camelized[camelize(key)] = comment[key];
       return camelized;
-    }, {})
+    }, {}),
   );
-}
+};
 
 export const snakeCaseKeys = (comments) => {
   return comments.map((comment) =>
     Object.keys(comment).reduce((snaked, key) => {
       snaked[snakeCase(key)] = comment[key];
       return snaked;
-    }, {})
+    }, {}),
   );
-}
+};
 
 export const toKebabCase = (str) => {
   return kebabCase(str);
-}
+};

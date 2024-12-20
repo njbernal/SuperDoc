@@ -19,14 +19,14 @@ const getStyle = computed(() => (entry) => {
   const { coordinates, field } = entry;
 
   // Adjust for padding
-  const adjustTypes = ['TEXTINPUT', 'SELECT']
+  const adjustTypes = ['TEXTINPUT', 'SELECT'];
   if (adjustTypes.includes(field.fieldType)) {
     const top = coordinates.top.split('px')[0];
     const newTop = top - 13;
     coordinates.top = `${newTop}px`;
   }
 
-  const widthAdjustTypes = ['HTMLINPUT']
+  const widthAdjustTypes = ['HTMLINPUT'];
   if (widthAdjustTypes.includes(field.fieldType)) {
     const scaleFactor = 1.3362445414847162;
     const minWidthNum = coordinates.minWidth.split('px')[0];
@@ -38,7 +38,7 @@ const getStyle = computed(() => (entry) => {
     position: 'absolute',
     //field,
     ...coordinates,
-  }
+  };
 });
 
 const getAnnotationWithField = computed(() => {
@@ -52,24 +52,25 @@ const getAnnotationWithField = computed(() => {
 
   return annotationsWithFields;
 });
-
 </script>
 
 <template>
   <div class="main-container">
-    <div 
-      v-for="entry in getAnnotationWithField" 
-      :style="getStyle(entry)" 
+    <div
+      v-for="entry in getAnnotationWithField"
+      :style="getStyle(entry)"
       class="field-container"
-      :class="{'field-container--no-style': entry.nostyle}">
+      :class="{ 'field-container--no-style': entry.nostyle }"
+    >
       <component
-          class="field-component"
-          :is="fieldComponentsMap[entry.field.fieldType]"
-          :field="entry.field"
-          :style-override="entry.style"
-          :option-id="entry.originalAnnotationId"
-          :no-style="entry.nostyle"
-          :is-editing="false" />
+        class="field-component"
+        :is="fieldComponentsMap[entry.field.fieldType]"
+        :field="entry.field"
+        :style-override="entry.style"
+        :option-id="entry.originalAnnotationId"
+        :no-style="entry.nostyle"
+        :is-editing="false"
+      />
     </div>
   </div>
 </template>
@@ -77,8 +78,8 @@ const getAnnotationWithField = computed(() => {
 <style scoped>
 .field-container {
   border-radius: 2px;
-  background-color: #EFD0F0 !important;
-  border: 2px solid #B015B3;
+  background-color: #efd0f0 !important;
+  border: 2px solid #b015b3;
 }
 
 .field-container--no-style {

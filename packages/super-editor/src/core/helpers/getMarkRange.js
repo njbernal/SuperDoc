@@ -36,10 +36,7 @@ export function getMarkRange($pos, type, attrs = {}) {
     startPos -= $pos.parent.child(startIndex).nodeSize;
   }
 
-  while (
-    endIndex < $pos.parent.childCount
-    && isMarkInSet([...$pos.parent.child(endIndex).marks], type, attrs)
-  ) {
+  while (endIndex < $pos.parent.childCount && isMarkInSet([...$pos.parent.child(endIndex).marks], type, attrs)) {
     endPos += $pos.parent.child(endIndex).nodeSize;
     endIndex += 1;
   }

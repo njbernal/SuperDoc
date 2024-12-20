@@ -1,12 +1,10 @@
 import xmljs from 'xml-js';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
-import { createDocumentJson} from "./v2/importer/docxImporter.js";
+import { createDocumentJson } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
 
-
 class SuperConverter {
-
   static allowedElements = Object.freeze({
     'w:document': 'doc',
     'w:body': 'body',
@@ -30,7 +28,6 @@ class SuperConverter {
     // 'w:commentRangeStart': 'commentRangeStart',
     // 'w:commentRangeEnd': 'commentRangeEnd',
     // 'w:commentReference': 'commentReference',
-
   });
 
   static markTypes = [
@@ -49,7 +46,7 @@ class SuperConverter {
     { name: 'w:spacing', type: 'lineHeight', mark: 'textStyle', property: 'lineHeight' },
     { name: 'link', type: 'link', mark: 'link', property: 'href' },
     { name: 'w:highlight', type: 'highlight', mark: 'highlight', property: 'color' },
-  ]
+  ];
 
   static propertyTypes = Object.freeze({
     'w:pPr': 'paragraphProperties',
@@ -58,14 +55,7 @@ class SuperConverter {
     'w:numPr': 'numberingProperties',
   });
 
-  static elements = new Set([
-    'w:document',
-    'w:body',
-    'w:p',
-    'w:r',
-    'w:t',
-    'w:delText',
-  ])
+  static elements = new Set(['w:document', 'w:body', 'w:p', 'w:r', 'w:t', 'w:delText']);
 
   constructor(params = null) {
     // Suppress logging when true
@@ -74,14 +64,14 @@ class SuperConverter {
     // Important docx pieces
     this.declaration = null;
     this.documentAttributes = null;
-  
+
     // The docx as a list of files
     this.convertedXml = {};
     this.docx = params?.docx || [];
     this.media = params?.media || {};
-    
+
     this.addedMedia = {};
-  
+
     // XML inputs
     this.xml = params?.xml;
     this.declaration = null;
@@ -96,7 +86,7 @@ class SuperConverter {
     // This is the JSON schema that we will be working with
     this.json = params?.json;
 
-    this.tagsNotInSchema = ['w:body']
+    this.tagsNotInSchema = ['w:body'];
     this.savedTagsToRestore = [];
 
     // Parse the initial XML, if provided
@@ -104,7 +94,7 @@ class SuperConverter {
   }
 
   parseFromXml() {
-    this.docx?.forEach(file => {
+    this.docx?.forEach((file) => {
       this.convertedXml[file.name] = this.parseXmlToJson(file.content);
 
       if (file.name === 'word/document.xml') {
@@ -118,9 +108,9 @@ class SuperConverter {
   }
 
   parseXmlToJson(xml) {
-    return JSON.parse(xmljs.xml2json(xml, null, 2))
+    return JSON.parse(xmljs.xml2json(xml, null, 2));
   }
-  
+
   getDocumentDefaultStyles() {
     const styles = this.convertedXml['word/styles.xml'];
     if (!styles) return {};
@@ -131,7 +121,7 @@ class SuperConverter {
 
     // Get the run defaults for this document - this will include font, theme etc.
     const rDefault = defaults.elements.find((el) => el.name === 'w:rPrDefault');
-    const rElements = rDefault.elements[0].elements
+    const rElements = rDefault.elements[0].elements;
     const rFonts = rElements?.find((el) => el.name === 'w:rFonts');
     if ('elements' in rDefault) {
       const fontThemeName = rElements.find((el) => el.name === 'w:rFonts')?.attributes['w:asciiTheme'];
@@ -143,17 +133,18 @@ class SuperConverter {
       } else if (rFonts) {
         typeface = rFonts?.attributes['w:ascii'];
       } else {
-        const paragraphDefaults = styles.elements[0].elements.filter((el) => {
-          return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
-        }) || [];
+        const paragraphDefaults =
+          styles.elements[0].elements.filter((el) => {
+            return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
+          }) || [];
         paragraphDefaults.forEach((el) => {
           const rPr = el.elements.find((el) => el.name === 'w:rPr');
           const fonts = rPr?.elements?.find((el) => el.name === 'w:rFonts');
           typeface = fonts?.attributes['w:ascii'];
         });
       }
-      
-      const fontSizePt = (Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2) || 12;
+
+      const fontSizePt = Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2 || 12;
       const kern = rElements.find((el) => el.name === 'w:kern')?.attributes['w:val'];
       return { fontSizePt, kern, typeface, panose };
     }
@@ -163,7 +154,7 @@ class SuperConverter {
     themeName = themeName.toLowerCase();
     const theme1 = this.convertedXml['word/theme/theme1.xml'];
     const themeData = theme1.elements.find((el) => el.name === 'a:theme');
-    const themeElements = themeData.elements.find((el) => el.name === "a:themeElements");
+    const themeElements = themeData.elements.find((el) => el.name === 'a:themeElements');
     const fontScheme = themeElements.elements.find((el) => el.name === 'a:fontScheme');
     let fonts;
 
@@ -178,9 +169,9 @@ class SuperConverter {
   }
 
   getSchema() {
-    const result = createDocumentJson({...this.convertedXml, media: this.media});
+    const result = createDocumentJson({ ...this.convertedXml, media: this.media });
     if (result) {
-      this.savedTagsToRestore.push({...result.savedTagsToRestore});
+      this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
       return result.pmDoc;
     } else {
@@ -202,49 +193,49 @@ class SuperConverter {
       documentMedia: {},
       media: {},
       isFinalDoc,
-      editorSchema
+      editorSchema,
     });
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
-    
+
     // Update media
     await this.#exportProcessMediaFiles({
       ...documentMedia,
       ...params.media,
-      ...this.media
+      ...this.media,
     });
-    
+
     // Update the rels table
     this.#exportProcessNewRelationships(params.relationships);
 
-    return xml
+    return xml;
   }
 
   #exportProcessNewRelationships(rels = []) {
     const relsData = this.convertedXml['word/_rels/document.xml.rels'];
-    const relationships = relsData.elements.find(x => x.name === 'Relationships');
+    const relationships = relsData.elements.find((x) => x.name === 'Relationships');
     relationships.elements.push(...rels);
-    relationships.elements.forEach(element => {
-      element.attributes.Target = element.attributes?.Target?.replace(/&/g,'&amp;').replace(/-/g,'&#45;');
-    })
+    relationships.elements.forEach((element) => {
+      element.attributes.Target = element.attributes?.Target?.replace(/&/g, '&amp;').replace(/-/g, '&#45;');
+    });
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   }
-  
+
   async #exportProcessMediaFiles(media) {
     const processedData = {};
     for (const filePath in media) {
       if (typeof media[filePath] !== 'string') return;
       const name = filePath.split('/').pop();
-      processedData[name] = await getArrayBufferFromUrl(media[filePath])
+      processedData[name] = await getArrayBufferFromUrl(media[filePath]);
     }
 
     this.convertedXml.media = {
       ...this.convertedXml.media,
-      ...processedData
+      ...processedData,
     };
     this.media = this.convertedXml.media;
     this.addedMedia = processedData;
   }
 }
 
-export { SuperConverter }
+export { SuperConverter };

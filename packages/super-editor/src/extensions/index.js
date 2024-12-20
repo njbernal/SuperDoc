@@ -40,14 +40,14 @@ import { Underline } from './underline/index.js';
 import { Highlight } from './highlight/index.js';
 import { Strike } from './strike/index.js';
 import { Link } from './link/index.js';
-import { TrackInsert, TrackDelete, TrackFormat } from "./track-changes/index.js";
+import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
 
 // Plugins
 import { DecorationClick } from './decoration-click/index.js';
 import { CommentsPlugin } from './comment/index.js';
 import { Placeholder } from './placeholder/index.js';
 import { PopoverPlugin } from './popover-plugin/index.js';
-import { TrackChanges } from "./track-changes/index.js";
+import { TrackChanges } from './track-changes/index.js';
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
@@ -68,7 +68,7 @@ const getRichTextExtensions = () => [
   Placeholder,
   PopoverPlugin,
   Mention,
-  Highlight
+  Highlight,
 ];
 
 const getStarterExtensions = () => {
@@ -117,7 +117,7 @@ const getStarterExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
-    Highlight
+    Highlight,
   ];
 };
 
@@ -131,8 +131,8 @@ export {
   OrderedList,
   ListItem,
   Paragraph,
-  CommentRangeStart, 
-  CommentRangeEnd, 
+  CommentRangeStart,
+  CommentRangeEnd,
   CommentReference,
   TabNode,
   LineBreak,

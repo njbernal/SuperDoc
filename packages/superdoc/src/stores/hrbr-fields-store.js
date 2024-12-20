@@ -1,14 +1,13 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, markRaw } from 'vue';
 import { useSuperdocStore } from './superdoc-store';
-import TextField from "@/components/HrbrFieldsLayer/TextField.vue";
-import ParagraphField from "@/components/HrbrFieldsLayer/ParagraphField.vue";
-import ImageField from "@/components/HrbrFieldsLayer/ImageField.vue";
-import CheckboxField from "@/components/HrbrFieldsLayer/CheckboxField.vue";
-import SelectField from "@/components/HrbrFieldsLayer/SelectField.vue";
+import TextField from '@/components/HrbrFieldsLayer/TextField.vue';
+import ParagraphField from '@/components/HrbrFieldsLayer/ParagraphField.vue';
+import ImageField from '@/components/HrbrFieldsLayer/ImageField.vue';
+import CheckboxField from '@/components/HrbrFieldsLayer/CheckboxField.vue';
+import SelectField from '@/components/HrbrFieldsLayer/SelectField.vue';
 
 export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
-
   const superdocStore = useSuperdocStore();
   const { documents, pages } = storeToRefs(superdocStore);
   const hrbrFieldsConfig = reactive({
@@ -25,10 +24,10 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
   });
 
   const getField = (documentId, fieldId) => {
-    const doc = documents.value.find(d => d.id === documentId);
+    const doc = documents.value.find((d) => d.id === documentId);
     if (!doc) return;
 
-    const field = doc.fields.find(f => f.id === fieldId);
+    const field = doc.fields.find((f) => f.id === fieldId);
     if (field) return field;
   };
 
@@ -45,11 +44,7 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
       if (!bounds || !pageBoundsMap) return;
 
       annotations.forEach((annotation) => {
-        const { 
-          itemid: fieldId, 
-          page,
-          nostyle,
-        } = annotation;
+        const { itemid: fieldId, page, nostyle } = annotation;
 
         let annotationId = annotation.pageannotation;
 
@@ -74,7 +69,7 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
           fontSize: annotation.original_font_size + 'px',
           originalFontSize: annotation.original_font_size,
           coordinates: mappedCoordinates,
-        }
+        };
 
         const field = {
           documentId: id,
@@ -91,7 +86,7 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
       });
     });
 
-    return mappedAnnotations
+    return mappedAnnotations;
   });
 
   const _mapAnnotation = (coordinates, scale, pageBottom, boundsLeft) => {
@@ -102,11 +97,11 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
     const mappedY2 = y2 * scale;
 
     return {
-      top: `${ pageBottom - mappedY2 }px`,
+      top: `${pageBottom - mappedY2}px`,
       left: `${mappedX1 + boundsLeft}px`,
       minWidth: `${mappedX2 - mappedX1}px`,
       minHeight: `${mappedY2 - mappedY1}px`,
-    }
+    };
   };
 
   return {

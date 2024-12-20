@@ -14,4 +14,4 @@ export default {
     document.removeEventListener('click', el.__clickOutsideHandler);
     delete el.__clickOutsideHandler;
   },
-}
+};

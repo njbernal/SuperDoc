@@ -169,8 +169,7 @@ export const TrackChangesBase = Extension.create({
               revertedTr = state.tr;
             }
 
-            const isTrackedChangesActive =
-              TrackChangesBasePluginKey.getState(state).isTrackChangesActive;
+            const isTrackedChangesActive = TrackChangesBasePluginKey.getState(state).isTrackChangesActive;
             if (isTrackedChangesActive) this.editor.commands.disableTrackChanges();
             const acceptedChanges = applyTrackChanges('accept', state, acceptedTr, from, to);
             const revertedChanges = applyTrackChanges('revert', state, revertedTr, from, to);
@@ -221,10 +220,7 @@ export const TrackChangesBase = Extension.create({
                 mark.type.name === TrackInsertMarkName ||
                 mark.type.name === TrackMarksMarkName
               ) {
-                correctedTo = Math.min(
-                  nextTextNode.offset + nextTextNode.node.nodeSize,
-                  state.doc.nodeSize,
-                );
+                correctedTo = Math.min(nextTextNode.offset + nextTextNode.node.nodeSize, state.doc.nodeSize);
               }
             });
           } else if (currentTextNode) {
@@ -234,10 +230,7 @@ export const TrackChangesBase = Extension.create({
                 mark.type.name === TrackInsertMarkName ||
                 mark.type.name === TrackMarksMarkName
               ) {
-                correctedTo = Math.min(
-                  currentTextNode.offset + currentTextNode.node.nodeSize,
-                  state.doc.nodeSize,
-                );
+                correctedTo = Math.min(currentTextNode.offset + currentTextNode.node.nodeSize, state.doc.nodeSize);
               }
             });
           }
@@ -292,11 +285,7 @@ export const TrackChangesBase = Extension.create({
             if (!meta) {
               return {
                 ...oldState,
-                decorations: recalcDecorations(
-                  newEditorState,
-                  oldState.onlyOriginalShown,
-                  oldState.onlyModifiedShown,
-                ),
+                decorations: recalcDecorations(newEditorState, oldState.onlyOriginalShown, oldState.onlyModifiedShown),
               };
             }
 
@@ -304,11 +293,7 @@ export const TrackChangesBase = Extension.create({
               return {
                 ...oldState,
                 isTrackChangesActive: meta.value === true,
-                decorations: recalcDecorations(
-                  newEditorState,
-                  oldState.onlyOriginalShown,
-                  oldState.onlyModifiedShown,
-                ),
+                decorations: recalcDecorations(newEditorState, oldState.onlyOriginalShown, oldState.onlyModifiedShown),
               };
             }
 
@@ -332,11 +317,7 @@ export const TrackChangesBase = Extension.create({
 
             return {
               ...oldState,
-              decorations: recalcDecorations(
-                newEditorState,
-                oldState.onlyOriginalShown,
-                oldState.onlyModifiedShown,
-              ),
+              decorations: recalcDecorations(newEditorState, oldState.onlyOriginalShown, oldState.onlyModifiedShown),
             };
           },
         },
@@ -406,18 +387,10 @@ const applyTrackChanges = (action, state, tr, from, to) => {
           const styleChangeMark = mark;
           tr.removeMark(pos + offset, pos + node.nodeSize + offset, styleChangeMark);
           for (const mark of styleChangeMark.attrs.after) {
-            tr.removeMark(
-              pos + offset,
-              pos + node.nodeSize + offset,
-              state.schema.marks[mark.type].create(mark.attrs),
-            );
+            tr.removeMark(pos + offset, pos + node.nodeSize + offset, state.schema.marks[mark.type].create(mark.attrs));
           }
           for (const mark of styleChangeMark.attrs.before) {
-            tr.addMark(
-              pos + offset,
-              pos + node.nodeSize + offset,
-              state.schema.marks[mark.type].create(mark.attrs),
-            );
+            tr.addMark(pos + offset, pos + node.nodeSize + offset, state.schema.marks[mark.type].create(mark.attrs));
           }
           modifiers.push(getModifiers(mark));
         }

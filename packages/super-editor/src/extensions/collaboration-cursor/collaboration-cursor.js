@@ -1,5 +1,5 @@
 import { Extension } from '@core/index.js';
-import { yCursorPlugin } from 'y-prosemirror'
+import { yCursorPlugin } from 'y-prosemirror';
 
 export const CollaborationCursor = Extension.create({
   name: 'collaborationCursor',
@@ -12,14 +12,14 @@ export const CollaborationCursor = Extension.create({
       user: {
         name: null,
         color: null,
-      }
-    }
-  }, 
+      },
+    };
+  },
 
   addStorage() {
     return {
       users: [],
-    }
+    };
   },
 
   addPmPlugins() {
@@ -31,13 +31,13 @@ export const CollaborationCursor = Extension.create({
 });
 
 const customCursors = (user) => {
-  const cursor = document.createElement('span')
-  cursor.classList.add('ProseMirror-yjs-cursor')
-  cursor.setAttribute('style', `border-color: ${user.color}`)
+  const cursor = document.createElement('span');
+  cursor.classList.add('ProseMirror-yjs-cursor');
+  cursor.setAttribute('style', `border-color: ${user.color}`);
 
-  const userDiv = document.createElement('div')
-  userDiv.setAttribute('style', `background-color: ${user.color}`)
-  userDiv.insertBefore(document.createTextNode(user.name || user.email), null)
-  cursor.insertBefore(userDiv, null)
-  return cursor
-}
+  const userDiv = document.createElement('div');
+  userDiv.setAttribute('style', `background-color: ${user.color}`);
+  userDiv.insertBefore(document.createTextNode(user.name || user.email), null);
+  cursor.insertBefore(userDiv, null);
+  return cursor;
+};

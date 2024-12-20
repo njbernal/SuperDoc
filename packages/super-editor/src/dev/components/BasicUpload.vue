@@ -2,14 +2,13 @@
 const emit = defineEmits(['file-change']);
 const onFileChange = (event) => {
   emit('file-change', event.target.files[0]);
-}
+};
 </script>
 
 <template>
-<div>
-  <input type="file" id="fileInput" @change="onFileChange" accept=".docx" />
-</div>
+  <div>
+    <input type="file" id="fileInput" @change="onFileChange" accept=".docx" />
+  </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

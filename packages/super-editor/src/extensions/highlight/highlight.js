@@ -8,47 +8,40 @@ export const Highlight = Mark.create({
       htmlAttributes: {},
     };
   },
-  
+
   addAttributes() {
     return {
       color: {
         default: null,
-        parseHTML: element => element.getAttribute('data-color') || element.style.backgroundColor,
-        renderDOM: attributes => {
+        parseHTML: (element) => element.getAttribute('data-color') || element.style.backgroundColor,
+        renderDOM: (attributes) => {
           if (!attributes.color) {
-            return {}
+            return {};
           }
 
           return {
             'data-color': attributes.color,
             style: `background-color: ${attributes.color}; color: inherit`,
-          }
+          };
         },
       },
-    }
+    };
   },
 
   parseDOM() {
-    return [
-      { tag: 'mark' },
-    ];
+    return [{ tag: 'mark' }];
   },
 
   renderDOM({ htmlAttributes }) {
     return ['mark', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
 
+  //prettier-ignore
   addCommands() {
     return {
-      setHighlight: () => ({ commands }) => {
-        return commands.setMark(this.name);
-      },
-      unsetHighlight: () => ({ commands }) => {
-        return commands.unsetMark(this.name);
-      },
-      toggleHighlight: () => ({ commands }) => {
-        return commands.toggleMark(this.name);
-      },
+      setHighlight: () => ({ commands }) => commands.setMark(this.name),
+      unsetHighlight: () => ({ commands }) => commands.unsetMark(this.name),
+      toggleHighlight: () => ({ commands }) => commands.toggleMark(this.name),
     };
   },
 

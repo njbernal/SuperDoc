@@ -1,4 +1,4 @@
-import { getElementName, parseProperties } from "./importerHelpers.js";
+import { getElementName, parseProperties } from './importerHelpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
@@ -19,10 +19,10 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
       if (!el.marks) el.marks = [];
       el.marks.push(...marks);
       return el;
-    })
+    });
     content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange, filename));
   }
-  
+
   const resultNode = {
     type: getElementName(node),
     content,
@@ -31,13 +31,12 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
   };
 
   return { nodes: [resultNode], consumed: 1 };
-}
-
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const standardNodeHandlerEntity = {
   handlerName: 'standardNodeHandler',
-  handler: handleStandardNode
+  handler: handleStandardNode,
 };

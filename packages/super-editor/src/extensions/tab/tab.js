@@ -1,30 +1,30 @@
 import { Node, Attribute } from '@core/index.js';
-import {Plugin, PluginKey} from 'prosemirror-state';
-import {Decoration, DecorationSet} from 'prosemirror-view';
+import { Plugin, PluginKey } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
 
 export const TabNode = Node.create({
   name: 'tab',
   group: 'inline',
   inline: true,
-  // need this prop so Prosemirror doesn't treat tab as an 
+  // need this prop so Prosemirror doesn't treat tab as an
   // empty node and doesn't insert separator after
   content: 'inline*',
   selectable: false,
   atom: true,
-  
+
   addOptions() {
     return {
       htmlAttributes: {
         class: 'tab',
-        // this works together with content prop: 
+        // this works together with content prop:
         // since tab can't have content inside but content prop is defined I have to manually add attribute
-        contentEditable: false
+        contentEditable: false,
       },
     };
   },
 
   parseDOM() {
-    return [{tag: 'span.tab'}];
+    return [{ tag: 'span.tab' }];
   },
 
   renderDOM({ htmlAttributes }) {
@@ -63,11 +63,11 @@ export const TabNode = Node.create({
       props: {
         decorations(state) {
           return this.getState(state);
-        }
-      }
+        },
+      },
     });
     return [tabPlugin];
-  }
+  },
 });
 
 const tabWidthPx = 48;
@@ -90,13 +90,13 @@ const getTabDecorations = (state, view) => {
         });
       } catch (e) {
         return;
-      };
+      }
 
-      const tabWidth = $pos.nodeBefore?.type.name === 'tab' ? tabWidthPx : tabWidthPx - textWidth % tabWidthPx;
+      const tabWidth = $pos.nodeBefore?.type.name === 'tab' ? tabWidthPx : tabWidthPx - (textWidth % tabWidthPx);
       const tabHeight = calcTabHeight($pos);
 
       decorations.push(
-          Decoration.node(pos, pos + node.nodeSize, { style: `width: ${tabWidth}px; height: ${tabHeight};` })
+        Decoration.node(pos, pos + node.nodeSize, { style: `width: ${tabWidth}px; height: ${tabHeight};` }),
       );
     }
   });
@@ -117,11 +117,11 @@ function calcTabHeight(pos) {
   const ptToPxRatio = 1.333;
   const defaultFontSize = 16;
   const defaultLineHeight = 1.1;
-  
+
   const blockParent = pos.node(1);
-  const parentTextStyleMark = blockParent.firstChild.marks.find(mark => mark.type.name === 'textStyle');
+  const parentTextStyleMark = blockParent.firstChild.marks.find((mark) => mark.type.name === 'textStyle');
 
   const fontSize = parseInt(parentTextStyleMark?.attrs.fontSize) * ptToPxRatio || defaultFontSize;
-  
+
   return `${fontSize * defaultLineHeight}px`;
 }

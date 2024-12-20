@@ -9,14 +9,13 @@ const props = defineProps({
 });
 const onFileChange = (event) => {
   emit('file-change', event.target.files[0]);
-}
+};
 </script>
 
 <template>
-<div>
-  <input type="file" id="fileInput" @change="onFileChange" :accept="accept" />
-</div>
+  <div>
+    <input type="file" id="fileInput" @change="onFileChange" :accept="accept" />
+  </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

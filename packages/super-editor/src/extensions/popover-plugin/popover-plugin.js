@@ -1,10 +1,10 @@
-import { createApp } from 'vue'
+import { createApp } from 'vue';
 import { Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import tippy from 'tippy.js';
 
-import LinkInput from '@/components/toolbar/LinkInput.vue'
-import Mentions from '@/components/popovers/Mentions.vue'
+import LinkInput from '@/components/toolbar/LinkInput.vue';
+import Mentions from '@/components/popovers/Mentions.vue';
 
 const popoverPluginKey = new PluginKey('popoverPlugin');
 export const PopoverPlugin = Extension.create({
@@ -15,23 +15,21 @@ export const PopoverPlugin = Extension.create({
       key: popoverPluginKey,
       state: {
         init: () => {
-          return { 
-
-           };
+          return {};
         },
         apply: (tr, value, oldState, state) => {
           let newValue = { ...value };
-          
+
           if (tr.docChanged) {
             newValue.shouldUpdate = true;
           } else {
             newValue.shouldUpdate = false;
           }
           return newValue;
-        }
+        },
       },
       view: (view) => {
-        const popover = new Popover(view, this.editor)
+        const popover = new Popover(view, this.editor);
         return {
           update: (view, lastState) => {
             const pluginState = popoverPluginKey.getState(view.state);
@@ -41,11 +39,11 @@ export const PopoverPlugin = Extension.create({
           destroy: () => {
             popover.destroy();
           },
-        }
+        };
       },
     });
     return [popover];
-  }
+  },
 });
 
 class Popover {
@@ -55,7 +53,7 @@ class Popover {
     this.popover = document.createElement('div');
     this.popover.className = 'popover';
     document.body.appendChild(this.popover);
-  
+
     this.tippyInstance = tippy(this.popover, {
       trigger: 'manual',
       placement: 'bottom-start',
@@ -71,7 +69,7 @@ class Popover {
       theme: 'popover',
     });
   }
-  
+
   bindKeyDownEvents() {
     this.view.dom.addEventListener('keydown', this.handleKeyDown);
   }
@@ -86,7 +84,7 @@ class Popover {
       event.preventDefault();
       this.popover.firstChild.focus();
     }
-  }
+  };
 
   mountVueComponent(component, props = {}) {
     if (this.app) this.app.unmount();
@@ -111,23 +109,22 @@ class Popover {
           inserMention: (user) => {
             const { $from } = this.state.selection;
             const length = atMention.length;
-            const attributes = { ...user }
-            const mentionNode = this.editor.schema.nodes.mention.create({ name: user.name});
+            const attributes = { ...user };
+            const mentionNode = this.editor.schema.nodes.mention.create({ name: user.name });
             const tr = this.state.tr.replaceWith($from.pos - length, $from.pos, mentionNode);
             this.editor.view.dispatch(tr);
             this.editor.view.focus();
-          }
-        }
+          },
+        },
       };
     }
 
     if (showPopover && popoverContent.component) {
       const { to } = this.state.selection;
-      const { component, props } = popoverContent
+      const { component, props } = popoverContent;
       this.mountVueComponent(component, props);
       this.showPopoverAtPosition(to);
-    }
-    else this.tippyInstance.hide();
+    } else this.tippyInstance.hide();
   }
 
   showPopoverAtPosition(pos) {
@@ -150,24 +147,24 @@ class Popover {
     const textBefore = this.state.doc.textBetween(startPos, from, '\n', '\0');
 
     // Return only the text after the last @
-    const atIndex = textBefore.lastIndexOf('@');  
+    const atIndex = textBefore.lastIndexOf('@');
     if (atIndex !== -1) return textBefore.substring(atIndex);
-  
+
     return '';
   }
 
   get isShowMentions() {
     const { from } = this.state.selection;
-  
+
     // Ensure we're not out of bounds
     if (from < 1) return false;
-  
+
     const textBefore = this.getMentionText(from);
-  
+
     // Use regex to match "@" followed by word characters and no space
     const mentionPattern = /(?:^|\s)@[\w]*$/;
     const match = textBefore.match(mentionPattern);
-  
+
     return match && this.state.selection.empty;
   }
 

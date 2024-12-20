@@ -1,15 +1,15 @@
 <script setup>
-import { ref, computed, watch, getCurrentInstance } from "vue";
+import { ref, computed, watch, getCurrentInstance } from 'vue';
 
-const emit = defineEmits(["submit", "cancel"]);
+const emit = defineEmits(['submit', 'cancel']);
 const props = defineProps({
   initialText: {
     type: String,
-    default: "",
+    default: '',
   },
   href: {
     type: String,
-    default: "",
+    default: '',
   },
   showInput: {
     type: Boolean,
@@ -27,48 +27,50 @@ const props = defineProps({
 
 const { proxy } = getCurrentInstance();
 const handleSubmit = () => {
-
   if (proxy?.$submit instanceof Function) proxy.$submit();
   if (rawUrl.value && validUrl.value) {
-    emit("submit", { text: text.value, href: url.value });
+    emit('submit', { text: text.value, href: url.value });
     return;
   } else if (!rawUrl.value) {
-    emit("submit", { text: text.value, href: null });
+    emit('submit', { text: text.value, href: null });
     return;
   }
-  console.debug("[LinkInput] Invalid URL in handleSubmit");
+  console.debug('[LinkInput] Invalid URL in handleSubmit');
   urlError.value = true;
 };
 
 const handleRemove = () => {
-  emit("submit", { text: text.value, href: null });
+  emit('submit', { text: text.value, href: null });
 };
 
 const urlError = ref(false);
 const text = ref(props.initialText);
 const rawUrl = ref(props.href);
 const url = computed(() => {
-  if (!rawUrl.value?.startsWith("http")) return "http://" + rawUrl.value;
+  if (!rawUrl.value?.startsWith('http')) return 'http://' + rawUrl.value;
   return rawUrl.value;
 });
 
 const validUrl = computed(() => {
-  const urlSplit = url.value.split(".").filter(Boolean);
-  return url.value.includes(".") && urlSplit.length > 1;
+  const urlSplit = url.value.split('.').filter(Boolean);
+  return url.value.includes('.') && urlSplit.length > 1;
 });
 
-const getApplyText = computed(() => showApply.value ? "Apply" : "Remove");
+const getApplyText = computed(() => (showApply.value ? 'Apply' : 'Remove'));
 const isDisabled = computed(() => !validUrl.value);
 const showApply = computed(() => !showRemove.value);
 const showRemove = computed(() => props.href && !rawUrl.value);
-const isAnchor = computed(() => props.href.startsWith("#"));
+const isAnchor = computed(() => props.href.startsWith('#'));
 
 const openLink = () => {
-  window.open(url.value, "_blank");
+  window.open(url.value, '_blank');
 };
-watch(() => props.href, (newVal) => {
-  rawUrl.value = newVal;
-});
+watch(
+  () => props.href,
+  (newVal) => {
+    rawUrl.value = newVal;
+  },
+);
 </script>
 
 <template>
@@ -88,14 +90,16 @@ watch(() => props.href, (newVal) => {
           @keydown.enter.stop.prevent="handleSubmit"
           @keydown="urlError = false"
         />
-        <i :class="{disabled: !validUrl}" class="fal fa-external-link-alt open-link-icon" @click="openLink"></i>
+        <i :class="{ disabled: !validUrl }" class="fal fa-external-link-alt open-link-icon" @click="openLink"></i>
       </div>
       <div class="input-row link-buttons">
         <button class="remove-btn" @click="handleRemove" v-if="href">
           <i class="fal fa-times"></i>
           Remove
         </button>
-        <button class="submit-btn" v-if="showApply" @click="handleSubmit" :class="{ 'disable-btn': isDisabled }">{{ getApplyText }}</button>
+        <button class="submit-btn" v-if="showApply" @click="handleSubmit" :class="{ 'disable-btn': isDisabled }">
+          {{ getApplyText }}
+        </button>
       </div>
     </div>
 
@@ -119,9 +123,9 @@ watch(() => props.href, (newVal) => {
   cursor: pointer;
 }
 .open-link-icon:hover {
-  color: #1355FF;
+  color: #1355ff;
   background-color: white;
-  border: 1px solid #DBDBDB;
+  border: 1px solid #dbdbdb;
 }
 .disabled {
   opacity: 0.6;
@@ -185,17 +189,17 @@ watch(() => props.href, (newVal) => {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #EBEBEB;
+  border: 1px solid #ebebeb;
 }
 .remove-btn:hover {
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
 }
 .submit-btn {
   padding: 10px 16px;
   border-radius: 8px;
   outline: none;
   border: none;
-  background-color: #1355FF;
+  background-color: #1355ff;
   color: white;
   font-weight: 400;
   font-size: 13px;
@@ -226,7 +230,7 @@ watch(() => props.href, (newVal) => {
 .input-row input:active,
 .input-row input:focus {
   outline: none;
-  border: 1px solid #1355FF;
+  border: 1px solid #1355ff;
 }
 
 .input-row {

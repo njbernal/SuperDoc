@@ -182,8 +182,8 @@ describe('table live xml test', () => {
     expect(result.nodes[0].content[1].content[1].content[0].content[0].text).toBe('COL 2 ROW 2');
     expect(result.nodes[0].content[1].attrs.borders).toBeDefined();
   });
-  
-  it ('gets styles from base tab and parse internal borders', () => {
+
+  it('gets styles from base tab and parse internal borders', () => {
     const nodes = parseXmlToJson(nilBordersTableXml).elements;
     const styles = parseXmlToJson(simpleTableStyleXml);
     const docx = {

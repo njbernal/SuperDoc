@@ -26,15 +26,20 @@ export class Extension {
     this.name = this.config.name;
 
     if (this.config.addOptions) {
-      this.options = callOrGet(getExtensionConfigField(this, 'addOptions', {
-        name: this.name,
-      }));
+      this.options = callOrGet(
+        getExtensionConfigField(this, 'addOptions', {
+          name: this.name,
+        }),
+      );
     }
 
-    this.storage = callOrGet(getExtensionConfigField(this, 'addStorage', {
-      name: this.name,
-      options: this.options,
-    })) || {};
+    this.storage =
+      callOrGet(
+        getExtensionConfigField(this, 'addStorage', {
+          name: this.name,
+          options: this.options,
+        }),
+      ) || {};
   }
 
   /**

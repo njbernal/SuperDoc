@@ -44,7 +44,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         fontWeight: 400,
         props: {
           style: { fontFamily: 'Georgia, serif' },
-        }
+        },
       },
       {
         label: 'Arial',
@@ -52,7 +52,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         fontWeight: 400,
         props: {
           style: { fontFamily: 'Arial, sans-serif' },
-        }
+        },
       },
       {
         label: 'Courier New',
@@ -60,7 +60,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         fontWeight: 400,
         props: {
           style: { fontFamily: 'Courier New, monospace' },
-        }
+        },
       },
       {
         label: 'Times New Roman',
@@ -68,14 +68,14 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         fontWeight: 400,
         props: {
           style: { fontFamily: 'Times New Roman, serif' },
-        }
+        },
       },
     ],
     onActivate: ({ fontFamily }) => {
       if (!fontFamily) return;
       fontButton.label.value = fontFamily;
     },
-    onDeactivate: () => fontButton.label.value = fontButton.defaultLabel.value,
+    onDeactivate: () => (fontButton.label.value = fontButton.defaultLabel.value),
   });
 
   // font size
@@ -112,7 +112,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       { label: '96', key: '96pt' },
     ],
     onActivate: ({ fontSize: size }) => {
-      if (!size) return fontSize.label.value = fontSize.defaultLabel.value;
+      if (!size) return (fontSize.label.value = fontSize.defaultLabel.value);
 
       let sanitizedValue = sanitizeNumber(size, 12);
       if (sanitizedValue < 8) sanitizedValue = 8;
@@ -121,7 +121,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       // no units
       fontSize.label.value = String(sanitizedValue);
     },
-    onDeactivate: () => fontSize.label.value = fontSize.defaultLabel.value,
+    onDeactivate: () => (fontSize.label.value = fontSize.defaultLabel.value),
   });
 
   // separator
@@ -136,7 +136,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'separator',
     icon: 'fa-grip-lines-vertical',
     isNarrow: true,
-    group: 'right'
+    group: 'right',
   });
 
   // italic
@@ -182,7 +182,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     onActivate: ({ color }) => {
       colorButton.iconColor.value = color;
     },
-    onDeactivate: () => colorButton.iconColor.value = '#000',
+    onDeactivate: () => (colorButton.iconColor.value = '#000'),
   });
 
   const makeColorOption = (color, label = null) => {
@@ -286,13 +286,13 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       superToolbar.emitCommand({ item: colorButton, argument: e });
       closeDropdown(colorButton);
     };
-  
+
     return h('div', {}, [
       h(IconGrid, {
         icons,
         activeColor: colorButton.iconColor,
         onSelect: handleSelect,
-      })
+      }),
     ]);
   }
 
@@ -309,7 +309,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         type: 'render',
         key: 'linkDropdown',
         render: () => renderLinkDropdown(link),
-      }
+      },
     ],
     onActivate: ({ href }) => {
       if (href) link.attributes.value = { href };
@@ -319,16 +319,16 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     onDeactivate: () => {
       link.attributes.value = {};
       link.expand.value = false;
-    }
+    },
   });
 
   function renderLinkDropdown(link) {
     const handleSubmit = ({ href }) => {
       closeDropdown(link);
       link.attributes.value.link = { href };
-      const itemWithCommand = { ...link, command: "toggleLink", };
-      superToolbar.emitCommand({ item: itemWithCommand, argument: { href, text: "" } });
-      if (!href) link.active.value = false
+      const itemWithCommand = { ...link, command: 'toggleLink' };
+      superToolbar.emitCommand({ item: itemWithCommand, argument: { href, text: '' } });
+      if (!href) link.active.value = false;
     };
 
     return h('div', {}, [
@@ -342,8 +342,8 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
           const container = superToolbar.activeEditor.element;
           const anchor = container.querySelector(`a[name='${anchorName}']`);
           if (anchor) scrollToElement(anchor);
-        }
-      })
+        },
+      }),
     ]);
   }
 
@@ -363,7 +363,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     command: 'startImageUpload',
     icon: 'fas fa-image',
     active: false,
-    tooltip: "Image",
+    tooltip: 'Image',
     disabled: false,
   });
 
@@ -384,33 +384,33 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
         render: () => {
           const handleSelect = (e) => {
             closeDropdown(alignment);
-            const buttonWithCommand = { ...alignment, command: "setTextAlign" };
-            buttonWithCommand.command = "setTextAlign";
+            const buttonWithCommand = { ...alignment, command: 'setTextAlign' };
+            buttonWithCommand.command = 'setTextAlign';
             superToolbar.emitCommand({ item: buttonWithCommand, argument: e });
             setAlignmentIcon(alignment, e);
           };
-        
+
           return h('div', {}, [
             h(AlignmentButtons, {
               onSelect: handleSelect,
-            })
+            }),
           ]);
         },
         key: 'alignment',
-      }
+      },
     ],
     onActivate: ({ textAlign }) => {
       setAlignmentIcon(alignment, textAlign);
     },
     onDeactivate: () => {
       setAlignmentIcon(alignment, 'left');
-    }
+    },
   });
 
   const setAlignmentIcon = (alignment, e) => {
     let alignValue = e === 'both' ? 'justify' : e;
     alignment.icon.value = `fas fa-align-${alignValue}`;
-  }
+  };
 
   // bullet list
   const bulletedList = useToolbarItem({
@@ -501,7 +501,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       zoom.label.value = value;
     },
   });
-  
+
   // undo
   const undo = useToolbarItem({
     type: 'button',
@@ -513,7 +513,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     group: 'left',
     onDeactivate: () => {
       undo.disabled.value = !superToolbar.undoDepth;
-    }
+    },
   });
 
   // redo
@@ -527,59 +527,58 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     group: 'left',
     onDeactivate: () => {
       redo.disabled.value = !superToolbar.redoDepth;
-    }
+    },
   });
-
 
   // Track changes test buttons
   const toggleTrackChanges = useToolbarItem({
-    type: "button",
+    type: 'button',
     disabled: false,
-    name: "toggleTrackChanges",
-    tooltip: "Track Changes",
-    command: "toggleTrackChanges",
-    icon: "fa-solid fa-list-check",
-    group: "left",
+    name: 'toggleTrackChanges',
+    tooltip: 'Track Changes',
+    command: 'toggleTrackChanges',
+    icon: 'fa-solid fa-list-check',
+    group: 'left',
   });
 
   const acceptTrackedChangeBySelection = useToolbarItem({
-    type: "button",
+    type: 'button',
     disabled: false,
-    name: "acceptTrackedChangeBySelection",
-    tooltip: "Accept changes under selection",
-    command: "acceptTrackedChangeBySelection",
-    icon: "fa fa-calendar-check",
-    group: "left",
+    name: 'acceptTrackedChangeBySelection',
+    tooltip: 'Accept changes under selection',
+    command: 'acceptTrackedChangeBySelection',
+    icon: 'fa fa-calendar-check',
+    group: 'left',
   });
 
   const rejectTrackedChangeOnSelection = useToolbarItem({
-    type: "button",
+    type: 'button',
     disabled: false,
-    name: "rejectTrackedChangeOnSelection",
-    tooltip: "Reject changes under selection",
-    command: "rejectTrackedChangeOnSelection",
-    icon: "fa fa-calendar-xmark",
-    group: "left",
+    name: 'rejectTrackedChangeOnSelection',
+    tooltip: 'Reject changes under selection',
+    command: 'rejectTrackedChangeOnSelection',
+    icon: 'fa fa-calendar-xmark',
+    group: 'left',
   });
 
   const toggleTrackChangesOriginal = useToolbarItem({
-    type: "button",
+    type: 'button',
     disabled: false,
-    name: "toggleTrackChangesShowOriginal",
-    tooltip: "Toggle Show Original",
-    command: "toggleTrackChangesShowOriginal",
-    icon: "fa fa-eye",
-    group: "left",
+    name: 'toggleTrackChangesShowOriginal',
+    tooltip: 'Toggle Show Original',
+    command: 'toggleTrackChangesShowOriginal',
+    icon: 'fa fa-eye',
+    group: 'left',
   });
 
   const toggleTrackChangesFinal = useToolbarItem({
-    type: "button",
+    type: 'button',
     disabled: false,
-    name: "toggleTrackChangesShowFinal",
-    tooltip: "Toggle Show Final",
-    command: "toggleTrackChangesShowFinal",
-    icon: "fa-solid fa-file",
-    group: "left",
+    name: 'toggleTrackChangesShowFinal',
+    tooltip: 'Toggle Show Final',
+    command: 'toggleTrackChangesShowFinal',
+    icon: 'fa-solid fa-file',
+    group: 'left',
   });
   //
 
@@ -649,36 +648,34 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     group: 'right',
     attributes: {
       dropdownPosition: 'right',
-      className: 'doc-mode'
+      className: 'doc-mode',
     },
     options: [
       {
         type: 'render',
         render: () => renderDocumentMode(documentMode),
-      }
-    ]
+      },
+    ],
   });
 
   const documentOptions = [
-    { label: "Editing", value: "editing", icon: 'fal fa-user-edit', description: "Edit document directly", },
-    { label: "Suggesting", value: "suggesting", icon: 'fal fa-comment-edit', description: "Edits become suggestions" },
-    { label: "Viewing", value: "viewing", icon: 'fal fa-eye', description: "View clean version of document only" },
+    { label: 'Editing', value: 'editing', icon: 'fal fa-user-edit', description: 'Edit document directly' },
+    { label: 'Suggesting', value: 'suggesting', icon: 'fal fa-comment-edit', description: 'Edits become suggestions' },
+    { label: 'Viewing', value: 'viewing', icon: 'fal fa-eye', description: 'View clean version of document only' },
   ];
 
   function renderDocumentMode(renderDocumentButton) {
     const optionsAfterRole = getDocumentOptionsAfterRole(role, documentOptions);
-    return h(DocumentMode, 
-      {
-        options: optionsAfterRole,
-        onSelect: (item) => {
-          closeDropdown(renderDocumentButton);
-          const { label, icon } = item;
-          documentMode.label.value = label;
-          documentMode.icon.value = icon;
-          superToolbar.emitCommand({ item: documentMode, argument: label });
-        },
-      }
-    );
+    return h(DocumentMode, {
+      options: optionsAfterRole,
+      onSelect: (item) => {
+        closeDropdown(renderDocumentButton);
+        const { label, icon } = item;
+        documentMode.label.value = label;
+        documentMode.icon.value = icon;
+        superToolbar.emitCommand({ item: documentMode, argument: label });
+      },
+    });
   }
   // define sizes to calculate toolbar overflow items
   const controlSizes = new Map([
@@ -688,7 +685,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     ['zoom', 70],
     ['fontSize', 56],
     ['fontFamily', 72],
-    ['default', 32]
+    ['default', 32],
   ]);
 
   // Responsive toolbar calculations
@@ -696,7 +693,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   const hideWideItemsEndpoint = 600;
   const toolbarPadding = 32;
   const stickyItemsWidth = 120;
-  
+
   let toolbarItems = [
     undo,
     redo,
@@ -735,39 +732,31 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     // separatorRight,
     // search,
   ];
-  
+
   // Hide separators on small screens
   if (windowWidth <= hideWideItemsEndpoint) {
-    toolbarItems = toolbarItems.filter(item => item.type !== 'separator');
+    toolbarItems = toolbarItems.filter((item) => item.type !== 'separator');
   }
 
   // Track changes test buttons
-  const devItems = [
-    toggleTrackChanges, 
-    toggleTrackChangesOriginal, 
-    toggleTrackChangesFinal
-  ];
+  const devItems = [toggleTrackChanges, toggleTrackChangesOriginal, toggleTrackChangesFinal];
 
   if (!isDev) {
     if (role === 'viewer') {
-      devItems.push(...[acceptTrackedChangeBySelection, rejectTrackedChangeOnSelection, ])
+      devItems.push(...[acceptTrackedChangeBySelection, rejectTrackedChangeOnSelection]);
     }
     toolbarItems = toolbarItems.filter((item) => !devItems.includes(item));
   }
 
   // always visible items
-  const toolbarItemsSticky = [
-    undo,
-    overflow,
-    documentMode,
-  ].map((item) => item.name);
-  
+  const toolbarItemsSticky = [undo, overflow, documentMode].map((item) => item.name);
+
   const isStickyItem = (item) => toolbarItemsSticky.includes(item.name);
-  
+
   const overflowItems = [];
   const visibleItems = [];
   // initial width with padding
-  
+
   let totalWidth = toolbarPadding + stickyItemsWidth;
   toolbarItems.forEach((item) => {
     const itemWidth = controlSizes.get(item.name.value) || controlSizes.get('default');
@@ -781,7 +770,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       totalWidth += itemWidth;
       return;
     }
-    
+
     if (totalWidth < windowWidth) {
       visibleItems.push(item);
       totalWidth += itemWidth;
@@ -789,14 +778,16 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
       overflowItems.push(item);
     }
   });
-  
+
   return {
     defaultItems: visibleItems,
-    overflowItems: overflowItems.filter(item => item.type !== 'separator'),
+    overflowItems: overflowItems.filter((item) => item.type !== 'separator'),
   };
 };
 
-export const setHistoryButtonStateOnUpdate = (toolbarItemsRef) => ({ editor, transaction }) => {
+export const setHistoryButtonStateOnUpdate =
+  (toolbarItemsRef) =>
+  ({ editor, transaction }) => {
     // console.debug('[SuperEditor dev] Document updated', editor);
     // activeEditor = editor;
 

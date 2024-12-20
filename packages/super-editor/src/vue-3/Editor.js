@@ -19,14 +19,14 @@ function useDebouncedRef(value) {
           });
         });
       },
-    }
+    };
   });
 }
 
 /**
  * Vue Editor wrapper around core Editor class.
  * This allows to have a reactive state and extension storage.
- * 
+ *
  * For reference.
  * https://github.com/ueberdosis/tiptap/blob/develop/packages/vue-3/src/Editor.ts
  */

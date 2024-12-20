@@ -1,4 +1,3 @@
-
 export const getImageFileDimensions = async (file) => {
   return new Promise((resolve, reject) => {
     let img = new window.Image();

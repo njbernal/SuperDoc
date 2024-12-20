@@ -1,5 +1,5 @@
 import './style.css';
-import { SuperConverter } from "@core/super-converter/SuperConverter";
+import { SuperConverter } from '@core/super-converter/SuperConverter';
 import { getMarksFromSelection } from '@/core/helpers/getMarksFromSelection.js';
 import { getActiveFormatting } from '@/core/helpers/getActiveFormatting.js';
 import { getStarterExtensions, getRichTextExtensions } from '@extensions/index.js';
@@ -44,4 +44,4 @@ export {
   getStarterExtensions,
   getRichTextExtensions,
   createZip,
-}
+};

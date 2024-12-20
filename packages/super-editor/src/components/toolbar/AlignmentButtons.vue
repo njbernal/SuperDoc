@@ -1,19 +1,17 @@
 <script setup>
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select']);
 
 const select = (alignment) => {
-  emit('select', alignment)
-}
+  emit('select', alignment);
+};
 </script>
 
 <template>
   <div class="alignment-buttons">
-
     <div class="button-icon" @click="select('left')"><i class="fas fa-align-left"></i></div>
     <div class="button-icon" @click="select('center')"><i class="fas fa-align-center"></i></div>
     <div class="button-icon" @click="select('right')"><i class="fas fa-align-right"></i></div>
     <div class="button-icon" @click="select('justify')"><i class="fas fa-align-justify"></i></div>
-
   </div>
 </template>
 

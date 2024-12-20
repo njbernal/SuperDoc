@@ -15,6 +15,6 @@ export default function useFloatingConveration(params) {
     id,
     conversation,
     position,
-    offset
-  }
+    offset,
+  };
 }

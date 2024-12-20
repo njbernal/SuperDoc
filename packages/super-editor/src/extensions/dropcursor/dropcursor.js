@@ -13,8 +13,6 @@ export const DropCursor = Extension.create({
   },
 
   addPmPlugins() {
-    return [
-      dropCursor(this.options),
-    ];
+    return [dropCursor(this.options)];
   },
 });

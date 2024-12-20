@@ -26,7 +26,6 @@ const handleNewFile = async (file) => {
 };
 
 const init = async () => {
-
   const user = {
     name: 'Super Document Jr.',
     email: 'user@harbourshare.com',
@@ -35,7 +34,7 @@ const init = async () => {
   // const socket = new HocuspocusProviderWebsocket({
   //   url: 'ws://localhost:3050/docs',
   // });
-  
+
   let testId = 'document-123';
   // const testId = "document_6a9fb1e0725d46989bdbb3f9879e9e1b";
   const config = {
@@ -59,7 +58,7 @@ const init = async () => {
       },
     ],
     modules: {
-      'comments': {
+      comments: {
         // readOnly: true,
         // allowResolve: false,
       },
@@ -74,7 +73,7 @@ const init = async () => {
     onEditorCreate,
     onContentError,
     // handleImageUpload: async (file) => url,
-  }
+  };
 
   superdoc.value = new Superdoc(config);
 };
@@ -94,32 +93,32 @@ const exportDocx = async () => {
 };
 
 /* Inputs pane and field annotations */
-const draggedInputId = ref(null)
+const draggedInputId = ref(null);
 const activeSigner = ref(null);
 const signersListInfo = ref([
   {
     signerindex: 0,
-    signername: "Signer 1",
-    signeremail: "signer1@harbourshare.com",
+    signername: 'Signer 1',
+    signeremail: 'signer1@harbourshare.com',
     isactive: true,
-    signercolor: "#016c59",
+    signercolor: '#016c59',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 0,
-    signerid: "signerid-1723657655732-7x1vne6lq1r",
-    iscreator: false
+    signerid: 'signerid-1723657655732-7x1vne6lq1r',
+    iscreator: false,
   },
   {
     signerindex: 1,
-    signername: "Signer 2",
-    signeremail: "signer2@harbourshare.com",
+    signername: 'Signer 2',
+    signeremail: 'signer2@harbourshare.com',
     isactive: true,
-    signercolor: "#6943d0",
+    signercolor: '#6943d0',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 1,
-    signerid: "signerid-1723657671736-msk8e5qpd0c",
-    iscreator: false
+    signerid: 'signerid-1723657671736-msk8e5qpd0c',
+    iscreator: false,
   },
 ]);
 
@@ -133,11 +132,7 @@ const updateActiveSigner = (signerIdx) => {
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
 
-  editor.on('fieldAnnotationDropped', ({ 
-    sourceField,
-    editor,
-    pos 
-  }) => {
+  editor.on('fieldAnnotationDropped', ({ sourceField, editor, pos }) => {
     console.log('fieldAnnotationDropped', { sourceField });
 
     let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
@@ -162,13 +157,11 @@ const onEditorCreate = ({ editor }) => {
 onMounted(async () => {
   handleNewFile(await getFileObject(BlankDOCX, 'blank_document.docx', DOCX));
 });
-
 </script>
 
 <template>
   <div class="dev-app">
     <div class="dev-app__layout">
-
       <div class="dev-app__header">
         <div class="dev-app__header-side dev-app__header-side--left">
           <div class="dev-app__header-title">
@@ -195,7 +188,6 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -210,17 +202,17 @@ onMounted(async () => {
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.05);
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
   margin: 50px;
 }
 .superdoc .layers:hover {
   border: 1px solid #0160cc86;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.1);
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
 .superdoc .layers:focus-within {
   border: 1px solid #015fcc;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.3 );
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
 }
 </style>
 

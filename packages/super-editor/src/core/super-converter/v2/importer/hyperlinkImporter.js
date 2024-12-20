@@ -1,5 +1,3 @@
-
-
 /**
  * @type {import("docxImporter").NodeHandler}
  */
@@ -29,7 +27,7 @@ export const handleHyperlinkNode = (nodes, docx, nodeListHandler, insideTrackCha
   // Add marks to the run node and process it
   const runNodes = node.elements.filter((el) => el.name === 'w:r');
   const linkMark = { type: 'link', attrs: { href, rId } };
-  
+
   for (const runNode of runNodes) {
     if (!runNode.marks) runNode.marks = [];
     runNode.marks.push(linkMark);
@@ -51,12 +49,12 @@ export const handleHyperlinkNode = (nodes, docx, nodeListHandler, insideTrackCha
 
   const updatedNode = nodeListHandler.handler(runNodes, docx, insideTrackChange);
   return { nodes: updatedNode, consumed: 1 };
-}
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const hyperlinkNodeHandlerEntity = {
   handlerName: 'hyperlinkNodeHandler',
-  handler: handleHyperlinkNode
+  handler: handleHyperlinkNode,
 };

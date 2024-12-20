@@ -22,14 +22,11 @@ const getValue = computed(() => {
   const match = props.field.options.find((o) => o.annotationId.includes(props.optionId));
   return match?.checked;
 });
-
 </script>
 
 <template>
   <div class="checkbox-container">
-    <n-checkbox
-      :checked="getValue"
-      :disabled="!props.isEditing"></n-checkbox>
+    <n-checkbox :checked="getValue" :disabled="!props.isEditing"></n-checkbox>
   </div>
 </template>
 

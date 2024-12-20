@@ -34,7 +34,7 @@ export class FieldAnnotationView {
     this.handleAnnotationClick = this.handleAnnotationClick.bind(this);
     this.handleAnnotationDoubleClick = this.handleAnnotationDoubleClick.bind(this);
     this.handleSelectionUpdate = this.handleSelectionUpdate.bind(this);
-    
+
     this.buildView();
     this.attachEventListeners();
   }
@@ -63,7 +63,7 @@ export class FieldAnnotationView {
     let { annotation } = this.#createAnnotation({
       displayLabel,
     });
-    
+
     this.dom = annotation;
   }
 
@@ -83,7 +83,7 @@ export class FieldAnnotationView {
       img.style.verticalAlign = 'middle';
 
       content.append(img);
-      
+
       annotation.style.display = 'inline-block';
       content.style.display = 'inline-block';
     } else {
@@ -110,7 +110,7 @@ export class FieldAnnotationView {
       img.style.maxHeight = '28px';
       img.style.pointerEvents = 'none';
       img.style.verticalAlign = 'middle';
-      
+
       content.append(img);
 
       annotation.style.display = 'inline-block';
@@ -124,11 +124,11 @@ export class FieldAnnotationView {
 
   buildCheckboxView() {
     let { displayLabel } = this.node.attrs;
-    
+
     let { annotation } = this.#createAnnotation({
       displayLabel,
     });
-    
+
     this.dom = annotation;
   }
 
@@ -172,9 +172,7 @@ export class FieldAnnotationView {
     this.dom = annotation;
   }
 
-  #createAnnotation({
-    displayLabel,
-  } = {}) {
+  #createAnnotation({ displayLabel } = {}) {
     let { highlighted } = this.node.attrs;
 
     let annotation = document.createElement('span');
@@ -188,15 +186,13 @@ export class FieldAnnotationView {
     if (displayLabel) {
       content.textContent = displayLabel;
     }
-    
+
     annotation.append(content);
 
     let omitHighlight = highlighted === false;
-    let annotationStyle = [
-      `border: 2px solid ${this.borderColor}`,
-      `border-radius: 2px`,
-      `padding: 1px 2px`,
-    ].join('; ');
+    let annotationStyle = [`border: 2px solid ${this.borderColor}`, `border-radius: 2px`, `padding: 1px 2px`].join(
+      '; ',
+    );
 
     let mergedAttrs = Attribute.mergeAttributes(this.htmlAttributes, {
       style: omitHighlight ? '' : annotationStyle,
@@ -230,7 +226,7 @@ export class FieldAnnotationView {
     }
 
     let { selection } = editor.state;
-    
+
     if (selection instanceof NodeSelection) {
       let currentNode = selection.node;
 
@@ -258,7 +254,7 @@ export class FieldAnnotationView {
       currentTarget: event.currentTarget,
     });
   }
-  
+
   handleAnnotationDoubleClick(event) {
     if (!this.editor.isEditable) {
       return;
@@ -287,7 +283,7 @@ export class FieldAnnotationView {
   update(updatedNode) {
     return false;
   }
-  
+
   ignoreMutation(mutation) {
     // https://github.com/ueberdosis/tiptap/blob/main/packages/core/src/NodeView.ts
     // a leaf/atom node is like a black box for ProseMirror

@@ -27,9 +27,9 @@ export const handleDocPartObj = (nodes, docx, nodeListHandler, insideTrackChange
   return {
     nodes: result,
     consumed: 1,
-  }
+  };
 };
 
 const validGalleryTypeMap = {
   'Table of Contents': tableOfContentsHandler,
-}
+};

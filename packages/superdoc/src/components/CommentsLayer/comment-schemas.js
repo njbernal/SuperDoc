@@ -5,7 +5,7 @@ export const conversation = {
   creatorName: null,
   comments: [],
   selection: null,
-}
+};
 
 export const comment = {
   comment: null,
@@ -14,4 +14,4 @@ export const comment = {
     email: null,
   },
   timestamp: null,
-}
+};

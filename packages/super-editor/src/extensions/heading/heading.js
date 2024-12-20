@@ -26,11 +26,10 @@ export const Heading = Node.create({
   },
 
   parseDOM() {
-    return this.options.levels
-      .map((level) => ({
-        tag: `h${level}`,
-        attrs: { level },
-      }));
+    return this.options.levels.map((level) => ({
+      tag: `h${level}`,
+      attrs: { level },
+    }));
   },
 
   renderDOM({ node, htmlAttributes }) {
@@ -41,25 +40,32 @@ export const Heading = Node.create({
 
   addCommands() {
     return {
-      setHeading: attributes => ({ commands }) => {
-        const containsLevel = this.options.levels.includes(attributes.level);
-        if (!containsLevel) return false;
-        return commands.setNode(this.name, attributes);
-      },
-      toggleHeading: attributes => ({ commands }) => {
-        const containsLevel = this.options.levels.includes(attributes.level);
-        if (!containsLevel) return false;
-        return commands.toggleNode(this.name, 'paragraph', attributes);
-      },
-    }
+      setHeading:
+        (attributes) =>
+        ({ commands }) => {
+          const containsLevel = this.options.levels.includes(attributes.level);
+          if (!containsLevel) return false;
+          return commands.setNode(this.name, attributes);
+        },
+      toggleHeading:
+        (attributes) =>
+        ({ commands }) => {
+          const containsLevel = this.options.levels.includes(attributes.level);
+          if (!containsLevel) return false;
+          return commands.toggleNode(this.name, 'paragraph', attributes);
+        },
+    };
   },
 
   addShortcuts() {
-    return this.options.levels.reduce((items, level) => ({
-      ...items,
-      ...{
-        [`Mod-Alt-${level}`]: () => this.editor.commands.toggleHeading({ level }),
-      },
-    }), {});
+    return this.options.levels.reduce(
+      (items, level) => ({
+        ...items,
+        ...{
+          [`Mod-Alt-${level}`]: () => this.editor.commands.toggleHeading({ level }),
+        },
+      }),
+      {},
+    );
   },
 });

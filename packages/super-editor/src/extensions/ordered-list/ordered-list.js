@@ -27,9 +27,7 @@ export const OrderedList = Node.create({
       order: {
         default: 1,
         parseDOM: (element) => {
-          return element.hasAttribute('start')
-            ? parseInt(element.getAttribute('start') || '', 10)
-            : 1;
+          return element.hasAttribute('start') ? parseInt(element.getAttribute('start') || '', 10) : 1;
         },
         renderDOM: (attrs) => {
           return {
@@ -63,7 +61,7 @@ export const OrderedList = Node.create({
           return {
             style: `list-style-type: ${toKebabCase(listStyleType)};`,
           };
-        }
+        },
       },
 
       attributes: {
@@ -87,51 +85,46 @@ export const OrderedList = Node.create({
 
   addCommands() {
     return {
-      toggleOrderedList: () => ({ commands }) => {    
-        const attributes = generateDocxListAttributes('orderedList');  
-        return commands.toggleList(
-          this.name, 
-          this.options.itemTypeName, 
-          this.options.keepMarks,
-          attributes,
-        );
-      },
+      toggleOrderedList:
+        () =>
+        ({ commands }) => {
+          const attributes = generateDocxListAttributes('orderedList');
+          return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks, attributes);
+        },
 
       /**
        * Updates ordered list style type when sink or lift `listItem`.
        * @example 1,2,3 -> a,b,c -> i,ii,iii -> 1,2,3 -> etc
        */
-      updateOrderedListStyleType: () => ({
-        dispatch,
-        state,
-        tr,
-      }) => {
-        let list = findParentNode((node) => node.type.name === this.name)(state.selection);
+      updateOrderedListStyleType:
+        () =>
+        ({ dispatch, state, tr }) => {
+          let list = findParentNode((node) => node.type.name === this.name)(state.selection);
 
-        if (!list) {
-          return true; 
-        }
-
-        if (dispatch) {
-          // Each list level increases depth by 2.
-          let listLevel = (list.depth - 1) / 2;
-          let listStyleTypes = this.options.listStyleTypes;
-          let listStyle = listStyleTypes[listLevel % listStyleTypes.length];
-          let currentListStyle = list.node.attrs['list-style-type'];
-          let nodeAtPos = tr.doc.nodeAt(list.pos);
-
-          if (currentListStyle !== listStyle && nodeAtPos.eq(list.node)) {
-            tr.setNodeMarkup(list.pos, undefined, {
-              ...list.node.attrs,
-              ...{
-                'list-style-type': listStyle,
-              },
-            });
+          if (!list) {
+            return true;
           }
-        }
 
-        return true;
-      },
+          if (dispatch) {
+            // Each list level increases depth by 2.
+            let listLevel = (list.depth - 1) / 2;
+            let listStyleTypes = this.options.listStyleTypes;
+            let listStyle = listStyleTypes[listLevel % listStyleTypes.length];
+            let currentListStyle = list.node.attrs['list-style-type'];
+            let nodeAtPos = tr.doc.nodeAt(list.pos);
+
+            if (currentListStyle !== listStyle && nodeAtPos.eq(list.node)) {
+              tr.setNodeMarkup(list.pos, undefined, {
+                ...list.node.attrs,
+                ...{
+                  'list-style-type': listStyle,
+                },
+              });
+            }
+          }
+
+          return true;
+        },
 
       /**
        * Continue list numbering after `liftEmptyBlock` command.
@@ -145,74 +138,67 @@ export const OrderedList = Node.create({
        *  <li>item</li>
        * </ol>
        */
-      liftEmptyBlockAndContinueListOrder: () => ({
-        editor,
-        dispatch,
-        state,
-        tr,
-        commands,
-      }) => {
-        let list = findParentNode((node) => node.type.name === this.name)(state.selection);
+      liftEmptyBlockAndContinueListOrder:
+        () =>
+        ({ editor, dispatch, state, tr, commands }) => {
+          let list = findParentNode((node) => node.type.name === this.name)(state.selection);
 
-        if (!list) {
-          return false;
-        }
-
-        let canLiftEmptyBlock = editor.can().liftEmptyBlock();
-        let isRootDepth = list.depth === 1; // Only first level lists.
-        let isOneItem = list.node.childCount === 1;
-        let currentListItem = state.selection.$from.node(-1);
-        let isLastItem = list.node.lastChild.eq(currentListItem);
-
-        let canRunCommand = canLiftEmptyBlock 
-          && isRootDepth 
-          && !isOneItem 
-          && !isLastItem;
-
-        if (!canRunCommand) {
-          return false;
-        }
-
-        if (dispatch) {
-          // Save pos before liftEmptyBlock command.
-          let prevListPos = list.pos;
-
-          if (!commands.liftEmptyBlock(state, dispatch)) {
+          if (!list) {
             return false;
           }
 
-          let { $from } = tr.selection;
-          let prevListNode = tr.doc.nodeAt(prevListPos);
-          let newListPos = $from.after();
-          let newListNode = tr.doc.nodeAt(newListPos);
+          let canLiftEmptyBlock = editor.can().liftEmptyBlock();
+          let isRootDepth = list.depth === 1; // Only first level lists.
+          let isOneItem = list.node.childCount === 1;
+          let currentListItem = state.selection.$from.node(-1);
+          let isLastItem = list.node.lastChild.eq(currentListItem);
 
-          let isPrevOrderedList = prevListNode?.type.name === this.name;
-          let isNewOrderedList = newListNode?.type.name === this.name;
+          let canRunCommand = canLiftEmptyBlock && isRootDepth && !isOneItem && !isLastItem;
 
-          if (isPrevOrderedList && isNewOrderedList) {
-            let lastOrder = prevListNode.attrs.order || 1;
-            let lastIndex = prevListNode.childCount;
-            let lastSyncId = prevListNode.attrs.syncId;
-            let newOrder = lastIndex + lastOrder;
-            let syncId = !!lastSyncId ? lastSyncId : randomId();
+          if (!canRunCommand) {
+            return false;
+          }
 
-            tr.setNodeMarkup(newListPos, undefined, {
-              ...newListNode.attrs,
-              order: newOrder,
-              syncId,
-            });
+          if (dispatch) {
+            // Save pos before liftEmptyBlock command.
+            let prevListPos = list.pos;
 
-            if (!lastSyncId) {
-              tr.setNodeMarkup(prevListPos, undefined, {
-                ...prevListNode.attrs,
+            if (!commands.liftEmptyBlock(state, dispatch)) {
+              return false;
+            }
+
+            let { $from } = tr.selection;
+            let prevListNode = tr.doc.nodeAt(prevListPos);
+            let newListPos = $from.after();
+            let newListNode = tr.doc.nodeAt(newListPos);
+
+            let isPrevOrderedList = prevListNode?.type.name === this.name;
+            let isNewOrderedList = newListNode?.type.name === this.name;
+
+            if (isPrevOrderedList && isNewOrderedList) {
+              let lastOrder = prevListNode.attrs.order || 1;
+              let lastIndex = prevListNode.childCount;
+              let lastSyncId = prevListNode.attrs.syncId;
+              let newOrder = lastIndex + lastOrder;
+              let syncId = !!lastSyncId ? lastSyncId : randomId();
+
+              tr.setNodeMarkup(newListPos, undefined, {
+                ...newListNode.attrs,
+                order: newOrder,
                 syncId,
               });
+
+              if (!lastSyncId) {
+                tr.setNodeMarkup(prevListPos, undefined, {
+                  ...prevListNode.attrs,
+                  syncId,
+                });
+              }
             }
           }
-        }
 
-        return true;
-      },
+          return true;
+        },
     };
   },
 
@@ -228,13 +214,10 @@ export const OrderedList = Node.create({
   },
 
   addPmPlugins() {
-    return [
-      orderedListMarkerPlugin(),
-      orderedListSyncPlugin(),
-    ];
+    return [orderedListMarkerPlugin(), orderedListSyncPlugin()];
   },
 });
 
 function randomId() {
   return Math.floor(Math.random() * 0xffffffff).toString();
-};
+}

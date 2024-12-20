@@ -25,7 +25,7 @@ export default function useDocument(params, superdocConfig) {
 
   // For docx
   const editorRef = shallowRef(null);
-  const setEditor = (ref) => editorRef.value = ref;
+  const setEditor = (ref) => (editorRef.value = ref);
   const getEditor = () => editorRef.value;
 
   /**
@@ -41,7 +41,7 @@ export default function useDocument(params, superdocConfig) {
     if (type) return type in documentTypes ? documentTypes[type] : null;
 
     throw new Error('Document type not specified for doc:', params);
-  };
+  }
 
   // Comments
   const removeComments = () => {
@@ -71,7 +71,7 @@ export default function useDocument(params, superdocConfig) {
   const removeConversation = (conversationId) => {
     const index = conversations.value.findIndex((c) => c.conversationId === conversationId);
     if (index > -1) conversations.value.splice(index, 1);
-  }
+  };
 
   return {
     id,
@@ -104,5 +104,5 @@ export default function useDocument(params, superdocConfig) {
     removeComments,
     restoreComments,
     removeConversation,
-  }
+  };
 }

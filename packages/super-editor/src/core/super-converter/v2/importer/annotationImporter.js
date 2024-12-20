@@ -30,16 +30,16 @@ export const handleAnnotationNode = (nodes, docx, nodeListHandler, insideTrackCh
     fieldType,
     fieldColor,
     multipleImage: isMultipleImage === 'true',
-  }
+  };
 
   const result = {
     type: 'fieldAnnotation',
     attrs,
-  }
+  };
   return {
     nodes: [result],
     consumed: 1,
-  }
+  };
 };
 
 /**
@@ -47,5 +47,5 @@ export const handleAnnotationNode = (nodes, docx, nodeListHandler, insideTrackCh
  */
 export const annotationNodeHandlerEntity = {
   handlerName: 'annotationNodeHandler',
-  handler: handleAnnotationNode
+  handler: handleAnnotationNode,
 };

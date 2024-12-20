@@ -2,16 +2,16 @@ import { Superdoc } from './core/index.js';
 import { SuperConverter, Editor, getRichTextExtensions } from '@harbour-enterprises/super-editor';
 import { createZip } from '@harbour-enterprises/super-editor/zipper';
 
-import { 
-  SuperInput, 
-  helpers as superEditorHelpers, 
+import {
+  SuperInput,
+  helpers as superEditorHelpers,
   fieldAnnotationHelpers,
-  trackChangesHelpers, 
+  trackChangesHelpers,
 } from '@harbour-enterprises/super-editor';
 import { DOCX, PDF, HTML, getFileObject, compareVersions } from '@harbour-enterprises/common';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
-export { 
+export {
   Superdoc,
   BlankDOCX,
   getFileObject,
@@ -35,4 +35,4 @@ export {
   // Super Editor
   SuperConverter,
   createZip,
-}
+};

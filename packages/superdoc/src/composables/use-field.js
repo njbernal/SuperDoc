@@ -1,4 +1,4 @@
-import { ref, reactive, watch, computed } from "vue";
+import { ref, reactive, watch, computed } from 'vue';
 
 export function useFieldValueWatcher(field, originalValue) {
   const fieldId = field.itemid;
@@ -6,7 +6,7 @@ export function useFieldValueWatcher(field, originalValue) {
 
   const original = originalValue;
   const valueIsObject = originalValue !== null && typeof originalValue === 'object';
-  const value = valueIsObject ? reactive({...originalValue}) : ref(originalValue);
+  const value = valueIsObject ? reactive({ ...originalValue }) : ref(originalValue);
   const change = ref(null);
 
   const handleChange = (newValue, oldValue) => {
@@ -17,15 +17,15 @@ export function useFieldValueWatcher(field, originalValue) {
       changeTime: Date.now(),
       oldValue: oldValue,
       newValue: newValue,
-      originalField: rawField
-    }
+      originalField: rawField,
+    };
     change.value = newChange;
-  }
+  };
 
   watch(value, handleChange);
   return {
-    value
-  }
+    value,
+  };
 }
 
 export function useField(field) {
@@ -48,7 +48,7 @@ export function useField(field) {
     fontFamily: field.fontfamily || 'Arial',
     fontSize: field.font_size || '12px',
     originalFontSize: field.original_font_size || '12px',
-  })
+  });
 
   const logicRules = ref(field.logicrules);
   const hidden = ref(false);
@@ -57,7 +57,7 @@ export function useField(field) {
   const fieldHandlers = {
     SELECT: useSelectField,
     IMAGEINPUT: useImageField,
-    CHECKBOXINPUT: useCheckboxField
+    CHECKBOXINPUT: useCheckboxField,
   };
   if (fieldType.value in fieldHandlers) {
     Object.assign(additionalOptions, fieldHandlers[fieldType.value](field));
@@ -74,13 +74,25 @@ export function useField(field) {
    * @returns {String} string value that can be used in annotation
    */
   const valueGetter = field.valueGetter;
-  
+
   return {
-    id, icon, iconPack, label, placeholder, fieldType, fieldSubType, value, format, logicRules, hidden, originalJSON, fieldStyle,
+    id,
+    icon,
+    iconPack,
+    label,
+    placeholder,
+    fieldType,
+    fieldSubType,
+    value,
+    format,
+    logicRules,
+    hidden,
+    originalJSON,
+    fieldStyle,
     valueGetter,
-    ...additionalOptions
-  }
-};
+    ...additionalOptions,
+  };
+}
 
 export function useImageField(field) {
   const fontfamily = ref(field.fontfamily);
@@ -88,17 +100,17 @@ export function useImageField(field) {
 
   const self = {
     fontfamily,
-    iteminputtype
-  }
+    iteminputtype,
+  };
   return self;
 }
 
 export function useSelectField(field) {
   const options = ref(field.itemoptions);
   return {
-    options
-  }
-};
+    options,
+  };
+}
 
 export function useCheckboxField(field) {
   const options = ref(field.itemoptions);
@@ -111,10 +123,10 @@ export function useCheckboxField(field) {
         checked: option.ischecked,
         id: option.itemid,
         annotationId: option.annotationId,
-      }
+      };
     });
   }
   return {
-    options
-  }
+    options,
+  };
 }

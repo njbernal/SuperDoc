@@ -11,20 +11,22 @@ export const handleLineBreakNode = (nodes, docx, nodeListHandler, insideTrackCha
   const lineBreakType = nodes[0].attributes?.['w:type'];
   if (lineBreakType) attrs['lineBreakType'] = lineBreakType;
 
-
   return {
-    nodes: [{
-      type: 'lineBreak',
-      content: [],
-      attrs,
-    }], consumed: 1
+    nodes: [
+      {
+        type: 'lineBreak',
+        content: [],
+        attrs,
+      },
+    ],
+    consumed: 1,
   };
-}
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const lineBreakNodeHandlerEntity = {
   handlerName: 'lineBreakNodeHandler',
-  handler: handleLineBreakNode
-}
+  handler: handleLineBreakNode,
+};

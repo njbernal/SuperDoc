@@ -1,19 +1,19 @@
-import { getInitialJSON } from "../docxHelper.js";
-import { carbonCopy } from "../../../utilities/carbonCopy.js";
-import { twipsToInches } from "../../helpers.js";
-import { tableNodeHandlerEntity } from "./tableImporter.js";
-import { drawingNodeHandlerEntity } from "./imageImporter.js";
-import { trackChangeNodeHandlerEntity } from "./trackChangesImporter.js";
-import { hyperlinkNodeHandlerEntity } from "./hyperlinkImporter.js";
-import { runNodeHandlerEntity } from "./runNodeImporter.js";
-import { textNodeHandlerEntity } from "./textNodeImporter.js";
-import { paragraphNodeHandlerEntity } from "./paragraphNodeImporter.js";
-import { annotationNodeHandlerEntity } from "./annotationImporter.js";
-import { standardNodeHandlerEntity } from "./standardNodeImporter.js";
-import { lineBreakNodeHandlerEntity } from "./lineBreakImporter.js";
-import { bookmarkNodeHandlerEntity } from "./bookmarkNodeImporter.js";
-import { tabNodeEntityHandler } from "./tabImporter.js";
-import { listHandlerEntity } from "./listImporter.js";
+import { getInitialJSON } from '../docxHelper.js';
+import { carbonCopy } from '../../../utilities/carbonCopy.js';
+import { twipsToInches } from '../../helpers.js';
+import { tableNodeHandlerEntity } from './tableImporter.js';
+import { drawingNodeHandlerEntity } from './imageImporter.js';
+import { trackChangeNodeHandlerEntity } from './trackChangesImporter.js';
+import { hyperlinkNodeHandlerEntity } from './hyperlinkImporter.js';
+import { runNodeHandlerEntity } from './runNodeImporter.js';
+import { textNodeHandlerEntity } from './textNodeImporter.js';
+import { paragraphNodeHandlerEntity } from './paragraphNodeImporter.js';
+import { annotationNodeHandlerEntity } from './annotationImporter.js';
+import { standardNodeHandlerEntity } from './standardNodeImporter.js';
+import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
+import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
+import { tabNodeEntityHandler } from './tabImporter.js';
+import { listHandlerEntity } from './listImporter.js';
 
 /**
  * @typedef {import()} XmlNode
@@ -50,8 +50,8 @@ export const createDocumentJson = (docx) => {
       content: parsedContent,
       attrs: {
         attributes: json.elements[0].attributes,
-      }
-    }
+      },
+    };
     return {
       pmDoc: result,
       savedTagsToRestore: node,
@@ -59,7 +59,7 @@ export const createDocumentJson = (docx) => {
     };
   }
   return null;
-}
+};
 
 export const defaultNodeListHandler = () => {
   const entities = [
@@ -77,13 +77,13 @@ export const defaultNodeListHandler = () => {
     tabNodeEntityHandler,
     standardNodeHandlerEntity, //this should be the last one, bcs this parses everything!!!
   ];
-  
+
   const handler = createNodeListHandler(entities);
   return {
     handler,
-    handlerEntities: entities
+    handlerEntities: entities,
   };
-}
+};
 
 /**
  *
@@ -102,22 +102,25 @@ const createNodeListHandler = (nodeHandlers) => {
     const processedElements = [];
 
     for (let index = 0; index < elements.length; index++) {
-      const { nodes, consumed } = nodeHandlers.reduce((res, handler) => {
-        if (res.consumed > 0) return res;
-        const nodesToHandle = elements.slice(index);
-        if (!nodesToHandle || nodesToHandle.length === 0) return res;
-        const result = handler.handler(
-          nodesToHandle,
-          docx,
-          { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
-          insideTrackChange,
-          filename
-        );
-        return result;
-      }, { nodes: [], consumed: 0 });
+      const { nodes, consumed } = nodeHandlers.reduce(
+        (res, handler) => {
+          if (res.consumed > 0) return res;
+          const nodesToHandle = elements.slice(index);
+          if (!nodesToHandle || nodesToHandle.length === 0) return res;
+          const result = handler.handler(
+            nodesToHandle,
+            docx,
+            { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
+            insideTrackChange,
+            filename,
+          );
+          return result;
+        },
+        { nodes: [], consumed: 0 },
+      );
       index += consumed - 1;
       if (consumed === 0) {
-        console.warn("We have a node that we can't handle!", elements[index])
+        console.warn("We have a node that we can't handle!", elements[index]);
       }
       for (let node of nodes) {
         if (node?.type) {
@@ -130,10 +133,10 @@ const createNodeListHandler = (nodeHandlers) => {
       }
     }
     return processedElements;
-  }
+  };
 
   return nodeListHandlerFn;
-}
+};
 
 /**
  *
@@ -151,7 +154,7 @@ function getDocumentStyles(node) {
         styles['pageSize'] = {
           width: twipsToInches(attributes['w:w']),
           height: twipsToInches(attributes['w:h']),
-        }
+        };
         break;
       case 'w:pgMar':
         styles['pageMargins'] = {
@@ -162,20 +165,20 @@ function getDocumentStyles(node) {
           header: twipsToInches(attributes['w:header']),
           footer: twipsToInches(attributes['w:footer']),
           gutter: twipsToInches(attributes['w:gutter']),
-        }
+        };
         break;
       case 'w:cols':
         styles['columns'] = {
           space: twipsToInches(attributes['w:space']),
           num: attributes['w:num'],
           equalWidth: attributes['w:equalWidth'],
-        }
+        };
         break;
       case 'w:docGrid':
         styles['docGrid'] = {
           linePitch: twipsToInches(attributes['w:linePitch']),
           type: attributes['w:type'],
-        }
+        };
         break;
     }
   });

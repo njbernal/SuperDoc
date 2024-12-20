@@ -30,7 +30,7 @@ export function isNodeActive(state, typeOrName, attrs = {}) {
   const matchedNodeRanges = nodeRanges
     .filter((nodeRange) => {
       if (!type) return true;
-      return type.name === nodeRange.node.type.name
+      return type.name === nodeRange.node.type.name;
     })
     .filter((nodeRange) => objectIncludes(nodeRange.node.attrs, attrs, { strict: false }));
 

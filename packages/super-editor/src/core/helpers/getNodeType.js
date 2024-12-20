@@ -7,11 +7,11 @@
 export function getNodeType(nameOrType, schema) {
   if (typeof nameOrType === 'string') {
     if (!schema.nodes[nameOrType]) {
-      throw Error(`There is no node type named '${nameOrType}' in schema.`,)
+      throw Error(`There is no node type named '${nameOrType}' in schema.`);
     }
 
     return schema.nodes[nameOrType];
   }
-  
+
   return nameOrType;
 }

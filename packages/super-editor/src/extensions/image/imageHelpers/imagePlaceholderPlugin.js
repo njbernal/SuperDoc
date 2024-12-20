@@ -9,7 +9,7 @@ export const ImagePlaceholderPlugin = (options = {}) => {
     key: ImagePlaceholderPluginKey,
 
     state: {
-      init() { 
+      init() {
         return DecorationSet.empty;
       },
 
@@ -25,7 +25,7 @@ export const ImagePlaceholderPlugin = (options = {}) => {
         ///
 
         // Adjust decoration positions to changes made by the transaction
-        set = set.map(tr.mapping, tr.doc)
+        set = set.map(tr.mapping, tr.doc);
 
         // See if the transaction adds or removes any placeholders
         let action = tr.getMeta(ImagePlaceholderPluginKey);
@@ -39,13 +39,13 @@ export const ImagePlaceholderPlugin = (options = {}) => {
         } else if (action?.type === 'remove') {
           set = set.remove(set.find(null, null, (spec) => spec.id == action.id));
         }
-        
+
         return set;
       },
     },
 
     props: {
-      decorations(state) { 
+      decorations(state) {
         return this.getState(state);
       },
     },

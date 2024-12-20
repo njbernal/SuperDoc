@@ -23,24 +23,23 @@ export const FontFamily = Extension.create({
             },
           },
         },
-      }
+      },
     ];
   },
 
   addCommands() {
     return {
-      setFontFamily: (fontFamily) => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontFamily })
-          .run();
-      },
+      setFontFamily:
+        (fontFamily) =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { fontFamily }).run();
+        },
 
-      unsetFontFamily: () => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontFamily: null })
-          .removeEmptyTextStyle()
-          .run();
-      },
+      unsetFontFamily:
+        () =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { fontFamily: null }).removeEmptyTextStyle().run();
+        },
     };
   },
 });

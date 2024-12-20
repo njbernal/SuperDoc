@@ -1,28 +1,28 @@
-import { Selection } from 'prosemirror-state'
-import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform'
+import { Selection } from 'prosemirror-state';
+import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform';
 
 // source: https://github.com/ProseMirror/prosemirror-state/blob/master/src/selection.js#L466
 export function selectionToInsertionEnd(tr, startLen, bias) {
-  const last = tr.steps.length - 1
+  const last = tr.steps.length - 1;
 
   if (last < startLen) {
-    return
+    return;
   }
 
-  const step = tr.steps[last]
+  const step = tr.steps[last];
 
   if (!(step instanceof ReplaceStep || step instanceof ReplaceAroundStep)) {
-    return
+    return;
   }
 
-  const map = tr.mapping.maps[last]
-  let end = 0
+  const map = tr.mapping.maps[last];
+  let end = 0;
 
   map.forEach((_from, _to, _newFrom, newTo) => {
     if (end === 0) {
-      end = newTo
+      end = newTo;
     }
-  })
+  });
 
-  tr.setSelection(Selection.near(tr.doc.resolve(end), bias))
+  tr.setSelection(Selection.near(tr.doc.resolve(end), bias));
 }

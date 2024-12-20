@@ -4,18 +4,22 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-})
+});
 
 const getInitials = (name, email) => {
   if (!name) return;
-  const firstLetter = name.substring(0, 1) || email.substring(0, 1) || null
+  const firstLetter = name.substring(0, 1) || email.substring(0, 1) || null;
   return firstLetter;
-}
+};
 </script>
 
 <template>
   <div class="user-container">
-    <img class="user-bg" v-if="user.image" :src="user.image.startsWith('http') ? user.image : `data:image/png;base64,${user.image}`" />
+    <img
+      class="user-bg"
+      v-if="user.image"
+      :src="user.image.startsWith('http') ? user.image : `data:image/png;base64,${user.image}`"
+    />
     <span class="user-bg" v-else>{{ getInitials(user.name, user.email) }}</span>
   </div>
 </template>
@@ -46,5 +50,4 @@ img {
 span {
   font-weight: 300;
 }
-
 </style>

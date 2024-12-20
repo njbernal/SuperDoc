@@ -11,28 +11,23 @@ export const Italic = Mark.create({
 
   parseDOM() {
     return [
-      { tag: 'i' }, 
+      { tag: 'i' },
       { tag: 'em' },
       { style: 'font-style=italic' },
-      { style: 'font-style=normal', clearMark: m => m.type.name == 'em' },
+      { style: 'font-style=normal', clearMark: (m) => m.type.name == 'em' },
     ];
   },
 
   renderDOM({ htmlAttributes }) {
-    return ['em', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes) , 0];
+    return ['em', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
 
+  //prettier-ignore
   addCommands() {
     return {
-      setItalic: () => ({ commands }) => {
-        return commands.setMark(this.name);
-      },
-      unsetItalic: () => ({ commands }) => {
-        return commands.unsetMark(this.name);
-      },
-      toggleItalic: () => ({ commands }) => {
-        return commands.toggleMark(this.name);
-      },
+      setItalic: () => ({ commands }) => commands.setMark(this.name),
+      unsetItalic: () => ({ commands }) => commands.unsetMark(this.name),
+      toggleItalic: () => ({ commands }) => commands.toggleMark(this.name),
     };
   },
 

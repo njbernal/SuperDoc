@@ -12,16 +12,11 @@ import useSelection from '@/helpers/use-selection';
 window.pdfjsWorker = pdfjsWorker;
 pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
   new Blob([workerSrc], {
-    type: 'application/javascript'
-  }
-));
+    type: 'application/javascript',
+  }),
+);
 
-const emit = defineEmits([
-  'page-loaded',
-  'ready',
-  'selection-change',
-  'bypass-selection'
-]);
+const emit = defineEmits(['page-loaded', 'ready', 'selection-change', 'bypass-selection']);
 const superdocStore = useSuperdocStore();
 const { proxy } = getCurrentInstance();
 const { activeZoom } = storeToRefs(superdocStore);
@@ -36,7 +31,7 @@ const props = defineProps({
 
 const id = props.documentData.id;
 const pdfData = props.documentData.data;
-const selectionBounds = reactive({})
+const selectionBounds = reactive({});
 
 const getOriginalPageSize = (page) => {
   const viewport = page.getViewport({ scale: 1 });
@@ -52,24 +47,23 @@ async function initPdfLayer(arrayBuffer) {
 
 async function loadPDF(fileObject) {
   const fileReader = new FileReader();
-  fileReader.onload = async function(event) {
+  fileReader.onload = async function (event) {
     const pdfDocument = await initPdfLayer(event.target.result);
     await renderPages(pdfDocument);
-  }
+  };
   fileReader.readAsArrayBuffer(fileObject);
 }
 
 const enableTextLayer = (container, state) => {
   const textLayer = container.querySelector('.textLayer');
-if (textLayer) textLayer.style.pointerEvents = state ? 'auto' : 'none';
-}
+  if (textLayer) textLayer.style.pointerEvents = state ? 'auto' : 'none';
+};
 
-
-const renderPages = (pdfDocument) => { 
+const renderPages = (pdfDocument) => {
   setTimeout(() => {
     _renderPages(pdfDocument);
   }, 150);
-}
+};
 
 async function _renderPages(pdfDocument) {
   try {
@@ -81,9 +75,9 @@ async function _renderPages(pdfDocument) {
       const container = document.createElement('div');
       container.className = 'pdf-page';
       container.dataset.pageNumber = i;
-      container.id = `${id}-page-${i}`
+      container.id = `${id}-page-${i}`;
       viewer.value.appendChild(container);
-      
+
       const { width, height } = getOriginalPageSize(page);
       const scale = 1;
       const eventBus = new pdfjsViewer.EventBus();
@@ -106,11 +100,11 @@ async function _renderPages(pdfDocument) {
       emit('page-loaded', id, i, containerBounds);
     }
 
-    emit('ready', id, viewer)
+    emit('ready', id, viewer);
   } catch (error) {
-      console.error('Error loading PDF:', error);
+    console.error('Error loading PDF:', error);
   }
-};
+}
 
 function getSelectedTextBoundingBox(container) {
   const selection = window.getSelection();
@@ -120,7 +114,7 @@ function getSelectedTextBoundingBox(container) {
 
   const range = selection.getRangeAt(0);
   const boundingRects = range.getClientRects();
-  
+
   if (boundingRects.length === 0) {
     return null;
   }
@@ -131,7 +125,7 @@ function getSelectedTextBoundingBox(container) {
     top: firstRect.top,
     left: firstRect.left,
     bottom: firstRect.bottom,
-    right: firstRect.right
+    right: firstRect.right,
   };
 
   for (let i = 1; i < boundingRects.length; i++) {
@@ -179,16 +173,12 @@ const handleMouseUp = (e) => {
     });
     emit('selection-change', sel);
   }
-}
+};
 </script>
 
 <template>
   <div @mousedown="handlePdfClick" @mouseup="handleMouseUp">
-    <div
-        class="superdoc-viewer"
-        ref="viewer"
-        id="viewerId">
-      </div>
+    <div class="superdoc-viewer" ref="viewer" id="viewerId"></div>
   </div>
 </template>
 
@@ -199,10 +189,10 @@ const handleMouseUp = (e) => {
   position: relative;
   display: flex;
   flex-direction: column;
-  
+
   .pdf-page {
-    border-top: 1px solid #DFDFDF;
-    border-bottom: 1px solid #DFDFDF;
+    border-top: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
     margin: 0 0 20px 0;
     position: relative;
     overflow: hidden;
@@ -218,7 +208,7 @@ const handleMouseUp = (e) => {
   }
   .pdf-page:first-child:last-child {
     border-radius: 16px;
-}
+  }
 
   .textLayer {
     z-index: 2;

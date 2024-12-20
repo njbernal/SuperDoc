@@ -7,8 +7,8 @@ import { getNodeType } from '../helpers/getNodeType.js';
 /**
  * Splits one list item into two separate list items.
  * @param typeOrName The type or name of the node.
- * 
- * The command is a slightly modified version of the original 
+ *
+ * The command is a slightly modified version of the original
  * `splitListItem` command to better manage attributes and marks.
  * https://github.com/ProseMirror/prosemirror-schema-list/blob/master/src/schema-list.ts#L114
  */
@@ -34,9 +34,9 @@ export const splitListItem = (typeOrName) => (props) => {
     // command handle lifting.
 
     if (
-      $from.depth === 2 // 3
-      || $from.node(-3).type !== type 
-      || $from.index(-2) !== $from.node(-2).childCount - 1
+      $from.depth === 2 || // 3
+      $from.node(-3).type !== type ||
+      $from.index(-2) !== $from.node(-2).childCount - 1
     ) {
       return false;
     }
@@ -48,14 +48,12 @@ export const splitListItem = (typeOrName) => (props) => {
       // Build a fragment containing empty versions of the structure
       // from the outer list item to the parent node of the cursor
       for (let d = $from.depth - depthBefore; d >= $from.depth - 3; d--) {
-        wrap = Fragment.from($from.node(d).copy(wrap))
+        wrap = Fragment.from($from.node(d).copy(wrap));
       }
 
-      const depthAfter = $from.indexAfter(-1) < $from.node(-2).childCount 
-        ? 1 
-        : $from.indexAfter(-2) < $from.node(-3).childCount 
-        ? 2 : 3;
-      
+      //prettier-ignore
+      const depthAfter = $from.indexAfter(-1) < $from.node(-2).childCount ? 1 : $from.indexAfter(-2) < $from.node(-3).childCount ? 2 : 3;
+
       const newNextTypeAttrs = Attribute.getSplittedAttributes(
         extensionAttrs,
         $from.node().type.name,
@@ -75,17 +73,13 @@ export const splitListItem = (typeOrName) => (props) => {
       if (sel > -1) tr.setSelection(TextSelection.near(tr.doc.resolve(sel))); // Selection
       tr.scrollIntoView();
     }
-    
+
     return true;
   }
 
   const nextType = $to.pos === $from.end() ? grandParent.contentMatchAt(0).defaultType : null;
 
-  const newTypeAttributes = Attribute.getSplittedAttributes(
-    extensionAttrs,
-    grandParent.type.name,
-    grandParent.attrs,
-  );
+  const newTypeAttributes = Attribute.getSplittedAttributes(extensionAttrs, grandParent.type.name, grandParent.attrs);
   const newNextTypeAttributes = Attribute.getSplittedAttributes(
     extensionAttrs,
     $from.node().type.name,
@@ -95,11 +89,14 @@ export const splitListItem = (typeOrName) => (props) => {
   tr.delete($from.pos, $to.pos);
 
   const types = nextType
-    ? [{ type, attrs: newTypeAttributes }, { type: nextType, attrs: newNextTypeAttributes }]
+    ? [
+        { type, attrs: newTypeAttributes },
+        { type: nextType, attrs: newNextTypeAttributes },
+      ]
     : [{ type, attrs: newTypeAttributes }];
 
   if (!canSplit(tr.doc, $from.pos, 2)) {
-    return false
+    return false;
   }
 
   if (dispatch) {
@@ -114,6 +111,6 @@ export const splitListItem = (typeOrName) => (props) => {
     const filteredMarks = marks.filter((m) => splittableMarks.includes(m.type.name));
     tr.ensureMarks(filteredMarks);
   }
-  
+
   return true;
 };

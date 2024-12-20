@@ -27,11 +27,11 @@ export const BookmarkStart = Node.create({
           if (id) return { id };
           return {};
         },
-      }
+      },
     };
   },
 
   renderDOM({ htmlAttributes }) {
     return ['a', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
-  }
+  },
 });

@@ -19,14 +19,13 @@ const props = defineProps({
 const getBarColor = computed(() => {
   if (props.name === 'color') return { backgroundColor: props.color || '#111111' };
 });
-
 </script>
 
 <template>
   <div class="toolbar-icon">
     <i :class="icon" v-if="props.name !== 'color'"></i>
     <i :class="icon" size="xs" v-else class="font-icon"></i>
-    
+
     <div class="color-bar" v-if="props.name === 'color'" :style="getBarColor"></div>
   </div>
 </template>

@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import JSZip from 'jszip';
 
 /**
  * Take a list of blobs and file names and create a zip file
@@ -7,12 +7,12 @@ import JSZip from "jszip";
  * @returns {Promise<Blob>} The zipped file
  */
 export async function createZip(blobs, fileNames) {
-    const zip = new JSZip();
+  const zip = new JSZip();
 
-    blobs.forEach((blob, index) => {
-        zip.file(fileNames[index], blob);
-    });
+  blobs.forEach((blob, index) => {
+    zip.file(fileNames[index], blob);
+  });
 
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    return zipBlob;
-};
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  return zipBlob;
+}

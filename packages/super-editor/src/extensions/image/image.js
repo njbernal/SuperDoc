@@ -14,7 +14,7 @@ export const Image = Node.create({
     return {
       allowBase64: true,
       htmlAttributes: {},
-    }
+    };
   },
 
   addStorage() {
@@ -28,18 +28,18 @@ export const Image = Node.create({
       src: {
         default: null,
         renderDOM: ({ src }) => {
-          return { 
+          return {
             src: this.storage.media[src],
           };
         },
       },
 
-      alt: { 
-        default: null, 
+      alt: {
+        default: null,
       },
 
-      title: { 
-        default: null, 
+      title: {
+        default: null,
       },
 
       rId: {
@@ -60,7 +60,7 @@ export const Image = Node.create({
           if (width) style += `width: ${width}px;`;
           if (height) style += `height: auto;`;
           return { style };
-        }
+        },
       },
 
       marginOffset: {
@@ -72,38 +72,36 @@ export const Image = Node.create({
           if (top) style += `margin-top: ${top}px;`;
           return { style };
         },
-      }
-    }
+      },
+    };
   },
 
   parseDOM() {
     return [
       {
-        tag: this.options.allowBase64
-          ? 'img[src]'
-          : 'img[src]:not([src^="data:"])',
+        tag: this.options.allowBase64 ? 'img[src]' : 'img[src]:not([src^="data:"])',
       },
-    ]
+    ];
   },
 
   renderDOM({ htmlAttributes }) {
-    return ['img', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)]
+    return ['img', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addCommands() {
     return {
-      setImage: (options) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: options,
-        })
-      },
-    }
+      setImage:
+        (options) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
+    };
   },
-  
+
   addPmPlugins() {
-    return [
-      ImagePlaceholderPlugin(),
-    ];
+    return [ImagePlaceholderPlugin()];
   },
 });

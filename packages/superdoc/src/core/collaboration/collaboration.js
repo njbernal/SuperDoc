@@ -1,19 +1,16 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 import { Doc as YDoc } from 'yjs';
 
 /**
- * Translate awareness states to an array of users. This will cause superdoc (context) to 
+ * Translate awareness states to an array of users. This will cause superdoc (context) to
  * emit an awareness-update event with the list of users.
- * 
+ *
  * @param {Object} context The superdoc instance
  * @param {*} states The awareness states
  * @returns {void}
  */
-function createAwarenessHandler(
-  context,
-  states,
-) {
+function createAwarenessHandler(context, states) {
   // Context is the superdoc instance
   // Since co-presence is handled outside of superdoc,
   // we need to emit an awareness-update event
@@ -23,7 +20,7 @@ function createAwarenessHandler(
 /**
  * Main function to create a provider for collaboration.
  * Currently only hocuspocus is actually supported.
- * 
+ *
  * @param {Object} param The config object
  * @param {Object} param.config The configuration object
  * @param {Object} param.ydoc The Yjs document
@@ -37,10 +34,10 @@ function createProvider({ config, user, documentId, socket, superdocInstance }) 
     hocuspocus: () => createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }),
   };
   return providers[config.providerType]();
-};
+}
 
 /**
- * 
+ *
  * @param {Object} param The config object
  * @param {Object} param.config The configuration object
  * @param {Object} param.ydoc The Yjs document
@@ -62,7 +59,7 @@ function createHocuspocusProvider({ config, user, documentId, socket, superdocIn
 
   provider.setAwarenessField('user', user);
   return { provider, ydoc };
-};
+}
 
 const onAuthenticationFailed = (data) => {
   console.warn('🔒 [superdoc] Authentication failed', data);

@@ -1,6 +1,6 @@
-import EventEmitter from 'eventemitter3'
-import { createApp } from 'vue'
-import { undoDepth, redoDepth } from "prosemirror-history";
+import EventEmitter from 'eventemitter3';
+import { createApp } from 'vue';
+import { undoDepth, redoDepth } from 'prosemirror-history';
 import { makeDefaultItems } from './defaultItems';
 import { getActiveFormatting } from '@core/helpers/getActiveFormatting.js';
 import { vClickOutside } from '@harbour-enterprises/common';
@@ -9,12 +9,11 @@ import { startImageUpload, getFileOpener } from '../../extensions/image/imageHel
 import { findParentNode } from '@helpers/index.js';
 
 export class SuperToolbar extends EventEmitter {
-
   config = {
     element: null,
     toolbarGroups: ['left', 'center', 'right'],
     role: 'editor',
-  }
+  };
 
   #interceptedCommands = {
     setZoom: ({ item, argument }) => {
@@ -67,12 +66,9 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain()
-          .sinkListItem('listItem')
-          .updateOrderedListStyleType()
-          .run();
+        return this.activeEditor.chain().sinkListItem('listItem').updateOrderedListStyleType().run();
       }
-      
+
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
       }
@@ -84,17 +80,14 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain()
-          .liftListItem('listItem')
-          .updateOrderedListStyleType()
-          .run();
+        return this.activeEditor.chain().liftListItem('listItem').updateOrderedListStyleType().run();
       }
 
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
       }
     },
-  }
+  };
 
   constructor(config) {
     super();
@@ -104,7 +97,7 @@ export class SuperToolbar extends EventEmitter {
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
     this.role = config.role || 'editor';
-    
+
     this.#makeToolbarItems(this, config.isDev);
 
     let el = null;
@@ -113,7 +106,7 @@ export class SuperToolbar extends EventEmitter {
       if (!el) {
         console.warn(`[super-toolbar 🎨] Element not found: ${this.config.element}`);
         return;
-      };
+      }
     }
 
     this.app = createApp(Toolbar);
@@ -131,22 +124,22 @@ export class SuperToolbar extends EventEmitter {
   setZoom(percent_int) {
     const percent = percent_int / 100;
     const allItems = [...this.toolbarItems, ...this.overflowItems];
-    const item = allItems.find(item => item.name.value === 'zoom');
+    const item = allItems.find((item) => item.name.value === 'zoom');
     this.#interceptedCommands.setZoom({ item, argument: percent });
   }
 
   /**
    * The toolbar expects an active Super Editor instance.
-   * @param {*} editor 
+   * @param {*} editor
    */
   setActiveEditor(editor) {
     this.activeEditor = editor;
     this.activeEditor.on('transaction', this.onEditorTransaction.bind(this));
     this.updateToolbarState();
   }
-  
+
   getToolbarItemByGroup(groupName) {
-    return this.toolbarItems.filter(item => item.group.value === groupName);
+    return this.toolbarItems.filter((item) => item.group.value === groupName);
   }
 
   #makeToolbarItems(superToolbar, isDev = false) {
@@ -159,10 +152,10 @@ export class SuperToolbar extends EventEmitter {
   #initDefaultFonts() {
     if (!this.activeEditor || !this.activeEditor.converter) return;
     const { typeface = 'Arial', fontSizePt = 12 } = this.activeEditor.converter.getDocumentDefaultStyles() ?? {};
-    const fontSizeItem = this.toolbarItems.find(item => item.name.value === 'fontSize');
+    const fontSizeItem = this.toolbarItems.find((item) => item.name.value === 'fontSize');
     fontSizeItem.defaultLabel.value = fontSizePt;
 
-    const fontFamilyItem = this.toolbarItems.find(item => item.name.value === 'fontFamily');
+    const fontFamilyItem = this.toolbarItems.find((item) => item.name.value === 'fontFamily');
     fontFamilyItem.defaultLabel.value = typeface;
   }
 
@@ -182,7 +175,7 @@ export class SuperToolbar extends EventEmitter {
     this.toolbarItems.forEach((item) => {
       item.resetDisabled();
 
-      const activeMark = marks.find(mark => mark.name === item.name.value);
+      const activeMark = marks.find((mark) => mark.name === item.name.value);
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
@@ -190,10 +183,10 @@ export class SuperToolbar extends EventEmitter {
       }
     });
   }
-  
+
   onToolbarResize = () => {
     this.#makeToolbarItems(this, this.isDev);
-  }
+  };
 
   #deactivateAll() {
     this.activeEditor = null;
@@ -206,19 +199,18 @@ export class SuperToolbar extends EventEmitter {
 
   #updateToolbarHistory() {
     if (!this.activeEditor) return;
-    this.undoDepth = undoDepth(this.activeEditor.state)
-    this.redoDepth = redoDepth(this.activeEditor.state)
+    this.undoDepth = undoDepth(this.activeEditor.state);
+    this.redoDepth = redoDepth(this.activeEditor.state);
   }
 
   /**
    * React to editor transactions. Might want to debounce this.
    */
-  onEditorTransaction({ editor, transaction }) {
-   }
+  onEditorTransaction({ editor, transaction }) {}
 
   /**
    * Main handler for toolbar commands.
-   * 
+   *
    * @param {Object} item is an instance of the useToolbarItem composable
    * @param {Object} argument is the argument passed to the command
    */
@@ -246,7 +238,7 @@ export class SuperToolbar extends EventEmitter {
 
   #runCommandWithArgumentOnly({ item, argument }) {
     if (!argument || !this.activeEditor) return;
-      
+
     let command = item.command;
     if (command in this.activeEditor?.commands) {
       this.activeEditor.commands[command](argument);

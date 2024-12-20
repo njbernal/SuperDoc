@@ -7,7 +7,7 @@ export const TextAlign = Extension.create({
     return {
       types: ['heading', 'paragraph'],
       alignments: ['left', 'center', 'right', 'justify'],
-    }
+    };
   },
 
   addGlobalAttributes() {
@@ -34,20 +34,24 @@ export const TextAlign = Extension.create({
 
   addCommands() {
     return {
-      setTextAlign: (alignment) => ({ commands }) => {
-        const containsAlignment = this.options.alignments.includes(alignment);
-        if (!containsAlignment) return false;
+      setTextAlign:
+        (alignment) =>
+        ({ commands }) => {
+          const containsAlignment = this.options.alignments.includes(alignment);
+          if (!containsAlignment) return false;
 
-        return this.options.types
-          .map((type) => commands.updateAttributes(type, { textAlign: alignment }))
-          .every((result) => result);
-      },
+          return this.options.types
+            .map((type) => commands.updateAttributes(type, { textAlign: alignment }))
+            .every((result) => result);
+        },
 
-      unsetTextAlign: () => ({ commands }) => {
-        return this.options.types
-          .map((type) => commands.resetAttributes(type, 'textAlign'))
-          .every((result) => result);
-      },
+      unsetTextAlign:
+        () =>
+        ({ commands }) => {
+          return this.options.types
+            .map((type) => commands.resetAttributes(type, 'textAlign'))
+            .every((result) => result);
+        },
     };
   },
 

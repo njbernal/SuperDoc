@@ -13,16 +13,13 @@ const props = defineProps({
 
 const documentContent = ref('');
 
-const emit = defineEmits([
-  'ready',
-  'selection-change'
-]);
+const emit = defineEmits(['ready', 'selection-change']);
 
 const handleSelectionChange = () => {
   const selection = window.getSelection();
   console.debug('selection from html viewer', selection);
   emit('selection-change', selection);
-}
+};
 
 const getDocumentHtml = (fileSource) => {
   // read file
@@ -35,7 +32,7 @@ const getDocumentHtml = (fileSource) => {
     reader.onerror = (e) => reject(e);
     reader.readAsText(fileSource);
   });
-}
+};
 
 const initViewer = async () => {
   try {
@@ -46,12 +43,11 @@ const initViewer = async () => {
     emit('error', error);
     console.error('Error loading document', error);
   }
-}
+};
 
 onMounted(() => {
   initViewer();
 });
-
 </script>
 
 <template>
@@ -59,7 +55,6 @@ onMounted(() => {
     <div class="super-editor-in-viewer__content" v-html="documentContent" @mouseup="handleSelectionChange"></div>
   </div>
 </template>
-
 
 <style lang="postcss">
 .super-editor-in-viewer {
@@ -145,7 +140,9 @@ onMounted(() => {
     padding: 38px 75px 75px;
     /* opacity: 0;
     visibility: hidden; */
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s ease;
     transform-origin: 0 0;
   }
 

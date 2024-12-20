@@ -8,15 +8,14 @@ import { getAllFieldAnnotations } from './getAllFieldAnnotations.js';
  * @returns The array of field annotations with rects.
  */
 export function getAllFieldAnnotationsWithRect(view, state) {
-  let fieldAnnotations = getAllFieldAnnotations(state)
-    .map(({ node, pos }) => {
-      let rect = posToDOMRect(view, pos, pos + node.nodeSize);
-      return {
-        node,
-        pos,
-        rect,
-      };
-    });
+  let fieldAnnotations = getAllFieldAnnotations(state).map(({ node, pos }) => {
+    let rect = posToDOMRect(view, pos, pos + node.nodeSize);
+    return {
+      node,
+      pos,
+      rect,
+    };
+  });
 
   return fieldAnnotations;
 }

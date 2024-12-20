@@ -21,7 +21,7 @@ export function findRemovedFieldAnnotations(tr) {
       originalDoc.nodesBetween(step.from, step.to, (node, pos) => {
         if (node.type.name === 'fieldAnnotation') {
           let mappedPos = mapping.mapResult(pos);
-          
+
           if (mappedPos.deleted) {
             removedNodes.push({ node, pos });
           }

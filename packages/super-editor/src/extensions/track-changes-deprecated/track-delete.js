@@ -55,10 +55,6 @@ export const TrackDelete = Mark.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    return [
-      'span',
-      Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes, { deleted: true }),
-      0,
-    ];
+    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes, { deleted: true }), 0];
   },
 });

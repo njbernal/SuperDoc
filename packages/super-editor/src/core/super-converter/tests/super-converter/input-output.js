@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { EditorState, TextSelection } from "prosemirror-state";
-import { toggleMark } from "prosemirror-commands";
+import { EditorState, TextSelection } from 'prosemirror-state';
+import { toggleMark } from 'prosemirror-commands';
 
 import { SuperConverter } from '../../SuperConverter.js';
 import { DocxExporter } from '../../exporter.js';
@@ -16,9 +16,9 @@ function getTextatPos(doc, startPos, endPos) {
 
 /**
  * Used to remove excess whitespace around the test XML strings
- * 
- * @param {string} xmlString 
- * @returns 
+ *
+ * @param {string} xmlString
+ * @returns
  */
 function removeExcessWhitespace(xmlString) {
   xmlString = xmlString.trim();
@@ -26,16 +26,14 @@ function removeExcessWhitespace(xmlString) {
   return xmlString;
 }
 
-
 export function runInputOutputTests() {
-
   function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * This test uses a known XML input, uses Editor.js to parse the Schema, and then uses
-   * Editor.js' exportDocx method to convert the schema back to a docx document. 
+   * Editor.js' exportDocx method to convert the schema back to a docx document.
    */
   describe('Editor.js and SuperConverter input/output conversion', async () => {
     it('exports the expected output after importing xml, passing through the ProseMirror Schema', async () => {
@@ -63,7 +61,7 @@ export function runInputOutputTests() {
             </w:sectPr>
           </w:body>
         </w:document>
-      `
+      `;
 
       const converter = new SuperConverter({ xml: input, debug: true });
 
@@ -75,19 +73,18 @@ export function runInputOutputTests() {
       const containerDiv = document.createElement('div');
       const schema = converter.getSchema();
       const editor = new Editor({
-          element: containerDiv,
-          content: schema,
-          extensions: Object.values(extensions),
-          isTest: true,
-          converter,
-        }
-      );
+        element: containerDiv,
+        content: schema,
+        extensions: Object.values(extensions),
+        isTest: true,
+        converter,
+      });
 
       // Delay to wait for the editor to be ready
       await delay(250);
       const doc = editor.getJSON();
       const output = converter.outputToJson(doc);
-      
+
       expect(initialJSON.declaration).toEqual(output.declaration);
 
       // Check the doc element. Names and attributes should match.
@@ -109,12 +106,12 @@ export function runInputOutputTests() {
       // console.debug('inputBody', inputBody);
       // console.debug('outputBody', outputBody);
       expect(inputBody.name).toEqual(outputBody.name);
-      expect(inputBody.attributes).toEqual(outputBody.attributes); 
+      expect(inputBody.attributes).toEqual(outputBody.attributes);
       expect(inputBody.elements.length).toEqual(outputBody.elements.length);
 
       const inputBodyElements = inputBody.elements;
       const outputBodyElements = outputBody.elements;
-      
+
       // Check the first element in the result. Expects to find the original paragraph.
       expect(inputBodyElements[0].name).toEqual('w:p');
       expect(inputBodyElements[0].name).toEqual(outputBodyElements[0].name);
@@ -186,7 +183,7 @@ export function runInputOutputTests() {
             </w:sectPr>
           </w:body>
         </w:document>
-      `
+      `;
 
       const converter = new SuperConverter({ xml: input, debug: true });
 
@@ -198,11 +195,11 @@ export function runInputOutputTests() {
       const containerDiv = document.createElement('div');
       const schema = converter.getSchema();
       const editor = new Editor({
-          element: containerDiv,
-          content: schema,
-          extensions: Object.values(extensions),
-          isTest: true,
-          converter,
+        element: containerDiv,
+        content: schema,
+        extensions: Object.values(extensions),
+        isTest: true,
+        converter,
       });
 
       // Delay to wait for the editor to be ready
@@ -212,7 +209,7 @@ export function runInputOutputTests() {
       const inputDocElement = initialJSON.elements[0];
       const outputDocElement = output.elements[0];
 
-      // 
+      //
       const inputBody = inputDocElement.elements[0];
       const outputBody = outputDocElement.elements[0];
       const inputParagraph = inputBody.elements[0];
@@ -238,9 +235,8 @@ export function runInputOutputTests() {
       expect(XML).toEqual(removeExcessWhitespace(input));
     });
 
-
     it('can import/output with expected list', async () => {
-      return
+      return;
       const numberingXml = `
       <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
       <w:numbering xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas">
@@ -470,11 +466,11 @@ export function runInputOutputTests() {
       const containerDiv = document.createElement('div');
       const schema = converter.getSchema();
       const editor = new Editor({
-          element: containerDiv,
-          content: schema,
-          extensions: Object.values(extensions),
-          isTest: true,
-          converter,
+        element: containerDiv,
+        content: schema,
+        extensions: Object.values(extensions),
+        isTest: true,
+        converter,
       });
 
       // Delay to wait for the editor to be ready
@@ -545,8 +541,6 @@ export function runInputOutputTests() {
       const finalXML = converter.schemaToXml(output);
       expect(finalXML).toEqual(removeExcessWhitespace(input));
     });
-
-
 
     it('can import/export nested lists with marks in the nodes', async () => {
       return;
@@ -872,11 +866,11 @@ export function runInputOutputTests() {
       const containerDiv = document.createElement('div');
       const schema = converter.getSchema();
       const editor = new Editor({
-          element: containerDiv,
-          content: schema,
-          extensions: Object.values(extensions),
-          isTest: true,
-          converter,
+        element: containerDiv,
+        content: schema,
+        extensions: Object.values(extensions),
+        isTest: true,
+        converter,
       });
 
       // Delay to wait for the editor to be ready
@@ -898,8 +892,8 @@ export function runInputOutputTests() {
       expect(inputFirstListElement.attributes).toEqual(outputFirstListElement.attributes);
       expect(inputFirstListElement.elements.length).toEqual(outputFirstListElement.elements.length);
 
-      const inputRuns = inputFirstListElement.elements.filter(e => e.name === 'w:r');
-      const outputRuns = outputFirstListElement.elements.filter(e => e.name === 'w:r');
+      const inputRuns = inputFirstListElement.elements.filter((e) => e.name === 'w:r');
+      const outputRuns = outputFirstListElement.elements.filter((e) => e.name === 'w:r');
       expect(inputRuns.length).toEqual(outputRuns.length);
 
       // Full check
@@ -1242,11 +1236,11 @@ export function runInputOutputTests() {
       const containerDiv = document.createElement('div');
       const schema = converter.getSchema();
       const editor = new Editor({
-          element: containerDiv,
-          content: schema,
-          extensions: Object.values(extensions),
-          isTest: true,
-          converter,
+        element: containerDiv,
+        content: schema,
+        extensions: Object.values(extensions),
+        isTest: true,
+        converter,
       });
 
       // Delay to wait for the editor to be ready
@@ -1254,7 +1248,8 @@ export function runInputOutputTests() {
       let state = editor.state;
 
       // Get the first word ('List')
-      const startPos = 3, endPos = 7;
+      const startPos = 3,
+        endPos = 7;
       const text = getTextatPos(editor.state.doc, startPos, endPos);
       expect(text).toEqual('List');
 
@@ -1282,7 +1277,7 @@ export function runInputOutputTests() {
       newState = state.apply(tr);
       editor.view.updateState(newState);
       state = editor.state;
-      
+
       const markType = state.schema.marks.bold;
       const { $from, $to } = state.selection;
       const range = $from.blockRange($to);
@@ -1290,7 +1285,6 @@ export function runInputOutputTests() {
       newState = state.apply(tr);
       editor.view.updateState(newState);
       state = editor.state;
-
 
       // Verify 'List' is now in fact, bold
       const boldNode = state.doc.nodeAt(3);
@@ -1302,32 +1296,42 @@ export function runInputOutputTests() {
       let currentJSON = editor.getJSON();
 
       const inputBody = initialJSON.elements[0].elements[0];
-      const output = converter.outputToJson(currentJSON)
+      const output = converter.outputToJson(currentJSON);
       // console.debug('newState', currentJSON.content[0].content[0].content[0].content[0]);
 
       const outputBody = output.elements[0].elements[0];
       const inputFirstListElement = inputBody.elements[0];
-      const boldPr = inputFirstListElement.elements[2].elements[0]
+      const boldPr = inputFirstListElement.elements[2].elements[0];
       const editedFirstListElement = {
         name: inputFirstListElement.name,
         type: 'element',
         attributes: inputFirstListElement.attributes,
         elements: [
           inputFirstListElement.elements[0],
-          { name: 'w:r', attributes: undefined, type: 'element', elements: [
-            boldPr,
-            { type: 'element', name: 'w:t', elements: [{ text: 'List', type: 'text' }] }
-          ] },
-          { name: 'w:r', attributes: undefined, type: 'element', elements: [
-              { name: 'w:t', type: 'element', elements: [{ text: ' with ', type: 'text' }], attributes: { 'xml:space': 'preserve' } }
-            ]
+          {
+            name: 'w:r',
+            attributes: undefined,
+            type: 'element',
+            elements: [boldPr, { type: 'element', name: 'w:t', elements: [{ text: 'List', type: 'text' }] }],
+          },
+          {
+            name: 'w:r',
+            attributes: undefined,
+            type: 'element',
+            elements: [
+              {
+                name: 'w:t',
+                type: 'element',
+                elements: [{ text: ' with ', type: 'text' }],
+                attributes: { 'xml:space': 'preserve' },
+              },
+            ],
           },
           inputFirstListElement.elements[2],
-        ]
-      }
+        ],
+      };
       const outputFirstListElement = outputBody.elements[0];
       expect(editedFirstListElement.attributes).toEqual(outputFirstListElement.attributes);
     });
-  })
-}; 
-
+  });
+}

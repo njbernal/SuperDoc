@@ -1,4 +1,4 @@
-import { objectIncludes } from "../../../utilities/objectIncludes.js";
+import { objectIncludes } from '../../../utilities/objectIncludes.js';
 
 export const mergeTextNodes = (nodes) => {
   if (!nodes || !Array.isArray(nodes)) {
@@ -14,7 +14,7 @@ export const mergeTextNodes = (nodes) => {
         // Merge text nodes.
         prevTextNode = {
           ...prevTextNode,
-          text: prevTextNode.text += node.text,
+          text: (prevTextNode.text += node.text),
         };
       } else {
         // Update prev text node.
@@ -51,10 +51,7 @@ const canMergeTextNodes = (nodeA, nodeB) => {
   }
 
   for (let i = 0; i < marksA.length; i++) {
-    if (
-      marksA[i].type !== marksB[i].type ||
-      !areAttrsEqual(marksA[i].attrs, marksB[i].attrs)
-    ) {
+    if (marksA[i].type !== marksB[i].type || !areAttrsEqual(marksA[i].attrs, marksB[i].attrs)) {
       return false;
     }
   }

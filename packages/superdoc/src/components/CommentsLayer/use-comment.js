@@ -15,8 +15,8 @@ export default function useComment(params) {
       comment: comment.value,
       user: toRaw(user),
       timestamp,
-    }
-  }
+    };
+  };
   return {
     id,
     comment,
@@ -24,5 +24,5 @@ export default function useComment(params) {
     user,
     timestamp,
     getValues,
-  }
+  };
 }

@@ -7,7 +7,7 @@ export function getMarksFromSelection(state) {
       marks.push(...state.storedMarks);
     }
 
-    marks.push(...state.selection.$head.marks())
+    marks.push(...state.selection.$head.marks());
   } else {
     state.doc.nodesBetween(from, to, (node) => {
       marks.push(...node.marks);

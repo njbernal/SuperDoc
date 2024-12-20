@@ -29,7 +29,7 @@ export class EventEmitter {
   }
 
   /**
-   * Remove a specific callback from event 
+   * Remove a specific callback from event
    * or all event subscriptions.
    * @param name Event name.
    * @param fn Callback.
@@ -38,7 +38,10 @@ export class EventEmitter {
     const callbacks = this.#events.get(name);
     if (!callbacks) return;
     if (fn) {
-      this.#events.set(name, callbacks.filter((cb) => cb !== fn));
+      this.#events.set(
+        name,
+        callbacks.filter((cb) => cb !== fn),
+      );
     } else {
       this.#events.delete(name);
     }

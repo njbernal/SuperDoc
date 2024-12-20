@@ -1,15 +1,14 @@
 import { getExtensionConfigField } from './helpers/getExtensionConfigField.js';
 import { getNodeType } from './helpers/getNodeType.js';
 import { getMarkType } from './helpers/getMarkType.js';
-import { getSchemaTypeNameByName } from './helpers/getSchemaTypeNameByName.js'
+import { getSchemaTypeNameByName } from './helpers/getSchemaTypeNameByName.js';
 import { getMarksFromSelection } from './helpers/getMarksFromSelection.js';
 
 /**
- * Attribute class is a space that contains 
- * methods for working with attributes. 
+ * Attribute class is a space that contains
+ * methods for working with attributes.
  */
 export class Attribute {
-
   /**
    * Get a list of all attributes defined in the extensions.
    * @param extensions List of all extensions.
@@ -25,14 +24,11 @@ export class Attribute {
       parseDOM: null,
       keepOnSplit: true,
     };
-    
+
     const globalAttributes = this.#getGlobalAttributes(extensions, defaultAttribute);
     const nodeAndMarksAttributes = this.#getNodeAndMarksAttributes(extensions, defaultAttribute);
 
-    extensionAttributes.push(
-      ...globalAttributes, 
-      ...nodeAndMarksAttributes,
-    );
+    extensionAttributes.push(...globalAttributes, ...nodeAndMarksAttributes);
 
     return extensionAttributes;
   }
@@ -45,13 +41,13 @@ export class Attribute {
    */
   static #getGlobalAttributes(extensions, defaultAttribute) {
     const extensionAttributes = [];
-    
+
     const collectAttribute = (globalAttr) => {
       for (const type of globalAttr.types) {
         const entries = Object.entries(globalAttr.attributes);
         for (const [name, attribute] of entries) {
           extensionAttributes.push({
-            type, 
+            type,
             name,
             attribute: {
               ...defaultAttribute,
@@ -69,16 +65,12 @@ export class Attribute {
         storage: extension.storage,
       };
 
-      const addGlobalAttributes = getExtensionConfigField(
-        extension, 
-        'addGlobalAttributes', 
-        context,
-      );
+      const addGlobalAttributes = getExtensionConfigField(extension, 'addGlobalAttributes', context);
 
       if (!addGlobalAttributes) continue;
 
       const globalAttributes = addGlobalAttributes();
-      
+
       for (const globalAttr of globalAttributes) {
         collectAttribute(globalAttr);
       }
@@ -95,11 +87,11 @@ export class Attribute {
    */
   static #getNodeAndMarksAttributes(extensions, defaultAttribute) {
     const extensionAttributes = [];
-    
+
     const nodeAndMarkExtensions = extensions.filter((e) => {
       return e.type === 'node' || e.type === 'mark';
     });
-    
+
     for (const extension of nodeAndMarkExtensions) {
       const context = {
         name: extension.name,
@@ -107,11 +99,7 @@ export class Attribute {
         storage: extension.storage,
       };
 
-      const addAttributes = getExtensionConfigField(
-        extension, 
-        'addAttributes', 
-        context,
-      );
+      const addAttributes = getExtensionConfigField(extension, 'addAttributes', context);
 
       if (!addAttributes) continue;
 
@@ -212,7 +200,7 @@ export class Attribute {
    */
   static mergeAttributes(...objects) {
     const items = objects.filter((item) => !!item);
-    
+
     let attrs = {};
 
     for (const item of items) {
@@ -220,7 +208,7 @@ export class Attribute {
 
       for (const [key, value] of Object.entries(item)) {
         const exists = mergedAttributes[key];
-        
+
         if (!exists) {
           mergedAttributes[key] = value;
           continue;
@@ -252,15 +240,14 @@ export class Attribute {
    * @returns The splitted attributes.
    */
   static getSplittedAttributes(extensionAttrs, typeName, attributes) {
-    const entries = Object.entries(attributes)
-      .filter(([name]) => {
-        const extensionAttr = extensionAttrs.find((item) => {
-          return item.type === typeName && item.name === name;
-        });
+    const entries = Object.entries(attributes).filter(([name]) => {
+      const extensionAttr = extensionAttrs.find((item) => {
+        return item.type === typeName && item.name === name;
+      });
 
-        if (!extensionAttr) return false;
+      if (!extensionAttr) return false;
 
-        return extensionAttr.attribute.keepOnSplit;
+      return extensionAttr.attribute.keepOnSplit;
     });
 
     return Object.fromEntries(entries);
@@ -293,34 +280,34 @@ export class Attribute {
     const type = getNodeType(typeOrName, state.schema);
     const { from, to } = state.selection;
     const nodes = [];
-  
-    state.doc.nodesBetween(from, to, node => {
+
+    state.doc.nodesBetween(from, to, (node) => {
       nodes.push(node);
     });
-  
+
     const node = nodes.reverse().find((nodeItem) => nodeItem.type.name === type.name);
 
     if (!node) return {};
-  
+
     return { ...node.attrs };
   }
 
   /**
-  * Get node or mark attrs on the current editor state.
-  * @param state The current editor state.
-  * @param typeOrName The node/mark type or name.
-  * @returns The attrs of the node/mark or an empty object.
-  */
+   * Get node or mark attrs on the current editor state.
+   * @param state The current editor state.
+   * @param typeOrName The node/mark type or name.
+   * @returns The attrs of the node/mark or an empty object.
+   */
   static getAttributes(state, typeOrName) {
     const schemaType = getSchemaTypeNameByName(
       typeof typeOrName === 'string' ? typeOrName : typeOrName.name,
       state.schema,
     );
-  
+
     if (schemaType === 'node') {
       return this.getNodeAttributes(state, typeOrName);
     }
-    
+
     if (schemaType === 'mark') {
       return this.getMarkAttributes(state, typeOrName);
     }

@@ -24,7 +24,7 @@ function pixelsToTwips(pixels) {
 
 function halfPointToPixels(halfPoints) {
   if (halfPoints == null) return;
-  return Math.round(halfPoints * 96 / 72);
+  return Math.round((halfPoints * 96) / 72);
 }
 
 function halfPointToPoints(halfPoints) {
@@ -47,14 +47,14 @@ function pixelsToEmu(px) {
 
 function pixelsToHalfPoints(pixels) {
   if (pixels == null) return;
-  return Math.round(pixels * 72 / 96);
+  return Math.round((pixels * 72) / 96);
 }
 
 function eigthPointsToPixels(eigthPoints) {
   if (eigthPoints == null) return;
   const points = parseFloat(eigthPoints) / 8;
   const pixels = points * 1.3333;
-    return pixels;
+  return pixels;
 }
 
 function pixelsToEightPoints(pixels) {
@@ -66,14 +66,14 @@ const getArrayBufferFromUrl = async (url) => {
   const res = await fetch(url);
   const buffer = await res.arrayBuffer();
   return buffer;
-}
+};
 
 const getContentTypesFromXml = (contentTypesXml) => {
   const parser = new window.DOMParser();
-  const xmlDoc = parser.parseFromString(contentTypesXml,'text/xml');
+  const xmlDoc = parser.parseFromString(contentTypesXml, 'text/xml');
   const defaults = xmlDoc.querySelectorAll('Default');
-  return Array.from(defaults).map(item => item.getAttribute('Extension'));
-}
+  return Array.from(defaults).map((item) => item.getAttribute('Extension'));
+};
 
 export {
   inchesToTwips,
@@ -88,5 +88,5 @@ export {
   eigthPointsToPixels,
   pixelsToEightPoints,
   getArrayBufferFromUrl,
-  getContentTypesFromXml
-}
+  getContentTypesFromXml,
+};

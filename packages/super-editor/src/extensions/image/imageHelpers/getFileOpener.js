@@ -1,10 +1,4 @@
-const ACCEPT_IMAGE_TYPES = [
-  '.jpg',
-  '.jpeg',
-  '.png',
-  'image/jpeg',
-  'image/png',
-];
+const ACCEPT_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', 'image/jpeg', 'image/png'];
 
 export const getFileOpener = () => {
   let fileInput = document.createElement('input');

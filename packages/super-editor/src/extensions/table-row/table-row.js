@@ -12,10 +12,7 @@ export const TableRow = Node.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    const attributes = Attribute.mergeAttributes(
-      this.options.htmlAttributes, 
-      htmlAttributes,
-    );
+    const attributes = Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes);
     return ['tr', attributes, 0];
   },
 
@@ -27,7 +24,7 @@ export const TableRow = Node.create({
           const style = `height: ${rowHeight}px;`;
           return { style };
         },
-      }
+      },
     };
   },
 
@@ -38,8 +35,6 @@ export const TableRow = Node.create({
   },
 
   addShortcuts() {
-    return {
-    };
+    return {};
   },
-
 });

@@ -1,6 +1,6 @@
-import { SuperConverter } from "../../SuperConverter.js";
-import { TrackFormatMarkName } from "@extensions/track-changes/constants.js";
-import { twipsToInches } from "../../helpers.js";
+import { SuperConverter } from '../../SuperConverter.js';
+import { TrackFormatMarkName } from '@extensions/track-changes/constants.js';
+import { twipsToInches } from '../../helpers.js';
 
 /**
  *
@@ -26,11 +26,11 @@ export function parseMarks(property, unknownMarks = []) {
         'w:contextualSpacing',
         'w:keepNext',
         'w:tabs',
-        'w:keepLines'
+        'w:keepLines',
       ];
       if (missingMarks.includes(element.name)) {
         unknownMarks.push(element.name);
-      };
+      }
     }
 
     marksForType.forEach((m) => {
@@ -38,9 +38,9 @@ export function parseMarks(property, unknownMarks = []) {
       seen.add(m.type);
 
       const { attributes = {} } = element;
-      const newMark = { type: m.type }
+      const newMark = { type: m.type };
 
-      if (attributes['w:val'] == "0" || attributes['w:val'] === 'none') {
+      if (attributes['w:val'] == '0' || attributes['w:val'] === 'none') {
         return;
       }
 
@@ -54,11 +54,10 @@ export function parseMarks(property, unknownMarks = []) {
         newMark.attrs[m.property] = value;
       }
       marks.push(newMark);
-    })
+    });
   });
-  return createImportMarks(marks)
+  return createImportMarks(marks);
 }
-
 
 /**
  *
@@ -67,9 +66,9 @@ export function parseMarks(property, unknownMarks = []) {
  * @returns {PmMarkJson[]} a trackMarksMark, or an empty array
  */
 export function handleStyleChangeMarks(rPr, currentMarks) {
-  const styleChangeMark = rPr.elements?.find((el) => el.name === 'w:rPrChange')
+  const styleChangeMark = rPr.elements?.find((el) => el.name === 'w:rPrChange');
   if (!styleChangeMark) {
-    return []
+    return [];
   }
 
   const { attributes } = styleChangeMark;
@@ -78,11 +77,10 @@ export function handleStyleChangeMarks(rPr, currentMarks) {
     date: attributes['w:date'],
     author: attributes['w:author'],
     authorEmail: attributes['w:authorEmail'],
-  }
+  };
   const submarks = parseMarks(styleChangeMark);
-  return [{ type: TrackFormatMarkName, attrs: { ...mappedAttributes, before: submarks, after: [...currentMarks] } }]
+  return [{ type: TrackFormatMarkName, attrs: { ...mappedAttributes, before: submarks, after: [...currentMarks] } }];
 }
-
 
 /**
  *
@@ -103,12 +101,11 @@ export function createImportMarks(marks) {
         combinedTextAttrs[attr] = attrs[attr];
       });
     });
-  };
+  }
 
   const result = [...remainingMarks, { type: 'textStyle', attrs: combinedTextAttrs }];
   return result;
 }
-
 
 /**
  *
@@ -131,11 +128,11 @@ function getMarkValue(markType, attributes) {
     bold: () => attributes?.['w:val'] || null,
     italic: () => attributes?.['w:val'] || null,
     highlight: () => attributes?.['w:val'] || null,
-  }
+  };
 
   if (!(markType in markValueMapper)) {
-    console.debug('❗️❗️ No value mapper for:', markType, 'Attributes:', attributes)
-  };
+    console.debug('❗️❗️ No value mapper for:', markType, 'Attributes:', attributes);
+  }
 
   // Returned the mapped mark value
   if (markType in markValueMapper) {
@@ -144,11 +141,10 @@ function getMarkValue(markType, attributes) {
   }
 }
 
-
 function getIndentValue(attributes) {
   let value = attributes['w:left'];
   if (!value) value = attributes['w:firstLine'];
-  return `${twipsToInches(value)}in`
+  return `${twipsToInches(value)}in`;
 }
 
 function getLineHeightValue(attributes) {
@@ -158,6 +154,6 @@ function getLineHeightValue(attributes) {
   // if (!value) value = attributes['w:lineRule'];
   // if (!value) value = attributes['w:after'];
   // if (!value) value = attributes['w:before'];
-  if (!value || value === "0") return null;
+  if (!value || value === '0') return null;
   return `${twipsToInches(value)}in`;
 }

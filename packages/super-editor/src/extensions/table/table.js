@@ -1,6 +1,5 @@
 import { Node, Attribute } from '@core/index.js';
 
-
 export const Table = Node.create({
   name: 'table',
 
@@ -26,10 +25,10 @@ export const Table = Node.create({
         renderDOM: ({ tableWidth }) => {
           if (!tableWidth) return {};
           const { width, type = 'auto' } = tableWidth;
-          return { style: `min-width: ${width}px;` }
-        }
+          return { style: `min-width: ${width}px;` };
+        },
       },
-      tableStyleId: { rendered: false, },
+      tableStyleId: { rendered: false },
       tableIndent: {
         renderDOM: ({ tableIndent }) => {
           if (!tableIndent) return {};
@@ -37,10 +36,10 @@ export const Table = Node.create({
           const { width, type = 'dxa' } = tableIndent;
           let style = '';
           if (width) style += `margin-left: ${width}px;`;
-          return { style }
-        }
+          return { style };
+        },
       },
-      tableLayout: { rendered: false, },
+      tableLayout: { rendered: false },
       borderCollapse: {
         default: null,
         rendered: false,
@@ -53,21 +52,20 @@ export const Table = Node.create({
         default: () => ({}),
         renderDOM({ borders, borderCollapse }) {
           if (!borders) return {};
-          const style = Object.entries(borders).reduce((acc, [key, { size, color }]) => {
-            return `${acc}border-${key}: ${size}px solid ${color || 'black'};`;
-          }, `border-collapse: ${borderCollapse || 'collapse'};`);
-          return { style }
-        }
+          const style = Object.entries(borders).reduce(
+            (acc, [key, { size, color }]) => {
+              return `${acc}border-${key}: ${size}px solid ${color || 'black'};`;
+            },
+            `border-collapse: ${borderCollapse || 'collapse'};`,
+          );
+          return { style };
+        },
       },
     };
   },
 
   renderDOM({ htmlAttributes }) {
-    const attributes = Attribute.mergeAttributes(
-      this.options.htmlAttributes, 
-      htmlAttributes,
-    );
+    const attributes = Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes);
     return ['table', attributes, 0];
   },
-
 });

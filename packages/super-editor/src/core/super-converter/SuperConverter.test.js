@@ -3,15 +3,9 @@ import { runOutputTests, testOutputConversion } from './tests/super-converter/ou
 import { runInputOutputTests } from './tests/super-converter/input-output';
 
 // Available test files
-const testFiles = [
-  'sample',
-  'fake-contract',
-  'comments'
-];
+const testFiles = ['sample', 'fake-contract', 'comments'];
 
-
-runInputOutputTests(); 
-
+runInputOutputTests();
 
 // Run tests for each of our test files
 // testFiles.forEach((fileName) => {
@@ -28,5 +22,5 @@ runInputOutputTests();
 
 //   // Output algorithm: Granular testing of known outputs
 //   // testOutputConversion();
-  
+
 // });

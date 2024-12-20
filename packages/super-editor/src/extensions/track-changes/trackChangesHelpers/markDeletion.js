@@ -46,9 +46,7 @@ export const markDeletion = ({ tr, from, to, user, date }) => {
 
     if (
       node.isInline &&
-      node.marks.find(
-        (mark) => mark.type.name === TrackInsertMarkName && mark.attrs.authorEmail === user.email,
-      )
+      node.marks.find((mark) => mark.type.name === TrackInsertMarkName && mark.attrs.authorEmail === user.email)
     ) {
       const removeStep = new ReplaceStep(
         deletionMap.map(Math.max(from, pos)),
@@ -58,10 +56,7 @@ export const markDeletion = ({ tr, from, to, user, date }) => {
       if (!tr.maybeStep(removeStep).failed) {
         deletionMap.appendMap(removeStep.getMap());
       }
-    } else if (
-      node.isInline &&
-      !node.marks.find((mark) => mark.type.name === TrackDeleteMarkName)
-    ) {
+    } else if (node.isInline && !node.marks.find((mark) => mark.type.name === TrackDeleteMarkName)) {
       tr.addMark(
         deletionMap.map(Math.max(from, pos)),
         deletionMap.map(Math.min(to, pos + node.nodeSize)),

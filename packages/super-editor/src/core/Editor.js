@@ -1,6 +1,6 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { DOMParser, DOMSerializer } from "prosemirror-model"
+import { DOMParser, DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
 import { EventEmitter } from './EventEmitter.js';
 import { ExtensionService } from './ExtensionService.js';
@@ -13,10 +13,9 @@ import { isActive } from './helpers/isActive.js';
 import { createStyleTag } from './utilities/createStyleTag.js';
 import { initComments } from '@features/index.js';
 import { style } from './config/style.js';
-import { trackedTransaction } from "@extensions/track-changes/trackChangesHelpers/trackedTransaction.js";
+import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import DocxZipper from '@core/DocxZipper.js';
-
 
 /**
  * Editor main class.
@@ -33,7 +32,7 @@ export class Editor extends EventEmitter {
   view;
 
   isFocused = false;
-  
+
   #css;
 
   #comments;
@@ -71,7 +70,9 @@ export class Editor extends EventEmitter {
     onFocus: () => null,
     onBlur: () => null,
     onDestroy: () => null,
-    onContentError: ({ error }) => { throw error },
+    onContentError: ({ error }) => {
+      throw error;
+    },
     onTrackedChangesUpdate: () => null,
     onCommentsUpdate: () => null,
     onCommentsLoaded: () => null,
@@ -121,7 +122,7 @@ export class Editor extends EventEmitter {
     // If we are running headless, we can stop here
     if (this.options.isHeadless) return;
 
-    this.#injectCSS()
+    this.#injectCSS();
 
     this.on('create', this.options.onCreate);
     this.on('update', this.options.onUpdate);
@@ -138,7 +139,7 @@ export class Editor extends EventEmitter {
     this.on('collaborationReady', this.options.onCollaborationReady);
 
     // this.#loadComments();
-    this.initializeCollaborationData()
+    this.initializeCollaborationData();
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -156,7 +157,7 @@ export class Editor extends EventEmitter {
     this.on('contentError', this.options.onContentError);
 
     this.#createView();
-    this.#injectCSS()
+    this.#injectCSS();
 
     this.on('create', this.options.onCreate);
     this.on('update', this.options.onUpdate);
@@ -301,7 +302,7 @@ export class Editor extends EventEmitter {
     if (hasData) {
       setTimeout(() => {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
-      }, 150)
+      }, 150);
     }
 
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
@@ -311,9 +312,8 @@ export class Editor extends EventEmitter {
       provider.off('synced', postSyncInit);
       this.#insertNewFileData();
     };
-  
-    if (provider.synced) this.#insertNewFileData();
 
+    if (provider.synced) this.#insertNewFileData();
     // If we are not sync'd yet, wait for the event then insert the data
     else provider.on('synced', postSyncInit);
   }
@@ -377,9 +377,10 @@ export class Editor extends EventEmitter {
    * @param handlePlugins Optional function for handling plugin merge.
    */
   registerPlugin(plugin, handlePlugins) {
-    const plugins = typeof handlePlugins === 'function' 
-      ? handlePlugins(plugin, [...this.state.plugins])
-      : [...this.state.plugins, plugin];
+    const plugins =
+      typeof handlePlugins === 'function'
+        ? handlePlugins(plugin, [...this.state.plugins])
+        : [...this.state.plugins, plugin];
 
     const state = this.state.reconfigure({ plugins });
     this.view.updateState(state);
@@ -391,11 +392,9 @@ export class Editor extends EventEmitter {
    */
   unregisterPlugin(nameOrPluginKey) {
     if (this.isDestroyed) return;
-    
-    const name = typeof nameOrPluginKey === 'string'
-      ? `${nameOrPluginKey}$`
-      : nameOrPluginKey.key;
-    
+
+    const name = typeof nameOrPluginKey === 'string' ? `${nameOrPluginKey}$` : nameOrPluginKey.key;
+
     const state = this.state.reconfigure({
       plugins: this.state.plugins.filter((plugin) => !plugin.key.startsWith(name)),
     });
@@ -417,18 +416,12 @@ export class Editor extends EventEmitter {
    */
   #createExtensionService() {
     const allowedExtensions = ['extension', 'node', 'mark'];
-    
-    const coreExtensions = [
-      Editable,
-      Commands,
-      EditorFocus,
-      Keymap,
-    ];
 
-    const allExtensions = [
-      ...coreExtensions, 
-      ...this.options.extensions,
-    ].filter((e) => allowedExtensions.includes(e?.type));
+    const coreExtensions = [Editable, Commands, EditorFocus, Keymap];
+
+    const allExtensions = [...coreExtensions, ...this.options.extensions].filter((e) =>
+      allowedExtensions.includes(e?.type),
+    );
 
     this.extensionService = ExtensionService.create(allExtensions, this);
   }
@@ -449,7 +442,7 @@ export class Editor extends EventEmitter {
     if (this.options.converter) {
       this.converter = this.options.converter;
     } else {
-      this.converter = new SuperConverter({ 
+      this.converter = new SuperConverter({
         docx: this.options.content,
         media: this.options.mediaFiles,
         debug: true,
@@ -461,7 +454,7 @@ export class Editor extends EventEmitter {
    * Initialize media.
    */
   #initMedia() {
-    if (!this.options.ydoc) return this.storage.image.media = this.options.mediaFiles;
+    if (!this.options.ydoc) return (this.storage.image.media = this.options.mediaFiles);
 
     const mediaMap = this.options.ydoc.getMap('media');
 
@@ -472,7 +465,7 @@ export class Editor extends EventEmitter {
       });
 
       // Set the storage to the imported media files
-      this.storage.image.media = this.options.mediaFiles
+      this.storage.image.media = this.options.mediaFiles;
     }
 
     // If we are opening an existing file, we need to get the media from the ydoc
@@ -509,10 +502,7 @@ export class Editor extends EventEmitter {
     let doc;
     try {
       if (this.options.mode === 'docx') {
-        doc = createDocument(
-          this.converter,
-          this.schema,
-        );
+        doc = createDocument(this.converter, this.schema);
 
         // For headless mode, generate JSON from a fragment
         if (this.options.fragment && this.options.isHeadless) {
@@ -591,7 +581,7 @@ export class Editor extends EventEmitter {
 
     this.element.style.boxSizing = 'border-box';
     this.element.style.width = pageSize.width + 'in';
-    this.element.style.minWidth =  pageSize.width + 'in';
+    this.element.style.minWidth = pageSize.width + 'in';
     this.element.style.maxWidth = pageSize.width + 'in';
     this.element.style.minHeight = pageSize.height + 'in';
     this.element.style.paddingTop = pageMargins.top + 'in';
@@ -609,7 +599,6 @@ export class Editor extends EventEmitter {
     const { typeface, fontSizePt } = this.converter.getDocumentDefaultStyles() ?? {};
     typeface && (this.element.style.fontFamily = typeface);
     fontSizePt && (this.element.style.fontSize = fontSizePt + 'pt');
-
   }
 
   /**
@@ -624,12 +613,12 @@ export class Editor extends EventEmitter {
       const trackChangesState = TrackChangesBasePluginKey.getState(this.view.state);
       const isTrackChangesActive = trackChangesState?.isTrackChangesActive ?? false;
 
-      const tr = isTrackChangesActive 
-        ? trackedTransaction({ 
-          tr: transaction, 
-          state: this.state, 
-          user: this.options.user,
-        }) 
+      const tr = isTrackChangesActive
+        ? trackedTransaction({
+            tr: transaction,
+            state: this.state,
+            user: this.options.user,
+          })
         : transaction;
 
       const { state: newState } = this.view.state.applyTransaction(tr);
@@ -651,9 +640,9 @@ export class Editor extends EventEmitter {
     if (selectionHasChanged) {
       this.emit('selectionUpdate', {
         editor: this,
-        transaction
+        transaction,
       });
-    };
+    }
 
     const focus = transaction.getMeta('focus');
     if (focus) {
@@ -662,7 +651,7 @@ export class Editor extends EventEmitter {
         event: focus.event,
         transaction,
       });
-    };
+    }
 
     const blur = transaction.getMeta('blur');
     if (blur) {
@@ -671,11 +660,11 @@ export class Editor extends EventEmitter {
         event: blur.event,
         transaction,
       });
-    };
-  
+    }
+
     if (!transaction.docChanged) {
       return;
-    };
+    }
 
     this.emit('update', {
       editor: this,
@@ -687,11 +676,7 @@ export class Editor extends EventEmitter {
    * Load the document comments.
    */
   #loadComments() {
-    this.#comments = initComments(
-      this,
-      this.converter, 
-      this.options.documentId,
-    );
+    this.#comments = initComments(this, this.converter, this.options.documentId);
 
     this.emit('commentsLoaded', { comments: this.#comments });
   }
@@ -734,14 +719,12 @@ export class Editor extends EventEmitter {
    */
   getHTML() {
     const div = document.createElement('div');
-    const fragment = DOMSerializer
-      .fromSchema(this.schema)
-      .serializeFragment(this.state.doc.content);
+    const fragment = DOMSerializer.fromSchema(this.schema).serializeFragment(this.state.doc.content);
 
     div.appendChild(fragment);
     return div.innerHTML;
   }
-  
+
   /**
    * Get page styles
    */
@@ -754,12 +737,7 @@ export class Editor extends EventEmitter {
    */
   async exportDocx({ isFinalDoc = false } = {}) {
     const json = this.getJSON();
-    const documentXml = await this.converter.exportToDocx(
-      json,
-      this.schema,
-      this.storage.image.media,
-      isFinalDoc
-    );
+    const documentXml = await this.converter.exportToDocx(json, this.schema, this.storage.image.media, isFinalDoc);
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const media = this.converter.addedMedia;
@@ -778,7 +756,7 @@ export class Editor extends EventEmitter {
       fonts: this.options.fonts,
     });
 
-    return result
+    return result;
   }
 
   /**
@@ -788,7 +766,7 @@ export class Editor extends EventEmitter {
     try {
       if (this.options.collaborationProvider) this.options.collaborationProvider.disconnect();
       if (this.options.ydoc) this.options.ydoc.destroy();
-    } catch (error) {};
+    } catch (error) {}
   }
 
   /**

@@ -10,6 +10,6 @@ export function generateDocxRandomId(length = 8) {
     const randomIndex = Math.floor(Math.random() * characters.length);
     id.push(characters[randomIndex]);
   }
-  
+
   return id.join('');
 }

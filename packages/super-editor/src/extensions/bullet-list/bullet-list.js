@@ -23,10 +23,7 @@ export const BulletList = Node.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    const attributes = Attribute.mergeAttributes(
-      this.options.htmlAttributes, 
-      htmlAttributes,
-    );
+    const attributes = Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes);
     return ['ul', attributes, 0];
   },
 
@@ -36,7 +33,7 @@ export const BulletList = Node.create({
         default: 'bullet',
         rendered: false,
       },
-      
+
       attributes: {
         rendered: false,
         keepOnSplit: true,
@@ -46,16 +43,11 @@ export const BulletList = Node.create({
 
   addCommands() {
     return {
-      toggleBulletList: () => (props) => {      
+      toggleBulletList: () => (props) => {
         const { commands, chain } = props;
         const attributes = generateDocxListAttributes('bulletList');
         console.debug('[bulletList] Toggling bullet list', attributes);
-        return commands.toggleList(
-          this.name, 
-          this.options.itemTypeName, 
-          this.options.keepMarks,
-          attributes,
-        );
+        return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks, attributes);
       },
     };
   },

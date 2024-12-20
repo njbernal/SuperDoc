@@ -20,8 +20,8 @@ export const CommentRangeStart = Node.create({
 
   addAttributes() {
     return {
-      'w:id': { 
-        default: () => uuidv4(), 
+      'w:id': {
+        default: () => uuidv4(),
       },
     };
   },
@@ -41,12 +41,12 @@ export const CommentRangeEnd = Node.create({
   },
 
   renderDOM() {
-    return ['commentRangeEnd', 0]; 
+    return ['commentRangeEnd', 0];
   },
 
   addAttributes() {
     return {
-      'w:id': { 
+      'w:id': {
         default: () => uuidv4(),
       },
     };
@@ -63,7 +63,7 @@ export const CommentReference = Node.create({
   inline: true,
 
   parseDOM() {
-    return [{ tag: "commentReference" }];
+    return [{ tag: 'commentReference' }];
   },
 
   renderDOM() {

@@ -1,7 +1,7 @@
 <script setup>
-import { onMounted, computed } from "vue";
+import { onMounted, computed } from 'vue';
 
-const emit = defineEmits(["select", "clickoutside"]);
+const emit = defineEmits(['select', 'clickoutside']);
 const props = defineProps({
   icons: {
     type: Array,
@@ -15,7 +15,7 @@ const props = defineProps({
 
 const handleClick = (option) => {
   emit('select', option.value);
-}
+};
 
 const isActive = computed(() => (option) => {
   if (!props.activeColor.value) return false;
@@ -23,14 +23,14 @@ const isActive = computed(() => (option) => {
 });
 
 const getCheckStyle = (color, optionIndex) => {
-  const lightColors = ['#FFFFFF', '#FAFF09']
+  const lightColors = ['#FFFFFF', '#FAFF09'];
   if (optionIndex === 5 || lightColors.includes(color)) return { color: '#000' };
   return { color: '#FFF' };
-}
+};
 
 onMounted(() => {
   const isMatrix = props.icons.every((row) => Array.isArray(row));
-  if (!isMatrix) throw new Error("icon props must be 2d array");
+  if (!isMatrix) throw new Error('icon props must be 2d array');
 });
 </script>
 
@@ -45,9 +45,10 @@ onMounted(() => {
       >
         <i :class="option.icon" :style="option.style"></i>
         <i
-            class="fas fa-check active-check"
-            :style="getCheckStyle(option.value, optionIndex)"
-            v-if="isActive(option)"></i>
+          class="fas fa-check active-check"
+          :style="getCheckStyle(option.value, optionIndex)"
+          v-if="isActive(option)"
+        ></i>
       </div>
     </div>
   </div>
@@ -77,7 +78,7 @@ onMounted(() => {
 }
 
 .option:hover {
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
 }
 .active-check {
   position: absolute;

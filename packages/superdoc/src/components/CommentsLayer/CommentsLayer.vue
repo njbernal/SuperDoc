@@ -8,11 +8,7 @@ import useConversation from './use-conversation';
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
 const { COMMENT_EVENTS } = commentsStore;
-const {
-  documentsWithConverations,
-  activeComment,
-  floatingCommentsOffset,
-} = storeToRefs(commentsStore);
+const { documentsWithConverations, activeComment, floatingCommentsOffset } = storeToRefs(commentsStore);
 const { documents, activeZoom } = storeToRefs(superdocStore);
 const { proxy } = getCurrentInstance();
 
@@ -35,7 +31,7 @@ const addCommentEntry = (selection) => {
     documentId: selection.documentId,
     selection,
     isFocused: true,
-  }
+  };
 
   const bounds = selection.selectionBounds;
   if (bounds.top > bounds.bottom) {
@@ -57,11 +53,11 @@ const addCommentEntry = (selection) => {
 
   matchedDocument.conversations.push(newConvo);
   proxy.$superdoc.broadcastComments(COMMENT_EVENTS.NEW, newConvo.getValues());
-}
+};
 
 const getStyle = (conversation) => {
-  const { selection, conversationId } = conversation
-  const containerBounds = selection.getContainerLocation(props.parent)
+  const { selection, conversationId } = conversation;
+  const containerBounds = selection.getContainerLocation(props.parent);
   const placement = conversation.selection.selectionBounds;
   const top = (parseFloat(placement.top) + containerBounds.top) * activeZoom.value;
 
@@ -69,7 +65,7 @@ const getStyle = (conversation) => {
   const externalHighlightColor = '#B1124B';
 
   let opacity = '33';
-  activeComment.value === conversationId ? opacity = '66' : '33';
+  activeComment.value === conversationId ? (opacity = '66') : '33';
   let fillColor = conversation.isInternal ? internalHighlightColor : externalHighlightColor;
   fillColor += opacity;
 
@@ -77,23 +73,23 @@ const getStyle = (conversation) => {
     position: 'absolute',
     top: parseFloat(placement.top) + 'px',
     left: placement.left + 'px',
-    width: (placement.right - placement.left) + 'px',
-    height: (placement.bottom - placement.top) + 'px',
+    width: placement.right - placement.left + 'px',
+    height: placement.bottom - placement.top + 'px',
     backgroundColor: fillColor,
     pointerEvents: conversation.suppressClick ? 'none' : 'auto',
-  }
-}
+  };
+};
 
 const setFloatingCommentOffset = (conversation) => {
   floatingCommentsOffset.value = conversation.selection.selectionBounds.top;
-}
+};
 
 const activateComment = (conversation) => {
   conversation.isFocused = true;
   activeComment.value = conversation.conversationId;
   setFloatingCommentOffset(conversation);
   emit('highlight-click', conversation);
-}
+};
 
 const getAllConversations = computed(() => {
   return documentsWithConverations.value.reduce((acc, doc) => {
@@ -103,27 +99,27 @@ const getAllConversations = computed(() => {
 
 watch(activeComment, (newVal) => {
   if (!newVal) return;
-  const element = document.getElementById(newVal)
+  const element = document.getElementById(newVal);
   element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
 defineExpose({
   addCommentEntry,
   activateComment,
-  setFloatingCommentOffset
+  setFloatingCommentOffset,
 });
-
 </script>
 
 <template>
   <div class="comments-container" id="commentsContainer">
     <div class="comments-layer">
       <div
-          v-for="conversation in getAllConversations"
-          class="comment-anchor sd-highlight"
-          @click="(e) => activateComment(conversation, e)"
-          :data-id="conversation.conversationId"
-          :style="getStyle(conversation)"></div>
+        v-for="conversation in getAllConversations"
+        class="comment-anchor sd-highlight"
+        @click="(e) => activateComment(conversation, e)"
+        :data-id="conversation.conversationId"
+        :style="getStyle(conversation)"
+      ></div>
     </div>
   </div>
 </template>

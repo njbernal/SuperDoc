@@ -1,12 +1,13 @@
 import { liftTarget } from 'prosemirror-transform';
 
 /**
- * Normalize nodes to the default node (paragraph by default). 
+ * Normalize nodes to the default node (paragraph by default).
  * This may be helpful before applying a new node type.
- * 
- * The paragraph is the default node because 
+ *
+ * The paragraph is the default node because
  * it has the highest priority (priority: 1000) and it's loaded first.
  */
+// prettier-ignore
 export const clearNodes = () => ({ state, tr, dispatch }) => {
   const { selection } = tr;
   const { ranges } = selection;

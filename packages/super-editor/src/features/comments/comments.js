@@ -5,25 +5,25 @@ const commentsFiles = {};
 
 // Comments
 const getParentCommentId = (id) => {
-  const data = commentsFiles?.commentsExtended?.elements
+  const data = commentsFiles?.commentsExtended?.elements;
   if (!data) return null;
-  const elements = data[0].elements
+  const elements = data[0].elements;
   id = parseInt(id);
   const match = elements[id];
   if (!match) return null;
   if (!('w15:paraIdParent' in match.attributes)) return null;
-  
+
   const parentId = match.attributes['w15:paraIdParent'];
   return elements.findIndex((item) => item.attributes['w15:paraId'] === parentId);
-}
+};
 
 const getComment = (id) => {
-  const data = commentsFiles?.comments?.elements
+  const data = commentsFiles?.comments?.elements;
   if (!data) return null;
   const elements = data[0].elements;
-  const comment = elements[id]
+  const comment = elements[id];
   return comment;
-}
+};
 
 const _getCommentTextFromNode = (c) => {
   const elements = c.comment.elements;
@@ -35,21 +35,20 @@ const _getCommentTextFromNode = (c) => {
     comment: text,
     user: { name: c.comment.attributes['w:author'] },
     timestamp: c.comment.attributes['w:date'],
-  }
-}
+  };
+};
 
 const parseCommentsForSuperdoc = (comments, documentId, editor) => {
   const conversations = [];
-  const editorElement = editor.options.element
+  const editorElement = editor.options.element;
   const editorBounds = editorElement.getBoundingClientRect();
   comments.forEach((c) => {
-
     // If this is a child comment, append to the parent conversation
     const parentThread = conversations.find((item) => item.thread === c.parentThread);
     if (parentThread) {
       const comment = _getCommentTextFromNode(c);
       parentThread.comments.push(comment);
-      return
+      return;
     }
 
     // If it is not a child comment, create a new conversation
@@ -65,9 +64,9 @@ const parseCommentsForSuperdoc = (comments, documentId, editor) => {
         left: c.start.left - editorBounds.left,
         bottom: c.end.bottom - editorBounds.top,
         right: c.end.right - editorBounds.left,
-      }
+      },
     };
-  
+
     const comment = _getCommentTextFromNode(c);
     const convo = {
       thread: parentThread ? parentThread.thread : c.id,
@@ -81,9 +80,9 @@ const parseCommentsForSuperdoc = (comments, documentId, editor) => {
     };
 
     conversations.push(convo);
-  })
+  });
   return conversations;
-}
+};
 
 const initComments = (editor, converter, documentId) => {
   const comments = [];
@@ -100,7 +99,7 @@ const initComments = (editor, converter, documentId) => {
   // Load comments from the schema
   doc.descendants((node, pos) => {
     if (node.type.name === 'commentRangeStart') {
-      if (!('w:id' in node.attrs)) return
+      if (!('w:id' in node.attrs)) return;
       const id = parseInt(node.attrs['w:id']);
       const coords = editorView.coordsAtPos(pos);
       const parentThread = getParentCommentId(id);
@@ -113,9 +112,9 @@ const initComments = (editor, converter, documentId) => {
         comment,
       });
     } else if (node.type.name === 'commentRangeEnd') {
-      if (!('w:id' in node.attrs)) return
+      if (!('w:id' in node.attrs)) return;
       const id = parseInt(node.attrs['w:id']);
-      const match = comments.find(item => item.id === id);
+      const match = comments.find((item) => item.id === id);
       const coords = editorView.coordsAtPos(pos);
       match.end = coords;
     }
@@ -124,8 +123,6 @@ const initComments = (editor, converter, documentId) => {
   const parsedComments = parseCommentsForSuperdoc(comments, documentId, editor);
   console.debug('[comments] Parsed comments:', parsedComments);
   return parsedComments;
-}
+};
 
-export {
-  initComments
-}
+export { initComments };

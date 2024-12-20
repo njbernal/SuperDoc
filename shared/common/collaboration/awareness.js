@@ -1,6 +1,6 @@
 /**
  * Convert provider awareness to an array of users
- * 
+ *
  * @param {Object} states The provider's awareness states object
  */
 export const awarenessStatesToArray = (context, states) => {
@@ -9,8 +9,9 @@ export const awarenessStatesToArray = (context, states) => {
   return Array.from(states.entries())
     .filter(([_, value]) => {
       if (!value.user) return false;
-      return !seenUsers.has(value.user?.email) && seenUsers.add(value.user?.email)
-    }).map(([key, value]) => {
+      return !seenUsers.has(value.user?.email) && seenUsers.add(value.user?.email);
+    })
+    .map(([key, value]) => {
       const email = value.user.email;
 
       if (!context.userColorMap.has(email)) {

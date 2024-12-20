@@ -22,9 +22,7 @@ export const findTrackedMarkBetween = ({
     }
 
     const mark = node.marks.find(
-      (mark) =>
-        mark.type.name === markName &&
-        Object.keys(attrs).every((attr) => mark.attrs[attr] === attrs[attr]),
+      (mark) => mark.type.name === markName && Object.keys(attrs).every((attr) => mark.attrs[attr] === attrs[attr]),
     );
 
     if (mark && !markFound) {
