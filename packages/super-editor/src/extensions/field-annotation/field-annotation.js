@@ -386,7 +386,7 @@ export const FieldAnnotation = Node.create({
             let newPos = tr.mapping.map(pos);
             let currentNode = tr.doc.nodeAt(pos);
 
-            if (node.eq(currentNode)) {
+            if (node.attrs.fieldId === currentNode.attrs.fieldId) {
               tr.setNodeMarkup(newPos, undefined, {
                 ...node.attrs,
                 ...attrs,

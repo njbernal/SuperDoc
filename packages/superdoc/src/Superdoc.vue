@@ -45,16 +45,6 @@ const {
 } = storeToRefs(superdocStore);
 const { handlePageReady, modules, user, getDocument } = superdocStore;
 
-// for html viewer
-// union of all field classes
-const fieldClasses = ['annotation'];
-// union of all field properties regardless of type
-const fieldFormat = {
-  id: (field) => field.getAttribute('data-itemid') || null,
-  value: (field) => field.querySelector('.annotation-text')?.innerHTML || null,
-  type: (field) => field.getAttribute('data-itemfieldtype') || null,
-};
-
 //prettier-ignore
 const {
   getConfig,
@@ -69,7 +59,6 @@ commentsStore.proxy = proxy;
 
 // Refs
 const layers = ref(null);
-const isCollaborationReady = ref(false);
 
 // Comments layer
 const commentsLayer = ref(null);
