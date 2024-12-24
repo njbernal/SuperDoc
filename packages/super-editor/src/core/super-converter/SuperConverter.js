@@ -194,6 +194,7 @@ class SuperConverter {
       media: {},
       isFinalDoc,
       editorSchema,
+      pageStyles: this.pageStyles,
     });
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);

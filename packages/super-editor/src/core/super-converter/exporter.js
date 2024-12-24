@@ -1023,6 +1023,14 @@ function translateMark(mark) {
   return markElement;
 }
 
+function getMaxWidthInPixels(pageStyles) {
+  const { pageSize, pageMargins } = pageStyles;
+  const { width } = pageSize;
+  const { left, right } = pageMargins;
+  const margin = left + right;
+  return (width - margin) * 96;
+};
+
 function translateImageNode(params, imageSize) {
   const {
     node: { attrs = {}, marks = [] },
@@ -1041,10 +1049,22 @@ function translateImageNode(params, imageSize) {
     imageId = addNewImageRelationship(params, path);
   } else if (params.node.type === 'fieldAnnotation' && !imageId) {
     const type = attrs.imageSrc?.split(';')[0].split('/')[1];
+    if (!type) return null;
+
     const hash = generateDocxRandomId(4);
     const imageUrl = `media/${attrs.fieldId}_${hash}.${type}`;
+
     imageId = addNewImageRelationship(params, imageUrl);
     params.media[`${attrs.fieldId}_${hash}.${type}`] = attrs.imageSrc;
+  }
+
+  // Fields can receive 'extras' attrs which can contain different data.
+  // For images, we can place the correct height/width
+  if (attrs.extras) {
+    const aspectRatio = attrs.extras.width / attrs.extras.height;
+    const maxWidth = getMaxWidthInPixels(params.pageStyles);
+    size.w = Math.min(pixelsToEmu(attrs.extras.width), pixelsToEmu(maxWidth));
+    size.h = size.w / aspectRatio;
   }
 
   const inlineAttrs = attrs.originalPadding || {
