@@ -246,6 +246,7 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     const translatedNode = exportSchemaToJson({ ...params, node });
+    console.debug('[translateChildNodes] Translated node:', node?.name, translatedNode);
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
   });
@@ -1049,7 +1050,9 @@ function translateImageNode(params, imageSize) {
     imageId = addNewImageRelationship(params, path);
   } else if (params.node.type === 'fieldAnnotation' && !imageId) {
     const type = attrs.imageSrc?.split(';')[0].split('/')[1];
-    if (!type) return null;
+    if (!type) {
+      return prepareTextAnnotation(params);
+    }
 
     const hash = generateDocxRandomId(4);
     const imageUrl = `media/${attrs.fieldId}_${hash}.${type}`;
@@ -1459,6 +1462,7 @@ export class DocxExporter {
   }
 
   #generateXml(node) {
+    if (!node) return null;
     const { name, elements, attributes } = node;
     let tag = `<${name}`;
 
@@ -1479,7 +1483,9 @@ export class DocxExporter {
     } else {
       if (elements) {
         for (let child of elements) {
-          tags.push(...this.#generateXml(child));
+          const newElements = this.#generateXml(child);
+          if (!newElements) continue;
+          tags.push(...newElements);
         }
       }
     }
