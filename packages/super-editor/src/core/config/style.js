@@ -179,4 +179,34 @@ img.ProseMirror-separator {
   line-height: 0.1;
   font-weight: bold;
 }
+
+/* Pagination */
+.pagination-section-header {
+cursor: pointer;
+}
+
+.pagination-section-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  cursor: pointer;
+}
+.pagination-break-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pagination-separator {
+  width: 100%;
+  display: block;
+  minHeight: 20px;
+  height: 20px;
+  border-top: 1px solid #DBDBDB;
+  border-bottom: 1px solid #DBDBDB;
+  cursor: pointer;
+}
 `;
