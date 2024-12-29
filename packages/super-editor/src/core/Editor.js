@@ -15,6 +15,7 @@ import { initComments } from '@features/index.js';
 import { style } from './config/style.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
+import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
 import DocxZipper from '@core/DocxZipper.js';
 
 /**
@@ -136,10 +137,14 @@ export class Editor extends EventEmitter {
     this.on('commentClick', this.options.onCommentClicked);
     this.on('commentsUpdate', this.options.onCommentsUpdate);
     this.on('locked', this.options.onDocumentLocked);
-    this.on('collaborationReady', this.options.onCollaborationReady);
+    this.on('collaborationReady', this.#onCollaborationReady);
 
     // this.#loadComments();
     this.initializeCollaborationData();
+
+    // Init pagination only if we are not in collaborative mode. Otherwise
+    // it will be in itialized via this.#onCollaborationReady
+    if (!this.options.ydoc) this.#initPagination();
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -500,31 +505,31 @@ export class Editor extends EventEmitter {
    */
   #generatePmData() {
     let doc;
+  
     try {
-      if (this.options.mode === 'docx') {
+      const { mode, fragment, isHeadless, content, loadFromSchema } = this.options;
+  
+      if (mode === 'docx') {
         doc = createDocument(this.converter, this.schema);
-
-        // For headless mode, generate JSON from a fragment
-        if (this.options.fragment && this.options.isHeadless) {
-          doc = yXmlFragmentToProseMirrorRootNode(this.options.fragment, this.schema);
+  
+        if (fragment && isHeadless) {
+          doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
           console.debug('🦋 [super-editor] Generated JSON from fragment:', doc);
         }
-      } else if (this.options.mode === 'text') {
-        if (this.options.content) {
-          doc = DOMParser.fromSchema(this.schema).parse(this.options.content);
+      } else if (mode === 'text') {
+        if (content) {
+          doc = loadFromSchema
+            ? this.schema.nodeFromJSON(content)
+            : DOMParser.fromSchema(this.schema).parse(content);
         } else {
           doc = this.schema.topNodeType.createAndFill();
         }
       }
     } catch (err) {
       console.error(err);
-
-      this.emit('contentError', {
-        editor: this,
-        error: err,
-      });
+      this.emit('contentError', { editor: this, error: err });
     }
-
+  
     return doc;
   }
 
@@ -579,26 +584,56 @@ export class Editor extends EventEmitter {
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
     if (!pageSize || !pageMargins) return;
 
-    this.element.style.boxSizing = 'border-box';
-    this.element.style.width = pageSize.width + 'in';
-    this.element.style.minWidth = pageSize.width + 'in';
+    this.element.style.minWidth =  pageSize.width + 'in';
     this.element.style.maxWidth = pageSize.width + 'in';
-    this.element.style.minHeight = pageSize.height + 'in';
-    this.element.style.paddingTop = pageMargins.top + 'in';
-    this.element.style.paddingRight = pageMargins.right + 'in';
-    this.element.style.paddingBottom = pageMargins.bottom + 'in';
     this.element.style.paddingLeft = pageMargins.left + 'in';
+    this.element.style.paddingRight = pageMargins.right + 'in';
+    this.element.style.minHeight = pageSize.height + 'in';
 
     proseMirror.style.outline = 'none';
     proseMirror.style.border = 'none';
-    proseMirror.style.padding = '0';
-    proseMirror.style.margin = '0';
-    proseMirror.style.width = '100%';
-    proseMirror.style.paddingBottom = pageMargins.bottom + 'in';
 
     const { typeface, fontSizePt } = this.converter.getDocumentDefaultStyles() ?? {};
     typeface && (this.element.style.fontFamily = typeface);
     fontSizePt && (this.element.style.fontSize = fontSizePt + 'pt');
+
+    const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
+    proseMirror.style.lineHeight = defaultLineHeight + 'px';
+
+    // If we are not using pagination, we still need to add some padding for header/footer
+    if (!this.options.extensions.find((e) => e.name === 'pagination')) {
+      proseMirror.style.paddingTop = '1in';
+      proseMirror.style.paddingBottom = '1in';
+    }
+  }
+
+  #onCollaborationReady({ editor, ydoc }) {
+    if (this.options.collaborationIsReady) return;
+    this.#initPagination();
+    console.debug('🔗 [super-editor] Collaboration ready');
+    this.options.onCollaborationReady({ editor, ydoc });
+    this.options.collaborationIsReady = true;
+  }
+
+  /**
+   * Initialize pagination, if the pagination extension is enabled.
+   */
+  async #initPagination() {
+    if (this.options.isHeadless || !this.extensionService) return;
+
+    const pagination = this.options.extensions.find((e) => e.name === 'pagination');
+    if (pagination) {
+      console.debug('🔗 [super-editor] Initializing pagination');
+      const sectionData = await initPaginationData(this);
+      this.storage.pagination.sectionData = sectionData;
+
+      const { state, dispatch } = this.view;
+      const tr = state.tr.setMeta(PaginationPluginKey, { isReadyToInit: true });
+
+      setTimeout(() => {
+        dispatch(tr);
+      }, 250);
+    }
   }
 
   /**

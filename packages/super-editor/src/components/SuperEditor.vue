@@ -1,9 +1,10 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Editor } from '@vue-3/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
+import { observeDomChanges } from './pagination-helpers.js';
 
 const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
 
@@ -88,12 +89,20 @@ const initializeData = async () => {
   }
 };
 
+const getExtensions = () => {
+  const extensions = getStarterExtensions();
+  if (!props.options.pagination) {
+    return extensions.filter(ext => ext.name !== 'pagination');
+  }
+  return extensions;
+};
+
 const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } = {}) => {
   editor = new Editor({
     mode: 'docx',
     element: editorElem.value,
     fileSource: props.fileSource,
-    extensions: getStarterExtensions(),
+    extensions: getExtensions(),
     documentId: props.documentId,
     content,
     media,
@@ -129,13 +138,15 @@ const handleSuperEditorClick = (event) => {
   }
 };
 
+let paginationObserver;
 onMounted(() => {
   initializeData();
-
+  if (props.options?.pagination && editorElem.value) paginationObserver = observeDomChanges(editorElem);
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
 
 onBeforeUnmount(() => {
+  paginationObserver?.disconnect();
   stopPolling();
   editor?.destroy();
   editor = null;
@@ -171,8 +182,6 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   display: inline-block;
   position: relative;
-  min-width: 8.5in;
-  min-height: 11in;
 }
 .placeholder-editor {
   box-sizing: border-box;

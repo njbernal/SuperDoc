@@ -58,7 +58,8 @@ const editorOptions = computed(() => {
     onCommentClicked,
     suppressSkeletonLoader: true,
     users: [], // For comment @-mentions, only users that have access to the document
-  };
+    pagination: true,
+  }
 });
 
 const exportDocx = async () => {
@@ -180,7 +181,7 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <div class="dev-app__inputs-panel">
+        <!-- <div class="dev-app__inputs-panel">
           <div class="dev-app__inputs-panel-content">
             <EditorInputs
               v-bind="{ activeSigner, signersListInfo }"
@@ -188,18 +189,17 @@ onMounted(async () => {
               @active-signer-change="updateActiveSigner"
             />
           </div>
-        </div>
+        </div> -->
 
         <div class="dev-app__view">
-          <div class="dev-app__content" v-if="currentFile">
-            <div class="dev-app__content-container">
-              <SuperEditor :file-source="currentFile" :options="editorOptions" />
+            <div class="dev-app__content" v-if="currentFile">
+              <div class="dev-app__content-container" style="display: flex;">
+                <SuperEditor
+                  :file-source="currentFile" 
+                  :options="editorOptions"
+                />
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div>
-          <!-- -->
         </div>
       </div>
     </div>
@@ -208,8 +208,15 @@ onMounted(async () => {
 
 <style>
 .super-editor {
-  border: 1px solid #dbdbdb;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 8px;
 }
+*,
+::before,
+::after {
+  box-sizing: border-box;
+};
 </style>
 
 <style scoped>
@@ -222,7 +229,6 @@ onMounted(async () => {
 }
 
 .dev-app__layout {
-  display: grid;
   width: 100%;
   height: 100vh;
 }
@@ -246,8 +252,9 @@ onMounted(async () => {
 }
 
 .dev-app__main {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;;
   overflow-y: auto;
 }
 

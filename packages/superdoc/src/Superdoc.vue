@@ -277,6 +277,7 @@ const handleEditorKeydown = ({ editor }) => updateToolbarState();
 
 const editorOptions = (doc) => {
   const options = {
+    pagination: proxy.$superdoc.config.pagination,
     documentId: doc.id,
     user: proxy.$superdoc.user,
     colors: proxy.$superdoc.colors,
