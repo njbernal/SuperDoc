@@ -630,10 +630,14 @@ export class Editor extends EventEmitter {
       const { state, dispatch } = this.view;
       const tr = state.tr.setMeta(PaginationPluginKey, { isReadyToInit: true });
 
-      const collaborationDelay = this.options.ydoc ? 250 : 0;
-      setTimeout(() => {
-        dispatch(tr);
-      }, collaborationDelay);
+      // If we don't have collaboration, we need to dispatch immediately
+      // Otherwise, we need to wait a bit for the document to render
+      if (!this.options.ydoc) dispatch(tr);
+      else {
+        setTimeout(() => {
+          dispatch(tr);
+        }, 250);
+      }
     }
   }
 
