@@ -89,6 +89,7 @@ export default defineConfig(({ mode, command}) => {
     },
     server: {
       port: 9094,
+      host: '0.0.0.0',
       fs: {
         allow: ['../', '../../'],
       },

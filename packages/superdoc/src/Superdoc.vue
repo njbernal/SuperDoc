@@ -176,7 +176,8 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
 
 const onEditorCommentsUpdate = ({ editor, transaction }) => {
   const { documentId } = editor.options;
-  const { commentPositions = {}, activeThreadId } = transaction.getMeta('commentsPluginState') || {};
+  const { commentPositions = {}, activeThreadId } =
+    transaction.getMeta('commentsPluginState') || {};
   if (activeThreadId) onEditorSelectionChange({ editor, transaction });
 
   if (!Object.keys(commentPositions).length) return;
@@ -370,8 +371,10 @@ const handleSelectionChange = (selection) => {
   });
 
   if (!selectionPosition.value) return;
-  const selectionIsWideEnough = Math.abs(selectionPosition.value.left - selectionPosition.value.right) > 5;
-  const selectionIsTallEnough = Math.abs(selectionPosition.value.top - selectionPosition.value.bottom) > 5;
+  const selectionIsWideEnough =
+    Math.abs(selectionPosition.value.left - selectionPosition.value.right) > 5;
+  const selectionIsTallEnough =
+    Math.abs(selectionPosition.value.top - selectionPosition.value.bottom) > 5;
   if (!selectionIsWideEnough || !selectionIsTallEnough) {
     selectionLayer.value.style.pointerEvents = 'none';
     resetSelection();
@@ -705,6 +708,7 @@ const handlePdfClick = (e) => {
   position: relative;
 }
 
+/* Mobile Styles */
 @media (max-width: 768px) {
   .sub-document {
     max-width: 100%;
@@ -714,6 +718,12 @@ const handlePdfClick = (e) => {
     padding: 10px;
     width: 55px;
     position: relative;
+  }
+
+  .superdoc .layers {
+    margin: 0;
+    border: 0 !important;
+    box-shadow: none;
   }
 }
 </style>

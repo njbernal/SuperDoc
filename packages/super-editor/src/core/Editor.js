@@ -63,6 +63,7 @@ export class Editor extends EventEmitter {
     parseOptions: {},
     coreExtensionOptions: {},
     isNewFile: false,
+    scale: 1,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -303,7 +304,8 @@ export class Editor extends EventEmitter {
    * so that we can initialize the data
    */
   initializeCollaborationData() {
-    const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')?.options.isReady;
+    const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')
+      ?.options.isReady;
     if (hasData) {
       setTimeout(() => {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
@@ -584,7 +586,10 @@ export class Editor extends EventEmitter {
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
     if (!pageSize || !pageMargins) return;
 
-    this.element.style.minWidth =  pageSize.width + 'in';
+    // Set fixed dimensions and padding that won't change with scaling
+    this.element.style.boxSizing = 'border-box';
+    this.element.style.width = pageSize.width + 'in';
+    this.element.style.minWidth = pageSize.width + 'in';
     this.element.style.maxWidth = pageSize.width + 'in';
     this.element.style.paddingLeft = pageMargins.left + 'in';
     this.element.style.paddingRight = pageMargins.right + 'in';
@@ -593,10 +598,17 @@ export class Editor extends EventEmitter {
     proseMirror.style.outline = 'none';
     proseMirror.style.border = 'none';
 
+    // Typeface and font size
     const { typeface, fontSizePt } = this.converter.getDocumentDefaultStyles() ?? {};
     typeface && (this.element.style.fontFamily = typeface);
     fontSizePt && (this.element.style.fontSize = fontSizePt + 'pt');
 
+    // Mobile styles
+    this.element.style.transformOrigin = 'top left';
+    this.element.style.touchAction = 'auto';
+    this.element.style.webkitOverflowScrolling = 'touch';
+
+    // Calculate line height
     const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
     proseMirror.style.lineHeight = defaultLineHeight + 'px';
 
@@ -605,7 +617,38 @@ export class Editor extends EventEmitter {
       proseMirror.style.paddingTop = '1in';
       proseMirror.style.paddingBottom = '1in';
     }
-  }
+
+    this.#initMobileStyles();
+  };
+
+  #initMobileStyles() {
+    if (!this.element) return;
+    const initialWidth = this.element.offsetWidth;
+    const updateScale = () => {
+      const elementWidth = initialWidth;
+      const availableWidth = window.innerWidth - 40;
+      this.options.scale = Math.min(1, availableWidth / elementWidth);
+
+      if (this.options.scale < 1) {
+        const superEditorElement = this.element.closest('.super-editor');
+        superEditorElement.style.maxWidth = `${elementWidth * this.options.scale}px`;
+
+        this.element.style.transform = `scale(${this.options.scale})`;
+      } else {
+        this.element.style.transform = "none";
+      }
+    };
+
+    // Initial scale
+    updateScale();
+
+    // Update scale on window orientation change
+    screen.orientation.addEventListener('change', () => {
+      setTimeout(() => {
+        updateScale();
+      }, 150);
+    });
+  };
 
   #onCollaborationReady({ editor, ydoc }) {
     if (this.options.collaborationIsReady) return;
@@ -743,7 +786,8 @@ export class Editor extends EventEmitter {
    */
   isActive(nameOrAttributes, attributesOrUndefined) {
     const name = typeof nameOrAttributes === 'string' ? nameOrAttributes : null;
-    const attributes = typeof nameOrAttributes === 'string' ? attributesOrUndefined : nameOrAttributes;
+    const attributes =
+      typeof nameOrAttributes === 'string' ? attributesOrUndefined : nameOrAttributes;
     return isActive(this.state, name, attributes);
   }
 
