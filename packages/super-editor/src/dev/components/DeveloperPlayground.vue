@@ -181,43 +181,18 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <!-- <div class="dev-app__inputs-panel">
-          <div class="dev-app__inputs-panel-content">
-            <EditorInputs
-              v-bind="{ activeSigner, signersListInfo }"
-              @dragged-input-id-change="updateDraggedInputId"
-              @active-signer-change="updateActiveSigner"
+        <div class="dev-app__view">
+          <div class="dev-app__content" v-if="currentFile">
+            <SuperEditor
+              :file-source="currentFile" 
+              :options="editorOptions"
             />
           </div>
-        </div> -->
-
-        <div class="dev-app__view">
-            <div class="dev-app__content" v-if="currentFile">
-              <div class="dev-app__content-container" style="display: flex;">
-                <SuperEditor
-                  :file-source="currentFile" 
-                  :options="editorOptions"
-                />
-              </div>
-            </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style>
-.super-editor {
-  border: 1px solid black;
-  background-color: white;
-  border-radius: 8px;
-}
-*,
-::before,
-::after {
-  box-sizing: border-box;
-};
-</style>
 
 <style scoped>
 .dev-app {
@@ -253,8 +228,6 @@ onMounted(async () => {
 
 .dev-app__main {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;;
   overflow-y: auto;
 }
 
@@ -263,20 +236,18 @@ onMounted(async () => {
   padding-top: 20px;
   padding-left: 20px;
   padding-right: 20px;
-  overflow-y: auto;
+  flex-grow: 1;
+  justify-content: center;
 }
 
 .dev-app__content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+  justify-content: center;
 }
 
 .dev-app__content-container {
   width: 100%;
   display: flex;
-  justify-content: center;
 }
 
 .dev-app__inputs-panel {
@@ -290,9 +261,5 @@ onMounted(async () => {
   display: grid;
   overflow-y: auto;
   scrollbar-width: none;
-}
-
-:deep(.super-editor) {
-  border: 1px solid #dbdbdb;
 }
 </style>

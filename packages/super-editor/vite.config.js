@@ -68,6 +68,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 9096,
+      host: '0.0.0.0',
     },
     resolve: {
       alias: {

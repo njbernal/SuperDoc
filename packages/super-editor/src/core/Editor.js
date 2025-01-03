@@ -63,6 +63,7 @@ export class Editor extends EventEmitter {
     parseOptions: {},
     coreExtensionOptions: {},
     isNewFile: false,
+    scale: 1,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -585,7 +586,10 @@ export class Editor extends EventEmitter {
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
     if (!pageSize || !pageMargins) return;
 
-    this.element.style.minWidth =  pageSize.width + 'in';
+    // Set fixed dimensions and padding that won't change with scaling
+    this.element.style.boxSizing = 'border-box';
+    this.element.style.width = pageSize.width + 'in';
+    this.element.style.minWidth = pageSize.width + 'in';
     this.element.style.maxWidth = pageSize.width + 'in';
     this.element.style.paddingLeft = pageMargins.left + 'in';
     this.element.style.paddingRight = pageMargins.right + 'in';
@@ -601,37 +605,10 @@ export class Editor extends EventEmitter {
 
     // Mobile styles
     this.element.style.transformOrigin = 'top left';
-    this.element.style.touchAction = 'pinch-zoom';
+    this.element.style.touchAction = 'auto';
     this.element.style.webkitOverflowScrolling = 'touch';
 
-    const initialWidth = this.element.offsetWidth;
-    const updateScale = () => {
-      // Get the actual element width including padding
-      const elementWidth = initialWidth;
-      // Get the wrapper width
-      const availableWidth = window.innerWidth;
-      // Calculate scale to make element width match wrapper width exactly
-      const scale = Math.min(1, availableWidth / elementWidth);
-
-      if (scale < 1) {
-        this.element.style.transform = `scale(${scale})`;
-        // Set parent width to match scaled width
-        const superEditor = this.element.closest('.super-editor');
-        if (superEditor) {
-          superEditor.style.width = `${initialWidth * scale}px`;
-        }
-      } else {
-        this.element.style.transform = 'none';
-      }
-    };
-
-    // Initial scale
-    updateScale();
-
-    // Update scale on window orientation change
-    screen.orientation.addEventListener('change', () => {
-      updateScale();
-    });
+    // Calculate line height
     const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
     proseMirror.style.lineHeight = defaultLineHeight + 'px';
 
@@ -640,7 +617,38 @@ export class Editor extends EventEmitter {
       proseMirror.style.paddingTop = '1in';
       proseMirror.style.paddingBottom = '1in';
     }
-  }
+
+    this.#initMobileStyles();
+  };
+
+  #initMobileStyles() {
+    if (!this.element) return;
+    const initialWidth = this.element.offsetWidth;
+    const updateScale = () => {
+      const elementWidth = initialWidth;
+      const availableWidth = window.innerWidth - 40;
+      this.options.scale = Math.min(1, availableWidth / elementWidth);
+
+      if (this.options.scale < 1) {
+        const superEditorElement = this.element.closest('.super-editor');
+        superEditorElement.style.maxWidth = `${elementWidth * this.options.scale}px`;
+
+        this.element.style.transform = `scale(${this.options.scale})`;
+      } else {
+        this.element.style.transform = "none";
+      }
+    };
+
+    // Initial scale
+    updateScale();
+
+    // Update scale on window orientation change
+    screen.orientation.addEventListener('change', () => {
+      setTimeout(() => {
+        updateScale();
+      }, 150);
+    });
+  };
 
   #onCollaborationReady({ editor, ydoc }) {
     if (this.options.collaborationIsReady) return;

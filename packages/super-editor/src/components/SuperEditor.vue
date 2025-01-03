@@ -1,7 +1,7 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, shallowRef } from 'vue';
 import { Editor } from '@vue-3/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import { observeDomChanges } from './pagination-helpers.js';
@@ -33,7 +33,7 @@ const props = defineProps({
 });
 
 const editorReady = ref(false);
-let editor;
+const editor = shallowRef(null);
 
 const editorElem = ref(null);
 let dataPollTimeout;
@@ -98,7 +98,7 @@ const getExtensions = () => {
 };
 
 const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } = {}) => {
-  editor = new Editor({
+  editor.value = new Editor({
     mode: 'docx',
     element: editorElem.value,
     fileSource: props.fileSource,
@@ -112,44 +112,54 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
     ...props.options,
   });
 
-  editor.on('collaborationReady', () => {
+  editor.value.on('collaborationReady', () => {
     setTimeout(() => {
+      // Initialize pagination observer in the collaboration case
+      if (props.options?.pagination) {
+        paginationObserver = observeDomChanges(editorElem, editor.value);
+      };
       editorReady.value = true;
     }, 250);
+  });
+
+  editor.value.on('create', () => {
+    // Initialize pagination observer if no collaboration mode and pagination is enabled
+    if (!props.options.ydoc && props.options?.pagination) {
+      paginationObserver = observeDomChanges(editorElem, editor.value);
+    };
   });
 };
 
 const handleSuperEditorKeydown = (event) => {
-  emit('editor-keydown', { editor });
+  emit('editor-keydown', { editor: editor.value });
 };
 
 const handleSuperEditorClick = (event) => {
-  emit('editor-click', { editor });
+  emit('editor-click', { editor: editor.value });
   let pmElement = editorElem.value?.querySelector('.ProseMirror');
 
-  if (!pmElement || !editor) {
+  if (!pmElement || !editor.value) {
     return;
   }
 
   let isInsideEditor = pmElement.contains(event.target);
 
-  if (!isInsideEditor && editor.isEditable) {
-    editor.view?.focus();
+  if (!isInsideEditor && editor.value.isEditable) {
+    editor.value.view?.focus();
   }
 };
 
 let paginationObserver;
 onMounted(() => {
   initializeData();
-  if (props.options?.pagination && editorElem.value) paginationObserver = observeDomChanges(editorElem);
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
 
 onBeforeUnmount(() => {
   paginationObserver?.disconnect();
   stopPolling();
-  editor?.destroy();
-  editor = null;
+  editor.value?.destroy();
+  editor.value = null;
 });
 </script>
 
@@ -178,23 +188,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.super-editor {
-  box-sizing: border-box;
-  display: inline-block;
-  position: relative;
-}
-
-/*
-  When scaling on mobile, we dont want to hardcode the width and height
-  because the editor will scale to the width of the screen.
-*/
-@media (max-width: 768px) {
-  .super-editor {
-    min-width: 100%;
-    min-height: 100%;
-  }
-}
-
 .placeholder-editor {
   box-sizing: border-box;
   width: 8.5in;

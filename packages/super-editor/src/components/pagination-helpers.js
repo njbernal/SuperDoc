@@ -3,8 +3,11 @@
  * @param {HTMLElement} editorElem The editor container element
  * @returns {MutationObserver} The observer instance
  */
-export const observeDomChanges = (editorElem) => {
+export const observeDomChanges = (editorElem, editor) => {
   if (!editorElem.value) return;
+
+  const zoom = editor.options.scale;
+  if (!zoom) return;
 
   const observer = new MutationObserver((mutationsList) => {
     for (const mutation of mutationsList) {
@@ -13,7 +16,9 @@ export const observeDomChanges = (editorElem) => {
           if (node.classList?.contains('pagination-break-wrapper')) {
             const bounds = editorElem.value.getBoundingClientRect();
             const nodeBounds = node.getBoundingClientRect();
-            const left = (nodeBounds.left - bounds.left) * -1 + 'px';
+
+            // Adjust the position taking zoom into account
+            const left = ((nodeBounds.left - bounds.left) / zoom) * -1 + 'px';
             node.style.transform = `translateX(${left})`;
           }
         });
