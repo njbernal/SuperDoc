@@ -57,6 +57,7 @@ Documentation is crucial for our project. You can help by:
 3. **Performance improvements**: Optimize existing code
 4. **Tests**: Add or improve test coverage
 5. **Framework integrations**: Create examples for different frameworks
+6. **Documentation**: Improve SuperDoc documentation
 
 ## Development Setup
 
@@ -137,7 +138,7 @@ Documentation is crucial for our project. You can help by:
 
 ### Documentation
 
-- Use ?? for docstrings
+- Use JSDoc
 - Include code examples when relevant
 - Keep explanations clear and concise
 - Use proper Markdown formatting
