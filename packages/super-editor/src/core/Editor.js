@@ -303,7 +303,8 @@ export class Editor extends EventEmitter {
    * so that we can initialize the data
    */
   initializeCollaborationData() {
-    const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')?.options.isReady;
+    const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')
+      ?.options.isReady;
     if (hasData) {
       setTimeout(() => {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
@@ -593,10 +594,44 @@ export class Editor extends EventEmitter {
     proseMirror.style.outline = 'none';
     proseMirror.style.border = 'none';
 
+    // Typeface and font size
     const { typeface, fontSizePt } = this.converter.getDocumentDefaultStyles() ?? {};
     typeface && (this.element.style.fontFamily = typeface);
     fontSizePt && (this.element.style.fontSize = fontSizePt + 'pt');
 
+    // Mobile styles
+    this.element.style.transformOrigin = 'top left';
+    this.element.style.touchAction = 'pinch-zoom';
+    this.element.style.webkitOverflowScrolling = 'touch';
+
+    const initialWidth = this.element.offsetWidth;
+    const updateScale = () => {
+      // Get the actual element width including padding
+      const elementWidth = initialWidth;
+      // Get the wrapper width
+      const availableWidth = window.innerWidth;
+      // Calculate scale to make element width match wrapper width exactly
+      const scale = Math.min(1, availableWidth / elementWidth);
+
+      if (scale < 1) {
+        this.element.style.transform = `scale(${scale})`;
+        // Set parent width to match scaled width
+        const superEditor = this.element.closest('.super-editor');
+        if (superEditor) {
+          superEditor.style.width = `${initialWidth * scale}px`;
+        }
+      } else {
+        this.element.style.transform = 'none';
+      }
+    };
+
+    // Initial scale
+    updateScale();
+
+    // Update scale on window orientation change
+    screen.orientation.addEventListener('change', () => {
+      updateScale();
+    });
     const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
     proseMirror.style.lineHeight = defaultLineHeight + 'px';
 
@@ -743,7 +778,8 @@ export class Editor extends EventEmitter {
    */
   isActive(nameOrAttributes, attributesOrUndefined) {
     const name = typeof nameOrAttributes === 'string' ? nameOrAttributes : null;
-    const attributes = typeof nameOrAttributes === 'string' ? attributesOrUndefined : nameOrAttributes;
+    const attributes =
+      typeof nameOrAttributes === 'string' ? attributesOrUndefined : nameOrAttributes;
     return isActive(this.state, name, attributes);
   }
 
