@@ -19,7 +19,7 @@ export const observeDomChanges = (editorElem, editor) => {
           if (node.classList?.contains('pagination-break-wrapper')) {
             // Adjust the position taking zoom into account
             const nodeBounds = node.getBoundingClientRect();
-            const left = ((nodeBounds.left - bounds.left) / zoom) * -1 + 'px';
+            const left = ((nodeBounds.left - bounds.left) / zoom) * -1 + 1 + 'px';
             node.style.transform = `translateX(${left})`;
           }
         });

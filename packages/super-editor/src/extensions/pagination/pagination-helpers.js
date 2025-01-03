@@ -94,10 +94,6 @@ const getSectionHeight = async (editor, data) => {
     sectionEditor.on('create', () => {
       requestAnimationFrame(() => {
         const height = editorContainer.offsetHeight;
-        const boundHeight = editorContainer.getBoundingClientRect().height;
-        const editorView = sectionEditor.view.dom.offsetHeight;
-        console.debug('Section height:', height, boundHeight, editorView);
-
         document.body.removeChild(editorContainer);
 
         Object.assign(editorContainer.style, {

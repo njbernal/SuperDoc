@@ -219,7 +219,6 @@ img.ProseMirror-separator {
   left: 0;
   display: flex;
   flex-direction: column;
-  background-color: #fff;
-  border-radius: 12px;
+  background-color: white;
 }
 `;

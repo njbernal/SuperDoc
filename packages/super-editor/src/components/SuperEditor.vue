@@ -116,7 +116,7 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
   editor.value.on('collaborationReady', () => {
     setTimeout(() => {
       editorReady.value = true;
-    }, 50);
+    }, 150);
   });
 };
 
@@ -185,16 +185,22 @@ onBeforeUnmount(() => {
 <style scoped>
 .super-editor-component-wrapper {
   position: relative;
+  min-height: 11in;
+  min-width: 8in;
+  margin: 0;
+  padding: 0;
 }
 .placeholder-editor {
   position: absolute;
+  top: 0;
+  left: 0;
   box-sizing: border-box;
-  width: 8.5in;
-  height: 11in;
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
-  border: 1px solid #ccc;
   padding: 1in;
-  opacity: 0.2;
+  z-index: 5;
+  background-color: white;
 }
 .placeholder-title {
   display: flex;

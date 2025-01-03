@@ -193,12 +193,12 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
 
   const firstHeaderId = headerIds.first || headerIds.even || headerIds.default || 'default';
   const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId);
-  const pageBreak = createPageBreak({ editor, header: firstHeader });
+  const pageBreak = createPageBreak({ editor, header: firstHeader, isFirstHeader: true });
   decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
 
   const lastFooterId = footerIds.last || footerIds.default || 'default';
   const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId);
-  const footerBreak = createPageBreak({ editor, footer: lastFooter, footerBottom: 0 });
+  const footerBreak = createPageBreak({ editor, footer: lastFooter, footerBottom: 0, isLastFooter: true });
 
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
@@ -254,7 +254,7 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
   });
 
   // Add blank padding to the last page to make a full page height
-  const editorHeight = currentPageNumber * pageHeight;
+  const editorHeight = currentPageNumber * pageHeight + (currentPageNumber - 1 * 20);
 
   // Add the final footer
   decorations.push(Decoration.widget(doc.content.size, footerBreak, { key: 'stable-key' }));
@@ -354,7 +354,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId) {
  * @param {HTMLElement} param0.footer The footer element
  * @returns {HTMLElement} The page break element
  */
-function createPageBreak({ editor, header, footer, footerBottom = null }) {
+function createPageBreak({ editor, header, footer, footerBottom = null, isFirstHeader, isLastFooter }) {
   const { pageSize } = editor.converter.pageStyles;
 
   let sectionHeight = 0;
@@ -363,7 +363,10 @@ function createPageBreak({ editor, header, footer, footerBottom = null }) {
 
   const innerDiv = document.createElement('div');
   innerDiv.className = 'pagination-inner';
-  innerDiv.style.width = pageSize.width * 96 + 'px';
+  innerDiv.style.width = pageSize.width * 96 - 1 + 'px';
+
+  if (isFirstHeader) innerDiv.style.borderRadius = '8px 8px 0 0';
+  else if (isLastFooter) innerDiv.style.borderRadius = '0 0 8px 8px';
   paginationDiv.appendChild(innerDiv);
 
   if (footer) {
