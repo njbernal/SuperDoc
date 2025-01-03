@@ -65,9 +65,20 @@ const getSectionHeight = async (editor, data) => {
     const fontSizeInPixles = fontSizePt * 1.3333;
     const lineHeight = fontSizeInPixles * 1.15;
 
-    editorContainer.style.fontFamily = typeface;
-    editorContainer.style.fontSize = `${fontSizeInPixles}px`;
-    editorContainer.style.lineHeight = `${lineHeight}px`;
+    Object.assign(editorContainer.style, {
+      padding: "0",
+      margin: "0",
+      border: "none",
+      boxSizing: "border-box",
+      position: "absolute",
+      top: "0",
+      left: "0",
+      width: "auto",
+      maxWidth: "none",
+      fontFamily: typeface,
+      fontSize: `${fontSizeInPixles}px`,
+      lineHeight: `${lineHeight}px`,
+    });
 
     document.body.appendChild(editorContainer);
     const sectionEditor = new SuperEditor({
@@ -81,9 +92,30 @@ const getSectionHeight = async (editor, data) => {
     });
 
     sectionEditor.on('create', () => {
-      const height = editorContainer.offsetHeight;
-      document.body.removeChild(editorContainer);
-      resolve({ height, sectionEditor, sectionContainer: editorContainer });
+      requestAnimationFrame(() => {
+        const height = editorContainer.offsetHeight;
+        const boundHeight = editorContainer.getBoundingClientRect().height;
+        const editorView = sectionEditor.view.dom.offsetHeight;
+        console.debug('Section height:', height, boundHeight, editorView);
+
+        document.body.removeChild(editorContainer);
+
+        Object.assign(editorContainer.style, {
+          padding: "0",
+          margin: "0",
+          border: "none",
+          boxSizing: "border-box",
+          position: "relative",
+          top: "initial",
+          left: "initial",
+          width: "initial",
+          maxWidth: "initial",
+          fontFamily: "initial",
+          fontSize: "initial",
+          lineHeight: "initial",
+        });
+        resolve({ height, sectionEditor, sectionContainer: editorContainer });
+      })
     });
   });
 };

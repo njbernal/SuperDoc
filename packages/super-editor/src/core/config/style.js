@@ -186,6 +186,9 @@ img.ProseMirror-separator {
 }
 
 .pagination-section-footer {
+  position: relative;
+  width: 100%;
+  minWidth: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -200,15 +203,20 @@ img.ProseMirror-separator {
 }
 
 .pagination-separator {
-  width: 100%;
+  position: relative;
   display: block;
-  height: 20px;
+  height: 18px;
+  minHeight: 18px;
+  minWidth: 100%;
+  width: 100%;
   border-top: 1px solid #DBDBDB;
   border-bottom: 1px solid #DBDBDB;
   cursor: default;
 }
 .pagination-inner {
   position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   background-color: #fff;

@@ -48,7 +48,7 @@ export class Superdoc extends EventEmitter {
 
     modules: {}, // Optional: Modules to load
 
-    pagination: true, // Optional: Whether to show pagination in SuperEditors
+    pagination: false, // Optional: Whether to show pagination in SuperEditors
 
     // toolbar config
     toolbar: null, // Optional DOM element to render the toolbar in
@@ -88,6 +88,7 @@ export class Superdoc extends EventEmitter {
     this.userColorMap = new Map();
     this.colorIndex = 0;
     this.version = __APP_VERSION__;
+    console.debug('🦋 [superdoc] Using SuperDoc version:', this.version);
     this.superdocId = config.superdocId || uuidv4();
     this.colors = this.config.colors;
 

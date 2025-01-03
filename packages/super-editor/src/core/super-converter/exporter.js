@@ -246,7 +246,7 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     const translatedNode = exportSchemaToJson({ ...params, node });
-    console.debug('[translateChildNodes] Translated node:', node?.name, translatedNode);
+    console.debug('[translateChildNodes] Translated node:', node.type, translatedNode);
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
   });
@@ -590,7 +590,7 @@ function flattenContent(content) {
 function translateLineBreak(params) {
   const attributes = {};
 
-  const { lineBreakType } = params.node.attrs;
+  const { lineBreakType } = params.node?.attrs || {};
   if (lineBreakType) {
     attributes['w:type'] = lineBreakType;
   }

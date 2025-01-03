@@ -35,6 +35,7 @@ const props = defineProps({
 const editorReady = ref(false);
 const editor = shallowRef(null);
 
+const editorWrapper = ref(null);
 const editorElem = ref(null);
 let dataPollTimeout;
 
@@ -114,19 +115,8 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
 
   editor.value.on('collaborationReady', () => {
     setTimeout(() => {
-      // Initialize pagination observer in the collaboration case
-      if (props.options?.pagination) {
-        paginationObserver = observeDomChanges(editorElem, editor.value);
-      };
       editorReady.value = true;
-    }, 250);
-  });
-
-  editor.value.on('create', () => {
-    // Initialize pagination observer if no collaboration mode and pagination is enabled
-    if (!props.options.ydoc && props.options?.pagination) {
-      paginationObserver = observeDomChanges(editorElem, editor.value);
-    };
+    }, 50);
   });
 };
 
@@ -151,6 +141,9 @@ const handleSuperEditorClick = (event) => {
 
 let paginationObserver;
 onMounted(() => {
+  // Initialize pagination observer if pagination is enabled
+  if (props.options?.pagination) paginationObserver = observeDomChanges(editorWrapper, editor);
+
   initializeData();
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
@@ -164,37 +157,44 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor" v-show="editorReady" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick">
-    <div ref="editorElem" class="editor-element"></div>
-  </div>
-
-  <div class="placeholder-editor" v-if="!editorReady">
-    <div class="placeholder-title">
-      <n-skeleton text style="width: 60%" />
+  <div class="super-editor-component-wrapper">
+    <div class="super-editor" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick" ref="editorWrapper">
+      <div ref="editorElem" class="editor-element"></div>
     </div>
 
-    <n-skeleton text :repeat="6" />
-    <n-skeleton text style="width: 60%" />
+    <div class="placeholder-editor" v-if="!editorReady">
+      <div class="placeholder-title">
+        <n-skeleton text style="width: 60%" />
+      </div>
 
-    <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px" />
-    <n-skeleton text style="width: 60%" />
-    <n-skeleton text :repeat="5" />
-    <n-skeleton text style="width: 30%" />
+      <n-skeleton text :repeat="6" />
+      <n-skeleton text style="width: 60%" />
 
-    <n-skeleton text style="margin-top: 50px" />
-    <n-skeleton text :repeat="6" />
-    <n-skeleton text style="width: 70%" />
+      <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px" />
+      <n-skeleton text style="width: 60%" />
+      <n-skeleton text :repeat="5" />
+      <n-skeleton text style="width: 30%" />
+
+      <n-skeleton text style="margin-top: 50px" />
+      <n-skeleton text :repeat="6" />
+      <n-skeleton text style="width: 70%" />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.super-editor-component-wrapper {
+  position: relative;
+}
 .placeholder-editor {
+  position: absolute;
   box-sizing: border-box;
   width: 8.5in;
   height: 11in;
   border-radius: 8px;
   border: 1px solid #ccc;
   padding: 1in;
+  opacity: 0.2;
 }
 .placeholder-title {
   display: flex;
