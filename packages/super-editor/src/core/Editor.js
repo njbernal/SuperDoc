@@ -652,10 +652,10 @@ export class Editor extends EventEmitter {
 
   #onCollaborationReady({ editor, ydoc }) {
     if (this.options.collaborationIsReady) return;
-    this.#initPagination();
     console.debug('🔗 [super-editor] Collaboration ready');
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
+    this.#initPagination();
   }
 
   /**
@@ -665,22 +665,15 @@ export class Editor extends EventEmitter {
     if (this.options.isHeadless || !this.extensionService) return;
 
     const pagination = this.options.extensions.find((e) => e.name === 'pagination');
-    if (pagination) {
+    if (pagination && this.options.pagination) {
       console.debug('🔗 [super-editor] Initializing pagination');
       const sectionData = await initPaginationData(this);
       this.storage.pagination.sectionData = sectionData;
 
+      // Trigger transaction to initialize pagination
       const { state, dispatch } = this.view;
       const tr = state.tr.setMeta(PaginationPluginKey, { isReadyToInit: true });
-
-      // If we don't have collaboration, we need to dispatch immediately
-      // Otherwise, we need to wait a bit for the document to render
-      if (!this.options.ydoc) dispatch(tr);
-      else {
-        setTimeout(() => {
-          dispatch(tr);
-        }, 250);
-      }
+      dispatch(tr);
     }
   }
 

@@ -41,18 +41,22 @@ export const Pagination = Extension.create({
         },
         apply(tr, oldState, prevEditorState, newEditorState) {
           // Check for new decorations passed via metadata
+
           const meta = tr.getMeta(PaginationPluginKey);
           if (meta && meta.isReadyToInit) {
+            if (isDebugging) console.debug('✅ INIT READY ')
             shouldUpdate = true;
             shouldInitialize = meta.isReadyToInit;
           };
       
           if (!shouldInitialize && !oldState.isReadyToInit) {
+            if (isDebugging) console.debug('🚫 NO INIT')
             return { ...oldState }
           }
 
           if (meta && meta.decorations) {
             shouldUpdate = true;
+            if (isDebugging) console.debug('🦋 RETURN META DECORATIONS')
             return {
               ...oldState,
               decorations: meta.decorations.map(tr.mapping, newEditorState.doc),
@@ -61,16 +65,18 @@ export const Pagination = Extension.create({
 
           // If the document hasn't changed, and we've already initialized, don't update
           if (prevEditorState.doc.eq(newEditorState.doc) && hasInitialized) {
+            if (isDebugging) console.debug('🚫 NO UPDATE')
             shouldUpdate = false;
             return { ...oldState };
           }
 
           // content size
           shouldUpdate = true;
+          if (isDebugging) console.debug('🚀 UPDATE DECORATIONS')
           return {
             ...oldState,
             isReadyToInit: shouldInitialize,
-            decorations: meta?.decorations?.map(tr.mapping, newEditorState.doc) || DecorationSet.empty,
+            decorations: DecorationSet.empty,
           };
         },
       },
@@ -90,9 +96,12 @@ export const Pagination = Extension.create({
              * Perform the actual update here.
              * We call calculatePageBreaks which actually generates the decorations
              */
-            performUpdate(editor, view, previousDecorations);
-            isUpdating = false;
-            shouldUpdate = false;
+            if (isDebugging) console.debug('--- Calling performUpdate ---')
+            requestAnimationFrame(() => {
+              performUpdate(editor, view, previousDecorations);
+              isUpdating = false;
+              shouldUpdate = false;
+            });
           },
         };
       },
@@ -233,7 +242,7 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
     // Otherwise, check if we should add a page break 
     else if (shouldAddPageBreak) {
       currentPageNumber++;  
-      const headerId = (currentPageNumber % 2 === 0 ? headerIds.even : headerIds.odd) || headerIds.default;
+      const headerId = (currentPageNumber % 2 === 0 ? headerIds.even :  headerIds.odd) || headerIds.default;
       const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
       header = createHeader(pageMargins, pageSize, sectionData, headerId);
       footer = createFooter(pageMargins, pageSize, sectionData, footerId);
@@ -354,6 +363,7 @@ function createPageBreak({ editor, header, footer, footerBottom = null }) {
 
   const innerDiv = document.createElement('div');
   innerDiv.className = 'pagination-inner';
+  innerDiv.style.width = pageSize.width * 96 + 'px';
   paginationDiv.appendChild(innerDiv);
 
   if (footer) {
@@ -367,6 +377,7 @@ function createPageBreak({ editor, header, footer, footerBottom = null }) {
     const separator = document.createElement('div');
     separator.className = 'pagination-separator';
     if (isDebugging) separator.style.backgroundColor = 'green';
+
     innerDiv.appendChild(separator);
   };
 
@@ -378,16 +389,18 @@ function createPageBreak({ editor, header, footer, footerBottom = null }) {
   paginationDiv.style.height = sectionHeight + 'px';
   paginationDiv.style.minHeight = sectionHeight + 'px';
   paginationDiv.style.maxHeight = sectionHeight + 'px';
+  innerDiv.style.height = sectionHeight + 'px';
   paginationDiv.style.width = 100 + 'px';
-  innerDiv.style.width = pageSize.width * 96 + 'px';
 
-  if (isDebugging) innerDiv.style.backgroundColor = '#0000ff33';
+  if (isDebugging) {
+    innerDiv.style.backgroundColor = '#0000ff33';
+    paginationDiv.style.backgroundColor = '#00ff0099';
+  }
 
   if (footerBottom !== null) {
     paginationDiv.style.position = 'absolute';
     paginationDiv.style.bottom = footerBottom + 'px';
   }
 
-  if (isDebugging) paginationDiv.style.backgroundColor = '#ff000099';
   return paginationDiv;
 };
