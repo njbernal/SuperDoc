@@ -609,8 +609,9 @@ export class Editor extends EventEmitter {
     this.element.style.webkitOverflowScrolling = 'touch';
 
     // Calculate line height
-    const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
-    proseMirror.style.lineHeight = defaultLineHeight + 'px';
+    // const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
+    const defaultLineHeight = 1.2;
+    proseMirror.style.lineHeight = defaultLineHeight;
 
     // If we are not using pagination, we still need to add some padding for header/footer
     if (!this.options.extensions.find((e) => e.name === 'pagination')) {
