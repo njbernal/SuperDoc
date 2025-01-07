@@ -206,8 +206,8 @@ img.ProseMirror-separator {
   position: relative;
   display: block;
   height: 18px;
-  minHeight: 18px;
-  minWidth: 100%;
+  min-height: 18px;
+  min-width: 100%;
   width: 100%;
   border-top: 1px solid #DBDBDB;
   border-bottom: 1px solid #DBDBDB;
