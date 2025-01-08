@@ -712,7 +712,6 @@ const handlePdfClick = (e) => {
 @media (max-width: 768px) {
   .sub-document {
     max-width: 100%;
-    overflow: hidden;
   }
   .right-sidebar {
     padding: 10px;

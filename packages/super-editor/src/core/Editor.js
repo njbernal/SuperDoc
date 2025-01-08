@@ -610,7 +610,7 @@ export class Editor extends EventEmitter {
 
     // Calculate line height
     // const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
-    const defaultLineHeight = 1.2;
+    const defaultLineHeight = 1.15;
     proseMirror.style.lineHeight = defaultLineHeight;
 
     // If we are not using pagination, we still need to add some padding for header/footer
@@ -627,7 +627,7 @@ export class Editor extends EventEmitter {
     const initialWidth = this.element.offsetWidth;
     const updateScale = () => {
       const elementWidth = initialWidth;
-      const availableWidth = window.innerWidth - 40;
+      const availableWidth = window.innerWidth;
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
       if (this.options.scale < 1) {
