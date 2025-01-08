@@ -627,7 +627,7 @@ export class Editor extends EventEmitter {
     const initialWidth = this.element.offsetWidth;
     const updateScale = () => {
       const elementWidth = initialWidth;
-      const availableWidth = window.innerWidth;
+      const availableWidth = window.innerWidth - 2;
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
       if (this.options.scale < 1) {
