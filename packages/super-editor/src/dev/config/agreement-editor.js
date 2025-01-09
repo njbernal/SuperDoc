@@ -570,19 +570,9 @@ export const AUTOCOMPLETE_TYPE_INPUTS = [
   'COUNTRYTEXTINPUT',
   'COUNTYTEXTINPUT',
 ];
-export const AUTOFILL_DOCUMENT_INPUTS =  [
-    'EMAILTEXTINPUT',
-    'NAMETEXTINPUT',
-    'JOBTITLETEXTINPUT',
-    'PHONETEXTINPUT'
-];
+export const AUTOFILL_DOCUMENT_INPUTS = ['EMAILTEXTINPUT', 'NAMETEXTINPUT', 'JOBTITLETEXTINPUT', 'PHONETEXTINPUT'];
 export const IMMUTABLE_INPUTS = ['CHECKBOX', 'FINALDISPLAYTEXT', 'FINALSUBMIT'];
-export const CHECK_TYPE_INPUTS = [
-  'IDENTITYCHECK',
-  'USBACKGROUNDCHECK',
-  'VEHICLERECORDCHECK',
-  'PANELDRUGCHECK',
-];
+export const CHECK_TYPE_INPUTS = ['IDENTITYCHECK', 'USBACKGROUNDCHECK', 'VEHICLERECORDCHECK', 'PANELDRUGCHECK'];
 
 export const DROPDOWN_INPUTS = ['DROPDOWNINPUT', 'SELECT'];
 
@@ -1836,9 +1826,7 @@ export const AGREEMENT_INPUT_PDFPREVIEW = {
 export const AGREEMENT_INPUT_ACCEPTEDANDAGREED = {
   ...AGREEMENT_INPUT_YESNOINPUT,
   haslogic: false,
-  id: `agreementinput-readagreedocumentyesno-${Date.now()}-${Math.floor(
-    Math.random() * 1000000000000,
-  )}`,
+  id: `agreementinput-readagreedocumentyesno-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
   isautoinserteddefaultitem: true,
   isconditionallydisplayedlinkeditemid: null,
   isconditionallydisplayedlinkeditemvalue: null,

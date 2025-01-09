@@ -58,6 +58,7 @@ const editorOptions = computed(() => {
     onCommentClicked,
     suppressSkeletonLoader: true,
     users: [], // For comment @-mentions, only users that have access to the document
+    pagination: true,
   }
 });
 
@@ -72,32 +73,32 @@ const exportDocx = async () => {
 };
 
 /* Inputs pane and field annotations */
-const draggedInputId = ref(null)
+const draggedInputId = ref(null);
 const activeSigner = ref(null);
 const signersListInfo = ref([
   {
     signerindex: 0,
-    signername: "Signer 1",
-    signeremail: "signer1@harbourshare.com",
+    signername: 'Signer 1',
+    signeremail: 'signer1@harbourshare.com',
     isactive: true,
-    signercolor: "#016c59",
+    signercolor: '#016c59',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 0,
-    signerid: "signerid-1723657655732-7x1vne6lq1r",
-    iscreator: false
+    signerid: 'signerid-1723657655732-7x1vne6lq1r',
+    iscreator: false,
   },
   {
     signerindex: 1,
-    signername: "Signer 2",
-    signeremail: "signer2@harbourshare.com",
+    signername: 'Signer 2',
+    signeremail: 'signer2@harbourshare.com',
     isactive: true,
-    signercolor: "#6943d0",
+    signercolor: '#6943d0',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 1,
-    signerid: "signerid-1723657671736-msk8e5qpd0c",
-    iscreator: false
+    signerid: 'signerid-1723657671736-msk8e5qpd0c',
+    iscreator: false,
   },
 ]);
 
@@ -111,12 +112,7 @@ const updateActiveSigner = (signerIdx) => {
 
 const attachAnnotationEventHandlers = () => {
   // Handle field drop outside editor.
-  activeEditor?.on('fieldAnnotationDropped', ({ 
-    sourceField,
-    editor, 
-    coordinates, 
-    pos 
-  }) => {
+  activeEditor?.on('fieldAnnotationDropped', ({ sourceField, editor, coordinates, pos }) => {
     console.log('fieldAnnotationDropped', { sourceField });
 
     let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
@@ -147,24 +143,26 @@ const attachAnnotationEventHandlers = () => {
   activeEditor?.on('fieldAnnotationSelected', (params) => {
     console.log('fieldAnnotationSelected', { params });
   });
+
+  activeEditor?.on('fieldAnnotationDeleted', (params) => {
+    console.log('fieldAnnotationDeleted', { params });
+  });
 };
 /* Inputs pane and field annotations */
 
 const initToolbar = () => {
-  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, });
+  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true });
 };
 
 onMounted(async () => {
   // set document to blank
   currentFile.value = await getFileObject(BlankDOCX, 'blank_document.docx', DOCX);
 });
-
 </script>
 
 <template>
   <div class="dev-app">
     <div class="dev-app__layout">
-
       <div class="dev-app__header">
         <div class="dev-app__header-side dev-app__header-side--left">
           <div class="dev-app__header-title">
@@ -183,32 +181,15 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <div class="dev-app__inputs-panel">
-          <div class="dev-app__inputs-panel-content">
-            <EditorInputs
-              v-bind="{ activeSigner, signersListInfo }" 
-              @dragged-input-id-change="updateDraggedInputId"
-              @active-signer-change="updateActiveSigner"
+        <div class="dev-app__view">
+          <div class="dev-app__content" v-if="currentFile">
+            <SuperEditor
+              :file-source="currentFile" 
+              :options="editorOptions"
             />
           </div>
         </div>
-
-        <div class="dev-app__view">
-            <div class="dev-app__content" v-if="currentFile">
-              <div class="dev-app__content-container">
-                <SuperEditor
-                  :file-source="currentFile" 
-                  :options="editorOptions"
-                />
-              </div>
-            </div>
-        </div>
-
-        <div>
-          <!-- -->
-        </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -223,7 +204,6 @@ onMounted(async () => {
 }
 
 .dev-app__layout {
-  display: grid;
   width: 100%;
   height: 100vh;
 }
@@ -247,8 +227,7 @@ onMounted(async () => {
 }
 
 .dev-app__main {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  display: flex;
   overflow-y: auto;
 }
 
@@ -257,20 +236,18 @@ onMounted(async () => {
   padding-top: 20px;
   padding-left: 20px;
   padding-right: 20px;
-  overflow-y: auto;
+  flex-grow: 1;
+  justify-content: center;
 }
 
 .dev-app__content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+  justify-content: center;
 }
 
 .dev-app__content-container {
   width: 100%;
   display: flex;
-  justify-content: center;
 }
 
 .dev-app__inputs-panel {
@@ -284,8 +261,5 @@ onMounted(async () => {
   display: grid;
   overflow-y: auto;
   scrollbar-width: none;
-}
-.super-editor {
-  border: 1px solid #dbdbdb;
 }
 </style>

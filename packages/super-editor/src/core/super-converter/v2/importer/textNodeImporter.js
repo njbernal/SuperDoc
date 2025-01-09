@@ -1,5 +1,4 @@
-import { getElementName, parseProperties } from "./importerHelpers.js";
-
+import { getElementName, parseProperties } from './importerHelpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
@@ -17,7 +16,6 @@ export const handleTextNode = (nodes, docx, nodeListHandler, insideTrackChange =
   // Text nodes have no children. Only text, and there should only be one child
   let text;
   if (elements.length === 1) text = elements[0].text;
-
   // Word sometimes will have an empty text node with a space attribute, in that case it should be a space
   else if (!elements.length && 'attributes' in node && node.attributes['xml:space'] === 'preserve') {
     text = ' ';
@@ -27,20 +25,22 @@ export const handleTextNode = (nodes, docx, nodeListHandler, insideTrackChange =
   else return { nodes: [], consumed: 0 };
 
   return {
-    nodes: [{
-      type: getElementName(node),
-      text: text,
-      attrs: { type, attributes: attributes || {}, },
-      marks,
-    }], consumed: 1
+    nodes: [
+      {
+        type: getElementName(node),
+        text: text,
+        attrs: { type, attributes: attributes || {} },
+        marks,
+      },
+    ],
+    consumed: 1,
   };
-}
-
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const textNodeHandlerEntity = {
   handlerName: 'textNodeHandler',
-  handler: handleTextNode
+  handler: handleTextNode,
 };

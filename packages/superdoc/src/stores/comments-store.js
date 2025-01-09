@@ -25,6 +25,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const floatingCommentsOffset = ref(0);
   const sortedConversations = ref([]);
   const visibleConversations = ref([]);
+  const skipSelectionUpdate = ref(false);
 
   const pendingComment = ref(null);
   const getPendingComment = (selection) => {
@@ -56,18 +57,18 @@ export const useCommentsStore = defineStore('comments', () => {
     return {
       ...commentsConfig,
       ...superdocStore.modules?.comments,
-    }
-  })
+    };
+  });
 
   const getCommentLocation = (selection, parent) => {
-    const containerBounds = selection.getContainerLocation(parent)
+    const containerBounds = selection.getContainerLocation(parent);
     const top = containerBounds.top + selection.selectionBounds.top;
     const left = containerBounds.left + selection.selectionBounds.left;
     return {
       top: top,
       left: left,
-    }
-  }
+    };
+  };
 
   function isOverlap(obj1, obj2) {
     if (!obj1.comments.length || !obj2.comments.length) return false;
@@ -75,15 +76,14 @@ export const useCommentsStore = defineStore('comments', () => {
     const sel2 = obj2.selection.selectionBounds;
 
     if (sel1.bottom - sel2.top < 200 || sel2.top - sel1.bottom < 200) return true;
-    return false
+    return false;
   }
-  
+
   const getAllConversations = computed(() => {
     const allConvos = [];
     let overlaps = 0;
-    documentsWithConverations.value.map(doc => {
+    documentsWithConverations.value.map((doc) => {
       doc.conversations.forEach((c) => {
-
         for (let index in allConvos) {
           const conv = allConvos[index];
           let currentOverlap = conv.overlap || overlaps;
@@ -93,14 +93,14 @@ export const useCommentsStore = defineStore('comments', () => {
             c.overlap = currentOverlap;
             overlaps++;
           }
-        };
+        }
 
         allConvos.push({
           ...c,
           documentId: doc.documentId,
           doc: doc,
         });
-      })
+      });
     });
     return allConvos;
   });
@@ -117,22 +117,22 @@ export const useCommentsStore = defineStore('comments', () => {
     const currentDialogs = document.querySelectorAll('.comment-box');
     currentDialogs.forEach((d) => {
       const conversationObject = getAllConversations.value.find((conversation) => {
-        return conversation.conversationId === d.dataset.id
+        return conversation.conversationId === d.dataset.id;
       });
       if (!conversationObject) return;
       checkOverlaps(d, conversationObject);
     });
-  }
+  };
 
   const checkOverlaps = (currentElement, dialog, doc) => {
     const currentDialogs = document.querySelectorAll('.comment-box');
     const currentBounds = currentElement.getBoundingClientRect();
-  
+
     const overlaps = [];
     currentDialogs.forEach((d) => {
       if (d.dataset.id === dialog.conversationId) return;
       const bounds = d.getBoundingClientRect();
-  
+
       if (Math.abs(bounds.top - currentBounds.top) < 50 || Math.abs(bounds.bottom - currentBounds.bottom) < 50) {
         if (!d.dataset?.id) {
           // Then this is a group
@@ -148,11 +148,11 @@ export const useCommentsStore = defineStore('comments', () => {
         }
         dialog.group = true;
       }
-    })
+    });
     if (overlaps.length) {
       const overlapsGroup = overlappingComments.value.find((group) => {
-        return group.some((c) => c.conversationId === dialog.conversationId)
-      })
+        return group.some((c) => c.conversationId === dialog.conversationId);
+      });
 
       if (overlapsGroup) {
         const filtered = overlaps.filter((o) => !overlapsGroup.some((o) => o.conversationId === o.conversationId));
@@ -161,7 +161,7 @@ export const useCommentsStore = defineStore('comments', () => {
         overlappingComments.value.unshift(overlaps);
       }
     }
-  }
+  };
 
   return {
     COMMENT_EVENTS,
@@ -177,6 +177,7 @@ export const useCommentsStore = defineStore('comments', () => {
     floatingCommentsOffset,
     sortedConversations,
     visibleConversations,
+    skipSelectionUpdate,
 
     // Getters
     getConfig,
@@ -192,5 +193,5 @@ export const useCommentsStore = defineStore('comments', () => {
     initialCheck,
     getPendingComment,
     showAddComment,
-  }
+  };
 });

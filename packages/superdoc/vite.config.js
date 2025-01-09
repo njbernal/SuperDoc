@@ -1,15 +1,31 @@
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { visualizer } from 'rollup-plugin-visualizer';
 import vue from '@vitejs/plugin-vue'
 
+import { version } from './package.json';
+
+const visualizerConfig = {
+  filename: './dist/bundle-analysis.html',
+  template: 'treemap',
+  gzipSize: true,
+  brotliSize: true,
+  open: true
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command}) => {
-  const plugins = [vue()];
+  const plugins = [
+    vue(),
+    // visualizer(visualizerConfig)
+  ];
   if (mode !== 'test') plugins.push(nodePolyfills());
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(version),
+    },
     plugins,
     build: {
       target: 'es2022',
@@ -29,6 +45,8 @@ export default defineConfig(({ mode, command}) => {
           'docx-zipper': '@harbour-enterprises/super-editor/docx-zipper',
           'toolbar': '@harbour-enterprises/super-editor/toolbar',
           'super-input': '@harbour-enterprises/super-editor/super-input',
+          'common': '@harbour-enterprises/common',
+          'zipper': '@harbour-enterprises/super-editor/zipper',
         },
         external: [
           'yjs',
@@ -71,6 +89,7 @@ export default defineConfig(({ mode, command}) => {
     },
     server: {
       port: 9094,
+      host: '0.0.0.0',
       fs: {
         allow: ['../', '../../'],
       },

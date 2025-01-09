@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import { useSuperdocStore } from '@stores/superdoc-store';
 
 const superdocStore = useSuperdocStore();
-const { documentUsers } = storeToRefs(superdocStore); 
+const { documentUsers } = storeToRefs(superdocStore);
 
 const props = defineProps({
   filter: {

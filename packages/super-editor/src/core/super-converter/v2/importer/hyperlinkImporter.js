@@ -1,5 +1,3 @@
-
-
 /**
  * @type {import("docxImporter").NodeHandler}
  */
@@ -27,34 +25,36 @@ export const handleHyperlinkNode = (nodes, docx, nodeListHandler, insideTrackCha
   if (anchor && !href) href = `#${anchor}`;
 
   // Add marks to the run node and process it
-  const runNode = node.elements.find((el) => el.name === 'w:r');
-  const linkMark = { type: 'link', attrs: { href } };
+  const runNodes = node.elements.filter((el) => el.name === 'w:r');
+  const linkMark = { type: 'link', attrs: { href, rId } };
 
-  if (!runNode.marks) runNode.marks = [];
-  runNode.marks.push(linkMark);
+  for (const runNode of runNodes) {
+    if (!runNode.marks) runNode.marks = [];
+    runNode.marks.push(linkMark);
 
-  const rPr = runNode.elements.find((el) => el.name === 'w:rPr');
-  if (rPr) {
-    const styleRel = rPr.elements.find((el) => el.name === 'w:rStyle');
-    if (styleRel) {
-      const styles = docx['word/styles.xml'];
-      const { elements } = styles.elements[0];
+    const rPr = runNode.elements.find((el) => el.name === 'w:rPr');
+    if (rPr) {
+      const styleRel = rPr.elements.find((el) => el.name === 'w:rStyle');
+      if (styleRel) {
+        const styles = docx['word/styles.xml'];
+        const { elements } = styles.elements[0];
 
-      const styleElements = elements.filter((el) => el.name === 'w:style');
-      const style = styleElements.find((el) => el.attributes['w:styleId'] === 'Hyperlink');
-      const styleRpr = style.elements.find((el) => el.name === 'w:rPr');
-      if (styleRpr) runNode.elements.unshift(styleRpr);
+        const styleElements = elements.filter((el) => el.name === 'w:style');
+        const style = styleElements.find((el) => el.attributes['w:styleId'] === 'Hyperlink');
+        const styleRpr = style?.elements?.find((el) => el.name === 'w:rPr');
+        if (styleRpr) runNode.elements.unshift(styleRpr);
+      }
     }
   }
 
-  const updatedNode = nodeListHandler.handler([runNode], docx, insideTrackChange);
+  const updatedNode = nodeListHandler.handler(runNodes, docx, insideTrackChange);
   return { nodes: updatedNode, consumed: 1 };
-}
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const hyperlinkNodeHandlerEntity = {
   handlerName: 'hyperlinkNodeHandler',
-  handler: handleHyperlinkNode
+  handler: handleHyperlinkNode,
 };

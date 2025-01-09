@@ -2,7 +2,6 @@ import { Plugin, PluginKey } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import { Extension } from '@core/Extension.js';
 
-
 export const Placeholder = Extension.create({
   name: 'placeholder',
 
@@ -13,7 +12,6 @@ export const Placeholder = Extension.create({
   },
 
   addPmPlugins() {
-
     const applyDecoration = (state) => {
       const plainText = state.doc.textBetween(0, state.doc.content.size, ' ', ' ');
       if (plainText !== '') return DecorationSet.empty;
@@ -21,7 +19,7 @@ export const Placeholder = Extension.create({
       const { $from } = state.selection;
       const decoration = Decoration.node($from.before(), $from.after(), {
         'data-placeholder': this.options.placeholder,
-        class: 'super-editor-placeholder'
+        class: 'super-editor-placeholder',
       });
       return DecorationSet.create(state.doc, [decoration]);
     };
@@ -46,5 +44,3 @@ export const Placeholder = Extension.create({
     return [placeholderPlugin];
   },
 });
-
-

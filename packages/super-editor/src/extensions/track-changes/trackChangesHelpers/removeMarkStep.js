@@ -29,24 +29,17 @@ export const removeMarkStep = ({ state, tr, step, newTr, map, doc, user, date })
 
     const allowedMarks = ['bold', 'italic', 'strike', 'underline', 'textStyle'];
 
-    if (
-      allowedMarks.includes(step.mark.type.name) &&
-      node.marks.find((mark) => mark.type === step.mark.type)
-    ) {
+    if (allowedMarks.includes(step.mark.type.name) && node.marks.find((mark) => mark.type === step.mark.type)) {
       const formatChangeMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
 
       let after = [];
       let before = [];
 
       if (formatChangeMark) {
-        let foundAfter = formatChangeMark.attrs.after.find(
-          (mark) => mark.type === step.mark.type.name,
-        );
+        let foundAfter = formatChangeMark.attrs.after.find((mark) => mark.type === step.mark.type.name);
 
         if (foundAfter) {
-          after = [
-            ...formatChangeMark.attrs.after.filter((mark) => mark.type !== step.mark.type.name),
-          ];
+          after = [...formatChangeMark.attrs.after.filter((mark) => mark.type !== step.mark.type.name)];
           before = [...formatChangeMark.attrs.before];
         } else {
           after = [...formatChangeMark.attrs.after];
@@ -82,11 +75,7 @@ export const removeMarkStep = ({ state, tr, step, newTr, map, doc, user, date })
           }),
         );
       } else if (formatChangeMark) {
-        newTr.removeMark(
-          Math.max(step.from, pos),
-          Math.min(step.to, pos + node.nodeSize),
-          formatChangeMark,
-        );
+        newTr.removeMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), formatChangeMark);
       }
     }
   });

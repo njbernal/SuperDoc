@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { NSelect } from 'naive-ui'
+import { NSelect } from 'naive-ui';
 
 const props = defineProps({
   field: {
@@ -20,9 +20,8 @@ const props = defineProps({
 });
 
 const getStyle = computed(() => {
-  if (!props.isEditing) return { ...props.styleOverride }
-})
-
+  if (!props.isEditing) return { ...props.styleOverride };
+});
 </script>
 
 <template>

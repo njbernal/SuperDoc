@@ -10,7 +10,7 @@ export const isList = (name, extensions) => {
   const nodeExtensions = extensions.filter((e) => e.type === 'node');
   const extension = nodeExtensions.find((i) => i.name === name);
   if (!extension) return false;
-  
+
   const context = {
     name: extension.name,
     options: extension.options,
@@ -18,6 +18,6 @@ export const isList = (name, extensions) => {
   };
   const group = callOrGet(getExtensionConfigField(extension, 'group', context));
   if (typeof group !== 'string') return false;
-  
+
   return group.split(' ').includes('list');
 };

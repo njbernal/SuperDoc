@@ -1,5 +1,4 @@
-
-import { getMarkRange } from './getMarkRange.js'
+import { getMarkRange } from './getMarkRange.js';
 
 export function getMarksBetween(from, to, doc) {
   const marks = [];
@@ -9,7 +8,7 @@ export function getMarksBetween(from, to, doc) {
     doc
       .resolve(from)
       .marks()
-      .forEach(mark => {
+      .forEach((mark) => {
         const $pos = doc.resolve(from - 1);
         const range = getMarkRange($pos, mark.type);
 
@@ -29,13 +28,13 @@ export function getMarksBetween(from, to, doc) {
       }
 
       marks.push(
-        ...node.marks.map(mark => ({
+        ...node.marks.map((mark) => ({
           from: pos,
           to: pos + node.nodeSize,
           mark,
         })),
-      )
-    })
+      );
+    });
   }
 
   return marks;

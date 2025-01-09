@@ -13,7 +13,7 @@ export const Bold = Mark.create({
     return [
       { tag: 'strong' },
       { tag: 'b', getAttrs: (node) => node.style.fontWeight != 'normal' && null },
-      { style: 'font-weight=400', clearMark: m => m.type.name == 'strong' },
+      { style: 'font-weight=400', clearMark: (m) => m.type.name == 'strong' },
       { style: 'font-weight', getAttrs: (value) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null },
     ];
   },
@@ -22,17 +22,12 @@ export const Bold = Mark.create({
     return ['strong', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
 
+  //prettier-ignore
   addCommands() {
     return {
-      setBold: () => ({ commands }) => {
-        return commands.setMark(this.name);
-      },
-      unsetBold: () => ({ commands }) => {
-        return commands.unsetMark(this.name);
-      },
-      toggleBold: () => ({ commands }) => {
-        return commands.toggleMark(this.name);
-      },
+      setBold: () => ({ commands }) => commands.setMark(this.name),
+      unsetBold: () => ({ commands }) => commands.unsetMark(this.name),
+      toggleBold: () => ({ commands }) => commands.toggleMark(this.name),
     };
   },
 

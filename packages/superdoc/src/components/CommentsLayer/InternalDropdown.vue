@@ -14,7 +14,7 @@ const renderIcon = (icon) => {
   return () => {
     return h('i', { class: icon });
   };
-}
+};
 
 const options = [
   {
@@ -47,7 +47,7 @@ const getStyle = computed(() => {
   } else {
     return { backgroundColor: activeOption.backgroundColor };
   }
-})
+});
 
 const handleSelect = (key) => {
   activeState.value = key;
@@ -58,7 +58,6 @@ const handleSelect = (key) => {
 const activeState = ref(props.state);
 const activeIcon = ref(null);
 handleSelect(props.state || 'internal');
-
 </script>
 
 <template>
@@ -95,6 +94,6 @@ handleSelect(props.state || 'internal');
   padding: 2px 8px;
 }
 .internal-dropdown:hover {
-  background-color: #F3F3F5;
+  background-color: #f3f3f5;
 }
 </style>

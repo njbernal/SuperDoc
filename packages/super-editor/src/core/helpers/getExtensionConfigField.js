@@ -1,5 +1,5 @@
 /**
- * Get extension config field. 
+ * Get extension config field.
  * @param {*} extension The Editor extension.
  * @param {*} field The config field.
  * @param {*} context The context object to bind to function.
@@ -10,6 +10,6 @@ export function getExtensionConfigField(extension, field, context = {}) {
     const value = extension.config[field].bind({ ...context });
     return value;
   }
-  
+
   return extension.config[field];
 }

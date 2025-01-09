@@ -4,21 +4,7 @@
  */
 const CSS_DIMENSION_REGEX = /[\d-.]+(\w+)$/;
 
-const DOM_SIZE_UNITS = [
-  'px',
-  'rem',
-  'em',
-  'in',
-  'q',
-  'mm',
-  'cm',
-  'pt',
-  'pc',
-  'vh',
-  'vw',
-  'vmin',
-  'vmax',
-];
+const DOM_SIZE_UNITS = ['px', 'rem', 'em', 'in', 'q', 'mm', 'cm', 'pt', 'pc', 'vh', 'vw', 'vmin', 'vmax'];
 
 /**
  * Parse the size and unit from the provided value.

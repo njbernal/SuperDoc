@@ -15,8 +15,8 @@ const joinListBackwards = (tr, listType) => {
   const before = tr.doc.resolve(Math.max(0, list.pos - 1)).before(list.depth);
   if (before === undefined) return true;
 
-  const nodeBefore = tr.doc.nodeAt(before)
-  const canJoinBackwards = list.node.type === nodeBefore?.type && canJoin(tr.doc, list.pos)
+  const nodeBefore = tr.doc.nodeAt(before);
+  const canJoinBackwards = list.node.type === nodeBefore?.type && canJoin(tr.doc, list.pos);
   if (!canJoinBackwards) return true;
 
   tr.join(list.pos);
@@ -32,11 +32,11 @@ const joinListForwards = (tr, listType) => {
   const list = findParentNode((node) => node.type === listType)(tr.selection);
   if (!list) return true;
 
-  const after = tr.doc.resolve(list.start).after(list.depth)
+  const after = tr.doc.resolve(list.start).after(list.depth);
   if (after === undefined) return true;
 
-  const nodeAfter = tr.doc.nodeAt(after)
-  const canJoinForwards = list.node.type === nodeAfter?.type && canJoin(tr.doc, after)
+  const nodeAfter = tr.doc.nodeAt(after);
+  const canJoinForwards = list.node.type === nodeAfter?.type && canJoin(tr.doc, after);
   if (!canJoinForwards) return true;
 
   tr.join(after);
@@ -50,92 +50,81 @@ const joinListForwards = (tr, listType) => {
  * @param keepMarks Keep marks when toggling.
  * @param attributes Attrs for the new list.
  */
-export const toggleList = (listTypeOrName, itemTypeOrName, keepMarks, attributes = {}) => (props) => {
-  const { 
-    editor, 
-    tr, 
-    state, 
-    dispatch, 
-    chain, 
-    can,
-    commands,
-  } = props;
+export const toggleList =
+  (listTypeOrName, itemTypeOrName, keepMarks, attributes = {}) =>
+  (props) => {
+    const { editor, tr, state, dispatch, chain, can, commands } = props;
 
-  const { extensions, splittableMarks } = editor.extensionService;
-  const listType = getNodeType(listTypeOrName, state.schema);
-  const itemType = getNodeType(itemTypeOrName, state.schema);
-  const { selection, storedMarks } = state;
-  const { $from, $to } = selection;
-  const range = $from.blockRange($to);
+    const { extensions, splittableMarks } = editor.extensionService;
+    const listType = getNodeType(listTypeOrName, state.schema);
+    const itemType = getNodeType(itemTypeOrName, state.schema);
+    const { selection, storedMarks } = state;
+    const { $from, $to } = selection;
+    const range = $from.blockRange($to);
 
-  const marks = storedMarks || (selection.$to.parentOffset && selection.$from.marks());
+    const marks = storedMarks || (selection.$to.parentOffset && selection.$from.marks());
 
-  if (!range) return false;
+    if (!range) return false;
 
-  const parentList = findParentNode((node) => isList(node.type.name, extensions))(selection);
+    const parentList = findParentNode((node) => isList(node.type.name, extensions))(selection);
 
-  // This is the case when we toggle an existing list.
-  if (range.depth >= 1 && parentList && range.depth - parentList.depth <= 1) {
-    // If we toggle to the same list type, 
-    // then execute `liftListItem` command.
-    if (parentList.node.type === listType) {
-      return commands.liftListItem(itemType);
+    // This is the case when we toggle an existing list.
+    if (range.depth >= 1 && parentList && range.depth - parentList.depth <= 1) {
+      // If we toggle to the same list type,
+      // then execute `liftListItem` command.
+      if (parentList.node.type === listType) {
+        return commands.liftListItem(itemType);
+      }
+
+      // When we switch between different list types.
+      if (isList(parentList.node.type.name, extensions) && listType.validContent(parentList.node.content) && dispatch) {
+        const result = chain()
+          .command(() => {
+            tr.setNodeMarkup(parentList.pos, listType);
+            return true;
+          })
+          .command(() => joinListBackwards(tr, listType))
+          .command(() => joinListForwards(tr, listType))
+          .run();
+
+        return result;
+      }
     }
 
-    // When we switch between different list types.
-    if (
-      isList(parentList.node.type.name, extensions)
-      && listType.validContent(parentList.node.content)
-      && dispatch
-    ) {
+    const createTryConvertNodeToDefault = ({ ensureMarks = false }) => {
+      return () => {
+        const canWrapInList = can().wrapInList(listType, attributes);
+        if (ensureMarks) {
+          const filteredMarks = marks.filter((mark) => splittableMarks.includes(mark.type.name));
+          tr.ensureMarks(filteredMarks);
+        }
+        if (canWrapInList) return true;
+        return commands.clearNodes();
+      };
+    };
+
+    // This is the case when there is no need to ensureMarks.
+    if (!keepMarks || !marks || !dispatch) {
       const result = chain()
-        .command(() => {
-          tr.setNodeMarkup(parentList.pos, listType);
-          return true;
-        })
+        // First check if it's possible to wrap node in a list
+        // and if not then try to convert it into a default node (paragraph).
+        .command(createTryConvertNodeToDefault({ ensureMarks: false }))
+        .wrapInList(listType, attributes)
         .command(() => joinListBackwards(tr, listType))
         .command(() => joinListForwards(tr, listType))
         .run();
 
       return result;
     }
-  }
-
-  const createTryConvertNodeToDefault = ({ ensureMarks = false }) => {
-    return () => {
-      const canWrapInList = can().wrapInList(listType, attributes);
-      if (ensureMarks) {
-        const filteredMarks = marks.filter((mark) => splittableMarks.includes(mark.type.name));
-        tr.ensureMarks(filteredMarks);
-      }
-      if (canWrapInList) return true;
-      return commands.clearNodes();
-    };
-  };
-
-  // This is the case when there is no need to ensureMarks.
-  if (!keepMarks || !marks || !dispatch) {
 
     const result = chain()
-      // First check if it's possible to wrap node in a list 
+      // First check if it's possible to wrap node in a list
       // and if not then try to convert it into a default node (paragraph).
-      .command(createTryConvertNodeToDefault({ ensureMarks: false }))
+      .command(createTryConvertNodeToDefault({ ensureMarks: true }))
       .wrapInList(listType, attributes)
       .command(() => joinListBackwards(tr, listType))
       .command(() => joinListForwards(tr, listType))
       .run();
 
     return result;
-  }
-  
-  const result = chain()
-    // First check if it's possible to wrap node in a list 
-    // and if not then try to convert it into a default node (paragraph).
-    .command(createTryConvertNodeToDefault({ ensureMarks: true }))
-    .wrapInList(listType, attributes)
-    .command(() => joinListBackwards(tr, listType))
-    .command(() => joinListForwards(tr, listType))
-    .run();
-
-  return result;
-};
+  };

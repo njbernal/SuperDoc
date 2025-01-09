@@ -7,12 +7,12 @@ export class CommandService {
   editor;
 
   rawCommands;
-  
+
   constructor(props) {
     this.editor = props.editor;
     this.rawCommands = this.editor.extensionService.commands;
   }
-  
+
   /**
    * Static method for creating a service.
    * @param args Arguments for the constructor.
@@ -37,21 +37,20 @@ export class CommandService {
     const { tr } = state;
     const props = this.createProps(tr);
 
-    const entries = Object.entries(this.rawCommands)
-      .map(([name, command]) => {
-        const method = (...args) => {
-          const fn = command(...args)(props);
+    const entries = Object.entries(this.rawCommands).map(([name, command]) => {
+      const method = (...args) => {
+        const fn = command(...args)(props);
 
-          if (!tr.getMeta('preventDispatch')) {
-            view.dispatch(tr);
-          }
+        if (!tr.getMeta('preventDispatch')) {
+          view.dispatch(tr);
+        }
 
-          return fn;
-        };
+        return fn;
+      };
 
-        return [name, method];
-      });
-    
+      return [name, method];
+    });
+
     return Object.fromEntries(entries);
   }
 
@@ -82,14 +81,10 @@ export class CommandService {
     const tr = startTr || state.tr;
 
     const run = () => {
-      if (
-        !hasStartTr
-        && shouldDispatch
-        && !tr.getMeta('preventDispatch')
-      ) {
+      if (!hasStartTr && shouldDispatch && !tr.getMeta('preventDispatch')) {
         view.dispatch(tr);
       }
-      
+
       return callbacks.every((cb) => cb === true);
     };
 
@@ -162,4 +157,4 @@ export class CommandService {
 
     return props;
   }
-};
+}

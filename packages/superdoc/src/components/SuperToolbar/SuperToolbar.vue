@@ -9,10 +9,10 @@ const innerToolbar = ref(null);
 
 const handleToolbarCommand = ({ item, argument }) => {
   proxy.$superdoc.onToolbarCommand({ item, argument });
-}
+};
 
 defineExpose({
-  innerToolbar
+  innerToolbar,
 });
 </script>
 
@@ -22,5 +22,4 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

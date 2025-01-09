@@ -1,10 +1,4 @@
-import {
-  Mapping,
-  ReplaceStep,
-  ReplaceAroundStep,
-  AddMarkStep,
-  RemoveMarkStep,
-} from 'prosemirror-transform';
+import { Mapping, ReplaceStep, ReplaceAroundStep, AddMarkStep, RemoveMarkStep } from 'prosemirror-transform';
 import { TextSelection, Transaction, EditorState } from 'prosemirror-state';
 import { replaceStep } from './replaceStep.js';
 import { replaceAroundStep } from './replaceAroundStep.js';
@@ -118,8 +112,7 @@ export const trackedTransaction = ({ tr, state, user }) => {
 
     if (
       tr.selection instanceof TextSelection &&
-      (tr.selection.from < state.selection.from ||
-        tr.getMeta('inputType') === 'deleteContentBackward')
+      (tr.selection.from < state.selection.from || tr.getMeta('inputType') === 'deleteContentBackward')
     ) {
       const caretPos = map.map(tr.selection.from, -1);
       newTr.setSelection(new TextSelection(newTr.doc.resolve(caretPos)));

@@ -1,7 +1,9 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "0.1.5",
+  "version": "0.2.14",
+  "license": "AGPL-3.0",
+  "readme": "../../README.md",
   "files": [
     "dist"
   ],
@@ -15,6 +17,15 @@
     "./docx-zipper": {
       "import": "./dist/docx-zipper.es.js"
     },
+    "./super-editor": {
+      "import": "./dist/super-editor.es.js"
+    },
+    "./common": {
+      "import": "./dist/common.es.js"
+    },
+    "./zipper": {
+      "import": "./dist/zipper.es.js"
+    },
     "./style.css": "./dist/style.css"
   },
   "main": "./dist/superdoc.es.js",
@@ -23,7 +34,7 @@
     "dev": "vite",
     "build": "vite build",
     "clean": "rm -rf dist",
-    "pack": "rm *.tgz 2>/dev/null || true && cd ../super-editor && npm run build && cd ../superdoc && npm run build && npm pack && mv harbour-enterprises-superdoc-0.1.4.tgz ./superdoc.tgz"
+    "pack": "rm *.tgz 2>/dev/null || true && cd ../super-editor && npm run build && cd ../superdoc && npm run build && npm pack && mv harbour-enterprises-superdoc-0.2.5.tgz ./superdoc.tgz"
   },
   "dependencies": {
     "@harbour-enterprises/super-editor": "0.0.1-alpha.0",

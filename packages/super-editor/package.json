@@ -1,6 +1,7 @@
 {
   "name": "@harbour-enterprises/super-editor",
   "version": "0.0.1-alpha.0",
+  "license": "AGPL-3.0",
   "type": "module",
   "files": [
     "dist"
@@ -23,6 +24,9 @@
     },
     "./super-editor": {
       "import": "./dist/super-editor.es.js"
+    },
+    "./zipper": {
+      "import": "./dist/zipper.es.js"
     },
     "./style.css": "./dist/style.css"
   },
@@ -76,6 +80,7 @@
     "tippy.js": "^6.3.7",
     "vite": "^5.3.6",
     "vitest": "^1.6.0",
-    "vue-draggable-next": "^2.2.1"
+    "vue-draggable-next": "^2.2.1",
+    "which": "^5.0.0"
   }
 }

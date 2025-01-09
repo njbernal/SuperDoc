@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select']);
 const props = defineProps({
   options: {
     type: Array,
@@ -8,17 +8,17 @@ const props = defineProps({
 
 const handleClick = (item) => {
   emit('select', item);
-}
+};
 </script>
 
 <template>
   <div class="document-mode">
-
     <div
-        class="option-item"
-        v-for="option in options"
-        @click="handleClick(option)"
-        :class="{ disabled: option.disabled }">
+      class="option-item"
+      v-for="option in options"
+      @click="handleClick(option)"
+      :class="{ disabled: option.disabled }"
+    >
       <div class="document-mode-column icon-column">
         <div>
           <i :class="option.icon"></i>
@@ -33,9 +33,7 @@ const handleClick = (item) => {
           {{ option.description }}
         </div>
       </div>
-
     </div>
-
   </div>
 </template>
 
@@ -81,6 +79,6 @@ const handleClick = (item) => {
   color: #666;
 }
 .option-item:hover {
-  background-color: #C8D0D8;
+  background-color: #c8d0d8;
 }
 </style>

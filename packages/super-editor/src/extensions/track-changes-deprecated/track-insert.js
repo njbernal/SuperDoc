@@ -55,10 +55,6 @@ export const TrackInsert = Mark.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    return [
-      'span',
-      Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes, { inserted: true }),
-      0,
-    ];
+    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes, { inserted: true }), 0];
   },
 });

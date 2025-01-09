@@ -1,16 +1,16 @@
-import { getElementName, parseProperties } from "./importerHelpers.js";
+import { getElementName, parseProperties } from './importerHelpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChange = false) => {
+export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChange = false, filename) => {
   if (!nodes || nodes.length === 0) {
     return { nodes: [], consumed: 0 };
   }
   const node = nodes[0];
   // Parse properties
   const { name, type } = node;
-  const { attributes, elements, marks = [] } = parseProperties(node);
+  const { attributes, elements, marks = [] } = parseProperties(node, docx);
 
   // Iterate through the children and build the schemaNode content
   const content = [];
@@ -19,8 +19,8 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
       if (!el.marks) el.marks = [];
       el.marks.push(...marks);
       return el;
-    })
-    content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange));
+    });
+    content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange, filename));
   }
 
   const resultNode = {
@@ -31,13 +31,12 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
   };
 
   return { nodes: [resultNode], consumed: 1 };
-}
-
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const standardNodeHandlerEntity = {
   handlerName: 'standardNodeHandler',
-  handler: handleStandardNode
+  handler: handleStandardNode,
 };

@@ -38,7 +38,7 @@ export default {
       verificationChecksEnabled: false,
       touchData: {
         top: 0,
-        left: 0
+        left: 0,
       },
       isDropdownOpen: false,
       draggedInputId: null,
@@ -79,9 +79,7 @@ export default {
     },
 
     filteredActiveSigners() {
-      return this.signersListInfo
-        .filter((signer) => signer.isactive)
-        .sort((s1, s2) => s1.sortorder - s2.sortorder);
+      return this.signersListInfo.filter((signer) => signer.isactive).sort((s1, s2) => s1.sortorder - s2.sortorder);
     },
 
     activeSignerTitle() {
@@ -99,9 +97,7 @@ export default {
     activeSignerInfo() {
       if (this.activeSigner === null) return null;
 
-      const signerInfo = this.filteredActiveSigners.find(
-        (signer) => signer.signerindex === this.activeSigner,
-      );
+      const signerInfo = this.filteredActiveSigners.find((signer) => signer.signerindex === this.activeSigner);
       if (!signerInfo) return null;
       return signerInfo;
     },
@@ -166,7 +162,7 @@ export default {
       };
 
       dataTransfer.setData('fieldAnnotation', JSON.stringify(data));
-      
+
       // If this is CK then we must override 'effectAllowed' property to 'all',
       // otherwise drag&drop for annotations will not work
       // if (this.isCkeditorAgreement) {
@@ -197,8 +193,7 @@ export default {
 
     getDropdownSignerItem(signerIdx) {
       const signer = this.filteredActiveSigners.find((s) => s.signerindex === signerIdx);
-      const signerName =
-        signer.signername !== null ? signer.signername : `Signer ${signer.signerindex + 1}`;
+      const signerName = signer.signername !== null ? signer.signername : `Signer ${signer.signerindex + 1}`;
       const signerEmail = signer.signeremail !== null ? `(${signer.signeremail})` : '';
       return `${signerName} ${signerEmail}`;
     },
@@ -220,10 +215,7 @@ export default {
 
       this.inputs.forEach((item) => {
         const targetInput = item;
-        if (
-          targetInput.inputtiletype === 'DATEINPUT' ||
-          targetInput.inputtiletype === 'SIGNDATEINPUT'
-        ) {
+        if (targetInput.inputtiletype === 'DATEINPUT' || targetInput.inputtiletype === 'SIGNDATEINPUT') {
           targetInput.inputtiledescription = `(${localDateStr})`;
         }
       });
@@ -292,12 +284,13 @@ export default {
     <div class="hrbr-agreement-editor-inputs__head">
       <div class="hrbr-agreement-editor-inputs__signers-dropdown-container">
         <div class="hrbr-agreement-editor-inputs__signers-dropdown-label">Signer</div>
-        
+
         <div class="hrbr-agreement-editor-inputs-dropdown">
           <div class="hrbr-agreement-editor-inputs-dropdown__selected" @click.stop="toggleDropdownMenu">
             <span
               class="hrbr-agreement-editor-inputs-dropdown__signers-dropdown-selected-color"
-              :style="{ backgroundColor: activeSignerColor }">
+              :style="{ backgroundColor: activeSignerColor }"
+            >
             </span>
             <span class="hrbr-agreement-editor-inputs-dropdown__signers-dropdown-selected-value">
               {{ activeSignerTitle }}
@@ -307,21 +300,27 @@ export default {
           <div class="hrbr-agreement-editor-inputs-dropdown__menu" v-show="isDropdownOpen">
             <div class="hrbr-agreement-editor-inputs-dropdown__menu-wrapper">
               <div class="hrbr-agreement-editor-inputs-dropdown__list">
-                <div 
-                  class="hrbr-agreement-editor-inputs-dropdown__list-item" 
-                  :class="{'is-active': activeSigner === null}"
-                  @click="updateActiveSigner(null); closeDropdownMenu();">
-                  <div class="hrbr-agreement-editor-inputs-dropdown__list-item-text">
-                    Agreement Owner
-                  </div>
+                <div
+                  class="hrbr-agreement-editor-inputs-dropdown__list-item"
+                  :class="{ 'is-active': activeSigner === null }"
+                  @click="
+                    updateActiveSigner(null);
+                    closeDropdownMenu();
+                  "
+                >
+                  <div class="hrbr-agreement-editor-inputs-dropdown__list-item-text">Agreement Owner</div>
                 </div>
 
-                <div 
-                  class="hrbr-agreement-editor-inputs-dropdown__list-item" 
-                  :class="{'is-active': activeSigner === signerIdx}"
+                <div
+                  class="hrbr-agreement-editor-inputs-dropdown__list-item"
+                  :class="{ 'is-active': activeSigner === signerIdx }"
                   v-for="(signer, signerIdx) in filteredActiveSigners"
                   :key="signer.signerid"
-                  @click="updateActiveSigner(signerIdx); closeDropdownMenu();">
+                  @click="
+                    updateActiveSigner(signerIdx);
+                    closeDropdownMenu();
+                  "
+                >
                   <div class="hrbr-agreement-editor-inputs-dropdown__list-item-text">
                     {{ getDropdownSignerItem(signerIdx) }}
                   </div>
@@ -330,7 +329,6 @@ export default {
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -340,13 +338,13 @@ export default {
           <div
             class="hrbr-agreement-editor-inputs__group"
             :class="{
-              'hrbr-agreement-editor-inputs__group--active':
-                group.id === activeInputsGroup && !inputsFilter,
+              'hrbr-agreement-editor-inputs__group--active': group.id === activeInputsGroup && !inputsFilter,
             }"
             v-for="group in filteredGroups"
             :key="group.id"
             data-testid="input-group"
-            @click="onInputsGroupClick(group.id)">
+            @click="onInputsGroupClick(group.id)"
+          >
             <div class="hrbr-agreement-editor-inputs__group-icon">
               <span>📙</span>
             </div>
@@ -369,7 +367,8 @@ export default {
             :list="filteredInputs"
             :sort="false"
             :group="{ name: 'tileInputs', pull: 'clone', put: false }"
-            :setData="setData">
+            :setData="setData"
+          >
             <div
               class="hrbr-agreement-editor-inputs__input"
               v-for="input in filteredInputs"
@@ -380,7 +379,8 @@ export default {
             >
               <div
                 class="hrbr-agreement-editor-inputs__input-drag"
-                :style="{ backgroundColor: getHexColorWithTransparency(activeSignerColor, '33') }">
+                :style="{ backgroundColor: getHexColorWithTransparency(activeSignerColor, '33') }"
+              >
                 <span>⠿</span>
               </div>
               <div class="hrbr-agreement-editor-inputs__input-wrap">
@@ -425,7 +425,9 @@ export default {
   grid-template-columns: 58px minmax(0, 1fr);
 }
 
-#hrbr-agreement-editor-inputs .hrbr-agreement-editor-inputs__signers-dropdown.is-active .hrbr-agreement-editor-inputs__signers-dropdown-trigger {
+#hrbr-agreement-editor-inputs
+  .hrbr-agreement-editor-inputs__signers-dropdown.is-active
+  .hrbr-agreement-editor-inputs__signers-dropdown-trigger {
   position: relative;
 }
 
@@ -461,7 +463,7 @@ export default {
   padding: 5px 12px;
   border-radius: 4px;
   background: #fff;
-  border: 1px solid #DBDBDB;
+  border: 1px solid #dbdbdb;
   transition: all 0.2s;
 }
 
@@ -579,7 +581,10 @@ export default {
   visibility: hidden;
   opacity: 0;
   transform: translateX(-10px);
-  transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.3s ease;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease,
+    transform 0.3s ease;
   will-change: opacity, visibility, transform;
   pointer-events: none;
   user-select: none;
@@ -623,7 +628,6 @@ export default {
 #hrbr-agreement-editor-inputs .hrbr-agreement-editor-inputs__input:hover {
   border-color: #1f89c7;
 }
-
 
 #hrbr-agreement-editor-inputs .hrbr-agreement-editor-inputs__input:hover .hrbr-agreement-editor-inputs__input-wrap {
   background: rgba(31, 137, 199, 0.2);

@@ -1,11 +1,5 @@
 import { Extension } from '@core/index.js';
-import {
-  ySyncPlugin,
-  yUndoPlugin,
-  yUndoPluginKey,
-  undo,
-  redo,
-} from 'y-prosemirror'
+import { ySyncPlugin, yUndoPlugin, yUndoPluginKey, undo, redo } from 'y-prosemirror';
 
 export const Collaboration = Extension.create({
   name: 'collaboration',
@@ -18,7 +12,7 @@ export const Collaboration = Extension.create({
       field: 'supereditor',
       fragment: null,
       isReady: false,
-    }
+    };
   },
 
   addPmPlugins() {
@@ -29,35 +23,53 @@ export const Collaboration = Extension.create({
     initDocumentLockHandler(this.options.ydoc, this.editor);
     initSyncListener(this.options.ydoc, this.editor, this);
 
-    const [syncPlugin, fragment] = createSyncPlugin(
-      this.options.ydoc,
-      this.editor
-    );
+    const [syncPlugin, fragment] = createSyncPlugin(this.options.ydoc, this.editor);
     this.options.fragment = fragment;
 
+    const metaMap = this.options.ydoc.getMap('media');
+    metaMap.observe((event) => {
+      event.changes.keys.forEach((change, key) => {
+        if (!(key in this.editor.storage.image.media)) {
+          const fileData = metaMap.get(key);
+          this.editor.storage.image.media[key] = fileData;
+        }
+      });
+    });
+
     const undoPlugin = createUndoPlugin();
-    return [syncPlugin, undoPlugin]
+    return [syncPlugin, undoPlugin];
   },
 
   addCommands() {
     return {
-      undo: () => ({ tr, state, dispatch }) => {
-        tr.setMeta('preventDispatch', true)
-        tr.setMeta('inputType', 'historyUndo');
-        const undoManager = yUndoPluginKey.getState(state).undoManager
-        if (undoManager.undoStack.length === 0) return false
-        if (!dispatch) return true
-        return undo(state)
-      },
-      redo: () => ({ tr, state, dispatch }) => {
-        tr.setMeta('preventDispatch', true)
-        tr.setMeta('inputType', 'historyRedo');
-        const undoManager = yUndoPluginKey.getState(state).undoManager
-        if (undoManager.redoStack.length === 0) return false
-        if (!dispatch) return true;
-        return redo(state)
-      },
-    }
+      undo:
+        () =>
+        ({ tr, state, dispatch }) => {
+          tr.setMeta('preventDispatch', true);
+          tr.setMeta('inputType', 'historyUndo');
+          const undoManager = yUndoPluginKey.getState(state).undoManager;
+          if (undoManager.undoStack.length === 0) return false;
+          if (!dispatch) return true;
+          return undo(state);
+        },
+      redo:
+        () =>
+        ({ tr, state, dispatch }) => {
+          tr.setMeta('preventDispatch', true);
+          tr.setMeta('inputType', 'historyRedo');
+          const undoManager = yUndoPluginKey.getState(state).undoManager;
+          if (undoManager.redoStack.length === 0) return false;
+          if (!dispatch) return true;
+          return redo(state);
+        },
+      addImageToCollaboration:
+        ({ mediaPath, fileData }) =>
+        () => {
+          if (!this.options.ydoc) return;
+          const mediaMap = this.options.ydoc.getMap('media');
+          mediaMap.set(mediaPath, fileData);
+        },
+    };
   },
 
   addShortcuts() {
@@ -65,20 +77,20 @@ export const Collaboration = Extension.create({
       'Mod-z': () => this.editor.commands.undo(),
       'Mod-Shift-z': () => this.editor.commands.redo(),
       'Mod-y': () => this.editor.commands.redo(),
-    }
-  }
+    };
+  },
 });
 
 const createSyncPlugin = (ydoc, editor) => {
-  const fragment = ydoc.getXmlFragment("supereditor");
+  const fragment = ydoc.getXmlFragment('supereditor');
 
-  console.debug('--- Setting initial content ---', editor.options.content)
   const onFirstRender = () => {
+    if (!editor.options.isNewFile) return;
     const metaMap = ydoc.getMap('meta');
     metaMap.set('docx', editor.options.content);
+    metaMap.set('fonts', editor.options.fonts);
   };
 
-  window.supereditor = editor;
   return [ySyncPlugin(fragment, { onFirstRender }), fragment];
 };
 
@@ -101,23 +113,23 @@ const initDocumentLockHandler = (ydoc, editor) => {
 
     // Otherwise, we need to emit the event for all other users
     if (isLocked) {
-      console.debug('--- Locking editor ---', lockedBy, editor.options.user)
+      console.debug('--- Locking editor ---', lockedBy, editor.options.user);
     } else {
-      console.debug('--- Unlocking editor ---',lockedBy)
+      console.debug('--- Unlocking editor ---', lockedBy);
     }
     editor.setEditable(!isLocked);
     editor.emit('locked', { editor, isLocked, lockedBy });
   });
 };
 
-const initSyncListener = (ydoc, editor, extension) => {  
+const initSyncListener = (ydoc, editor, extension) => {
   const provider = editor.options.collaborationProvider;
   if (!provider) return;
 
   const emit = () => {
     extension.options.isReady = true;
     provider.off('synced', emit);
-    editor.emit('collaborationUpdate', { editor, ydoc });
+    editor.emit('collaborationReady', { editor, ydoc });
   };
 
   if (provider.synced) return emit();

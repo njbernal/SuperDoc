@@ -10,7 +10,7 @@ export const TrackChanges = Extension.create({
 
   addCommands() {
     return {
-      acceptTrackedChangeBetween:
+      acceptTrackedChangesBetween:
         (from, to) =>
         ({ state, dispatch }) => {
           let { tr, doc } = state;
@@ -33,13 +33,8 @@ export const TrackChanges = Extension.create({
 
               tr.step(deletionStep);
               map.appendMap(deletionStep.getMap());
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackInsertMarkName)
-            ) {
-              const insertionMark = node.marks.find(
-                (mark) => mark.type.name === TrackInsertMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackInsertMarkName)) {
+              const insertionMark = node.marks.find((mark) => mark.type.name === TrackInsertMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -48,13 +43,8 @@ export const TrackChanges = Extension.create({
                   insertionMark,
                 ),
               );
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackFormatMarkName)
-            ) {
-              const formatChangeMark = node.marks.find(
-                (mark) => mark.type.name === TrackFormatMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackFormatMarkName)) {
+              const formatChangeMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -73,7 +63,7 @@ export const TrackChanges = Extension.create({
           return true;
         },
 
-      rejectTrackedChangeBetween:
+      rejectTrackedChangesBetween:
         (from, to) =>
         ({ state, dispatch }) => {
           const { tr, doc } = state;
@@ -84,9 +74,7 @@ export const TrackChanges = Extension.create({
 
           doc.nodesBetween(from, to, (node, pos) => {
             if (node.marks && node.marks.find((mark) => mark.type.name === TrackDeleteMarkName)) {
-              const deletionMark = node.marks.find(
-                (mark) => mark.type.name === TrackDeleteMarkName,
-              );
+              const deletionMark = node.marks.find((mark) => mark.type.name === TrackDeleteMarkName);
 
               tr.step(
                 new RemoveMarkStep(
@@ -95,10 +83,7 @@ export const TrackChanges = Extension.create({
                   deletionMark,
                 ),
               );
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackInsertMarkName)
-            ) {
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackInsertMarkName)) {
               const deletionStep = new ReplaceStep(
                 map.map(Math.max(pos, from)),
                 map.map(Math.min(pos + node.nodeSize, to)),
@@ -107,13 +92,8 @@ export const TrackChanges = Extension.create({
 
               tr.step(deletionStep);
               map.appendMap(deletionStep.getMap());
-            } else if (
-              node.marks &&
-              node.marks.find((mark) => mark.type.name === TrackFormatMarkName)
-            ) {
-              const formatChangeMark = node.marks.find(
-                (mark) => mark.type.name === TrackFormatMarkName,
-              );
+            } else if (node.marks && node.marks.find((mark) => mark.type.name === TrackFormatMarkName)) {
+              const formatChangeMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
 
               formatChangeMark.attrs.before.forEach((oldMark) => {
                 tr.step(
@@ -156,14 +136,14 @@ export const TrackChanges = Extension.create({
         ({ trackedChange }) =>
         ({ commands }) => {
           const { start: from, end: to } = trackedChange;
-          return commands.acceptTrackedChangeBetween(from, to);
+          return commands.acceptTrackedChangesBetween(from, to);
         },
 
       acceptTrackedChangeBySelection:
         () =>
         ({ state, commands }) => {
           const { from, to } = state.selection;
-          return commands.acceptTrackedChangeBetween(from, to);
+          return commands.acceptTrackedChangesBetween(from, to);
         },
 
       acceptTrackedChangeById:
@@ -175,9 +155,17 @@ export const TrackChanges = Extension.create({
             .map(({ from, to }) => {
               let mappedFrom = tr.mapping.map(from);
               let mappedTo = tr.mapping.map(to);
-              return commands.acceptTrackedChangeBetween(mappedFrom, mappedTo);
+              return commands.acceptTrackedChangesBetween(mappedFrom, mappedTo);
             })
             .every((result) => result);
+        },
+
+      acceptAllTrackedChanges:
+        () =>
+        ({ state, commands }) => {
+          const from = 0,
+            to = state.doc.content.size;
+          return commands.acceptTrackedChangesBetween(from, to);
         },
 
       rejectTrackedChangeById:
@@ -189,7 +177,7 @@ export const TrackChanges = Extension.create({
             .map(({ from, to }) => {
               let mappedFrom = tr.mapping.map(from);
               let mappedTo = tr.mapping.map(to);
-              return commands.rejectTrackedChangeBetween(mappedFrom, mappedTo);
+              return commands.rejectTrackedChangesBetween(mappedFrom, mappedTo);
             })
             .every((result) => result);
         },
@@ -198,14 +186,22 @@ export const TrackChanges = Extension.create({
         ({ trackedChange }) =>
         ({ commands }) => {
           const { start: from, end: to } = trackedChange;
-          return commands.rejectTrackedChangeBetween(from, to);
+          return commands.rejectTrackedChangesBetween(from, to);
         },
 
       rejectTrackedChangeOnSelection:
         () =>
         ({ state, commands }) => {
           const { from, to } = state.selection;
-          return commands.rejectTrackedChangeBetween(from, to);
+          return commands.rejectTrackedChangesBetween(from, to);
+        },
+
+      rejectAllTrackedChanges:
+        () =>
+        ({ state, commands }) => {
+          const from = 0,
+            to = state.doc.content.size;
+          return commands.rejectTrackedChangesBetween(from, to);
         },
 
       toggleTrackChanges:

@@ -1,13 +1,9 @@
-import { 
-  history, 
-  redo as originalRedo, 
-  undo as originalUndo, 
-} from 'prosemirror-history';
+import { history, redo as originalRedo, undo as originalUndo } from 'prosemirror-history';
 import { Extension } from '@core/Extension.js';
 
 export const History = Extension.create({
   name: 'history',
-  
+
   addOptions() {
     // https://prosemirror.net/docs/ref/#history.history
     return {
@@ -21,6 +17,7 @@ export const History = Extension.create({
     return [historyPlugin];
   },
 
+  //prettier-ignore
   addCommands() {
     return {
       undo: () => ({ state, dispatch, tr }) => {

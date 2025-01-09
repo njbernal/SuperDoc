@@ -4,7 +4,6 @@ import useSelection from '@/helpers/use-selection';
 import useComment from '@/components/CommentsLayer/use-comment';
 
 export default function useConversation(params) {
-
   const conversationId = params.conversationId || uuidv4();
   const documentId = params.documentId;
   const creatorEmail = params.creatorEmail;
@@ -34,7 +33,7 @@ export default function useConversation(params) {
     markedDoneByEmail.value = email;
     markedDoneByName.value = name;
     group.value = null;
-  }
+  };
 
   /* Add a comment to this conversation */
   const addComment = (comment) => data.comments.value.push(comment);
@@ -54,9 +53,9 @@ export default function useConversation(params) {
       markedDoneByEmail: markedDoneByEmail.value,
       markedDoneByName: markedDoneByName.value,
       isFocused: isFocused.value,
-    }
+    };
     return values;
-  }
+  };
 
   const exposedData = {
     conversationId,
@@ -77,7 +76,7 @@ export default function useConversation(params) {
     isInternal,
     isTrackedChange,
     trackedChange,
-  }
+  };
   return {
     ...exposedData,
 

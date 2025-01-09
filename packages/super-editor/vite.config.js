@@ -42,6 +42,7 @@ export default defineConfig(({ mode }) => {
           'docx-zipper': '@core/DocxZipper',
           'toolbar': '@components/toolbar/Toolbar.vue',
           'super-input': '@components/SuperInput.vue',
+          'zipper': '@core/super-converter/zipper.js',
         },
         output: {
           globals: {
@@ -67,6 +68,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 9096,
+      host: '0.0.0.0',
     },
     resolve: {
       alias: {
@@ -78,6 +80,7 @@ export default defineConfig(({ mode }) => {
         '@helpers': fileURLToPath(new URL('./src/core/helpers', import.meta.url)),
         '@packages': fileURLToPath(new URL('../', import.meta.url)),
         '@vue-3': fileURLToPath(new URL('./src/vue-3', import.meta.url)),
+        '@converter': fileURLToPath(new URL('./src/core/super-converter', import.meta.url)),
       },
       extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     },

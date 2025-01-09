@@ -20,11 +20,6 @@ export const Paragraph = Node.create({
 
   addAttributes() {
     return {
-      // paragraphProperties: {
-      //   renderDOM: (attrs) => {
-      //     // console.debug('\n\n PARAGRAPH PROPERTIES NODE ATTRS', attrs, '\n\n')
-      //   }
-      // },
       spacing: {
         renderDOM: (attrs) => {
           const { spacing } = attrs;
@@ -36,9 +31,9 @@ export const Paragraph = Node.create({
             ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}
             ${line ? `line-height: ${line}px;` : ''}
           `.trim();
-          
-          if (style) return { style }
-          return { };
+
+          if (style) return { style };
+          return {};
         },
       },
       indent: {
@@ -51,13 +46,15 @@ export const Paragraph = Node.create({
           if (right) style += `margin-right: ${right}px;`;
           if (firstLine) style += `text-indent: ${firstLine}px;`;
 
-          return { style }
-        }
+          return { style };
+        },
       },
-      styleId: { rendered: false, },
+      styleId: { rendered: false },
       attributes: {
         rendered: false,
       },
+      filename: { rendered: false },
+      rsidRDefault: { rendered: false },
     };
   },
 

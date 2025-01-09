@@ -13,7 +13,7 @@ export const Underline = Mark.create({
     return [
       { tag: 'u' },
       { style: 'text-decoration=underline' },
-      { style: 'text-decoration=auto', clearMark: m => m.type.name == 'u' },
+      { style: 'text-decoration=auto', clearMark: (m) => m.type.name == 'u' },
     ];
   },
 
@@ -29,17 +29,12 @@ export const Underline = Mark.create({
     };
   },
 
+  //prettier-ignore
   addCommands() {
     return {
-      setUnderline: () => ({ commands }) => {
-        return commands.setMark(this.name);
-      },
-      unsetUnderline: () => ({ commands }) => {
-        return commands.unsetMark(this.name);
-      },
-      toggleUnderline: () => ({ commands }) => {
-        return commands.toggleMark(this.name);
-      },
+      setUnderline: () => ({ commands }) => commands.setMark(this.name),
+      unsetUnderline: () => ({ commands }) => commands.unsetMark(this.name),
+      toggleUnderline: () => ({ commands }) => commands.toggleMark(this.name),
     };
   },
 
@@ -47,6 +42,6 @@ export const Underline = Mark.create({
     return {
       'Mod-u': () => this.editor.commands.toggleUnderline(),
       'Mod-U': () => this.editor.commands.toggleUnderline(),
-    }
+    };
   },
 });

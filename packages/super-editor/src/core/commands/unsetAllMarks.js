@@ -1,6 +1,7 @@
 /**
  * Remove all marks in the current selection.
  */
+//prettier-ignore
 export const unsetAllMarks = () => ({ tr, dispatch }) => {
   const { selection } = tr;
   const { empty, ranges } = selection;
@@ -8,7 +9,7 @@ export const unsetAllMarks = () => ({ tr, dispatch }) => {
   if (empty) return true;
 
   if (dispatch) {
-    ranges.forEach(range => {
+    ranges.forEach((range) => {
       tr.removeMark(range.$from.pos, range.$to.pos);
     });
   }

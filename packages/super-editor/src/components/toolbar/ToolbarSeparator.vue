@@ -1,5 +1,4 @@
 <script setup>
-
 const emit = defineEmits(['command']);
 const props = defineProps({
   active: {
@@ -23,7 +22,7 @@ const props = defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #DBDBDB;
+  color: #dbdbdb;
   transition: all 0.2s ease-out;
   user-select: none;
   overflow: hidden;
@@ -31,7 +30,7 @@ const props = defineProps({
 .toolbar-separator .separator-inner {
   width: 1.5px;
   height: 20px;
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
 }
 .toolbar-button:hover {
   color: black;

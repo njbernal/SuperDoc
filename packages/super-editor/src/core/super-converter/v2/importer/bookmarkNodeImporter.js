@@ -7,7 +7,9 @@ export const handleBookmarkNode = (nodes, docx, nodeListHandler, insideTrackChan
   }
   const node = nodes[0];
 
-  const handleStandardNode = nodeListHandler.handlerEntities.find(e => e.handlerName === 'standardNodeHandler')?.handler;
+  const handleStandardNode = nodeListHandler.handlerEntities.find(
+    (e) => e.handlerName === 'standardNodeHandler',
+  )?.handler;
   if (!handleStandardNode) {
     console.error('Standard node handler not found');
     return { nodes: [], consumed: 0 };
@@ -15,14 +17,15 @@ export const handleBookmarkNode = (nodes, docx, nodeListHandler, insideTrackChan
   const result = handleStandardNode([node], docx, nodeListHandler, insideTrackChange);
   if (result.nodes.length === 1) {
     result.nodes[0].attrs.name = node.attributes['w:name'];
+    result.nodes[0].attrs.id = node.attributes['w:id'];
   }
   return result;
-}
+};
 
 /**
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const bookmarkNodeHandlerEntity = {
   handlerName: 'bookmarkNodeHandler',
-  handler: handleBookmarkNode
+  handler: handleBookmarkNode,
 };

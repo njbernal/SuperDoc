@@ -2,18 +2,13 @@ import { ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useToolbarItem = (options) => {
-
   const types = ['button', 'options', 'separator', 'dropdown', 'overflow'];
   if (!types.includes(options.type)) {
     throw new Error('Invalid toolbar item type - ' + options.type);
   }
 
-  if (
-    options.type === 'button' && 
-    !options.defaultLabel &&
-    !options.icon
-  ) {
-      throw new Error('Toolbar button item needs either icon or label - ' + options.name);
+  if (options.type === 'button' && !options.defaultLabel && !options.icon) {
+    throw new Error('Toolbar button item needs either icon or label - ' + options.name);
   }
 
   if (!options.name) {
@@ -36,31 +31,31 @@ export const useToolbarItem = (options) => {
 
   // top-level style
   const style = ref(options.style);
-  const isNarrow = ref(options.isNarrow)
-  const isWide = ref(options.isWide)
-  const minWidth = ref(options.minWidth)
+  const isNarrow = ref(options.isNarrow);
+  const isWide = ref(options.isWide);
+  const minWidth = ref(options.minWidth);
   const suppressActiveHighlight = ref(options.suppressActiveHighlight || false);
 
   const argument = ref(options.argument);
-  const childItem = ref(null)
-  const parentItem = ref(null)
+  const childItem = ref(null);
+  const parentItem = ref(null);
 
   // icon properties
-  const overflowIcon = ref(options.overflowIcon)
-  const iconColor = ref(options.iconColor)
-  const hasCaret = ref(options.hasCaret)
+  const overflowIcon = ref(options.overflowIcon);
+  const iconColor = ref(options.iconColor);
+  const hasCaret = ref(options.hasCaret);
 
   // tooltip properties
   const tooltip = ref(options.tooltip);
-  const tooltipVisible = ref(options.tooltipVisible)
-  const tooltipTimeout = ref(options.tooltipTimeout)
+  const tooltipVisible = ref(options.tooltipVisible);
+  const tooltipTimeout = ref(options.tooltipTimeout);
 
   // behavior
   const defaultLabel = ref(options.defaultLabel);
   const label = ref(options.label);
   const hideLabel = ref(options.hideLabel);
-  const inlineTextInputVisible = ref(options.inlineTextInputVisible)
-  const hasInlineTextInput = ref(options.hasInlineTextInput)
+  const inlineTextInputVisible = ref(options.inlineTextInputVisible);
+  const hasInlineTextInput = ref(options.hasInlineTextInput);
 
   const markName = ref(options.markName);
   const labelAttr = ref(options.labelAttr);
@@ -77,20 +72,20 @@ export const useToolbarItem = (options) => {
 
     if (suppressActiveHighlight.value) return;
     active.value = true;
-  }
+  };
 
   const deactivate = () => {
     onDeactivate();
     active.value = false;
-  }
+  };
 
   const setDisabled = (state) => {
     disabled.value = state;
-  }
+  };
 
   const resetDisabled = () => {
     disabled.value = initiallyDisabled;
-  }
+  };
 
   // User can override this behavior
   const onActivate = options.onActivate || (() => null);
@@ -98,13 +93,13 @@ export const useToolbarItem = (options) => {
 
   const unref = () => {
     const flattened = {};
-    Object.keys(refs).forEach(key => {
+    Object.keys(refs).forEach((key) => {
       if (refs[key].value !== undefined) {
         flattened[key] = refs[key].value;
       }
     });
     return flattened;
-  }
+  };
 
   const refs = {
     id,
@@ -141,7 +136,7 @@ export const useToolbarItem = (options) => {
     childItem,
 
     allowWithoutEditor,
-  }
+  };
 
   return {
     ...refs,
@@ -153,4 +148,4 @@ export const useToolbarItem = (options) => {
     onActivate,
     onDeactivate,
   };
-}
+};

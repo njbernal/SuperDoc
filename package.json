@@ -1,11 +1,15 @@
 {
   "name": "harbour-enterprises",
   "private": true,
+  "license": "AGPL-3.0",
   "workspaces": [
     "packages/*",
     "shared/*"
   ],
   "scripts": {
+    "test": "vitest --root ./packages/super-editor",
+    "unzip": "bash packages/super-editor/src/tests/helpers/unzip.sh",
+    "dev": "npm run build:super-editor && npm run dev:superdoc",
     "dev:superdoc": "npm run dev --workspace=packages/superdoc",
     "dev:super-editor": "npm run dev --workspace=packages/super-editor",
     "build:superdoc": "npm run build --workspace=packages/superdoc",
@@ -17,12 +21,14 @@
     "fix:prettier": "prettier --write \"**/*.{js,css,vue}\"",
     "lint:prettier": "prettier --check \"**/*.{js,css,vue}\"",
     "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs"
+    "docs:build": "vuepress build docs",
+    "prettier": "if [ \"$(echo $npm_config_argv | grep -o '\"remain\":\\[\\]' | wc -l)\" -eq 1 ]; then echo 'Error: No arguments passed to prettier'; exit 1; fi && npx prettier --write"
   },
   "devDependencies": {
     "@vuepress/bundler-vite": "^2.0.0-rc.18",
     "@vuepress/plugin-redirect": "^2.0.0-rc.60",
     "@vuepress/theme-default": "^2.0.0-rc.60",
+    "rollup-plugin-visualizer": "^5.12.0",
     "prettier": "3.3.3",
     "rollup": "^4.26.0",
     "sass-embedded": "^1.80.7",

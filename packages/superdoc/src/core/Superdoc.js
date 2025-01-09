@@ -3,15 +3,15 @@ import '../style.css';
 import '@harbour-enterprises/super-editor/style.css';
 import '@harbour-enterprises/common/icons/icons.css';
 
-import EventEmitter from 'eventemitter3'
-import { Doc as YDoc, Array as YArray } from 'yjs';
+import EventEmitter from 'eventemitter3';
 import { v4 as uuidv4 } from 'uuid';
+import { HocuspocusProviderWebsocket } from '@hocuspocus/provider';
 
-import { DOCX, PDF, HTML, documentTypes } from '@harbour-enterprises/common';
+import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperToolbar } from '@harbour-enterprises/super-editor';
 import { createAwarenessHandler, createProvider } from './collaboration/collaboration';
 import { createSuperdocVueApp } from './create-app';
-
+import { shuffleArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 
 /**
  * @typedef {Object} SuperdocUser The current user of this superdoc
@@ -20,16 +20,16 @@ import { createSuperdocVueApp } from './create-app';
  * @property {string | null} image The user's photo
  */
 
-
 /* **
-  * Superdoc class
-  * Expects a config object
-*/
+ * Superdoc class
+ * Expects a config object
+ */
 export class Superdoc extends EventEmitter {
-
   static allowedTypes = [DOCX, PDF, HTML];
 
   config;
+
+  version;
 
   documentMode;
 
@@ -38,13 +38,17 @@ export class Superdoc extends EventEmitter {
   config = {
     superdocId: null,
     selector: '#superdoc', // The selector to mount the superdoc into
-    documentMode: 'viewing',
+    documentMode: 'editing',
+    role: 'editor', // The role of the user in this superdoc: editor, viewer, suggester
     documents: [], // The documents to load
 
+    colors: [], // Optional: Colors to use for user awareness
     user: { name: null, email: null }, // The current user of this superdoc
     users: [], // Optional: All users of this superdoc (can be used for @-mentions)
 
     modules: {}, // Optional: Modules to load
+
+    pagination: false, // Optional: Whether to show pagination in SuperEditors
 
     // toolbar config
     toolbar: null, // Optional DOM element to render the toolbar in
@@ -55,11 +59,19 @@ export class Superdoc extends EventEmitter {
     // Events
     onEditorCreate: () => null,
     onEditorDestroy: () => null,
+    onContentError: () => null,
     onReady: () => null,
     onCommentsUpdate: () => null,
     onAwarenessUpdate: () => null,
     onLocked: () => null,
-  }
+    onPdfDocumentReady: () => null,
+    onSidebarToggle: () => null,
+    onCollaborationReady: () => null,
+
+    // Image upload handler
+    // async (file) => url;
+    handleImageUpload: null,
+  };
 
   constructor(config) {
     super();
@@ -69,37 +81,41 @@ export class Superdoc extends EventEmitter {
   async #init(config) {
     this.config = {
       ...this.config,
-      ...config
-    }
+      ...config,
+    };
 
+    this.config.colors = shuffleArray(this.config.colors);
+    this.userColorMap = new Map();
+    this.colorIndex = 0;
+    this.version = __APP_VERSION__;
+    console.debug('🦋 [superdoc] Using SuperDoc version:', this.version);
     this.superdocId = config.superdocId || uuidv4();
-    console.debug('🦋 [superdoc] Superdoc ID:', this.superdocId);
+    this.colors = this.config.colors;
 
-    this.documents = this.#preprocessDocuments(config.documents);
-    await this.#initCollaboration(config.modules.collaboration);
-    config.documents = this.documents;
+    // Initialize collaboration if configured
+    await this.#initCollaboration(this.config.modules);
 
     this.#initVueApp();
     this.#initListeners();
 
-    this.user = config.user; // The current user
-    this.users = config.users || []; // All users who have access to this superdoc
+    this.user = this.config.user; // The current user
+    this.users = this.config.users || []; // All users who have access to this superdoc
+    this.socket = null;
 
     // Toolbar
-    this.toolbarElement = config.toolbar;
+    this.toolbarElement = this.config.toolbar;
     this.toolbar = null;
-    this.isDev = config.isDev || false;
+    this.isDev = this.config.isDev || false;
 
-    this.superdocStore.init(config);
     this.activeEditor = null;
 
-    this.app.mount(config.selector);
+    this.app.mount(this.config.selector);
 
     // Required editors
     this.readyEditors = 0;
 
-    this.isLocked = config.isLocked || false;
-    this.lockedBy = config.lockedBy || null;
+    this.isLocked = this.config.isLocked || false;
+    this.lockedBy = this.config.lockedBy || null;
 
     // If a toolbar element is provided, render a toolbar
     this.addToolbar(this);
@@ -113,7 +129,7 @@ export class Superdoc extends EventEmitter {
     return {
       documents: this.superdocStore.documents,
       users: this.users,
-    }
+    };
   }
 
   #initVueApp() {
@@ -121,11 +137,12 @@ export class Superdoc extends EventEmitter {
     this.app = app;
     this.pinia = pinia;
     this.app.config.globalProperties.$config = this.config;
-    this.app.config.globalProperties.$documentMode = this.documentMode;
+    this.app.config.globalProperties.$documentMode = this.config.documentMode;
 
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.version = this.config.version;
+    this.superdocStore.init(this.config);
   }
 
   #initListeners() {
@@ -135,33 +152,22 @@ export class Superdoc extends EventEmitter {
     this.on('comments-update', this.config.onCommentsUpdate);
     this.on('awareness-update', this.config.onAwarenessUpdate);
     this.on('locked', this.config.onLocked);
-  }
-
-  #preprocessDocuments(documents) {
-    console.debug('🦋 [superdoc] Preprocessing documents:', documents);
-    if (!documents) return [];
-
-    return documents.map((doc) => {
-      const { data: documentFile } = doc;
-
-      let documentType;
-      if (doc.type) {
-        documentType = documentTypes[doc.type];
-      }
-      else if (documentFile) {
-        documentType = documentFile?.type;
-      }
-
-      return { ...doc, type: documentType };
-    });
+    this.on('pdf-document-ready', this.config.onPdfDocumentReady);
+    this.on('sidebar-toggle', this.config.onSidebarToggle);
+    this.on('collaboration-ready', this.config.onCollaborationReady);
+    this.on('content-error', this.onContentError);
   }
 
   /* **
-    * Initialize collaboration if configured
-    * @param {Object} config
-  */
-  async #initCollaboration(collaborationModuleConfig) {
-    if (!collaborationModuleConfig) return;
+   * Initialize collaboration if configured
+   * @param {Object} config
+   */
+  async #initCollaboration({ collaboration: collaborationModuleConfig } = {}) {
+    if (!collaborationModuleConfig) return this.config.documents;
+
+    this.socket = new HocuspocusProviderWebsocket({
+      url: collaborationModuleConfig.url,
+    });
 
     // Initialize global superdoc sync - for comments, etc.
     // TODO: Leaving it in here for reference as this will be complete soon.
@@ -177,29 +183,36 @@ export class Superdoc extends EventEmitter {
 
     // Initialize individual document sync
     const processedDocuments = [];
-    this.documents.forEach((doc) => {
-
+    this.config.documents.forEach((doc) => {
+      this.config.user.color = this.colors[0];
       const options = {
         config: collaborationModuleConfig,
         user: this.config.user,
         documentId: doc.id,
+        socket: this.socket,
+        superdocInstance: this,
       };
 
-      const { provider, socket, ydoc } = createProvider(options);
+      const { provider, ydoc } = createProvider(options);
       doc.provider = provider;
-      doc.socket = socket;
+      doc.socket = this.socket;
       doc.ydoc = ydoc;
+      doc.role = this.config.role;
       provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(this, states));
-
-      console.debug('🦋 [superdoc] Document:', doc);
       processedDocuments.push(doc);
     });
 
-    this.documents = processedDocuments;
+    return processedDocuments;
   }
 
-  broadcastDocumentReady() {
-    this.emit('document-ready');
+  onContentError({ error, editor }) {
+    const { documentId } = editor.options;
+    const doc = this.superdocStore.documents.find((d) => d.id === documentId);
+    this.config.onContentError({ error, editor, documentId: doc.id, file: doc.data });
+  }
+
+  broadcastPdfDocumentReady() {
+    this.emit('pdf-document-ready');
   }
 
   broadcastReady() {
@@ -223,6 +236,10 @@ export class Superdoc extends EventEmitter {
     this.emit('comments-update', type, data);
   }
 
+  broadcastSidebarToggle(isOpened) {
+    this.emit('sidebar-toggle', isOpened);
+  }
+
   log(...args) {
     console.debug('🦋 🦸‍♀️ [superdoc]', ...args);
   }
@@ -235,10 +252,10 @@ export class Superdoc extends EventEmitter {
   addToolbar() {
     const config = {
       element: this.toolbarElement || null,
-      onToolbarCommand: this.onToolbarCommand.bind(this),
       isDev: this.isDev || false,
       toolbarGroups: this.config.toolbarGroups,
-    }
+      role: this.config.role,
+    };
 
     this.toolbar = new SuperToolbar(config);
     this.toolbar.on('superdoc-command', this.onToolbarCommand.bind(this));
@@ -262,12 +279,21 @@ export class Superdoc extends EventEmitter {
       viewing: () => this.#setModeViewing(),
       editing: () => this.#setModeEditing(),
       suggesting: () => this.#setModeSuggesting(),
-    }
+    };
 
     if (types[type]) types[type]();
   }
 
   #setModeEditing() {
+    if (this.config.role !== 'editor') return this.#setModeSuggesting();
+    if (this.superdocStore.documents.length > 0) {
+      const firstEditor = this.superdocStore.documents[0]?.getEditor();
+      if (firstEditor) {
+        this.setActiveEditor(firstEditor);
+        this.toolbar.activeEditor = firstEditor;
+      }
+    }
+
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
@@ -276,6 +302,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeSuggesting() {
+    if (!['editor', 'suggester'].includes(this.config.role)) return this.#setModeViewing();
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
@@ -284,6 +311,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #setModeViewing() {
+    this.toolbar.activeEditor = null;
     this.superdocStore.documents.forEach((doc) => {
       doc.removeComments();
       const editor = doc.getEditor();
@@ -293,10 +321,10 @@ export class Superdoc extends EventEmitter {
 
   /**
    * Set the document to locked or unlocked
-   * @param {boolean} lock 
+   * @param {boolean} lock
    */
   setLocked(lock = true) {
-    this.documents.forEach((doc) => {
+    this.config.documents.forEach((doc) => {
       const metaMap = doc.ydoc.getMap('meta');
       doc.ydoc.transact(() => {
         metaMap.set('locked', lock);
@@ -305,9 +333,21 @@ export class Superdoc extends EventEmitter {
     });
   }
 
+  getHTML() {
+    const editors = [];
+    this.superdocStore.documents.forEach((doc) => {
+      const editor = doc.getEditor();
+      if (editor) {
+        editors.push(editor);
+      }
+    });
+
+    return editors.map((editor) => editor.getHTML());
+  }
+
   /**
    * Lock the current superdoc
-   * @param {Boolean} isLocked 
+   * @param {Boolean} isLocked
    * @param {SuperdocUser} lockedBy The user who locked the superdoc
    */
   lockSuperdoc(isLocked = false, lockedBy) {
@@ -350,7 +390,7 @@ export class Superdoc extends EventEmitter {
             }
           });
           metaMap.set('immediate-save', true);
-        };
+        }
       });
     });
   }
@@ -365,11 +405,19 @@ export class Superdoc extends EventEmitter {
     const result = await Promise.all(savePromises);
     console.debug('🦋 [superdoc] Save complete:', result);
     return result;
-  };
+  }
 
   destroy() {
     if (!this.app) return;
     this.log('[superdoc] Unmounting app');
+
+    this.config.documents.forEach((doc) => {
+      doc.ydoc.destroy();
+      doc.provider.destroy();
+    });
+
+    this.superdocStore.reset();
+
     this.app.unmount();
     this.removeAllListeners();
     delete this.app.config.globalProperties.$config;

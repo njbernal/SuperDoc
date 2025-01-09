@@ -8,15 +8,14 @@ export function orderedListSync(options = {}) {
     key: new PluginKey('orderedListSync'),
 
     appendTransaction: (transactions, oldState, newState) => {
-      let docChanges = transactions.some((tr) => tr.docChanged) 
-        && !oldState.doc.eq(newState.doc);
+      let docChanges = transactions.some((tr) => tr.docChanged) && !oldState.doc.eq(newState.doc);
 
       if (!docChanges) {
         return;
       }
 
       let { doc, tr } = newState;
-      
+
       let listsBySyncId = {};
       doc.descendants((node, pos) => {
         if (node.type.name === 'orderedList' && !!node.attrs.syncId) {
@@ -72,4 +71,4 @@ export function orderedListSync(options = {}) {
       return changed ? tr : null;
     },
   });
-};
+}

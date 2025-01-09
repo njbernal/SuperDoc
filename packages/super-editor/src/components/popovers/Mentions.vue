@@ -14,7 +14,7 @@ const props = defineProps({
     type: Function,
     required: true,
   },
-})
+});
 
 const container = ref(null);
 const activeUserIndex = ref(null);
@@ -32,7 +32,7 @@ const getFilteredUsers = computed(() => {
 
 const handleClick = (user) => {
   props.inserMention(user);
-}
+};
 
 const handleKeydown = (event) => {
   if (event.key === 'ArrowDown') {
@@ -51,12 +51,11 @@ const handleKeydown = (event) => {
       props.inserMention(user);
     }
   }
-}
+};
 
 const handleFocus = () => {
   activeUserIndex.value = 0;
-}
-
+};
 </script>
 
 <template>
@@ -65,15 +64,17 @@ const handleFocus = () => {
     ref="container"
     @keydown.prevent="handleKeydown"
     @focus.stop.prevent="handleFocus"
-    tabindex="0"> 
+    tabindex="0"
+  >
     <div
-        v-for="user, index in getFilteredUsers"
-        @click.stop.prevent="handleClick(user)"
-        @mouseenter="activeUserIndex = index"
-        @mouseleave="activeUserIndex = null"
-        :key="user.email"
-        class="user-row"
-        :class="{ selected: activeUserIndex === index }">
+      v-for="(user, index) in getFilteredUsers"
+      @click.stop.prevent="handleClick(user)"
+      @mouseenter="activeUserIndex = index"
+      @mouseleave="activeUserIndex = null"
+      :key="user.email"
+      class="user-row"
+      :class="{ selected: activeUserIndex === index }"
+    >
       <span>{{ user.name }}</span>
     </div>
   </div>
@@ -81,7 +82,7 @@ const handleFocus = () => {
 
 <style scoped>
 .selected {
-  background-color: #DBDBDB;
+  background-color: #dbdbdb;
 }
 .mentions-container:focus {
   outline: none;

@@ -6,17 +6,18 @@ import { getMarkType } from '../helpers/getMarkType.js';
  * @param typeOrName Mark type or name.
  * @param options.extendEmptyMarkRange Removes the mark even across the current selection.
  */
+//prettier-ignore
 export const unsetMark = (typeOrName, options = {}) => ({ tr, state, dispatch }) => {
   const { extendEmptyMarkRange = false } = options;
   const { selection } = tr;
   const type = getMarkType(typeOrName, state.schema);
   const { $from, empty, ranges } = selection;
-  
+
   if (!dispatch) return true;
 
   if (empty && extendEmptyMarkRange) {
     let { from, to } = selection;
-    const attrs = $from.marks().find(mark => mark.type === type)?.attrs;
+    const attrs = $from.marks().find((mark) => mark.type === type)?.attrs;
     const range = getMarkRange($from, type, attrs);
 
     if (range) {
@@ -34,4 +35,4 @@ export const unsetMark = (typeOrName, options = {}) => ({ tr, state, dispatch })
   tr.removeStoredMark(type);
 
   return true;
-}
+};

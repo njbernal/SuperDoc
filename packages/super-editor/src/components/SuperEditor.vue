@@ -1,18 +1,14 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, shallowRef } from 'vue';
 import { Editor } from '@vue-3/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
+import { observeDomChanges } from './pagination-helpers.js';
 
-const emit = defineEmits([
-  'editor-ready',
-  'comments-loaded',
-  'selection-update'
-]);
+const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
 
 const props = defineProps({
-
   documentId: {
     type: String,
     required: false,
@@ -34,11 +30,12 @@ const props = defineProps({
     required: false,
     default: () => ({}),
   },
-
 });
 
 const editorReady = ref(false);
-const editor = shallowRef();
+const editor = shallowRef(null);
+
+const editorWrapper = ref(null);
 const editorElem = ref(null);
 let dataPollTimeout;
 
@@ -53,7 +50,7 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
     const docx = metaMap.get('docx');
     if (docx) {
       stopPolling();
-      initEditor(docx);
+      initEditor({ content: docx });
     } else if (retries > 0) {
       console.debug(`Waiting for 'docx' data... retries left: ${retries}`);
       dataPollTimeout = setTimeout(checkData, interval); // Retry after the interval
@@ -66,16 +63,22 @@ const pollForMetaMapData = (ydoc, retries = 10, interval = 500) => {
   checkData();
 };
 
+const loadNewFileData = async () => {
+  try {
+    const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(props.fileSource);
+    return { content: docx, media, mediaFiles, fonts };
+  } catch (err) {
+    console.debug('Error loading new file data:', err);
+  }
+};
 
 const initializeData = async () => {
-  let docx = null, media = null;
-
   // If we have the file, initialize immediately from file
   if (props.fileSource) {
-    [docx, media] = await Editor.loadXmlData(props.fileSource);
-    return initEditor(docx, media);
-  } 
-  
+    const fileData = await loadNewFileData();
+    return initEditor(fileData);
+  }
+
   // If we are in collaboration mode, wait for the docx data to be available
   else if (props.options.ydoc && props.options.collaborationProvider) {
     delete props.options.content;
@@ -84,35 +87,69 @@ const initializeData = async () => {
     provider.on('synced', () => {
       pollForMetaMapData(ydoc);
     });
-  } 
+  }
 };
 
-const initEditor = async (content, media = {}) => {
+const getExtensions = () => {
+  const extensions = getStarterExtensions();
+  if (!props.options.pagination) {
+    return extensions.filter(ext => ext.name !== 'pagination');
+  }
+  return extensions;
+};
+
+const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } = {}) => {
   editor.value = new Editor({
     mode: 'docx',
     element: editorElem.value,
     fileSource: props.fileSource,
-    extensions: getStarterExtensions(),
+    extensions: getExtensions(),
     documentId: props.documentId,
     content,
     media,
+    mediaFiles,
+    fonts,
     users: [], // For comment @-mentions, only users that have access to the document
     ...props.options,
-    onCollaborationReady,
+  });
+
+  editor.value.on('collaborationReady', () => {
+    setTimeout(() => {
+      editorReady.value = true;
+    }, 150);
   });
 };
 
-const onCollaborationReady = (data) => {
-  editorReady.value = true; 
+const handleSuperEditorKeydown = (event) => {
+  emit('editor-keydown', { editor: editor.value });
 };
 
-onMounted(() => {
-  initializeData();
+const handleSuperEditorClick = (event) => {
+  emit('editor-click', { editor: editor.value });
+  let pmElement = editorElem.value?.querySelector('.ProseMirror');
 
+  if (!pmElement || !editor.value) {
+    return;
+  }
+
+  let isInsideEditor = pmElement.contains(event.target);
+
+  if (!isInsideEditor && editor.value.isEditable) {
+    editor.value.view?.focus();
+  }
+};
+
+let paginationObserver;
+onMounted(() => {
+  // Initialize pagination observer if pagination is enabled
+  if (props.options?.pagination) paginationObserver = observeDomChanges(editorWrapper, editor);
+
+  initializeData();
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
 
 onBeforeUnmount(() => {
+  paginationObserver?.disconnect();
   stopPolling();
   editor.value?.destroy();
   editor.value = null;
@@ -120,44 +157,50 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor" v-show="editorReady">
-    <div ref="editorElem" class="editor-element"></div>
-  </div>
-
-  <div class="placeholder-editor" v-if="!editorReady">
-    <div class="placeholder-title">
-      <n-skeleton text style="width: 60%" />
+  <div class="super-editor-component-wrapper">
+    <div class="super-editor" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick" ref="editorWrapper">
+      <div ref="editorElem" class="editor-element"></div>
     </div>
 
-    <n-skeleton text :repeat="6" />
-    <n-skeleton text style="width: 60%" />
+    <div class="placeholder-editor" v-if="!editorReady">
+      <div class="placeholder-title">
+        <n-skeleton text style="width: 60%" />
+      </div>
 
-    <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px;"/>
-    <n-skeleton text style="width: 60%" />
-    <n-skeleton text :repeat="5" />
-    <n-skeleton text style="width: 30%" />
+      <n-skeleton text :repeat="6" />
+      <n-skeleton text style="width: 60%" />
 
-    <n-skeleton text style="margin-top: 50px;" />
-    <n-skeleton text :repeat="6" />
-    <n-skeleton text style="width: 70%" />
+      <n-skeleton text :repeat="6" style="width: 30%; display: block; margin: 20px" />
+      <n-skeleton text style="width: 60%" />
+      <n-skeleton text :repeat="5" />
+      <n-skeleton text style="width: 30%" />
+
+      <n-skeleton text style="margin-top: 50px" />
+      <n-skeleton text :repeat="6" />
+      <n-skeleton text style="width: 70%" />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.super-editor {
-  box-sizing: border-box;
-  display: inline-block;
+.super-editor-component-wrapper {
   position: relative;
-  min-width: 8.5in;
   min-height: 11in;
+  min-width: 8in;
+  margin: 0;
+  padding: 0;
 }
 .placeholder-editor {
+  position: absolute;
+  top: 0;
+  left: 0;
   box-sizing: border-box;
-  width: 8.5in;
-  height: 11in;
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
-  border: 1px solid #ccc;
   padding: 1in;
+  z-index: 5;
+  background-color: white;
 }
 .placeholder-title {
   display: flex;

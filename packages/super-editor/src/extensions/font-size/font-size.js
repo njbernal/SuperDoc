@@ -1,9 +1,9 @@
 import { Extension } from '@core/index.js';
-import { parseSizeUnit } from '@core/utilities/index.js';
+import { parseSizeUnit, minMax } from '@core/utilities/index.js';
 
 /**
  * Do we need a unit conversion system?
- * 
+ *
  * For reference.
  * https://github.com/remirror/remirror/tree/HEAD/packages/remirror__extension-font-size
  * https://github.com/remirror/remirror/blob/83adfa93f9a320b6146b8011790f27096af9340b/packages/remirror__core-utils/src/dom-utils.ts
@@ -17,8 +17,10 @@ export const FontSize = Extension.create({
       defaults: {
         value: 12,
         unit: 'pt',
+        min: 8,
+        max: 96,
       },
-    }
+    };
   },
 
   addGlobalAttributes() {
@@ -39,23 +41,34 @@ export const FontSize = Extension.create({
           },
         },
       },
-    ]
+    ];
   },
 
   addCommands() {
     return {
-      setFontSize: (fontSize) => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontSize })
-          .run();
-      },
+      setFontSize:
+        (fontSize) =>
+        ({ chain }) => {
+          let [value, unit] = parseSizeUnit(fontSize);
 
-      unsetFontSize: () => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontSize: null })
-          .removeEmptyTextStyle()
-          .run();
-      },
+          if (Number.isNaN(value)) {
+            return false;
+          }
+
+          let { min, max, unit: defaultUnit } = this.options.defaults;
+          value = minMax(value, min, max);
+          unit = unit ? unit : defaultUnit;
+
+          return chain()
+            .setMark('textStyle', { fontSize: `${value}${unit}` })
+            .run();
+        },
+
+      unsetFontSize:
+        () =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run();
+        },
     };
   },
 });

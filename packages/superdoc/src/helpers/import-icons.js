@@ -1,4 +1,4 @@
-import { library } from '@fortawesome/fontawesome-svg-core'
+import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faComment,
   faItalic,
@@ -27,7 +27,7 @@ import {
   faMagnifyingGlassPlus,
   faTextHeight,
   faPalette,
-  faTextSlash
+  faTextSlash,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(

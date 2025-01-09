@@ -26,7 +26,7 @@ export const ListItem = Node.create({
   renderDOM({ htmlAttributes }) {
     return ['li', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
-  
+
   addAttributes() {
     return {
       // Virtual attribute.
@@ -35,19 +35,19 @@ export const ListItem = Node.create({
         renderDOM: (attrs) => {
           let { listLevel, listNumberingType, lvlText } = attrs;
           let hasListLevel = !!listLevel?.length;
-          
+
           if (!hasListLevel || !lvlText) {
             return {};
           }
 
-          // MS Word has many custom ordered list options. 
+          // MS Word has many custom ordered list options.
           // We need to generate the correct index here.
-          let orderMarker = generateOrderedListIndex({ 
-            listLevel, 
-            lvlText, 
-            listNumberingType, 
+          let orderMarker = generateOrderedListIndex({
+            listLevel,
+            lvlText,
+            listNumberingType,
           });
-          
+
           if (!orderMarker) return {};
 
           return {
@@ -56,7 +56,7 @@ export const ListItem = Node.create({
         },
       },
 
-      lvlText: { 
+      lvlText: {
         default: null,
         rendered: false,
       },
@@ -72,20 +72,26 @@ export const ListItem = Node.create({
       },
 
       // JC = justification. Expect left, right, center
-      lvlJc: { 
+      lvlJc: {
         default: null,
         rendered: false,
       },
-      
+
       // This will contain indentation and space info.
       // ie: w:left (left indent), w:hanging (hanging indent)
-      listParagraphProperties: { 
+      listParagraphProperties: {
         default: null,
         rendered: false,
       },
 
       // This will contain run properties for the list item
-      listRunProperties: { 
+      listRunProperties: {
+        default: null,
+        rendered: false,
+      },
+
+      // numbering.xml reference id
+      numId: {
         default: null,
         rendered: false,
       },
@@ -108,23 +114,15 @@ export const ListItem = Node.create({
         ]);
       },
       Tab: () => {
-        return this.editor.chain()
-          .sinkListItem(this.name)
-          .updateOrderedListStyleType()
-          .run();
+        return this.editor.chain().sinkListItem(this.name).updateOrderedListStyleType().run();
       },
       'Shift-Tab': () => {
-        return this.editor.chain()
-          .liftListItem(this.name)
-          .updateOrderedListStyleType()
-          .run();
+        return this.editor.chain().liftListItem(this.name).updateOrderedListStyleType().run();
       },
     };
   },
 
   addPmPlugins() {
-    return [
-      styledListMarkerPlugin(),
-    ];
+    return [styledListMarkerPlugin()];
   },
 });

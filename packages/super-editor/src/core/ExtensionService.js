@@ -1,12 +1,10 @@
-
 import { keymap } from 'prosemirror-keymap';
 import { Schema } from './Schema.js';
 import { Attribute } from './Attribute.js';
 import { getNodeType } from './helpers/getNodeType.js';
 import { getExtensionConfigField } from './helpers/getExtensionConfigField.js';
-import { getSchemaTypeByName } from './helpers/getSchemaTypeByName.js'
+import { getSchemaTypeByName } from './helpers/getSchemaTypeByName.js';
 import { callOrGet } from './utilities/callOrGet.js';
-
 
 /**
  * ExtensionService is the main class to work with extensions.
@@ -55,7 +53,7 @@ export class ExtensionService {
     return extensions.sort((a, b) => {
       const priorityA = getExtensionConfigField(a, 'priority') || defaultValue;
       const priorityB = getExtensionConfigField(b, 'priority') || defaultValue;
-      if (priorityA > priorityB) return - 1;
+      if (priorityA > priorityB) return -1;
       if (priorityA < priorityB) return 1;
       return 0;
     });
@@ -87,9 +85,9 @@ export class ExtensionService {
 
       const addCommands = getExtensionConfigField(extension, 'addCommands', context);
       if (addCommands) {
-        commandsObject = { 
-          ...commandsObject, 
-          ...addCommands() 
+        commandsObject = {
+          ...commandsObject,
+          ...addCommands(),
         };
       }
     }
@@ -106,39 +104,41 @@ export class ExtensionService {
     const editor = this.editor;
     const extensions = ExtensionService.sortByPriority([...this.extensions].reverse());
 
-    const allPlugins = extensions.map((extension) => {
-      const context = {
-        name: extension.name,
-        options: extension.options,
-        storage: extension.storage,
-        editor,
-        type: getSchemaTypeByName(extension.name, this.schema),
-      };
+    const allPlugins = extensions
+      .map((extension) => {
+        const context = {
+          name: extension.name,
+          options: extension.options,
+          storage: extension.storage,
+          editor,
+          type: getSchemaTypeByName(extension.name, this.schema),
+        };
 
-      const plugins = [];
+        const plugins = [];
 
-      const addShortcuts = getExtensionConfigField(extension, 'addShortcuts', context);
+        const addShortcuts = getExtensionConfigField(extension, 'addShortcuts', context);
 
-      let bindingsObject = {};
+        let bindingsObject = {};
 
-      if (addShortcuts) {
-        const entries = Object.entries(addShortcuts()).map(([shortcut, method]) => {
-          return [shortcut, (...args) => method({ editor, keymapArgs: args })];
-        });
-        bindingsObject = { ...Object.fromEntries(entries) };
-      }
+        if (addShortcuts) {
+          const entries = Object.entries(addShortcuts()).map(([shortcut, method]) => {
+            return [shortcut, (...args) => method({ editor, keymapArgs: args })];
+          });
+          bindingsObject = { ...Object.fromEntries(entries) };
+        }
 
-      plugins.push(keymap(bindingsObject));
-      
-      const addPmPlugins = getExtensionConfigField(extension, 'addPmPlugins', context);
+        plugins.push(keymap(bindingsObject));
 
-      if (addPmPlugins) {
-        const pmPlugins = addPmPlugins();
-        plugins.push(...pmPlugins);
-      }
+        const addPmPlugins = getExtensionConfigField(extension, 'addPmPlugins', context);
 
-      return plugins;
-    }).flat();
+        if (addPmPlugins) {
+          const pmPlugins = addPmPlugins();
+          plugins.push(...pmPlugins);
+        }
+
+        return plugins;
+      })
+      .flat();
 
     return [...allPlugins];
   }
@@ -207,13 +207,13 @@ export class ExtensionService {
           this.splittableMarks.push(extension.name);
         }
       }
-      
+
       this.#attachEditorEvents(extension);
     }
   }
 
   /**
-   * Attach editor events to extension 
+   * Attach editor events to extension
    * if callbacks are defined in the extension config.
    * @param extension Extension.
    */
@@ -244,4 +244,4 @@ export class ExtensionService {
     if (onBlur) this.editor.on('blur', onBlur);
     if (onDestroy) this.editor.on('destroy', onDestroy);
   }
-};
+}

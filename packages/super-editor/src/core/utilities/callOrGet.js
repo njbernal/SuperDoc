@@ -10,6 +10,6 @@ export function callOrGet(value, context = null, ...props) {
     if (context) return value.bind(context)(...props);
     return value(...props);
   }
-  
+
   return value;
 }

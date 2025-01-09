@@ -28,20 +28,19 @@ const groupContainer = ref(null);
 const { getCommentLocation } = commentsStore;
 const { activeComment } = storeToRefs(commentsStore);
 const getSidebarCommentStyle = computed(() => {
-
   if (!props.data.length) return;
   const topOffset = 10;
 
   const activeCommentId = activeComment.value;
   let activeCommentObject = props.data.find((c) => c.conversationId === activeCommentId);
   if (!activeCommentObject) activeCommentObject = props.data[0];
-  
+
   const location = getCommentLocation(activeCommentObject.selection, props.parent);
   if (!location) return {};
 
   const style = {
     top: location.top - topOffset + 'px',
-  }
+  };
 
   if (props.data.isFocused) {
     style.backgroundColor = 'white';
@@ -55,12 +54,12 @@ const isExpanded = ref(false);
 const getNumberOfConversations = computed(() => props.data.length);
 const handleClick = () => {
   isExpanded.value = !isExpanded.value;
-}
+};
 const handleClickOutside = (e) => {
   const dialogClasses = ['group-collapsed', 'number-bubble'];
   if (dialogClasses.some((c) => e.target.classList.contains(c))) return;
   isExpanded.value = false;
-}
+};
 
 const isActiveGroup = computed(() => {
   return props.data.some((c) => c.conversationId === activeComment.value);
@@ -73,10 +72,7 @@ const getVisibleComments = computed(() => {
 </script>
 
 <template>
-  <div class="comments-group"
-      :style="getSidebarCommentStyle"
-      @click="handleClick"
-      v-if="!isExpanded && !isActiveGroup">
+  <div class="comments-group" :style="getSidebarCommentStyle" @click="handleClick" v-if="!isExpanded && !isActiveGroup">
     <div class="group-collapsed">
       <div class="number-bubble">{{ getNumberOfConversations }}</div>
       <!-- TODO
@@ -86,19 +82,21 @@ const getVisibleComments = computed(() => {
   </div>
 
   <div
-      class="comments-group expanded"
-      v-else
-      :style="getSidebarCommentStyle"
-      v-click-outside="handleClickOutside"
-      ref="groupContainer">
-    <template v-for="convo in getVisibleComments"> 
+    class="comments-group expanded"
+    v-else
+    :style="getSidebarCommentStyle"
+    v-click-outside="handleClickOutside"
+    ref="groupContainer"
+  >
+    <template v-for="convo in getVisibleComments">
       <CommentDialog
-          class="comment-box"
-          :data-id="convo.conversationId"
-          :data="convo"
-          :user="props.user"
-          :current-document="currentDocument"
-          :show-grouped="true" />
+        class="comment-box"
+        :data-id="convo.conversationId"
+        :data="convo"
+        :user="props.user"
+        :current-document="currentDocument"
+        :show-grouped="true"
+      />
     </template>
   </div>
 </template>
@@ -114,8 +112,8 @@ const getVisibleComments = computed(() => {
   width: 50px;
   height: 50px;
   font-weight: 400;
-  background-color: #E2E9FB;
-  color: #1355FF;
+  background-color: #e2e9fb;
+  color: #1355ff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -147,11 +145,11 @@ const getVisibleComments = computed(() => {
   width: 51px;
 }
 .comments-icon:hover {
-  background-color: #E2E9FB99;
+  background-color: #e2e9fb99;
 }
 .expanded {
   flex-direction: column;
-  background-color: #EDEDED;
+  background-color: #ededed;
   z-index: 11;
   width: 300px;
 }

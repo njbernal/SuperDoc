@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - '.github/**'
   workflow_dispatch:
 
 permissions:
@@ -42,6 +43,7 @@ jobs:
       - name: Update versions
         run: |
           cd packages/superdoc
+          cp ../../README.md README.md
           npm version patch
           git add .
           git commit -m "[skip ci] Bump version"

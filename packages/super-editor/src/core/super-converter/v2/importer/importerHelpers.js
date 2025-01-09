@@ -1,6 +1,5 @@
-import { handleStyleChangeMarks, parseMarks } from "./markImporter.js";
-import { SuperConverter } from "../../SuperConverter.js";
-
+import { handleStyleChangeMarks, parseMarks } from './markImporter.js';
+import { SuperConverter } from '../../SuperConverter.js';
 
 /**
  *
@@ -22,7 +21,7 @@ export function parseProperties(node, docx) {
   // Get the marks from the run properties
   if (runProperties && runProperties?.elements?.length) {
     marks.push(...parseMarks(runProperties, unknownMarks));
-  };
+  }
 
   if (paragraphProperties && paragraphProperties.elements?.length) {
     marks.push(...parseMarks(paragraphProperties, unknownMarks));
@@ -37,29 +36,32 @@ export function parseProperties(node, docx) {
     const styleTag = paragraphProperties.elements.find((el) => el.name === 'w:pStyle');
     if (styleTag && docx) {
       const styleId = styleTag.attributes['w:val'];
-      const styleDoc = docx['word/styles.xml']
-      const styles = styleDoc.elements[0].elements.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === styleId);
+      const styleDoc = docx['word/styles.xml'];
+      const styles = styleDoc?.elements[0].elements.find(
+        (el) => el.name === 'w:style' && el.attributes['w:styleId'] === styleId,
+      );
 
-      const stylepPr = styles.elements.find((el) => el.name === 'w:pPr');
-      marks.push(...parseMarks(stylepPr, unknownMarks));
+      const stylepPr = styles?.elements.find((el) => el.name === 'w:pPr');
+      if (stylepPr) marks.push(...parseMarks(stylepPr, unknownMarks));
 
-      const stylerPr = styles.elements.find((el) => el.name === 'w:rPr');
-      marks.push(...parseMarks(stylerPr, unknownMarks));
+      const stylerPr = styles?.elements.find((el) => el.name === 'w:rPr');
+      if (stylerPr) marks.push(...parseMarks(stylerPr, unknownMarks));
     }
-  };
+  }
 
   // If this is a paragraph, don't apply marks but apply attributes directly
   if (marks && node.name === 'w:p') {
     marks.forEach((mark) => {
-      const attrValue = Object.keys(mark.attrs)[0];
-      const value = mark.attrs[attrValue];
-      attributes[attrValue] = value;
+      const attrValue = Object.keys(mark.attrs ?? {})[0];
+      if (attrValue) {
+        const value = mark.attrs[attrValue];
+        attributes[attrValue] = value;
+      }
     });
   }
 
-  return { elements: nodes, attributes, marks, unknownMarks }
+  return { elements: nodes, attributes, marks, unknownMarks };
 }
-
 
 /**
  *
@@ -77,7 +79,7 @@ function splitElementsAndProperties(elements) {
     paragraphProperties: pPr,
     runProperties: rPr,
     sectionProperties: sectPr,
-  }
+  };
 }
 
 /**
@@ -88,7 +90,6 @@ function splitElementsAndProperties(elements) {
 export function getElementName(element) {
   return SuperConverter.allowedElements[element.name || element.type];
 }
-
 
 /**
  *

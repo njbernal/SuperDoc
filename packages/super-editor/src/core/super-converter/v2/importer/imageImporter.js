@@ -1,9 +1,9 @@
-import { emuToPixels } from "../../helpers.js";
+import { emuToPixels } from '../../helpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChange, filename) => {
   if (nodes.length === 0 || nodes[0].name !== 'w:drawing') {
     return { nodes: [], consumed: 0 };
   }
@@ -12,7 +12,7 @@ export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChang
   let result;
   const { elements } = node;
 
-  const currentFileName = null;
+  const currentFileName = filename || null;
 
   // Some images are identified by wp:anchor
   const isAnchor = elements.find((el) => el.name === 'wp:anchor');
@@ -22,7 +22,7 @@ export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChang
   const inlineImage = elements.find((el) => el.name === 'wp:inline');
   if (inlineImage) result = handleImageImport(inlineImage, currentFileName, docx);
   return { nodes: result ? [result] : [], consumed: 1 };
-}
+};
 
 export function handleImageImport(node, currentFileName, docx) {
   const { attributes } = node;
@@ -36,8 +36,8 @@ export function handleImageImport(node, currentFileName, docx) {
   const extent = node.elements.find((el) => el.name === 'wp:extent');
   const size = {
     width: emuToPixels(extent.attributes['cx']),
-    height: emuToPixels(extent.attributes['cy'])
-  }
+    height: emuToPixels(extent.attributes['cy']),
+  };
 
   const graphic = node.elements.find((el) => el.name === 'a:graphic');
   const graphicData = graphic.elements.find((el) => el.name === 'a:graphicData');
@@ -49,17 +49,17 @@ export function handleImageImport(node, currentFileName, docx) {
   const blip = blipFill.elements.find((el) => el.name === 'a:blip');
 
   const positionHTag = node.elements.find((el) => el.name === 'wp:positionH');
-  const positionH = positionHTag?.elements.find((el) => el.name === 'wp:posOffset')
+  const positionH = positionHTag?.elements.find((el) => el.name === 'wp:posOffset');
   const positionHValue = emuToPixels(positionH?.elements[0]?.text);
 
   const positionVTag = node.elements.find((el) => el.name === 'wp:positionV');
-  const positionV = positionVTag?.elements.find((el) => el.name === 'wp:posOffset')
+  const positionV = positionVTag?.elements.find((el) => el.name === 'wp:posOffset');
   const positionVValue = emuToPixels(positionV?.elements[0]?.text);
 
   const marginOffset = {
     left: positionHValue,
     top: positionVValue,
-  }
+  };
 
   const { attributes: blipAttributes } = blip;
   const rEmbed = blipAttributes['r:embed'];
@@ -84,8 +84,15 @@ export function handleImageImport(node, currentFileName, docx) {
       padding,
       marginOffset,
       size,
-    }
-  }
+      originalPadding: {
+        distT: attributes['distT'],
+        distB: attributes['distB'],
+        distL: attributes['distL'],
+        distR: attributes['distR'],
+      },
+      rId: relAttributes['Id'],
+    },
+  };
 }
 
 /**
@@ -93,5 +100,5 @@ export function handleImageImport(node, currentFileName, docx) {
  */
 export const drawingNodeHandlerEntity = {
   handlerName: 'drawingNodeHandler',
-  handler: handleDrawingNode
+  handler: handleDrawingNode,
 };

@@ -30,24 +30,24 @@ const generateNumbering = (path, lvlText, formatter) => {
 
 /**
  * Convert a number to a roman numeral
- * @param {Integer} num 
+ * @param {Integer} num
  * @returns {String}
  */
 const intToRoman = (num) => {
   const romanNumeralMap = [
-      { value: 1000, numeral: 'M' },
-      { value: 900, numeral: 'CM' },
-      { value: 500, numeral: 'D' },
-      { value: 400, numeral: 'CD' },
-      { value: 100, numeral: 'C' },
-      { value: 90, numeral: 'XC' },
-      { value: 50, numeral: 'L' },
-      { value: 40, numeral: 'XL' },
-      { value: 10, numeral: 'X' },
-      { value: 9, numeral: 'IX' },
-      { value: 5, numeral: 'V' },
-      { value: 4, numeral: 'IV' },
-      { value: 1, numeral: 'I' }
+    { value: 1000, numeral: 'M' },
+    { value: 900, numeral: 'CM' },
+    { value: 500, numeral: 'D' },
+    { value: 400, numeral: 'CD' },
+    { value: 100, numeral: 'C' },
+    { value: 90, numeral: 'XC' },
+    { value: 50, numeral: 'L' },
+    { value: 40, numeral: 'XL' },
+    { value: 10, numeral: 'X' },
+    { value: 9, numeral: 'IX' },
+    { value: 5, numeral: 'V' },
+    { value: 4, numeral: 'IV' },
+    { value: 1, numeral: 'I' },
   ];
 
   let result = '';
@@ -69,9 +69,9 @@ const intToAlpha = (num) => {
   let result = '';
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   while (num > 0) {
-      let index = (num - 1) % 26;
-      result = alphabet[index] + result;
-      num = Math.floor((num - 1) / 26);
+    let index = (num - 1) % 26;
+    result = alphabet[index] + result;
+    num = Math.floor((num - 1) / 26);
   }
   return result;
-}
+};

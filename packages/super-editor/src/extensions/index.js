@@ -22,7 +22,7 @@ import { Paragraph } from './paragraph/index.js';
 import { Heading } from './heading/index.js';
 import { CommentRangeStart, CommentRangeEnd, CommentReference } from './comment/index.js';
 import { TabNode } from './tab/index.js';
-import { LineBreak } from './line-break/index.js';
+import { LineBreak, HardBreak } from './line-break/index.js';
 import { Table } from './table/index.js';
 import { TableHeader } from './table-header/index.js';
 import { TableRow } from './table-row/index.js';
@@ -37,9 +37,10 @@ import { TextStyle } from './text-style/text-style.js';
 import { Bold } from './bold/index.js';
 import { Italic } from './italic/index.js';
 import { Underline } from './underline/index.js';
+import { Highlight } from './highlight/index.js';
 import { Strike } from './strike/index.js';
 import { Link } from './link/index.js';
-import { TrackInsert, TrackDelete, TrackFormat } from "./track-changes/index.js";
+import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
 
 // Plugins
 import { DecorationClick } from './decoration-click/index.js';
@@ -47,6 +48,7 @@ import { CommentsPlugin } from './comment/index.js';
 import { Placeholder } from './placeholder/index.js';
 import { PopoverPlugin } from './popover-plugin/index.js';
 import { TrackChanges } from "./track-changes/index.js";
+import { Pagination } from "./pagination/index.js";
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
@@ -67,6 +69,7 @@ const getRichTextExtensions = () => [
   Placeholder,
   PopoverPlugin,
   Mention,
+  Highlight,
 ];
 
 const getStarterExtensions = () => {
@@ -89,6 +92,7 @@ const getStarterExtensions = () => {
     OrderedList,
     Paragraph,
     LineBreak,
+    HardBreak,
     RunItem,
     Strike,
     TabNode,
@@ -115,6 +119,8 @@ const getStarterExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
+    Pagination,
+    Highlight
   ];
 };
 
@@ -128,14 +134,16 @@ export {
   OrderedList,
   ListItem,
   Paragraph,
-  CommentRangeStart, 
-  CommentRangeEnd, 
+  CommentRangeStart,
+  CommentRangeEnd,
   CommentReference,
   TabNode,
   LineBreak,
+  HardBreak,
   Bold,
   Italic,
   Underline,
+  Highlight,
   Strike,
   Color,
   FontFamily,

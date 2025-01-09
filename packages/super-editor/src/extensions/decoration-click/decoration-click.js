@@ -1,7 +1,6 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 
-
 export const DecorationClick = Extension.create({
   name: 'decorationClick',
 

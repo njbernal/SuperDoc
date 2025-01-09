@@ -19,18 +19,7 @@ import { TrackDeleteMarkName } from '../constants.js';
  * @param {ReplaceStep} options.originalStep Original step.
  * @param {number} options.originalStepIndex Original step index.
  */
-export const replaceStep = ({
-  state,
-  tr,
-  step,
-  newTr,
-  map,
-  doc,
-  user,
-  date,
-  originalStep,
-  originalStepIndex,
-}) => {
+export const replaceStep = ({ state, tr, step, newTr, map, doc, user, date, originalStep, originalStepIndex }) => {
   const deletionMarkSchema = state.schema.marks[TrackDeleteMarkName];
   const deletionMark = findMark(state, deletionMarkSchema, false);
   const positionTo = deletionMark ? deletionMark.to : step.to;
@@ -64,11 +53,7 @@ export const replaceStep = ({
     });
 
     // We condense it down to a single replace step.
-    const condensedStep = new ReplaceStep(
-      newStep.from,
-      newStep.to,
-      trTemp.doc.slice(newStep.from, mappedNewStepTo),
-    );
+    const condensedStep = new ReplaceStep(newStep.from, newStep.to, trTemp.doc.slice(newStep.from, mappedNewStepTo));
 
     newTr.step(condensedStep);
     const mirrorIndex = map.maps.length - 1;

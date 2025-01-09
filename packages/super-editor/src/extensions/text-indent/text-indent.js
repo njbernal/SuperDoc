@@ -3,7 +3,7 @@ import { parseSizeUnit } from '@core/utilities/index.js';
 
 /**
  * Do we need a unit conversion system?
- * 
+ *
  * For reference.
  * https://remirror.vercel.app/?path=/story/extensions-nodeformatting--basic
  * https://github.com/remirror/remirror/tree/HEAD/packages/remirror__extension-node-formatting
@@ -44,68 +44,76 @@ export const TextIndent = Extension.create({
 
   addCommands() {
     return {
-      setTextIndent: (indent) => ({ commands }) => {
-        if (!indent) return false;
+      setTextIndent:
+        (indent) =>
+        ({ commands }) => {
+          if (!indent) return false;
 
-        return this.options.types
-          .map((type) => commands.updateAttributes(type, { textIndent: indent }))
-          .every((result) => result);
-      },
+          return this.options.types
+            .map((type) => commands.updateAttributes(type, { textIndent: indent }))
+            .every((result) => result);
+        },
 
-      unsetTextIndent: () => ({ commands }) => {
-        return this.options.types
-          .map((type) => commands.resetAttributes(type, 'textIndent'))
-          .every((result) => result);
-      },
+      unsetTextIndent:
+        () =>
+        ({ commands }) => {
+          return this.options.types
+            .map((type) => commands.resetAttributes(type, 'textIndent'))
+            .every((result) => result);
+        },
 
-      increaseTextIndent: () => ({ commands }) => {
-        return this.options.types
-          .map((type) => {
-            let { textIndent } = this.editor.getAttributes(type);
+      increaseTextIndent:
+        () =>
+        ({ commands }) => {
+          return this.options.types
+            .map((type) => {
+              let { textIndent } = this.editor.getAttributes(type);
 
-            if (!textIndent) {
-              let { increment, unit } = this.options.defaults;
-              return commands.updateAttributes(type, { 
-                textIndent: `${increment}${unit}`,
+              if (!textIndent) {
+                let { increment, unit } = this.options.defaults;
+                return commands.updateAttributes(type, {
+                  textIndent: `${increment}${unit}`,
+                });
+              }
+
+              let [value, unit] = parseSizeUnit(textIndent);
+              value = value + this.options.defaults.increment;
+              unit = unit ? unit : this.options.defaults.unit;
+
+              if (Number.isNaN(value)) return false;
+
+              return commands.updateAttributes(type, {
+                textIndent: `${value}${unit}`,
               });
-            }
+            })
+            .every((result) => result);
+        },
 
-            let [value, unit] = parseSizeUnit(textIndent);
-            value = value + this.options.defaults.increment;
-            unit = unit ? unit : this.options.defaults.unit;
+      decreaseTextIndent:
+        () =>
+        ({ commands }) => {
+          return this.options.types
+            .map((type) => {
+              let { textIndent } = this.editor.getAttributes(type);
 
-            if (Number.isNaN(value)) return false;
+              if (!textIndent) return false;
 
-            return commands.updateAttributes(type, { 
-              textIndent: `${value}${unit}`,
-            });
-          })
-          .every((result) => result);
-      },
+              let [value, unit] = parseSizeUnit(textIndent);
+              value = value - this.options.defaults.increment;
+              unit = unit ? unit : this.options.defaults.unit;
 
-      decreaseTextIndent: () => ({ commands }) => {
-        return this.options.types
-          .map((type) => {
-            let { textIndent } = this.editor.getAttributes(type);
-            
-            if (!textIndent) return false;
+              if (Number.isNaN(value)) return false;
 
-            let [value, unit] = parseSizeUnit(textIndent);
-            value = value - this.options.defaults.increment;
-            unit = unit ? unit : this.options.defaults.unit;
+              if (value <= 0) {
+                return commands.unsetTextIndent();
+              }
 
-            if (Number.isNaN(value)) return false;
-
-            if (value <= 0) {
-              return commands.unsetTextIndent();
-            }
-
-            return commands.updateAttributes(type, { 
-              textIndent: `${value}${unit}`,
-            });
-          })
-          .every((result) => result);
-      },
+              return commands.updateAttributes(type, {
+                textIndent: `${value}${unit}`,
+              });
+            })
+            .every((result) => result);
+        },
     };
   },
 });

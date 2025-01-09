@@ -9,7 +9,6 @@ import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 import EditorInputs from './EditorInputs.vue';
 
-
 /* For local dev */
 let superdoc = shallowRef(null);
 let activeEditor = shallowRef(null);
@@ -27,16 +26,11 @@ const handleNewFile = async (file) => {
 };
 
 const init = async () => {
-
   const user = {
     name: 'Super Document Jr.',
     email: 'user@harbourshare.com',
   };
 
-  // const socket = new HocuspocusProviderWebsocket({
-  //   url: 'ws://localhost:3050/docs',
-  // });
-  
   let testId = 'document-123';
   // const testId = "document_6a9fb1e0725d46989bdbb3f9879e9e1b";
   const config = {
@@ -44,9 +38,11 @@ const init = async () => {
     selector: '#superdoc',
     toolbar: 'toolbar',
     // toolbarGroups: ['center'],
-    toolbarGroups: ['left', 'center', 'right'],
+    role: 'editor',
     documentMode: 'editing',
-    isDev: true,
+    toolbarGroups: ['left', 'center', 'right'],
+    pagination: true,
+    // isDev: true,
     user: {
       name: 'Super Document Jr.',
       email: 'user@harbourshare.com',
@@ -55,25 +51,30 @@ const init = async () => {
       {
         data: currentFile.value,
         id: testId,
-        // isNewFile: true,
+        // type: DOCX,
+        isNewFile: true,
       },
     ],
     modules: {
-      'comments': {
+      comments: {
         // readOnly: true,
         // allowResolve: false,
       },
       'hrbr-fields': {},
       // collaboration: {
-      //   providerType: 'hocuspocus',
-      //   server: 'ws://localhost:3050/docs',
-      //   socket,
-      //   token: 'token',
+      //   url: 'ws://localhost:3050/docs/superdoc-id',
       // }
     },
     onEditorCreate,
-  }
+    onContentError,
+    // handleImageUpload: async (file) => url,
+  };
+
   superdoc.value = new Superdoc(config);
+};
+
+const onContentError = ({ editor, error, documentId, file }) => {
+  console.debug('Content error on', documentId, error);
 };
 
 const exportDocx = async () => {
@@ -87,32 +88,32 @@ const exportDocx = async () => {
 };
 
 /* Inputs pane and field annotations */
-const draggedInputId = ref(null)
+const draggedInputId = ref(null);
 const activeSigner = ref(null);
 const signersListInfo = ref([
   {
     signerindex: 0,
-    signername: "Signer 1",
-    signeremail: "signer1@harbourshare.com",
+    signername: 'Signer 1',
+    signeremail: 'signer1@harbourshare.com',
     isactive: true,
-    signercolor: "#016c59",
+    signercolor: '#016c59',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 0,
-    signerid: "signerid-1723657655732-7x1vne6lq1r",
-    iscreator: false
+    signerid: 'signerid-1723657655732-7x1vne6lq1r',
+    iscreator: false,
   },
   {
     signerindex: 1,
-    signername: "Signer 2",
-    signeremail: "signer2@harbourshare.com",
+    signername: 'Signer 2',
+    signeremail: 'signer2@harbourshare.com',
     isactive: true,
-    signercolor: "#6943d0",
+    signercolor: '#6943d0',
     iselementvisible: true,
     signeriseditable: true,
     sortorder: 1,
-    signerid: "signerid-1723657671736-msk8e5qpd0c",
-    iscreator: false
+    signerid: 'signerid-1723657671736-msk8e5qpd0c',
+    iscreator: false,
   },
 ]);
 
@@ -126,11 +127,7 @@ const updateActiveSigner = (signerIdx) => {
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
 
-  editor.on('fieldAnnotationDropped', ({ 
-    sourceField,
-    editor,
-    pos 
-  }) => {
+  editor.on('fieldAnnotationDropped', ({ sourceField, editor, pos }) => {
     console.log('fieldAnnotationDropped', { sourceField });
 
     let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
@@ -153,15 +150,13 @@ const onEditorCreate = ({ editor }) => {
 /* Inputs pane and field annotations */
 
 onMounted(async () => {
-  handleNewFile(await getFileObject(BlankDOCX, 'blank_document.docx', DOCX));
+  handleNewFile(await getFileObject(BlankDOCX, 'test.docx', DOCX));
 });
-
 </script>
 
 <template>
   <div class="dev-app">
     <div class="dev-app__layout">
-
       <div class="dev-app__header">
         <div class="dev-app__header-side dev-app__header-side--left">
           <div class="dev-app__header-title">
@@ -180,16 +175,6 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <div class="dev-app__inputs-panel">
-          <div class="dev-app__inputs-panel-content">
-            <EditorInputs
-              v-bind="{ activeSigner, signersListInfo }" 
-              @dragged-input-id-change="updateDraggedInputId"
-              @active-signer-change="updateActiveSigner"
-            />
-          </div>
-        </div>
-
         <div class="dev-app__view">
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">
@@ -198,7 +183,6 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -213,17 +197,18 @@ onMounted(async () => {
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.05);
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
   margin: 50px;
+  overflow: hidden;
 }
 .superdoc .layers:hover {
   border: 1px solid #0160cc86;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.1);
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
 .superdoc .layers:focus-within {
   border: 1px solid #015fcc;
-  box-shadow:0 0 5px hsla( 0,0%,0%,.3 );
+  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
 }
 </style>
 
@@ -260,9 +245,8 @@ onMounted(async () => {
 }
 
 .dev-app__main {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 300px;
-  overflow-y: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .dev-app__view {

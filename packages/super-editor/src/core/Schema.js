@@ -5,10 +5,9 @@ import { cleanSchemaItem } from './helpers/cleanSchemaItem.js';
 import { callOrGet } from './utilities/callOrGet.js';
 
 /**
- * Schema class is used to create and work with schema. 
+ * Schema class is used to create and work with schema.
  */
 export class Schema {
-
   /**
    * Creates PM schema by resolved extensions.
    * @param extensions List of extensions.
@@ -19,7 +18,7 @@ export class Schema {
     const nodeExtensions = extensions.filter((e) => e.type === 'node');
     const markExtensions = extensions.filter((e) => e.type === 'mark');
     const topNode = nodeExtensions.find((e) => getExtensionConfigField(e, 'topNode'))?.name;
-    
+
     const attributes = Attribute.getAttributesFromExtensions(extensions);
     const nodes = Schema.#createNodesSchema(nodeExtensions, attributes, editor);
     const marks = Schema.#createMarksSchema(markExtensions, attributes, editor);
@@ -44,9 +43,11 @@ export class Schema {
         editor,
       };
 
-      const attrs = Object.fromEntries(extensionAttributes.map((attr) => {
-        return [attr.name, { default: attr?.attribute?.default }];
-      }));
+      const attrs = Object.fromEntries(
+        extensionAttributes.map((attr) => {
+          return [attr.name, { default: attr?.attribute?.default }];
+        }),
+      );
 
       const schema = cleanSchemaItem({
         content: callOrGet(getExtensionConfigField(extension, 'content', context)),
@@ -71,10 +72,11 @@ export class Schema {
 
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
-        schema.toDOM = (node) => renderDOM({ 
-          node,
-          htmlAttributes: Attribute.getAttributesToRender(node, extensionAttributes), 
-        });
+        schema.toDOM = (node) =>
+          renderDOM({
+            node,
+            htmlAttributes: Attribute.getAttributesToRender(node, extensionAttributes),
+          });
       }
 
       const renderText = getExtensionConfigField(extension, 'renderText', context);
@@ -106,9 +108,11 @@ export class Schema {
         editor,
       };
 
-      const attrs = Object.fromEntries(extensionAttributes.map((attr) => {
-        return [attr.name, { default: attr?.attribute?.default }];
-      }));
+      const attrs = Object.fromEntries(
+        extensionAttributes.map((attr) => {
+          return [attr.name, { default: attr?.attribute?.default }];
+        }),
+      );
 
       const schema = cleanSchemaItem({
         group: callOrGet(getExtensionConfigField(extension, 'group', context)),
@@ -127,10 +131,11 @@ export class Schema {
       }
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
-        schema.toDOM = (mark) => renderDOM({ 
-          mark,
-          htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),  
-        });
+        schema.toDOM = (mark) =>
+          renderDOM({
+            mark,
+            htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),
+          });
       }
 
       return [extension.name, schema];

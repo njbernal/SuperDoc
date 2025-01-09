@@ -13,7 +13,7 @@ export const Strike = Mark.create({
     return [
       { tag: 's' },
       { style: 'text-decoration=line-through' },
-      { style: 'text-decoration=auto', clearMark: m => m.type.name == 's' }
+      { style: 'text-decoration=auto', clearMark: (m) => m.type.name == 's' },
     ];
   },
 
@@ -23,15 +23,21 @@ export const Strike = Mark.create({
 
   addCommands() {
     return {
-      setStrike: () => ({ commands }) => {
-        return commands.setMark(this.name)
-      },
-      unsetStrike: () => ({ commands }) => {
-        return commands.unsetMark(this.name)
-      },
-      toggleStrike: () => ({ commands }) => {
-        return commands.toggleMark(this.name);
-      },
+      setStrike:
+        () =>
+        ({ commands }) => {
+          return commands.setMark(this.name);
+        },
+      unsetStrike:
+        () =>
+        ({ commands }) => {
+          return commands.unsetMark(this.name);
+        },
+      toggleStrike:
+        () =>
+        ({ commands }) => {
+          return commands.toggleMark(this.name);
+        },
     };
   },
 

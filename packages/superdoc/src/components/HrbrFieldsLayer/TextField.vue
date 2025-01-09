@@ -21,16 +21,15 @@ const props = defineProps({
 const getStyle = computed(() => {
   const style = { ...props.styleOverride };
   if (!props.isEditing) return style;
-  
+
   // Custom style for text field if editing is enabled
   style.backgroundColor = '#FFF';
   return style;
-})
+});
 
 const handleBlur = (e) => {
   props.field.value.value = e;
-}
-  
+};
 </script>
 
 <template>
@@ -40,14 +39,14 @@ const handleBlur = (e) => {
 </template>
 
 <style scoped>
-  .text-field {
-    white-space: nowrap;
-    height: 100%;
-    width: 100%;
-    border-radius: 2px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    padding: 1px;
-  }
+.text-field {
+  white-space: nowrap;
+  height: 100%;
+  width: 100%;
+  border-radius: 2px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  padding: 1px;
+}
 </style>

@@ -14,26 +14,23 @@ export const TableHeader = Node.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    const attributes = Attribute.mergeAttributes(
-      this.options.htmlAttributes, 
-      htmlAttributes,
-    );
+    const attributes = Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes);
     return ['th', attributes, 0];
   },
 
   addAttributes() {
     return {
-      colspan: { default: 1, },
-      rowspan: { default: 1, },
+      colspan: { default: 1 },
+      rowspan: { default: 1 },
       colwidth: {
         default: null,
-        parseDOM: element => {
-          const colwidth = element.getAttribute('colwidth')
-          const value = colwidth ? [parseInt(colwidth, 10)] : null
-          return value
+        parseDOM: (element) => {
+          const colwidth = element.getAttribute('colwidth');
+          const value = colwidth ? [parseInt(colwidth, 10)] : null;
+          return value;
         },
       },
-    }
+    };
   },
 
   addOptions() {
@@ -43,8 +40,6 @@ export const TableHeader = Node.create({
   },
 
   addShortcuts() {
-    return {
-    };
+    return {};
   },
-
 });

@@ -35,7 +35,7 @@
 
 .tippy-box[data-theme~='popover'] .tippy-arrow {
   color: #fff;
-  border: 1px solid #DBDBDB;
+  border: 1px solid #dbdbdb;
 }
 
 .tippy-box[data-theme~='popover'] {
@@ -51,7 +51,7 @@
 }
 
 .superdoc-at-mention {
-  background-color: #1355FF15;
+  background-color: #1355ff15;
   color: #222;
   font-weight: 400;
   border-radius: 3px;
@@ -60,5 +60,5 @@
   display: inline-block;
 }
 .input-active {
-  border: 1px solid #1355FF !important;
+  border: 1px solid #1355ff !important;
 }

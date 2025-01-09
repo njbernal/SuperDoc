@@ -55,7 +55,7 @@ function getListMarkerDecorations(state) {
     let fontSize = null;
     let fontFamily = null;
 
-    // We iterate over all found textStyle marks 
+    // We iterate over all found textStyle marks
     // and take the first style found.
     textStyleMarks.forEach((mark) => {
       let { attrs } = mark;
@@ -73,17 +73,14 @@ function getListMarkerDecorations(state) {
       }
     });
 
-    let fontSizeAttrs = { 
-      style: `--marker-font-size: ${fontSize ?? 'initial'}`, 
+    let fontSizeAttrs = {
+      style: `--marker-font-size: ${fontSize ?? 'initial'}`,
     };
-    let fontFamilyAttrs = { 
-      style: `--marker-font-family: ${fontFamily ?? 'initial'}`, 
+    let fontFamilyAttrs = {
+      style: `--marker-font-family: ${fontFamily ?? 'initial'}`,
     };
 
-    let attrs = Attribute.mergeAttributes(
-      fontSizeAttrs,
-      fontFamilyAttrs,
-    );
+    let attrs = Attribute.mergeAttributes(fontSizeAttrs, fontFamilyAttrs);
 
     let dec = Decoration.node(pos, pos + node.nodeSize, attrs);
     decorations.push(dec);
@@ -109,7 +106,9 @@ function getListItemTextStyleMarks(listItem, doc, markType) {
 }
 
 function checkListItemEmpty(listItem) {
-  return listItem.childCount === 1 && 
-    listItem.firstChild?.type.name === 'paragraph' && 
-    listItem.firstChild?.content.size === 0;
+  return (
+    listItem.childCount === 1 &&
+    listItem.firstChild?.type.name === 'paragraph' &&
+    listItem.firstChild?.content.size === 0
+  );
 }

@@ -4,8 +4,8 @@ import workerSrc from './helpers/pdfjs-worker.js?raw';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
   new Blob([workerSrc], {
-    type: 'application/javascript'
-  }
-));
+    type: 'application/javascript',
+  }),
+);
 
 export { pdfjsLib, pdfjsViewer };

@@ -9,7 +9,7 @@ import { isNodeActive } from './isNodeActive.js';
  * @param attrs The node or mark attrs.
  * @returns Boolean.
  */
-export function isActive(state, name, attrs = {},) {
+export function isActive(state, name, attrs = {}) {
   if (!name) {
     return isNodeActive(state, null, attrs) || isMarkActive(state, null, attrs);
   }

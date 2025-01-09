@@ -29,17 +29,16 @@ export const Color = Extension.create({
 
   addCommands() {
     return {
-      setColor: (color) => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { 'color': color })
-          .run();
-      },
-      unsetColor: () => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { 'color': null })
-          .removeEmptyTextStyle()
-          .run();
-      },
+      setColor:
+        (color) =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { color: color }).run();
+        },
+      unsetColor:
+        () =>
+        ({ chain }) => {
+          return chain().setMark('textStyle', { color: null }).removeEmptyTextStyle().run();
+        },
     };
   },
 });

@@ -1,21 +1,22 @@
 import JSZip from 'jszip';
-import { getContentTypesFromXml } from "./super-converter/helpers.js";
+import { getContentTypesFromXml } from './super-converter/helpers.js';
 
 /**
  * Class to handle unzipping and zipping of docx files
  */
 class DocxZipper {
-
   constructor(params = {}) {
     this.debug = params.debug || false;
     this.zip = new JSZip();
     this.files = [];
     this.media = {};
+    this.mediaFiles = {};
+    this.fonts = {};
   }
 
-  /** 
-   * Get all docx data from the zipped docx 
-   * 
+  /**
+   * Get all docx data from the zipped docx
+   *
    * [Content_Types].xml
    * _rels/.rels
    * word/document.xml
@@ -39,25 +40,35 @@ class DocxZipper {
     const validTypes = ['xml', 'rels'];
     for (const file of files) {
       const [_, zipEntry] = file;
+
       if (validTypes.some((validType) => zipEntry.name.endsWith(validType))) {
-        const content = await zipEntry.async("string")
+        const content = await zipEntry.async('string');
         this.files.push({
           name: zipEntry.name,
           content,
         });
-      }
-
-      else if (zipEntry.name.startsWith('word/media')) {
+      } else if (zipEntry.name.startsWith('word/media') && zipEntry.name !== 'word/media/') {
         const blob = await zipEntry.async('blob');
+
+        // Create an Object of media Uint8Arrays for collaboration
+        // These will be shared via ydoc
+
+        const extension = this.getFileExtension(zipEntry.name);
+        const fileBase64 = await zipEntry.async('base64');
+        this.mediaFiles[zipEntry.name] = `data:image/${extension};base64,${fileBase64}`;
+
         const file = new File([blob], zipEntry.name, { type: blob.type });
         const imageUrl = URL.createObjectURL(file);
         this.media[zipEntry.name] = imageUrl;
+      } else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
+        const uint8array = await zipEntry.async('uint8array');
+        this.fonts[zipEntry.name] = uint8array;
       }
     }
-    
+
     return this.files;
   }
-  
+
   getFileExtension(fileName) {
     return fileName.split('.').pop();
   }
@@ -66,30 +77,30 @@ class DocxZipper {
    * Update [Content_Types].xml with extensions of new Image annotations
    */
   async updateContentTypes(unzippedOriginalDocx, media) {
-    const newMediaTypes = Object.keys(media).map(name => {
+    const newMediaTypes = Object.keys(media).map((name) => {
       return this.getFileExtension(name);
     });
 
     const contentTypesPath = '[Content_Types].xml';
     const contentTypesXml = await unzippedOriginalDocx.file(contentTypesPath).async('string');
-    let typesString = ''
-    
+    let typesString = '';
+
     const defaultMediaTypes = getContentTypesFromXml(contentTypesXml);
-    
+
+    const seenTypes = new Set();
     for (let type of newMediaTypes) {
       // Current extension already presented in Content_Types
-      if (defaultMediaTypes.includes(type)) return;
-      
+      if (defaultMediaTypes.includes(type)) continue;
+      if (seenTypes.has(type)) continue;
+
       const newContentType = `<Default Extension="${type}" ContentType="image/${type}"/>`;
       typesString += newContentType;
+      seenTypes.add(type);
     }
-    
+
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
 
-    const updatedContentTypesXml = contentTypesXml.replace(
-        beginningString,
-        `${beginningString}${typesString}`
-    );
+    const updatedContentTypesXml = contentTypesXml.replace(beginningString, `${beginningString}${typesString}`);
     unzippedOriginalDocx.file(contentTypesPath, updatedContentTypesXml);
   }
 
@@ -98,15 +109,16 @@ class DocxZipper {
     return zip;
   }
 
-  async updateZip({ docx, updatedDocs, originalDocxFile, media }) {
+  async updateZip({ docx, updatedDocs, originalDocxFile, media, fonts }) {
     const isHeadless = navigator?.isHeadless;
 
     // We use a different re-zip process if we have the original docx vs the docx xml metadata
     let zip;
+
     if (originalDocxFile) {
       zip = await this.exportFromOriginalFile(originalDocxFile, updatedDocs, media);
     } else {
-      zip = await this.exportFromCollaborativeDocx(docx, updatedDocs, media);
+      zip = await this.exportFromCollaborativeDocx(docx, updatedDocs, media, fonts);
     }
 
     // If we are headless we don't have 'blob' support, so export as 'nodebuffer'
@@ -120,7 +132,7 @@ class DocxZipper {
    * @param {Object} updatedDocs An object containing the updated docs (keys are relative file names)
    * @returns {Promise<JSZip>} The unzipped but updated docx file ready for zipping
    */
-  async exportFromCollaborativeDocx(docx, updatedDocs, media) {
+  async exportFromCollaborativeDocx(docx, updatedDocs, media, fonts) {
     const zip = new JSZip();
     for (const file of docx) {
       let content = file.content;
@@ -128,15 +140,21 @@ class DocxZipper {
         content = updatedDocs[file.name];
       }
       zip.file(file.name, content);
-    };
+    }
 
     Object.keys(media).forEach((name) => {
-      zip.file(`word/media/${name}`, media[name]);
+      const binaryData = Buffer.from(media[name], 'base64');
+      zip.file(`word/media/${name}`, binaryData);
     });
+
+    // Export font files
+    for (const [fontName, fontUintArray] of Object.entries(fonts)) {
+      zip.file(fontName, fontUintArray);
+    }
 
     await this.updateContentTypes(zip, media);
     return zip;
-  };
+  }
 
   /**
    * Export the Editor content to a docx file, updating changed docs
@@ -149,7 +167,7 @@ class DocxZipper {
     const unzippedOriginalDocx = await this.unzip(originalDocxFile);
     const filePromises = [];
     unzippedOriginalDocx.forEach((relativePath, zipEntry) => {
-      const promise = zipEntry.async("string").then((content) => {
+      const promise = zipEntry.async('string').then((content) => {
         unzippedOriginalDocx.file(zipEntry.name, content);
       });
       filePromises.push(promise);
@@ -168,7 +186,7 @@ class DocxZipper {
     await this.updateContentTypes(unzippedOriginalDocx, media);
 
     return unzippedOriginalDocx;
-  };
+  }
 }
 
 export default DocxZipper;

@@ -18,9 +18,7 @@ export const EditorFocus = Extension.create({
           focus: (view, event) => {
             editor.isFocused = true;
 
-            const tr = editor.state.tr
-              .setMeta('focus', { event })
-              .setMeta('addToHistory', false);
+            const tr = editor.state.tr.setMeta('focus', { event }).setMeta('addToHistory', false);
 
             view.dispatch(tr);
             return false;
@@ -28,9 +26,7 @@ export const EditorFocus = Extension.create({
           blur: (view, event) => {
             editor.isFocused = false;
 
-            const tr = editor.state.tr
-              .setMeta('blur', { event })
-              .setMeta('addToHistory', false);
+            const tr = editor.state.tr.setMeta('blur', { event }).setMeta('addToHistory', false);
 
             view.dispatch(tr);
             return false;

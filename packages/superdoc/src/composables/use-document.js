@@ -1,13 +1,16 @@
 import { ref, shallowRef, toRaw } from 'vue';
 import { useField } from './use-field';
+import { documentTypes } from '@harbour-enterprises/common';
 import useConversation from '@/components/CommentsLayer/use-conversation';
 
 export default function useDocument(params, superdocConfig) {
   const id = params.id;
+  const type = initDocumentType(params);
+
   const data = params.data;
-  const type = params.type;
   const config = superdocConfig;
   const state = params.state;
+  const role = params.role;
 
   // Placement
   const container = ref(null);
@@ -16,15 +19,29 @@ export default function useDocument(params, superdocConfig) {
 
   // Collaboration
   const ydoc = shallowRef(params.ydoc);
-
   const provider = shallowRef(params.provider);
   const socket = shallowRef(params.socket);
   const isNewFile = ref(params.isNewFile);
 
   // For docx
   const editorRef = shallowRef(null);
-  const setEditor = (ref) => editorRef.value = ref;
+  const setEditor = (ref) => (editorRef.value = ref);
   const getEditor = () => editorRef.value;
+
+  /**
+   * Initialize the mime type of the document
+   * @param {Object} param0 The config object
+   * @param {String} param0.type The type of document
+   * @param {Object} param0.data The data object
+   * @returns {String} The document type
+   * @throws {Error} If the document type is not specified
+   */
+  function initDocumentType({ type, data }) {
+    if (data?.type) return data.type;
+    if (type) return type in documentTypes ? documentTypes[type] : null;
+
+    throw new Error('Document type not specified for doc:', params);
+  }
 
   // Comments
   const removeComments = () => {
@@ -54,7 +71,7 @@ export default function useDocument(params, superdocConfig) {
   const removeConversation = (conversationId) => {
     const index = conversations.value.findIndex((c) => c.conversationId === conversationId);
     if (index > -1) conversations.value.splice(index, 1);
-  }
+  };
 
   return {
     id,
@@ -62,6 +79,7 @@ export default function useDocument(params, superdocConfig) {
     type,
     config,
     state,
+    role,
 
     core,
     ydoc,
@@ -86,5 +104,5 @@ export default function useDocument(params, superdocConfig) {
     removeComments,
     restoreComments,
     removeConversation,
-  }
+  };
 }

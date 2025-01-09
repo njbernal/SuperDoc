@@ -12,31 +12,19 @@ export const TableRow = Node.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    const attributes = Attribute.mergeAttributes(
-      this.options.htmlAttributes, 
-      htmlAttributes,
-    );
+    const attributes = Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes);
     return ['tr', attributes, 0];
   },
 
   addAttributes() {
     return {
-      borders: {
-        renderDOM({ borders = {} }) {
-          if (!borders) return {};
-          const style = Object.entries(borders).reduce((acc, [key, { size, color }]) => {
-            return `${acc}border-${key}: ${size}px solid ${color || 'black'};`;
-          }, '');
-          return { style }
-        }
-      },
       rowHeight: {
         renderDOM({ rowHeight }) {
           if (!rowHeight) return {};
           const style = `height: ${rowHeight}px;`;
           return { style };
         },
-      }
+      },
     };
   },
 
@@ -47,8 +35,6 @@ export const TableRow = Node.create({
   },
 
   addShortcuts() {
-    return {
-    };
+    return {};
   },
-
 });

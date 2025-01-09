@@ -6,12 +6,10 @@
 export function deleteProps(obj, propOrProps) {
   const isString = typeof propOrProps === 'string';
   const props = isString ? [propOrProps] : propOrProps;
-  
-  return Object
-    .keys(obj)
-    .reduce((newObj, prop) => {
-      const contains = props.includes(prop);
-      if (!contains) newObj[prop] = obj[prop];
-      return newObj;
-    }, {});
+
+  return Object.keys(obj).reduce((newObj, prop) => {
+    const contains = props.includes(prop);
+    if (!contains) newObj[prop] = obj[prop];
+    return newObj;
+  }, {});
 }

@@ -1,6 +1,5 @@
 import { Extension } from '@core/index.js';
-import { yCursorPlugin } from 'y-prosemirror'
-import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
+import { yCursorPlugin } from 'y-prosemirror';
 
 export const CollaborationCursor = Extension.create({
   name: 'collaborationCursor',
@@ -13,31 +12,32 @@ export const CollaborationCursor = Extension.create({
       user: {
         name: null,
         color: null,
-      }
-    }
-  }, 
+      },
+    };
+  },
 
   addStorage() {
     return {
       users: [],
-    }
+    };
   },
 
   addPmPlugins() {
     const { collaborationProvider: provider = null } = this.editor.options;
     if (!provider) return [];
 
-    // Track initial users
-    this.storage.users = onAwarenessUpdate(provider);
-
-    // Set the awareness update handler
-    provider.awareness.on('update', () => onAwarenessUpdate(provider));
-    return [yCursorPlugin(provider.awareness)];
-
+    return [yCursorPlugin(provider.awareness, { cursorBuilder: customCursors })];
   },
 });
 
-const onAwarenessUpdate = (provider) => {
-  if (!provider) return;
-  return awarenessStatesToArray(provider.awareness.states)
-}
+const customCursors = (user) => {
+  const cursor = document.createElement('span');
+  cursor.classList.add('ProseMirror-yjs-cursor');
+  cursor.setAttribute('style', `border-color: ${user.color}`);
+
+  const userDiv = document.createElement('div');
+  userDiv.setAttribute('style', `background-color: ${user.color}`);
+  userDiv.insertBefore(document.createTextNode(user.name || user.email), null);
+  cursor.insertBefore(userDiv, null);
+  return cursor;
+};

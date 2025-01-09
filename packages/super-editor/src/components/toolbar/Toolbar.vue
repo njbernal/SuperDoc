@@ -1,6 +1,6 @@
 <script setup>
-import {ref, getCurrentInstance, onMounted, onDeactivated} from 'vue';
-import {throttle} from './helpers.js';
+import { ref, getCurrentInstance, onMounted, onDeactivated } from 'vue';
+import { throttle } from './helpers.js';
 import ButtonGroup from './ButtonGroup.vue';
 
 const { proxy } = getCurrentInstance();
@@ -10,6 +10,11 @@ let toolbarKey = ref(1);
 
 const showLeftSide = proxy.$toolbar.config?.toolbarGroups?.includes('left');
 const showRightSide = proxy.$toolbar.config?.toolbarGroups?.includes('right');
+const excludeButtonsList = proxy.$toolbar.config?.toolbarButtonsExclude || [];
+
+const getFilteredItems = (position) => {
+  return proxy.$toolbar.getToolbarItemByGroup(position).filter((item) => !excludeButtonsList.includes(item.name.value));
+};
 
 onMounted(() => {
   window.addEventListener('resize', onResizeThrottled);
@@ -31,28 +36,25 @@ const handleCommand = ({ item, argument }) => {
 </script>
 
 <template>
-  <div 
-      class="superdoc-toolbar"
-      :key="toolbarKey"
-  >
-    <ButtonGroup 
+  <div class="superdoc-toolbar" :key="toolbarKey">
+    <ButtonGroup
       v-if="showLeftSide"
-      :toolbar-items="proxy.$toolbar.getToolbarItemByGroup('left')" 
-      position="left" 
-      @command="handleCommand" 
-      class="superdoc-toolbar-group-side" 
+      :toolbar-items="getFilteredItems('left')"
+      position="left"
+      @command="handleCommand"
+      class="superdoc-toolbar-group-side"
     />
-    <ButtonGroup 
-      :toolbar-items="proxy.$toolbar.getToolbarItemByGroup('center')" 
+    <ButtonGroup
+      :toolbar-items="getFilteredItems('center')"
       :overflow-items="proxy.$toolbar.overflowItems"
-      position="center" 
-      @command="handleCommand" 
+      position="center"
+      @command="handleCommand"
     />
-    <ButtonGroup 
+    <ButtonGroup
       v-if="showRightSide"
-      :toolbar-items="proxy.$toolbar.getToolbarItemByGroup('right')" 
-      position="right" 
-      @command="handleCommand" 
+      :toolbar-items="getFilteredItems('right')"
+      position="right"
+      @command="handleCommand"
       class="superdoc-toolbar-group-side"
     />
   </div>
@@ -71,10 +73,10 @@ const handleCommand = ({ item, argument }) => {
     min-width: auto !important;
   }
 }
-@media (max-width: 768px)  {
+@media (max-width: 768px) {
   .superdoc-toolbar {
     padding: 4px 10px;
+    justify-content: inherit;
   }
 }
 </style>
-

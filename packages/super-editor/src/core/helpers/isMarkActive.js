@@ -38,13 +38,13 @@ export function isMarkActive(state, typeOrName, attrs = {}) {
       selectionRange += range;
 
       markRanges.push(
-        ...node.marks.map(mark => ({
+        ...node.marks.map((mark) => ({
           mark,
           from: relativeFrom,
           to: relativeTo,
         })),
-      )
-    })
+      );
+    });
   });
 
   if (selectionRange === 0) return false;
