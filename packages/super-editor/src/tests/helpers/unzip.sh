@@ -2,11 +2,13 @@
 
 
 # Unzip a .docx file to the tests directory
-
+# Expects a file path to a docx file and optional second flag to indicate if the data is public safe
+# If is_public_safe is true the data will be included in the git repo
 
 # Check if the file name is provided
 if [ -z "$1" ]; then
-  echo "Usage: unzip.sh /path/to/my/file"
+  echo "Usage: unzip.sh /path/to/my/file [is_public_safe]"
+  echo "is_public_safe: optional flag to indicate if the data is public safe"
   exit 1
 fi
 
@@ -25,7 +27,9 @@ BASE_PATH=./packages/super-editor/src/tests/data
 DIR_PATH=$BASE_PATH/$safe_name
 
 if [ -d "$DIR_PATH" ]; then
-  echo "🚫 The directory $DIR_PATH already exists... exiting."
+  echo "🚫 The directory $DIR_PATH already exists..."
+  echo "🚫 Please try a different file or remove the existing directory"
+  echo "🥡 Done!"
   exit 0
 fi
 
@@ -43,7 +47,20 @@ echo "🥡 Data path: $ABSOLUTE_DATA_PATH"
 echo "🥡 Done!"
 
 # Unless the user explicitly tells us that this data is git-safe, we will gitignore it
+GITIGNORE_PATH=$BASE_PATH/.gitignore
 if [ "$IS_PUBLIC_SAFE" != "true" ]; then
-  GITIGNORE_PATH=$BASE_PATH/.gitignore
-  echo "$safe_name/" >> "$GITIGNORE_PATH"
+  echo "✅ The extracted data has been added to $GITIGNORE_PATH and will not be included in the git repo"
+  echo "✅ If you intend to include it, please remove the folder name from $GITIGNORE_PATH"
+  echo "✅ You can also use the is_public_safe flag to include the data in the git repo next time (add 'true' after the file path)"
+
+  # Add to gitignore
+  ENTRY=$safe_name/
+  if ! grep -Fxq "$ENTRY" "$GITIGNORE_PATH"; then
+    echo "$ENTRY" >> "$GITIGNORE_PATH"
+  fi
+else
+  echo "⚠️ Warning"
+  echo "⚠️ The extracted data will be included in the git repository"
+  echo "⚠️ If you intend to keep it private, please add the folder name to $GITIGNORE_PATH"
 fi
+echo "---"
