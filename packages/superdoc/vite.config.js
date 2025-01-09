@@ -36,7 +36,7 @@ export default defineConfig(({ mode, command}) => {
         fileName: (format) => `superdoc.${format}.js`
       },
       minify: false,
-      sourcemap: false,
+      sourcemap: true,
       rollupOptions: {
         input: {
           'superdoc': 'src/index.js',
