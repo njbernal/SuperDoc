@@ -141,13 +141,13 @@ const createNodeListHandler = (nodeHandlers) => {
 /**
  *
  * @param {XmlNode} node
- * @returns {*}
+ * @returns {Object} The document styles object
  */
 function getDocumentStyles(node, docx, converter) {
-  const sectPr = node.elements.find((n) => n.name === 'w:sectPr');
+  const sectPr = node.elements?.find((n) => n.name === 'w:sectPr');
   const styles = {};
 
-  sectPr.elements.forEach((el) => {
+  sectPr?.elements?.forEach((el) => {
     const { name, attributes } = el;
     switch (name) {
       case 'w:pgSz':

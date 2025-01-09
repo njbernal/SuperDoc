@@ -962,10 +962,15 @@ function translateBookmarkStart(params) {
  * Translate a mark to an XML ready attribute
  *
  * @param {MarkType} mark
- * @returns
+ * @returns {Object} The XML ready mark attribute
  */
 function translateMark(mark) {
   const xmlMark = SuperConverter.markTypes.find((m) => m.type === mark.type);
+  if (!xmlMark) {
+    // TODO: Telemetry
+    return {};
+  }
+
   const markElement = { name: xmlMark.name, attributes: {} };
 
   const { attrs } = mark;
