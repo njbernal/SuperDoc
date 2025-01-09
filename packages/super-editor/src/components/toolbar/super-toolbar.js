@@ -169,13 +169,18 @@ export class SuperToolbar extends EventEmitter {
 
     // Decativate toolbar items if no active editor
     // This will skip buttons that are marked as allowWithoutEditor
-    if (!this.activeEditor || this.documentMode === 'viewing') return this.#deactivateAll();
+    if (!this.activeEditor || this.documentMode === 'viewing') {
+      this.#deactivateAll();
+      return;
+    }
 
     const marks = getActiveFormatting(this.activeEditor);
+
     this.toolbarItems.forEach((item) => {
       item.resetDisabled();
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
+      
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
