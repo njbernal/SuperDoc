@@ -80,8 +80,7 @@ const focusInput = () => {
 };
 
 onMounted(() => {
-  if (!props.showInput) return;
-  focusInput();
+  if (props.showInput) focusInput();
 });
 </script>
 
