@@ -151,7 +151,7 @@ const attachAnnotationEventHandlers = () => {
 /* Inputs pane and field annotations */
 
 const initToolbar = () => {
-  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true });
+  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true });
 };
 
 onMounted(async () => {
