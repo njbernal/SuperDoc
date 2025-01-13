@@ -57,6 +57,7 @@ export class Superdoc extends EventEmitter {
     isDev: false,
 
     // Events
+    onEditorBeforeCreate: () => null,
     onEditorCreate: () => null,
     onEditorDestroy: () => null,
     onContentError: () => null,
@@ -146,6 +147,7 @@ export class Superdoc extends EventEmitter {
   }
 
   #initListeners() {
+    this.on('editorBeforeCreate', this.config.onEditorBeforeCreate);
     this.on('editorCreate', this.config.onEditorCreate);
     this.on('editorDestroy', this.config.onEditorDestroy);
     this.on('ready', this.config.onReady);
@@ -219,6 +221,10 @@ export class Superdoc extends EventEmitter {
     if (this.readyEditors === this.requiredNumberOfEditors) {
       this.emit('ready', { superdoc: this });
     }
+  }
+
+  broadcastEditorBeforeCreate(editor) {
+    this.emit('editorBeforeCreate', { editor });
   }
 
   broadcastEditorCreate(editor) {

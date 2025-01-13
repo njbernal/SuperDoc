@@ -110,6 +110,10 @@ const onCommentsLoaded = ({ comments }) => {
   isReady.value = true;
 };
 
+const onEditorBeforeCreate = ({ editor }) => {
+  proxy.$superdoc.broadcastEditorBeforeCreate(editor);
+};
+
 const onEditorCreate = ({ editor }) => {
   const { documentId } = editor.options;
   const doc = getDocument(documentId);
@@ -284,6 +288,7 @@ const editorOptions = (doc) => {
     colors: proxy.$superdoc.colors,
     role: proxy.$superdoc.config.role,
     documentMode: proxy.$superdoc.config.documentMode,
+    onBeforeCreate: onEditorBeforeCreate,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
     onFocus: onEditorFocus,
