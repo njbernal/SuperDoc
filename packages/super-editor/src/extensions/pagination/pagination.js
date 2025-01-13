@@ -3,6 +3,7 @@ import { EditorView } from "prosemirror-view";
 import { Extension } from '@core/Extension.js';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import { PaginationPluginKey } from './pagination-helpers.js';
+import { CollaborationPluginKey } from '@extensions/collaboration/collaboration.js';
 
 let isDebugging = false;
 
@@ -158,11 +159,12 @@ const calculatePageBreaks = (view, editor, sectionData) => {
   // Under normal docx operation, these are always set
   if (!width || !height) return DecorationSet.empty;
 
+  const ignorePlugins = [CollaborationPluginKey, PaginationPluginKey];
   const { state } = view;
   const cleanState = EditorState.create({
     schema: state.schema,
     doc: state.doc,
-    plugins: state.plugins.filter(plugin => plugin.key !== PaginationPluginKey),
+    plugins: state.plugins.filter((plugin) => ignorePlugins.includes(plugin.key)),
   });
 
   // Create a temporary container with a clean doc to recalculate page breaks
