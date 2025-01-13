@@ -232,15 +232,17 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
 
-  let coords = view.coordsAtPos(doc.content.size);
+  let coords = view?.coordsAtPos(doc.content.size);
+  if (!coords) return [];
 
   /**
    * Iterate through the document, checking for hard page breaks and calculating the page height.
    * If we find a node that extends past where our page should end, we add a page break.
    */
   doc.descendants((node, pos) => {
-    coords = view.coordsAtPos(pos);
-    
+    coords = view?.coordsAtPos(pos);
+    if (!coords) return;
+
     const shouldAddPageBreak = coords.bottom > pageHeightThreshold * scale;
     if (isDebugging && shouldAddPageBreak) {
       console.debug('\t🔴 Adding page break at pos:', pos, 'threshold:', pageHeightThreshold, 'scale', scale);
