@@ -619,10 +619,10 @@ export class Editor extends EventEmitter {
       proseMirror.style.paddingBottom = '1in';
     }
 
-    this.#initMobileStyles(element);
+    this.initMobileStyles(element);
   };
 
-  #initMobileStyles(element) {
+  initMobileStyles(element) {
     if (!element) return;
     const initialWidth = element.offsetWidth;
     const updateScale = () => {
