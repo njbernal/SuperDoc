@@ -1,4 +1,5 @@
-import { Plugin } from 'prosemirror-state';
+import { Plugin, EditorState } from 'prosemirror-state';
+import { EditorView } from "prosemirror-view";
 import { Extension } from '@core/Extension.js';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import { PaginationPluginKey } from './pagination-helpers.js';
@@ -73,10 +74,10 @@ export const Pagination = Extension.create({
           // content size
           shouldUpdate = true;
           if (isDebugging) console.debug('🚀 UPDATE DECORATIONS')
+
           return {
             ...oldState,
             isReadyToInit: shouldInitialize,
-            decorations: DecorationSet.empty,
           };
         },
       },
@@ -129,7 +130,6 @@ const performUpdate = (editor, view, previousDecorations) => {
 
   // Skip updating if decorations haven't changed
   if (!previousDecorations.eq(newDecorations)) {
-    previousDecorations = newDecorations;
     const updateTransaction = view.state.tr.setMeta(
       PaginationPluginKey,
       { decorations: newDecorations }
@@ -158,13 +158,41 @@ const calculatePageBreaks = (view, editor, sectionData) => {
   // Under normal docx operation, these are always set
   if (!width || !height) return DecorationSet.empty;
 
-  // Calculate all page breaks
   const { state } = view;
-  const doc = state.doc;
-  const decorations = [];
-  generateInternalPageBreaks(doc, view, editor, decorations, sectionData);
+  const cleanState = EditorState.create({
+    schema: state.schema,
+    doc: state.doc,
+    plugins: state.plugins.filter(plugin => plugin.key !== PaginationPluginKey),
+  });
 
-  return DecorationSet.create(state.doc, decorations);
+  // Create a temporary container with a clean doc to recalculate page breaks
+  const tempContainer = editor.options.element.cloneNode();
+  if (!tempContainer) return [];
+
+  tempContainer.className = 'temp-container';
+  const HIDDEN_EDITOR_OFFSET_TOP = 0;
+  const HIDDEN_EDITOR_OFFSET_LEFT = 0;
+  tempContainer.style.left = HIDDEN_EDITOR_OFFSET_TOP + 'px';
+  tempContainer.style.top = HIDDEN_EDITOR_OFFSET_LEFT + 'px';
+  tempContainer.style.position = 'fixed';
+  tempContainer.style.visibility = 'hidden';
+
+  document.body.appendChild(tempContainer);
+  const tempView = new EditorView(tempContainer, {
+    state: cleanState,
+    dispatchTransaction: () => {},
+  });
+
+  // Generate decorations on a clean doc
+  editor.initDefaultStyles(tempContainer);
+  const decorations = generateInternalPageBreaks(cleanState.doc, tempView, editor, sectionData);
+
+  // Clean up
+  tempView.destroy();
+  document.body.removeChild(tempContainer);
+
+  // Return a list of page break decorations
+  return DecorationSet.create(view.state.doc, decorations)
 };
 
 
@@ -178,14 +206,13 @@ const calculatePageBreaks = (view, editor, sectionData) => {
  * @param {Object} sectionData The section data from the converter
  * @returns {void} The decorations array is altered in place
  */
-function generateInternalPageBreaks(doc, view, editor, decorations, sectionData) {
+function generateInternalPageBreaks(doc, view, editor, sectionData) {
+  const decorations = [];
   const { pageSize, pageMargins } = editor.converter.pageStyles;
   const pageHeight = pageSize.height * 96; // Convert inches to pixels
-  const pageWidth = pageSize.width * 96; // Convert inches to pixels
   const scale = editor.options.scale;
 
   let currentPageNumber = 1;
-
   let pageHeightThreshold = pageHeight;
   let hardBreakOffsets = 0;
   let footer = null, header = null;
@@ -204,8 +231,6 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
 
   let coords = view.coordsAtPos(doc.content.size);
-  const editorBounds = view.dom.getBoundingClientRect();
-  const editorTop = editorBounds.top;
 
   /**
    * Iterate through the document, checking for hard page breaks and calculating the page height.
@@ -214,7 +239,10 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
   doc.descendants((node, pos) => {
     coords = view.coordsAtPos(pos);
     
-    const shouldAddPageBreak = coords.bottom - editorTop > pageHeightThreshold * scale;
+    const shouldAddPageBreak = coords.bottom > pageHeightThreshold * scale;
+    if (isDebugging && shouldAddPageBreak) {
+      console.debug('\t🔴 Adding page break at pos:', pos, 'threshold:', pageHeightThreshold, 'scale', scale);
+    };
     const isHardBreakNode = node.type.name === 'hardBreak';
 
     // Check if we have a hard page break node
@@ -227,7 +255,7 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
 
       // Calculate and add spacer to push us into a next page
       const prevNodePos = view.coordsAtPos(pos - 1);
-      const bufferHeight = pageHeight - header.headerHeight - footer.footerHeight - prevNodePos.bottom + editorTop;
+      const bufferHeight = pageHeight - header.headerHeight - footer.footerHeight - prevNodePos.bottom;
       const { node: spacingNode } = createFinalPagePadding(bufferHeight);
       const pageSpacer = Decoration.widget(pos, spacingNode, { key: 'stable-key' });
       decorations.push(pageSpacer);
@@ -263,8 +291,10 @@ function generateInternalPageBreaks(doc, view, editor, decorations, sectionData)
   editor.element.style.minHeight = editorHeight + 'px';
   const pm = editor.element.querySelector('.ProseMirror');
   pm.style.height = editorHeight + 'px';
-}
 
+  // Return the widget decorations array
+  return decorations;
+}
 
 /**
  * Create final page padding in order to extend the last page to the full height of the document
