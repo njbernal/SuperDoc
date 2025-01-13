@@ -832,6 +832,7 @@ export class Editor extends EventEmitter {
       originalDocxFile: this.options.fileSource,
       media,
       fonts: this.options.fonts,
+      isHeadless: this.options.isHeadless,
     });
 
     return result;
