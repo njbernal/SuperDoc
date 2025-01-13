@@ -15,6 +15,22 @@ export const Pagination = Extension.create({
     };
   },
 
+  addCommands() {
+    return {
+      insertPageBreak: () => ({ commands }) => {
+        return commands.insertContent({
+          type: 'hardBreak',
+        });
+      }
+    }
+  },
+
+  addShortcuts() {
+    return {
+      'Mod-Enter': () => this.editor.commands.insertPageBreak(),
+    };
+  },
+
   /**
    * The pagination plugin is responsible for calculating page breaks, and redering them using decorations.
    */

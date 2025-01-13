@@ -261,6 +261,7 @@ export class Superdoc extends EventEmitter {
       isDev: this.isDev || false,
       toolbarGroups: this.config.toolbarGroups,
       role: this.config.role,
+      pagination: this.config.pagination,
     };
 
     this.toolbar = new SuperToolbar(config);
