@@ -9,10 +9,9 @@
   "github": {
     "release": true,
     "releaseName": "Release v${version}",
-    "releaseNotes": null,
     "autoGenerate": true,
     "draft": false,
-    "tokenRef": "SUPERDOC_PAT"
+    "tokenRef": "GITHUB_TOKEN"
   },
   "npm": {
     "publish": true,
@@ -25,7 +24,9 @@
     }
   },
   "hooks": {
-    "before:init": ["npm run build"],
+    "before:init": [
+      "npm run build"
+    ],
     "after:release": "echo Successfully released ${name} v${version} to npm."
   }
 }

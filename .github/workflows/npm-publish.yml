@@ -6,7 +6,7 @@ on:
       - main
     paths-ignore:
       - '*.md'
-      - 'LICENSE'      
+      - 'LICENSE'
       - '.github/**'
       - '.vscode/**'
       - '.gitignore'
@@ -44,19 +44,17 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
-        run: |
-          npm install
-          npm install -g release-it @release-it/conventional-changelog
+        run: npm install
 
-      - name: Copy README to package
+      - name: Copy and commit README
         run: |
           cd packages/superdoc
           cp ../../README.md README.md
+          git add README.md
+          git commit -m "chore: update package README [skip ci]" || true
 
       - name: Release
-        working-directory: ./packages/superdoc
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          release-it --ci
+        run: npm run release:superdoc
