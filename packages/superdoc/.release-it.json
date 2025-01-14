@@ -27,9 +27,6 @@
     "before:init": [
       "npm run build"
     ],
-    "after:git:release": [
-      "npm publish --access public"
-    ],
     "after:release": "echo Successfully released v${version}"
   }
 }
