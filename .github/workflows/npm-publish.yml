@@ -5,8 +5,16 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'README.md'
+      - '*.md'
+      - 'LICENSE'      
       - '.github/**'
+      - '.vscode/**'
+      - '.gitignore'
+      - '*.toml'
+      - '*.yml'
+      - '*.yaml'
+      - '.prettierrc'
+
   workflow_dispatch:
 
 permissions:
