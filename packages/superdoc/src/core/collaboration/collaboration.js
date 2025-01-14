@@ -65,21 +65,12 @@ const onAuthenticationFailed = (data) => {
   console.warn('🔒 [superdoc] Authentication failed', data);
 };
 
-const getEditor = (superdocInstance) => {
-  return superdocInstance.superdocStore.documents[0].getEditor();
-};
-
 const onConnect = (superdocInstance) => {
-  const editor = getEditor(superdocInstance);
   console.warn('🔌 [superdoc] Connected -- ', superdocInstance.config.documents[0]);
-  if (superdocInstance.config.documents[0]?.hasDisconnected) editor?.view?.destroy();
 };
 
 const onDisconnect = (superdocInstance) => {
   console.warn('🔌 [superdoc] Disconnected', superdocInstance.config.documents[0]);
-  const editor = getEditor(superdocInstance);
-  superdocInstance.config.documents[0].hasDisconnected = true;
-  editor?.view?.destroy();
 };
 
 export { createAwarenessHandler, createProvider };
