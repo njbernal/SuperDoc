@@ -46,8 +46,20 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Debug Info
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Git status:"
+          git status
+          echo "release-it config:"
+          cat packages/superdoc/.release-it.json
+          echo "Listing files:"
+          ls -la packages/superdoc/
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm run release:superdoc
+          DEBUG: release-it:*
+        run: |
+          cd packages/superdoc && pwd && npm run release
