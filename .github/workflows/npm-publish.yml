@@ -46,13 +46,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Copy and commit README
-        run: |
-          cd packages/superdoc
-          cp ../../README.md README.md
-          git add README.md
-          git commit -m "chore: update package README [skip ci]" || true
-
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
