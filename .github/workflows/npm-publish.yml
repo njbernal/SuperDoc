@@ -1,4 +1,4 @@
-name: Publish Superdoc Package to npm on Tag
+name: Publish Superdoc Package to npm
 
 on:
   push:
@@ -22,13 +22,14 @@ permissions:
   actions: write
 
 jobs:
-  publish:
+  release:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.SUPERDOC_PAT }}
 
       - name: Setup node
@@ -37,31 +38,25 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
 
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
-
-      - name: Configure Git Credentials
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update versions
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install -g release-it @release-it/conventional-changelog
+
+      - name: Copy README to package
         run: |
           cd packages/superdoc
           cp ../../README.md README.md
-          npm version patch
-          git add .
-          git commit -m "[skip ci] Bump version"
-          git push
-        env:
-          GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
 
-      - name: Publish
-        run: |
-          cd packages/superdoc
-          npm publish --access public
+      - name: Release
+        working-directory: ./packages/superdoc
         env:
+          GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          release-it --ci
