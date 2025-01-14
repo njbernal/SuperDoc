@@ -9,7 +9,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { Superdoc } from '@harbour-enterprises/superdoc';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
 
 const props = defineProps({
@@ -50,7 +50,7 @@ const initializeEditor = async () => {
     documentKey.value++;
 
     // Create new editor instance
-    editor.value = new Superdoc({
+    editor.value = new SuperDoc({
       selector: '#superdoc',
       toolbar: 'superdoc-toolbar',
       documentMode: props.readOnly ? 'viewing' : 'editing',

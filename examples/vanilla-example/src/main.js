@@ -1,4 +1,4 @@
-import { Superdoc } from '@harbour-enterprises/superdoc';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
 
 // Initialize SuperDoc
@@ -10,7 +10,7 @@ function initializeEditor(file = null) {
     editor = null;
   }
 
-  editor = new Superdoc({
+  editor = new SuperDoc({
     selector: '#superdoc',
     toolbar: 'superdoc-toolbar',
     documentMode: 'editing',

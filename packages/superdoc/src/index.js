@@ -1,4 +1,4 @@
-import { Superdoc } from './core/index.js';
+import { SuperDoc } from './core/index.js';
 import { SuperConverter, Editor, getRichTextExtensions } from '@harbour-enterprises/super-editor';
 import { createZip } from '@harbour-enterprises/super-editor/zipper';
 
@@ -12,7 +12,7 @@ import { DOCX, PDF, HTML, getFileObject, compareVersions } from '@harbour-enterp
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
 export {
-  Superdoc,
+  SuperDoc,
   BlankDOCX,
   getFileObject,
   compareVersions,

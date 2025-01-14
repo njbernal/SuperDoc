@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Superdoc } from '@harbour-enterprises/superdoc';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
 
 const DocumentEditor = ({ 
@@ -12,7 +12,7 @@ const DocumentEditor = ({
   const editorRef = useRef(null);
 
   useEffect(() => {
-    const editor = new Superdoc({
+    const editor = new SuperDoc({
       selector: '#superdoc',
       toolbar: 'superdoc-toolbar',
       documentMode: readOnly ? 'viewing' : 'editing',
