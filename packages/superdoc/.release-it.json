@@ -1,14 +1,14 @@
 {
   "git": {
-    "commitMessage": "chore: release v${version}",
-    "tagName": "v${version}",
-    "tagAnnotation": "Release v${version}",
+    "commitMessage": "chore: release ${version}",
+    "tagName": "${name}@${version}",
+    "tagAnnotation": "Release ${name}@${version}",
     "push": true,
     "requireCleanWorkingDir": false
   },
   "github": {
     "release": true,
-    "releaseName": "Release v${version}",
+    "releaseName": "${name} ${version}",
     "autoGenerate": true,
     "draft": false,
     "tokenRef": "GITHUB_TOKEN"
@@ -27,6 +27,6 @@
     "before:init": [
       "npm run build"
     ],
-    "after:release": "echo Successfully released ${name} v${version} to npm."
+    "after:release": "echo Successfully released ${name}@${version}"
   }
 }

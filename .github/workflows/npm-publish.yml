@@ -44,22 +44,12 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
+        working-directory: packages/superdoc
         run: npm install
 
-      - name: Debug Info
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Git status:"
-          git status
-          echo "release-it config:"
-          cat packages/superdoc/.release-it.json
-          echo "Listing files:"
-          ls -la packages/superdoc/
-
       - name: Release
+        working-directory: packages/superdoc
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          DEBUG: release-it:*
-        run: |
-          cd packages/superdoc && pwd && npm run release
+        run: npm run release
