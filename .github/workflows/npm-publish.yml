@@ -23,7 +23,12 @@ permissions:
 
 jobs:
   release:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    # Only run if:
+    # 1. It's a workflow_dispatch event OR
+    # 2. It's a push event AND commit message doesn't contain [skip ci] or release
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'release'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
