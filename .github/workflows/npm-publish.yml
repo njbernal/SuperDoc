@@ -28,7 +28,7 @@ jobs:
     # 2. It's a push event AND commit message doesn't contain [skip ci] or release
     if: |
       github.event_name == 'workflow_dispatch' || 
-      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'release'))
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
