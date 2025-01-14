@@ -44,7 +44,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
-        working-directory: packages/superdoc
         run: npm install
 
       - name: Release
