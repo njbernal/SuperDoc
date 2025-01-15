@@ -53,4 +53,30 @@ describe('paragraph tests to check spacing', () => {
     expect(spacing.lineSpaceAfter).toBe(0);
     expect(spacing.lineSpaceBefore).toBe(0);
   });
+
+  it('correctly gets spacing around image in p [image_p_spacing]', () => {
+    const dataName = 'image_p_spacing';
+    const docx = getTestDataByFolderName(dataName);
+    const documentXml = docx['word/document.xml'];
+
+    const doc = documentXml.elements[0];
+    const body = doc.elements[0];
+    const content = body.elements;
+
+    const { nodes } = handleParagraphNode([content[0]], docx, defaultNodeListHandler(), false);
+
+    const node = nodes[0];
+    expect(node.type).toBe('paragraph');
+    expect(node.content.length).toBeGreaterThan(0);
+
+    const { attrs } = node;
+    const { spacing } = attrs;
+    expect(spacing.line).toBe(18);
+    expect(spacing.lineSpaceAfter).toBe(16);
+    expect(spacing.lineSpaceBefore).toBe(16);
+
+    // Specifically, double check we have this important line rule to prevent image clipping
+    // due to line height restriction
+    expect(spacing.lineRule).toBe('auto');
+  });
 });
