@@ -25,7 +25,7 @@ export const Paragraph = Node.create({
           const { spacing } = attrs;
           if (!spacing) return {};
 
-          const { lineSpaceBefore, lineSpaceAfter, line } = spacing;
+          const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
           const style = `
             ${lineSpaceBefore ? `margin-top: ${lineSpaceBefore}px;` : ''}
             ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}

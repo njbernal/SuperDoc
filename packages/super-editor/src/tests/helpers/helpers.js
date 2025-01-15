@@ -27,7 +27,7 @@ export const getTestDataByFolderName = (name) => {
           const relativePath = relative(basePath, entryPath);
 
           // Parse XML files into basic JSON
-          if (entry.endsWith('.xml')) fileDataMap[relativePath] = parseXmlToJson(fileData);
+          if (entry.endsWith('.xml') || entry.endsWith('.rels')) fileDataMap[relativePath] = parseXmlToJson(fileData);
           else fileDataMap[relativePath] = fileData;
         }
       });

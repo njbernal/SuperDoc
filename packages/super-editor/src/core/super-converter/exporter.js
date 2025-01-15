@@ -145,7 +145,7 @@ function generateParagraphProperties(node) {
 
   const { spacing, indent, textAlign } = attrs;
   if (spacing) {
-    const { lineSpaceBefore, lineSpaceAfter, line } = spacing;
+    const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
 
     const attributes = {};
 
@@ -153,6 +153,7 @@ function generateParagraphProperties(node) {
     if (lineSpaceBefore >= 0) attributes['w:before'] = pixelsToTwips(lineSpaceBefore);
     if (lineSpaceAfter >= 0) attributes['w:after'] = pixelsToTwips(lineSpaceAfter);
     if (line) attributes['w:line'] = pixelsToTwips(line);
+    attributes['w:lineRule'] = lineRule || "auto";
 
     const spacingElement = {
       name: 'w:spacing',

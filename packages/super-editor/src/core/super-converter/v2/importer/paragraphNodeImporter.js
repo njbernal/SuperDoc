@@ -106,10 +106,11 @@ const getParagraphSpacing = (defaultStyleId, node, docx) => {
     lineSpaceAfter: 0,
     lineSpaceBefore: 0,
     line: 0,
+    lineRule: null,
   }
 
   const { spacing: pDefaultSpacing = {} } = getDefaultParagraphStyle(docx);
-  const { lineSpaceAfter, lineSpaceBefore, line } = getDefaultStyleDefinition(defaultStyleId, docx);
+  const { lineSpaceAfter, lineSpaceBefore, line, lineRule: lineRuleStyle } = getDefaultStyleDefinition(defaultStyleId, docx);
 
   const pPr = node.elements?.find((el) => el.name === 'w:pPr');
   const inLineSpacingTag = pPr?.elements?.find((el) => el.name === 'w:spacing');
@@ -127,6 +128,9 @@ const getParagraphSpacing = (defaultStyleId, node, docx) => {
 
   const afterSpacing = inLineSpacing?.['w:after'] || lineSpaceAfter || pDefaultSpacing?.['w:after'];
   if (afterSpacing) spacing.lineSpaceAfter = twipsToPixels(afterSpacing);
+
+  const lineRule = inLineSpacing?.['w:lineRule'] || lineRuleStyle || pDefaultSpacing?.['w:lineRule'];
+  if (lineRule) spacing.lineRule = lineRule;
 
   return spacing;
 };
