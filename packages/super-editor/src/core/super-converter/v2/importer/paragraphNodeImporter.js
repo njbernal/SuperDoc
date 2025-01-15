@@ -43,49 +43,49 @@ export const handleParagraphNode = (nodes, docx, nodeListHandler, insideTrackCha
     schemaNode = result.nodes[0];
   }
 
-  if ('attributes' in node) {
-    const pPr = node.elements?.find((el) => el.name === 'w:pPr');
-    const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
-    if (styleTag) {
-      schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
+  const pPr = node.elements?.find((el) => el.name === 'w:pPr');
+  const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
+  if (styleTag) {
+    schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
 
-      const { textAlign, firstLine, leftIndent, rightIndent } = getDefaultStyleDefinition(
-        styleTag.attributes['w:val'],
-        docx,
-      );
-      schemaNode.attrs['textAlign'] = textAlign;
+    const { textAlign, firstLine, leftIndent, rightIndent } = getDefaultStyleDefinition(
+      styleTag.attributes['w:val'],
+      docx,
+    );
+    schemaNode.attrs['textAlign'] = textAlign;
 
-      schemaNode.attrs['indent'] = {
-        left: leftIndent,
-        right: rightIndent,
-        firstLine: firstLine,
-      };
-    }
+    schemaNode.attrs['indent'] = {
+      left: leftIndent,
+      right: rightIndent,
+      firstLine: firstLine,
+    };
+  }
 
-    const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
-    if (indent && indent.attributes) {
-      const { 'w:left': left, 'w:right': right, 'w:firstLine': firstLine } = indent?.attributes;
+  const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
+  if (indent && indent.attributes) {
+    const { 'w:left': left, 'w:right': right, 'w:firstLine': firstLine } = indent?.attributes;
 
-      if (schemaNode.attrs) {
-        if (!schemaNode.attrs.indent) schemaNode.attrs.indent = {};
-        if (left) schemaNode.attrs['indent'].left = twipsToPixels(left);
-        if (right) schemaNode.attrs['indent'].right = twipsToPixels(right);
-        if (firstLine) schemaNode.attrs['indent'].firstLine = twipsToPixels(firstLine);
-      };
+    if (schemaNode.attrs) {
+      if (!schemaNode.attrs.indent) schemaNode.attrs.indent = {};
+      if (left) schemaNode.attrs['indent'].left = twipsToPixels(left);
+      if (right) schemaNode.attrs['indent'].right = twipsToPixels(right);
+      if (firstLine) schemaNode.attrs['indent'].firstLine = twipsToPixels(firstLine);
+    };
 
-      const textIndentVal = left || firstLine || 0;
-      schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentVal)}in`;
-    }
+    const textIndentVal = left || firstLine || 0;
+    schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentVal)}in`;
+  }
 
-    const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
-    if (justify && justify.attributes) {
-      schemaNode.attrs['textAlign'] = justify.attributes['w:val'];
-    }
+  const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
+  if (justify && justify.attributes) {
+    schemaNode.attrs['textAlign'] = justify.attributes['w:val'];
+  }
 
-    const defaultStyleId = node.attributes['w:rsidRDefault'];
+  if (docx) {
+    const defaultStyleId = node.attributes?.['w:rsidRDefault'];
     schemaNode.attrs['spacing'] = getParagraphSpacing(defaultStyleId, node, docx);
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
-  }
+  };
 
   schemaNode.attrs['filename'] = filename;
 
@@ -158,6 +158,7 @@ export const paragraphNodeHandlerEntity = {
  */
 function getDefaultStyleDefinition(defaultStyleId, docx) {
   const result = { lineSpaceBefore: null, lineSpaceAfter: null };
+  if (!defaultStyleId) return result;
 
   const styles = docx['word/styles.xml'];
   if (!styles) return result;
