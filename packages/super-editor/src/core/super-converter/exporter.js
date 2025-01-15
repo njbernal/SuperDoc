@@ -246,7 +246,6 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     const translatedNode = exportSchemaToJson({ ...params, node });
-    console.debug('[translateChildNodes] Translated node:', node.type, translatedNode);
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
   });
