@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { createApp } from 'vue';
 import { undoDepth, redoDepth } from 'prosemirror-history';
+import { TextSelection } from 'prosemirror-state';
 import { makeDefaultItems } from './defaultItems';
 import { getActiveFormatting } from '@core/helpers/getActiveFormatting.js';
 import { vClickOutside } from '@harbour-enterprises/common';
@@ -125,6 +126,27 @@ export class SuperToolbar extends EventEmitter {
 
       this.updateToolbarState();
     },
+
+    toggleLink: ({ item, argument }) => {
+      let command = item.command;
+
+      if (command in this.activeEditor.commands) {
+        this.activeEditor.commands[command](argument);
+        
+        // move cursor to end
+        const endPos = this.activeEditor.view.state.selection.$to.pos;
+        const selection = new TextSelection(this.activeEditor.view.state.doc.resolve(endPos));
+        const tr = this.activeEditor.view.state.tr.setSelection(selection)
+        const state = this.activeEditor.view.state.apply(tr)
+        this.activeEditor.view.updateState(state)
+
+        setTimeout(() => {
+          this.activeEditor.view.focus();
+        }, 100)
+      }
+      this.updateToolbarState();
+      
+    }
   };
 
   constructor(config) {
