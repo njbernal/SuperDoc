@@ -632,6 +632,7 @@ export class Editor extends EventEmitter {
 
       if (this.options.scale < 1) {
         const superEditorElement = element.closest('.super-editor');
+        if (!superEditorElement) return;
         superEditorElement.style.maxWidth = `${elementWidth * this.options.scale}px`;
 
         element.style.transform = `scale(${this.options.scale})`;
