@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.4.0](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.2.40...v0.4.0) (2025-01-15)
+
+
+### Features
+
+* add code examples ([487830a](https://github.com/Harbour-Enterprises/SuperDoc/commit/487830acc78b74a0ac542c1d80811e472b643f8f))
+
 ## [0.2.40](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.2.39...v0.2.40) (2025-01-14)
 
 ## [0.2.39](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.2.38...v0.2.39) (2025-01-14)
