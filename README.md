@@ -30,9 +30,9 @@ npm install @harbour-enterprises/superdoc
 
 ```javascript
 import '@harbour-enterprises/superdoc/style.css';
-import { Superdoc } from '@harbour-enterprises/superdoc';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
 
-const superdoc = new Superdoc({
+const superdoc = new SuperDoc({
   selector: '#superdoc',
   documents: [{
     id: 'my-doc-id',
