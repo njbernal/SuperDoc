@@ -1,7 +1,7 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "0.4.0",
+  "version": "0.2.43",
   "license": "AGPL-3.0",
   "readme": "../../README.md",
   "files": [
@@ -33,7 +33,7 @@
   "scripts": {
     "dev": "vite",
     "build": "cd ../super-editor && npm run build && cd ../superdoc && vite build",
-    "release": "release-it --ci",
+    "release": "release-it --ci --increment=patch",
     "clean": "rm -rf dist",
     "pack": "rm *.tgz 2>/dev/null || true && cd ../super-editor && npm run build && cd ../superdoc && npm run build && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz"
   },
