@@ -101,13 +101,13 @@ export class SuperToolbar extends EventEmitter {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('bold', true);
       }
-      
+
       this.updateToolbarState();
     },
 
     toggleItalic: ({ item, argument }) => {
       let command = item.command;
-      
+
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('italic', true);
@@ -118,7 +118,7 @@ export class SuperToolbar extends EventEmitter {
 
     toggleUnderline: ({ item, argument }) => {
       let command = item.command;
-      
+
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('underline', true);
@@ -132,21 +132,21 @@ export class SuperToolbar extends EventEmitter {
 
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
-        
+
         // move cursor to end
-        const endPos = this.activeEditor.view.state.selection.$to.pos;
-        const selection = new TextSelection(this.activeEditor.view.state.doc.resolve(endPos));
-        const tr = this.activeEditor.view.state.tr.setSelection(selection)
-        const state = this.activeEditor.view.state.apply(tr)
-        this.activeEditor.view.updateState(state)
+        const { view } = this.activeEditor;
+        const endPos = view.state.selection.$to.pos;
+        const selection = new TextSelection(view.state.doc.resolve(endPos));
+        const tr = view.state.tr.setSelection(selection);
+        const state = view.state.apply(tr);
+        view.updateState(state);
 
         setTimeout(() => {
-          this.activeEditor.view.focus();
-        }, 100)
+          view.focus();
+        }, 100);
       }
       this.updateToolbarState();
-      
-    }
+    },
   };
 
   constructor(config) {
@@ -240,7 +240,7 @@ export class SuperToolbar extends EventEmitter {
       item.resetDisabled();
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
-      
+
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
