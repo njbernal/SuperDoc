@@ -1,5 +1,4 @@
 import { Node, Attribute } from '@core/index.js';
-import { style } from '../../core/config/style';
 
 export const Paragraph = Node.create({
   name: 'paragraph',
