@@ -32,7 +32,7 @@ class DocxZipper {
    * docProps/core.xml
    * docProps/app.xml
    * */
-  async getDocxData(file) {
+  async getDocxData(file, isNode = false) {
     const extractedFiles = await this.unzip(file);
     const files = Object.entries(extractedFiles.files);
 
@@ -48,18 +48,25 @@ class DocxZipper {
           content,
         });
       } else if (zipEntry.name.startsWith('word/media') && zipEntry.name !== 'word/media/') {
-        const blob = await zipEntry.async('blob');
 
-        // Create an Object of media Uint8Arrays for collaboration
-        // These will be shared via ydoc
+        // If we are in node, we need to convert the buffer to base64
+        if (isNode) {
+          const buffer = await zipEntry.async('nodebuffer');
+          const fileBase64 = buffer.toString('base64');
+          mediaObjects[zipEntry.name] = fileBase64;
+        }
 
-        const extension = this.getFileExtension(zipEntry.name);
-        const fileBase64 = await zipEntry.async('base64');
-        this.mediaFiles[zipEntry.name] = `data:image/${extension};base64,${fileBase64}`;
+        // If we are in the browser, we can use the base64 directly
+        else {
+          const blob = await zipEntry.async('blob');
+          const extension = this.getFileExtension(zipEntry.name);
+          const fileBase64 = await zipEntry.async('base64');
+          this.mediaFiles[zipEntry.name] = `data:image/${extension};base64,${fileBase64}`;
 
-        const file = new File([blob], zipEntry.name, { type: blob.type });
-        const imageUrl = URL.createObjectURL(file);
-        this.media[zipEntry.name] = imageUrl;
+          const file = new File([blob], zipEntry.name, { type: blob.type });
+          const imageUrl = URL.createObjectURL(file);
+          this.media[zipEntry.name] = imageUrl;
+        };
       } else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
         const uint8array = await zipEntry.async('uint8array');
         this.fonts[zipEntry.name] = uint8array;

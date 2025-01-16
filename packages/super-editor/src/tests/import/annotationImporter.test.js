@@ -1,13 +1,13 @@
 
 import { handleAnnotationNode } from '@converter/v2/importer/annotationImporter.js';
 import { defaultNodeListHandler } from '@converter/v2/importer/docxImporter.js';
-import { getTestDataByFolderName } from '@tests/helpers/helpers.js';
+import { getTestDataByFileName } from '@tests/helpers/helpers.js';
 
 
 describe('paragraph tests to check spacing', () => {
-  it('can parse annotation marks as attributes for non text style marks [fields_attrs1]', () => {
-    const dataName = 'fields_attrs1';
-    const docx = getTestDataByFolderName(dataName);
+  it('can parse annotation marks as attributes for non text style marks [fields_attrs1]', async () => {
+    const dataName = 'fields_attrs1.docx';
+    const docx = await getTestDataByFileName(dataName);
     const documentXml = docx['word/document.xml'];
 
     const doc = documentXml.elements[0];
@@ -28,9 +28,9 @@ describe('paragraph tests to check spacing', () => {
     expect(underline).toBe(true);
   });
 
-  it('can parse annotation marks as attributes for textStyle marks [fields_attrs2_fonts]', () => {
-    const dataName = 'fields_attrs2_fonts';
-    const docx = getTestDataByFolderName(dataName);
+  it('can parse annotation marks as attributes for textStyle marks [fields_attrs2_fonts]', async () => {
+    const fileName = 'fields_attrs2_fonts.docx';
+    const docx = await getTestDataByFileName(fileName);
     const documentXml = docx['word/document.xml'];
 
     const doc = documentXml.elements[0];

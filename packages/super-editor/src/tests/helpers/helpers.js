@@ -1,42 +1,31 @@
-import { join, relative } from 'path';
-import { readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { readFile } from 'fs/promises';
 import { parseXmlToJson } from '@converter/v2/docxHelper.js';
+import DocxZipper from '@core/DocxZipper.js';
 
-export const getTestDataByFolderName = (name) => {
-  const basePath = join(__dirname, '../data', name, 'docx');
+const EXTENSIONS_TO_CONVERT = new Set(['.xml', '.rels']);
 
-  const readFilesRecursively = (currentPath) => {
-    const fileDataMap = {};
+export const getTestDataByFileName = async (name) => {
+  const basePath = join(__dirname, '../data', name);
+  const fileBuffer = await readFile(basePath);
+  const zipper = new DocxZipper();
+  const xmlFiles = await zipper.getDocxData(fileBuffer, true);
+  return readFilesRecursively(xmlFiles);
+};
 
-    try {
-      const entries = readdirSync(currentPath);
+const readFilesRecursively = (xmlFiles) => {
+  const fileDataMap = {};
 
-      entries.forEach(entry => {
-        const entryPath = join(currentPath, entry);
-        const stats = statSync(entryPath);
+  try {
+    xmlFiles.forEach((entry) => {
+      const { name, content } = entry;
+      const extension = name.slice(name.lastIndexOf('.'));
+      if (EXTENSIONS_TO_CONVERT.has(extension)) fileDataMap[name] = parseXmlToJson(content);
+      else fileDataMap[name] = fileData;
+    });
+  } catch (err) {
+    console.error(`Error reading file:`, err);
+  }
 
-        // If the entry is a directory, recursively read its contents
-        if (stats.isDirectory()) {
-          const nestedFiles = readFilesRecursively(entryPath);
-          Object.assign(fileDataMap, nestedFiles);
-        }
-
-        // If it's a file, read its contents and save it to the map
-        else {
-          const fileData = readFileSync(entryPath, 'utf8');
-          const relativePath = relative(basePath, entryPath);
-
-          // Parse XML files into basic JSON
-          if (entry.endsWith('.xml') || entry.endsWith('.rels')) fileDataMap[relativePath] = parseXmlToJson(fileData);
-          else fileDataMap[relativePath] = fileData;
-        }
-      });
-    } catch (err) {
-      console.error(`Error reading path: ${currentPath}`, err);
-    }
-
-    return fileDataMap;
-  };
-
-  return readFilesRecursively(basePath);
+  return fileDataMap;
 };

@@ -20,11 +20,13 @@ export const HardBreak = Node.create({
   name: 'hardBreak',
   group: 'inline',
   inline: true,
+  selectable: false,
+  atom: true,
 
   addOptions() {
     return {
       htmlAttributes: {
-        contentEditable: false,
+        contentEditable: 'false',
         lineBreakType: 'page',
       },
     }
@@ -34,7 +36,7 @@ export const HardBreak = Node.create({
     return [{ tag: 'span' }];
   },
 
-  renderDOM({ node, htmlAttributes }) {
-    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
-  },
+  renderDOM({ htmlAttributes }) {
+    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
+  }
 });
