@@ -14,7 +14,7 @@ export const Mention = Node.create({
   addOptions() {
     return {
       htmlAttributes: {
-        class: 'superdoc-at-mention',
+        class: 'super-editor-mention',
       },
     };
   },

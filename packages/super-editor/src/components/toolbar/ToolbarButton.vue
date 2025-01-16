@@ -139,7 +139,6 @@ const onFontSizeInput = (event) => {
   height: 32px;
   max-height: 32px;
   border-radius: 6px;
-
   overflow-y: visible;
   display: flex;
   align-items: center;
@@ -149,6 +148,7 @@ const onFontSizeInput = (event) => {
   transition: all 0.2s ease-out;
   user-select: none;
   position: relative;
+  box-sizing: border-box;
 }
 .toolbar-button:hover {
   background-color: #dbdbdb;
@@ -212,6 +212,7 @@ const onFontSizeInput = (event) => {
   padding: 2px 0;
   outline: none;
   border: 1px solid #d8dee5;
+  box-sizing: border-box;
 }
 
 .button-text-input::placeholder {

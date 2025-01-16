@@ -189,6 +189,7 @@ onMounted(() => {
   padding: 1em;
   border-radius: 5px;
   background-color: #fff;
+  box-sizing: border-box;
 }
 .remove-btn {
   padding: 10px 16px;
@@ -201,6 +202,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #ebebeb;
+  box-sizing: border-box;
 }
 .remove-btn:hover {
   background-color: #dbdbdb;
@@ -216,6 +218,7 @@ onMounted(() => {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 .submit-btn:hover {
   background-color: #0d47c1;
@@ -230,13 +233,13 @@ onMounted(() => {
 .input-row input {
   font-size: 13px;
   flex-grow: 1;
-  padding: 5px;
   padding: 10px;
   border-radius: 8px;
   padding-left: 32px;
   box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
   color: #666;
   border: 1px solid #ddd;
+  box-sizing: border-box;
 }
 .input-row input:active,
 .input-row input:focus {

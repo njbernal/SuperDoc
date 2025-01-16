@@ -10,9 +10,7 @@ import { SuperConverter } from '@core/super-converter/SuperConverter.js';
 import { Commands, Keymap, Editable, EditorFocus } from './extensions/index.js';
 import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
-import { createStyleTag } from './utilities/createStyleTag.js';
 import { initComments } from '@features/index.js';
-import { style } from './config/style.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
@@ -56,7 +54,6 @@ export class Editor extends EventEmitter {
     fileSource: null,
     initialState: null,
     documentId: null,
-    injectCSS: true,
     extensions: [],
     editable: true,
     editorProps: {},
@@ -124,8 +121,6 @@ export class Editor extends EventEmitter {
     // If we are running headless, we can stop here
     if (this.options.isHeadless) return;
 
-    this.#injectCSS();
-
     this.on('create', this.options.onCreate);
     this.on('update', this.options.onUpdate);
     this.on('selectionUpdate', this.options.onSelectionUpdate);
@@ -163,7 +158,6 @@ export class Editor extends EventEmitter {
     this.on('contentError', this.options.onContentError);
 
     this.#createView();
-    this.#injectCSS();
 
     this.on('create', this.options.onCreate);
     this.on('update', this.options.onUpdate);
@@ -410,15 +404,6 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * Inject PM css styles.
-   */
-  #injectCSS() {
-    if (this.options.injectCSS && document) {
-      this.#css = createStyleTag(style);
-    }
-  }
-
-  /**
    * Creates extension service.
    */
   #createExtensionService() {
@@ -573,7 +558,7 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * Initialize default styles for the editor container and prose mirror.
+   * Initialize default styles for the editor container and ProseMirror.
    * Get page size and margins from the converter.
    * Set document default font and font size.
    */
@@ -581,27 +566,32 @@ export class Editor extends EventEmitter {
     if (this.options.isHeadless) return;
 
     const proseMirror = element?.querySelector('.ProseMirror');
-    if (!proseMirror) return;
-
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
-    if (!pageSize || !pageMargins) return;
+
+    if (!proseMirror || !pageSize || !pageMargins) {
+      return;
+    }
 
     // Set fixed dimensions and padding that won't change with scaling
-    element.style.boxSizing = 'border-box';
     element.style.width = pageSize.width + 'in';
     element.style.minWidth = pageSize.width + 'in';
-    element.style.maxWidth = pageSize.width + 'in';
+    element.style.minHeight = pageSize.height + 'in';
     element.style.paddingLeft = pageMargins.left + 'in';
     element.style.paddingRight = pageMargins.right + 'in';
-    element.style.minHeight = pageSize.height + 'in';
+    element.style.boxSizing = 'border-box';
 
     proseMirror.style.outline = 'none';
     proseMirror.style.border = 'none';
 
     // Typeface and font size
     const { typeface, fontSizePt } = this.converter.getDocumentDefaultStyles() ?? {};
-    typeface && (element.style.fontFamily = typeface);
-    fontSizePt && (element.style.fontSize = fontSizePt + 'pt');
+
+    if (typeface) {
+      element.style.fontFamily = typeface;
+    }
+    if (fontSizePt) {
+      element.style.fontSize = `${fontSizePt}pt`;
+    }
 
     // Mobile styles
     element.style.transformOrigin = 'top left';
@@ -609,7 +599,6 @@ export class Editor extends EventEmitter {
     element.style.webkitOverflowScrolling = 'touch';
 
     // Calculate line height
-    // const defaultLineHeight = (fontSizePt * 1.3333) * 1.15;
     const defaultLineHeight = 1.15;
     proseMirror.style.lineHeight = defaultLineHeight;
 
@@ -623,21 +612,35 @@ export class Editor extends EventEmitter {
   };
 
   initMobileStyles(element) {
-    if (!element) return;
+    if (!element) {
+      return;
+    }
+
     const initialWidth = element.offsetWidth;
+    
     const updateScale = () => {
       const elementWidth = initialWidth;
-      const availableWidth = window.innerWidth - 2;
+      const availableWidth = document.documentElement.clientWidth;
+      
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
+      const superEditorElement = element.closest('.super-editor');
+      const superEditorContainer = element.closest('.super-editor-container');
+
+      if (!superEditorElement || !superEditorContainer) {
+        return;
+      }
+
       if (this.options.scale < 1) {
-        const superEditorElement = element.closest('.super-editor');
-        if (!superEditorElement) return;
         superEditorElement.style.maxWidth = `${elementWidth * this.options.scale}px`;
+        superEditorContainer.style.minWidth = '0px';
 
         element.style.transform = `scale(${this.options.scale})`;
       } else {
-        element.style.transform = "none";
+        superEditorElement.style.maxWidth = '';
+        superEditorContainer.style.minWidth = '';
+
+        element.style.transform = "none"; 
       }
     };
 

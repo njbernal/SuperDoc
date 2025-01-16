@@ -177,47 +177,50 @@ const handleMouseUp = (e) => {
 </script>
 
 <template>
-  <div @mousedown="handlePdfClick" @mouseup="handleMouseUp">
-    <div class="superdoc-viewer" ref="viewer" id="viewerId"></div>
+  <div class="superdoc-pdf-viewer-container" @mousedown="handlePdfClick" @mouseup="handleMouseUp">
+    <div class="superdoc-pdf-viewer" ref="viewer" id="viewerId"></div>
   </div>
 </template>
 
-<style lang="postcss">
-.superdoc-viewer {
+<style lang="postcss" scoped>
+.superdoc-pdf-viewer-container {
+  width: 100%;
+}
+
+.superdoc-pdf-viewer {
   @nested-import 'pdfjs-dist/web/pdf_viewer.css';
 
-  position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  position: relative;
 
-  .pdf-page {
+  :deep(.pdf-page) {
     border-top: 1px solid #dfdfdf;
     border-bottom: 1px solid #dfdfdf;
     margin: 0 0 20px 0;
     position: relative;
     overflow: hidden;
+
+    &:first-child {
+      border-radius: 16px 16px 0 0;
+      border-top: none;
+    }
+
+    &:last-child {
+      border-radius: 0 0 16px 16px;
+      border-bottom: none;
+    }
   }
 
-  .pdf-page:first-child {
-    border-radius: 16px 16px 0 0;
-    border-top: none;
-  }
-  .pdf-page:last-child {
-    border-radius: 0 0 16px 16px;
-    border-bottom: none;
-  }
-  .pdf-page:first-child:last-child {
-    border-radius: 16px;
-  }
-
-  .textLayer {
+  :deep(.textLayer) {
     z-index: 2;
     position: absolute;
-  }
 
-  .textLayer ::selection {
-    background-color: #1355ff66;
-    mix-blend-mode: difference;
+    &::selection {
+      background-color: #1355ff66;
+      mix-blend-mode: difference;
+    }
   }
 }
 </style>

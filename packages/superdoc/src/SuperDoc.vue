@@ -490,26 +490,27 @@ const handlePdfClick = (e) => {
 </script>
 
 <template>
-  <div class="superdoc">
-    <div class="layers" ref="layers">
+  <div class="superdoc" :class="{ 'superdoc--with-sidebar': showCommentsSidebar }">
+    <div class="superdoc__layers layers" ref="layers">
+
       <!-- Floating tools menu (shows up when user has text selection)-->
-      <div v-if="showToolsFloatingMenu" class="tools" :style="toolsMenuPosition">
+      <div v-if="showToolsFloatingMenu" class="superdoc__tools tools" :style="toolsMenuPosition">
         <div class="tools-item" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')">
           <i class="fas fa-comment fa-tool-icon"></i>
         </div>
       </div>
 
-      <div class="document">
+      <div class="superdoc__document document">
         <div
           v-if="isCommentsEnabled"
-          class="selection-layer"
+          class="superdoc__selection-layer selection-layer"
           @mousedown="handleSelectionStart"
           @mouseup="handleDragEnd"
           ref="selectionLayer"
         >
           <div
             :style="getSelectionPosition"
-            class="sd-highlight sd-initial-highlight temp-selection"
+            class="superdoc__temp-selection temp-selection sd-highlight sd-initial-highlight"
             v-if="selectionPosition"
           ></div>
         </div>
@@ -518,14 +519,14 @@ const handlePdfClick = (e) => {
         <HrbrFieldsLayer
           v-if="'hrbr-fields' in modules && layers"
           :fields="modules['hrbr-fields']"
-          class="comments-layer"
+          class="superdoc__comments-layer comments-layer"
           style="z-index: 5"
           ref="hrbrFieldsLayer"
         />
 
         <!-- On-document comments layer -->
         <CommentsLayer
-          class="comments-layer"
+          class="superdoc__comments-layer comments-layer"
           v-if="showCommentsSidebar"
           style="z-index: 3"
           ref="commentsLayer"
@@ -534,7 +535,7 @@ const handlePdfClick = (e) => {
           @highlight-click="handleHighlightClick"
         />
 
-        <div class="sub-document" v-for="doc in documents" :key="doc.id">
+        <div class="superdoc__sub-document sub-document" v-for="doc in documents" :key="doc.id">
           <!-- PDF renderer -->
 
           <PdfViewer
@@ -568,7 +569,7 @@ const handlePdfClick = (e) => {
       </div>
     </div>
 
-    <div class="right-sidebar" v-if="showCommentsSidebar">
+    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
       <CommentDialog
         v-if="pendingComment"
         :data="pendingComment"
@@ -589,103 +590,72 @@ const handlePdfClick = (e) => {
 </template>
 
 <style scoped>
-.selection-layer {
+.superdoc {
+  display: flex;
+}
+
+.superdoc--with-sidebar { /*  */ }
+
+.superdoc__layers {
+  height: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.superdoc__document {
+  width: 100%;
+  position: relative;
+}
+
+.superdoc__sub-document {
+  width: 100%;
+  position: relative;
+}
+
+.superdoc__selection-layer {
   position: absolute;
-  min-height: 100%;
   min-width: 100%;
+  min-height: 100%;
   z-index: 10;
   pointer-events: none;
 }
-.temp-selection {
+
+.superdoc__temp-selection {
   position: absolute;
 }
-/* Right sidebar drawer */
-.right-sidebar {
+
+.superdoc__comments-layer {
+  /* position: absolute; */
+  top: 0;
+  height: 100%;
+  position: relative;
+}
+
+.superdoc__right-sidebar {
   width: 320px;
   padding: 0 10px;
   min-height: 100%;
   position: relative;
   z-index: 100;
 }
-.fa-tool-icon {
-  cursor: pointer;
-}
 
-/* General Styles */
-.box-sizing,
-.layers {
-  box-sizing: border-box;
-}
-.cursor-pointer,
-.tools .tool-icon,
-.toolbar-item {
-  cursor: pointer;
-}
-.flex {
-  display: flex;
-}
-.flex-column {
-  flex-direction: column;
-}
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Layer Styles */
-.comments-layer {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  position: relative;
-}
-
-/* Document Styles */
-.docx {
-  border: 1px solid #dfdfdf;
-  pointer-events: auto;
-}
-.sub-document {
-  position: relative;
-}
-
-/* Toolbar Styles */
-.toolbar {
-  height: 25px;
-  background-color: #fff;
-  margin-bottom: 5px;
-}
-.toolbar-item {
-  width: 20px;
-  height: 20px;
-  border-radius: 8px;
-  border: 1px solid #dbdbdb;
-  padding: 3px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 250ms ease;
-}
-.toolbar-item:hover {
-  background-color: #dbdbdb;
-}
-
-/* Tools Styles */
+/* Tools styles */
 .tools {
   position: absolute;
   z-index: 100;
   display: flex;
   gap: 6px;
 }
+
 .tools .tool-icon {
   font-size: 20px;
   border-radius: 12px;
   border: none;
   outline: none;
   background-color: #dbdbdb;
+  cursor: pointer;
 }
+
 .tools-item {
   display: flex;
   align-items: center;
@@ -697,37 +667,31 @@ const handlePdfClick = (e) => {
   cursor: pointer;
 }
 
-.tools__icon :deep(svg) {
-  max-width: 100%;
-  max-height: 100%;
-  display: block;
-  fill: currentColor;
+.tools-item i {
+  cursor: pointer;
 }
+/* Tools styles - end */
 
-.layers {
-  position: relative;
-  height: 100%;
-}
+/* .docx {
+  border: 1px solid #dfdfdf;
+  pointer-events: auto;
+} */
 
-.document {
-  position: relative;
-}
-
-/* Mobile Styles */
 @media (max-width: 768px) {
-  .sub-document {
-    max-width: 100%;
-  }
-  .right-sidebar {
-    padding: 10px;
-    width: 55px;
-    position: relative;
-  }
-
-  .superdoc .layers {
+  .superdoc .superdoc__layers {
     margin: 0;
     border: 0 !important;
     box-shadow: none;
+  }
+
+  .superdoc__sub-document {
+    max-width: 100%;
+  }
+
+  .superdoc__right-sidebar {
+    padding: 10px;
+    width: 55px;
+    position: relative;
   }
 }
 </style>

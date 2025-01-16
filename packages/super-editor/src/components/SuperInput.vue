@@ -76,24 +76,26 @@ onBeforeUnmount(() => {
 <template>
   <div class="super-editor" :class="{ 'super-input-active': isFocused }">
     <div id="currentContent" style="display: none" v-html="modelValue"></div>
-    <div ref="editorElem" class="editor-element"></div>
+    <div ref="editorElem" class="editor-element super-editor__element"></div>
   </div>
 </template>
 
 <style scoped>
 .super-editor {
+  width: 100%;
+  height: 100%;
   border: 1px solid #999;
   outline: none;
-  height: 100%;
-  width: 100%;
   transition: border 0.2s ease;
 }
+
 .editor-element {
   height: 100%;
   width: 100%;
   border: none;
   outline: none;
 }
+
 .super-input-active {
   border: 1px solid #007bff;
   outline: none;

@@ -91,5 +91,6 @@ const handleFocus = () => {
   padding: 10px 15px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 </style>

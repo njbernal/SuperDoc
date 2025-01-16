@@ -47,6 +47,7 @@ const handleClick = (item) => {
   display: flex;
   flex-direction: column;
   padding: 10px;
+  box-sizing: border-box;
 }
 .option-item {
   display: flex;
@@ -55,6 +56,7 @@ const handleClick = (item) => {
   padding: 10px;
   border-radius: 4px;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .document-mode-column {
   display: flex;
@@ -73,6 +75,7 @@ const handleClick = (item) => {
   font-size: 18px;
   color: black;
   height: 100%;
+  box-sizing: border-box;
 }
 .document-mode-description {
   font-size: 12px;
