@@ -3,19 +3,19 @@
 
 # Unzip a .docx file to the tests directory
 # Expects a file path to a docx file and optional second flag to indicate if the data is public safe
-# If is_public_safe is true the data will be included in the git repo
+# If private is true the data will be included in the git repo
 
 # Check if the file name is provided
 if [ -z "$1" ]; then
-  echo "Usage: unzip.sh /path/to/my/file [is_public_safe]"
-  echo "is_public_safe: optional flag to indicate if the data is public safe"
+  echo "Usage: unzip.sh /path/to/my/file [private]"
+  echo "private: optional flag to indicate if the data should be kept private (not in the repo)"
   exit 1
 fi
 
 # Original file path
 FILE_PATH="$1"
 FILE_NAME=$(basename "$FILE_PATH")
-IS_PUBLIC_SAFE="$2"
+PRIVATE="$2"
 
 echo "🥡 Processing file: $FILE_PATH"
 
@@ -50,7 +50,7 @@ echo "🥡 Done!"
 
 # Unless the user explicitly tells us that this data is git-safe, we will gitignore it
 GITIGNORE_PATH=$BASE_PATH/.gitignore
-if [ "$IS_PUBLIC_SAFE" != "true" ]; then
+if [ "$PRIVATE" == "private" ]; then
   # Add to gitignore
   ENTRY=$FILE_PATH/
   echo "Adding $ENTRY to $GITIGNORE_PATH"
