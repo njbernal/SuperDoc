@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { createApp } from 'vue';
 import { undoDepth, redoDepth } from 'prosemirror-history';
+import { TextSelection } from 'prosemirror-state';
 import { makeDefaultItems } from './defaultItems';
 import { getActiveFormatting } from '@core/helpers/getActiveFormatting.js';
 import { vClickOutside } from '@harbour-enterprises/common';
@@ -100,13 +101,13 @@ export class SuperToolbar extends EventEmitter {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('bold', true);
       }
-      
+
       this.updateToolbarState();
     },
 
     toggleItalic: ({ item, argument }) => {
       let command = item.command;
-      
+
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('italic', true);
@@ -117,12 +118,33 @@ export class SuperToolbar extends EventEmitter {
 
     toggleUnderline: ({ item, argument }) => {
       let command = item.command;
-      
+
       if (command in this.activeEditor.commands) {
         this.activeEditor.commands[command](argument);
         this.activeEditor.commands.toggleFieldAnnotationsFormat('underline', true);
       }
 
+      this.updateToolbarState();
+    },
+
+    toggleLink: ({ item, argument }) => {
+      let command = item.command;
+
+      if (command in this.activeEditor.commands) {
+        this.activeEditor.commands[command](argument);
+
+        // move cursor to end
+        const { view } = this.activeEditor;
+        const endPos = view.state.selection.$to.pos;
+        const selection = new TextSelection(view.state.doc.resolve(endPos));
+        const tr = view.state.tr.setSelection(selection);
+        const state = view.state.apply(tr);
+        view.updateState(state);
+
+        setTimeout(() => {
+          view.focus();
+        }, 100);
+      }
       this.updateToolbarState();
     },
   };
@@ -218,7 +240,7 @@ export class SuperToolbar extends EventEmitter {
       item.resetDisabled();
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
-      
+
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
