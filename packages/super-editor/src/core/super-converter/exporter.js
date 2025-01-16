@@ -71,6 +71,7 @@ export function exportSchemaToJson(params) {
     fieldAnnotation: translateFieldAnnotation,
     tab: translateTab,
     image: translateImageNode,
+    hardBreak: translateHardBreak,
   };
 
   if (!router[type]) {
@@ -1446,6 +1447,14 @@ function translateFieldAnnotation(params) {
     ],
   };
 }
+
+export function translateHardBreak() {
+  return {
+    name: 'w:br',
+    type: 'element',
+    attributes: { 'w:type': 'page' }
+  };
+};
 
 export class DocxExporter {
   constructor(converter) {

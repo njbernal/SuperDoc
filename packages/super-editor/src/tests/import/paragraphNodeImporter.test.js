@@ -1,13 +1,13 @@
 
 import { handleParagraphNode } from '@converter/v2/importer/paragraphNodeImporter.js';
 import { defaultNodeListHandler } from '@converter/v2/importer/docxImporter.js';
-import { getTestDataByFolderName } from '@tests/helpers/helpers.js';
+import { getTestDataByFileName } from '@tests/helpers/helpers.js';
 
 
 describe('paragraph tests to check spacing', () => {
-  it('correctly gets spacing [paragraph_spacing_missing]', () => {
-    const dataName = 'paragraph_spacing_missing';
-    const docx = getTestDataByFolderName(dataName);
+  it('correctly gets spacing [paragraph_spacing_missing]', async () => {
+    const dataName = 'paragraph_spacing_missing.docx';
+    const docx = await getTestDataByFileName(dataName);
     const documentXml = docx['word/document.xml'];
 
     const doc = documentXml.elements[0];
@@ -26,9 +26,9 @@ describe('paragraph tests to check spacing', () => {
     expect(spacing.lineSpaceBefore).toBe(16);
   });
 
-  it('correctly gets spacing [line_space_table]', () => {
-    const dataName = 'line_space_table';
-    const docx = getTestDataByFolderName(dataName);
+  it('correctly gets spacing [line_space_table]', async () => {
+    const dataName = 'line_space_table.docx';
+    const docx = await getTestDataByFileName(dataName);
     const documentXml = docx['word/document.xml'];
 
     const doc = documentXml.elements[0];
@@ -54,9 +54,9 @@ describe('paragraph tests to check spacing', () => {
     expect(spacing.lineSpaceBefore).toBe(0);
   });
 
-  it('correctly gets spacing around image in p [image_p_spacing]', () => {
-    const dataName = 'image_p_spacing';
-    const docx = getTestDataByFolderName(dataName);
+  it('correctly gets spacing around image in p [image_p_spacing]', async () => {
+    const dataName = 'image_p_spacing.docx';
+    const docx = await getTestDataByFileName(dataName);
     const documentXml = docx['word/document.xml'];
 
     const doc = documentXml.elements[0];
