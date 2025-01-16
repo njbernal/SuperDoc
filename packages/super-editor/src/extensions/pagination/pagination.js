@@ -5,7 +5,7 @@ import { Decoration, DecorationSet } from 'prosemirror-view';
 import { PaginationPluginKey } from './pagination-helpers.js';
 import { CollaborationPluginKey } from '@extensions/collaboration/collaboration.js';
 
-let isDebugging = false;
+const isDebugging = false;
 
 export const Pagination = Extension.create({
   name: 'pagination',
@@ -55,6 +55,7 @@ export const Pagination = Extension.create({
           return {
             isReadyToInit: false,
             decorations: DecorationSet.empty,
+            isDebugging,
           }
         },
         apply(tr, oldState, prevEditorState, newEditorState) {
@@ -62,7 +63,7 @@ export const Pagination = Extension.create({
 
           const meta = tr.getMeta(PaginationPluginKey);
           if (meta && meta.isReadyToInit) {
-            if (isDebugging) console.debug('✅ INIT READY ')
+            if (isDebugging) console.debug('✅ INIT READY')
             shouldUpdate = true;
             shouldInitialize = meta.isReadyToInit;
           };
@@ -243,7 +244,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
   const lastFooterId = footerIds.last || footerIds.default || 'default';
   const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId);
-  const footerBreak = createPageBreak({ editor, footer: lastFooter, footerBottom: 0, isLastFooter: true });
+  const footerBreak = createPageBreak({ editor, footer: lastFooter });
 
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
@@ -259,58 +260,73 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
     coords = view?.coordsAtPos(pos);
     if (!coords) return;
 
-    const shouldAddPageBreak = coords.bottom > pageHeightThreshold * scale;
-    if (isDebugging && shouldAddPageBreak) {
-      console.debug('\t🔴 Adding page break at pos:', pos, 'threshold:', pageHeightThreshold, 'scale', scale);
-    };
+    let shouldAddPageBreak = coords.bottom > pageHeightThreshold * scale;
     const isHardBreakNode = node.type.name === 'hardBreak';
 
-    // Check if we have a hard page break node
-    if (isHardBreakNode) {
-      // Add a page break
-      const headerId = (currentPageNumber % 2 === 0 ? headerIds.even : headerIds.odd) || headerIds.default;
-      const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
-      header = createHeader(pageMargins, pageSize, sectionData, headerId);
-      footer = createFooter(pageMargins, pageSize, sectionData, footerId);
+    if (isHardBreakNode || shouldAddPageBreak) {
+      // The node we've found extends past our threshold
+      // We need to zoom in and investigate position by position until we find the exact break point
+      // And we get the actual top and bottom of the break
+      const calculatedThreshold = pageHeightThreshold * scale;
+      const {
+        top: actualBreakTop,
+        bottom: actualBreakBottom,
+        pos: breakPos,
+      } = getActualBreakCoords(view, pos, calculatedThreshold);
 
-      // Calculate and add spacer to push us into a next page
-      const prevNodePos = view.coordsAtPos(pos - 1);
-      const bufferHeight = pageHeight - header.headerHeight - footer.footerHeight - prevNodePos.bottom;
-      const { node: spacingNode } = createFinalPagePadding(bufferHeight);
-      const pageSpacer = Decoration.widget(pos, spacingNode, { key: 'stable-key' });
-      decorations.push(pageSpacer);
+      if (isDebugging) {
+        console.debug('----- [pagination page break] ----');
+        console.debug('[pagination page break] Expected pageHeightThreshold:', pageHeightThreshold, 'Calculated threshold:', calculatedThreshold);
+        console.debug('[pagination page break]  Actual top:', actualBreakTop, 'Actual bottom:', actualBreakBottom);
+        console.debug('[pagination page break]  Pos:', pos, 'Break pos:', breakPos);
+        console.debug('---- [pagination page break end] ---- \n\n\n');
+      };
 
-      const pageBreak = createPageBreak({ editor, header, footer });
-      decorations.push(Decoration.widget(pos, pageBreak, { key: 'stable-key' }));
-      pageHeightThreshold += pageHeight - header.headerHeight - footer.footerHeight;
-      hardBreakOffsets += pageHeight;
-      currentPageNumber++;
-    }
-
-    // Otherwise, check if we should add a page break 
-    else if (shouldAddPageBreak) {
+      // Update the header and footer based on the current page number
       currentPageNumber++;  
       const headerId = (currentPageNumber % 2 === 0 ? headerIds.even :  headerIds.odd) || headerIds.default;
       const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
       header = createHeader(pageMargins, pageSize, sectionData, headerId);
       footer = createFooter(pageMargins, pageSize, sectionData, footerId);
-      pageHeightThreshold += pageHeight - header.headerHeight - footer.footerHeight;
-  
-      const pageBreak = createPageBreak({ editor, footer, header, });
-      decorations.push(Decoration.widget(pos, pageBreak, { key: 'stable-key' }));
-    }
+
+      // Check if we have a hard page break node
+      // If so, calculate and add spacer to push us into a next page
+      if (isHardBreakNode) {
+        const bufferHeight = pageHeightThreshold - actualBreakBottom;
+        const { node: spacingNode } = createFinalPagePadding(bufferHeight);
+        const pageSpacer = Decoration.widget(breakPos, spacingNode, { key: 'stable-key' });
+        decorations.push(pageSpacer);
+
+        const pageBreak = createPageBreak({ editor, header, footer });
+        decorations.push(Decoration.widget(breakPos, pageBreak, { key: 'stable-key' }));
+        hardBreakOffsets += pageHeight;
+      }
+
+      // Otherwise, check if we should add a page break
+      else if (shouldAddPageBreak) {
+        const pageBreak = createPageBreak({ editor, footer, header, });
+        decorations.push(Decoration.widget(breakPos, pageBreak, { key: 'stable-key' }));
+      };
+
+      // Recalculate the page threshold based on where we actually inserted the break
+      pageHeightThreshold = actualBreakBottom + (pageHeight - header.headerHeight - footer.footerHeight);
+    };
   });
 
   // Add blank padding to the last page to make a full page height
-  const editorHeight = currentPageNumber * pageHeight + (currentPageNumber - 1 * 20);
+  let finalPos = doc.content.size;
+  const lastNodeCoords = view.coordsAtPos(finalPos);
+  const headerId = (currentPageNumber % 2 === 0 ? headerIds.even : headerIds.odd) || headerIds.default;
+  const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
+  header = createHeader(pageMargins, pageSize, sectionData, headerId);
+  footer = createFooter(pageMargins, pageSize, sectionData, footerId);
+  const bufferHeight = pageHeightThreshold - lastNodeCoords.bottom;
+  const { node: spacingNode } = createFinalPagePadding(bufferHeight);
+  const pageSpacer = Decoration.widget(doc.content.size, spacingNode, { key: 'stable-key' });
+  decorations.push(pageSpacer);
 
   // Add the final footer
   decorations.push(Decoration.widget(doc.content.size, footerBreak, { key: 'stable-key' }));
-
-  // Ensure the editor doesn't shrink below the minimum height
-  editor.element.style.minHeight = editorHeight + 'px';
-  const pm = editor.element.querySelector('.ProseMirror');
-  pm.style.height = editorHeight + 'px';
 
   // Return the widget decorations array
   return decorations;
@@ -456,4 +472,31 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
   }
 
   return paginationDiv;
+};
+
+/**
+ * Get the actual break coordinates for a page split based on the approximate position (pos)
+ * and the calculated threshold (which accounts for 'scale')
+ * 
+ * Since we know the node at pos extends past the threshold, we iterate
+ * backwards through all positions from there to find the exact break point
+ * @param {EditorView} view The current editor view
+ * @param {Number} pos The position of the outermost node that exceeds threshold
+ * @param {Number} calculatedThreshold The page threshold accounting for scale
+ * @returns {Object} Object containing the actual top, bottom, and position of the break
+ */
+function getActualBreakCoords(view, pos, calculatedThreshold) {
+  let currentPos = pos - 1;
+  const actualBreak = { top: 0, bottom: 0, pos: 0 };
+  while (currentPos > 0) {
+    const { top, bottom } = view.coordsAtPos(currentPos);
+    if (bottom < calculatedThreshold) {
+      Object.assign(actualBreak, { top, bottom, pos: currentPos + 1 });
+      break;
+    }
+
+    currentPos--;
+  };
+
+  return actualBreak;
 };
