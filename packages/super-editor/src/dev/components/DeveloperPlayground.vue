@@ -9,6 +9,7 @@ import { DOCX } from '@harbour-enterprises/common';
 import { INPUTS } from '../config/agreement-editor.js';
 import { SuperToolbar } from '@components/toolbar/super-toolbar';
 import { fieldAnnotationHelpers } from '@extensions/index.js';
+import { PaginationPluginKey } from '@extensions/pagination/pagination-helpers.js';
 import BasicUpload from './BasicUpload.vue';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 import EditorInputs from './EditorInputs/EditorInputs.vue';
@@ -16,6 +17,8 @@ import EditorInputs from './EditorInputs/EditorInputs.vue';
 // Import the component the same you would in your app
 let activeEditor;
 const currentFile = ref(null);
+const pageStyles = ref(null);
+const isDebuggingPagination = ref(false);
 
 const handleNewFile = async (file) => {
   currentFile.value = null;
@@ -28,6 +31,7 @@ const onCreate = ({ editor }) => {
   console.debug('[Dev] Page styles (pixels)', editor.getPageStyles());
   console.debug('[Dev] document styles', editor.converter?.getDocumentDefaultStyles());
 
+  pageStyles.value = editor.converter?.pageStyles;
   activeEditor = editor;
   window.editor = editor;
 
@@ -39,6 +43,9 @@ const onCreate = ({ editor }) => {
     }
   });
   attachAnnotationEventHandlers();
+
+  // Set debugging pagination value from editor plugin state
+  isDebuggingPagination.value = PaginationPluginKey.getState(editor.state)?.isDebugging;
 };
 
 const onCommentClicked = ({ conversation }) => {
@@ -154,6 +161,13 @@ const initToolbar = () => {
   return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true });
 };
 
+/* For pagination debugging / visual cues */
+const debugPageStyle = computed(() => {
+  return {
+    height: pageStyles.value?.pageSize.height + 'in',
+  }
+});
+
 onMounted(async () => {
   // set document to blank
   currentFile.value = await getFileObject(BlankDOCX, 'blank_document.docx', DOCX);
@@ -182,6 +196,13 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view" id="dev-parent">
+          <!-- temporary - debugging pagination -->
+          <div style="display: flex; flex-direction: column; margin-right: 10px;" v-if="isDebuggingPagination">
+            <div v-for="i in 100" class="page-spacer" :style="debugPageStyle">
+              page: {{ i }}
+            </div>
+          </div>
+
           <div class="dev-app__content" v-if="currentFile">
             <SuperEditor
               :file-source="currentFile" 
@@ -194,7 +215,25 @@ onMounted(async () => {
   </div>
 </template>
 
+<style>
+.super-editor {
+  border: 1px solid black;
+}
+</style>
+
 <style scoped>
+.page-spacer {
+  height: 11in;
+  width: 60px;
+  background-color: #0000AA55;
+  border: 1px solid black;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: center;
+}
+.page-spacer:nth-child(odd) {
+  background-color: #AA000055;
+}
 .dev-app {
   --header-height: 154px;
   --toolbar-height: 39px;
