@@ -119,7 +119,7 @@ function translateParagraphNode(params) {
   elements.unshift(pPr);
 
   let attributes = {};
-  if (params.node.attrs.rsidRDefault) {
+  if (params.node.attrs?.rsidRDefault) {
     attributes['rsidRDefault'] = params.node.attrs.rsidRDefault;
   }
 
@@ -137,7 +137,7 @@ function translateParagraphNode(params) {
  * @returns {XmlReadyNode} The paragraph properties node
  */
 function generateParagraphProperties(node) {
-  const { attrs } = node;
+  const { attrs = {} } = node;
 
   const pPrElements = [];
 
