@@ -6,13 +6,11 @@ import { ref, computed, onMounted } from 'vue';
 import { SuperEditor } from '@/index';
 import { getFileObject } from '@harbour-enterprises/common/helpers/get-file-object';
 import { DOCX } from '@harbour-enterprises/common';
-import { INPUTS } from '../config/agreement-editor.js';
 import { SuperToolbar } from '@components/toolbar/super-toolbar';
 import { fieldAnnotationHelpers } from '@extensions/index.js';
 import { PaginationPluginKey } from '@extensions/pagination/pagination-helpers.js';
 import BasicUpload from './BasicUpload.vue';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
-import EditorInputs from './EditorInputs/EditorInputs.vue';
 
 // Import the component the same you would in your app
 let activeEditor;
@@ -79,70 +77,7 @@ const exportDocx = async () => {
   a.click();
 };
 
-/* Inputs pane and field annotations */
-const draggedInputId = ref(null);
-const activeSigner = ref(null);
-const signersListInfo = ref([
-  {
-    signerindex: 0,
-    signername: 'Signer 1',
-    signeremail: 'signer1@harbourshare.com',
-    isactive: true,
-    signercolor: '#016c59',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 0,
-    signerid: 'signerid-1723657655732-7x1vne6lq1r',
-    iscreator: false,
-  },
-  {
-    signerindex: 1,
-    signername: 'Signer 2',
-    signeremail: 'signer2@harbourshare.com',
-    isactive: true,
-    signercolor: '#6943d0',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 1,
-    signerid: 'signerid-1723657671736-msk8e5qpd0c',
-    iscreator: false,
-  },
-]);
-
-const updateDraggedInputId = (inputId) => {
-  draggedInputId.value = inputId;
-};
-
-const updateActiveSigner = (signerIdx) => {
-  activeSigner.value = signerIdx;
-};
-
 const attachAnnotationEventHandlers = () => {
-  // Handle field drop outside editor.
-  activeEditor?.on('fieldAnnotationDropped', ({ sourceField, editor, coordinates, pos }) => {
-    console.log('fieldAnnotationDropped', { sourceField });
-
-    let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
-
-    editor.commands.addFieldAnnotation(pos, {
-      displayLabel: 'Enter your info',
-      fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-      // fieldId: `222`,
-      fieldType: 'TEXTINPUT',
-      fieldColor: signer?.signercolor,
-    });
-
-    // To test link field.
-    // editor.commands.addFieldAnnotation(pos, {
-    //   displayLabel: 'Enter your link',
-    //   fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-    //   fieldType: 'URLTEXTINPUT',
-    //   fieldColor: signer?.signercolor,
-    //   linkUrl: 'https://google.com',
-    //   type: 'link',
-    // });
-  });
-
   activeEditor?.on('fieldAnnotationClicked', (params) => {
     console.log('fieldAnnotationClicked', { params });
   });
@@ -155,7 +90,6 @@ const attachAnnotationEventHandlers = () => {
     console.log('fieldAnnotationDeleted', { params });
   });
 };
-/* Inputs pane and field annotations */
 
 const initToolbar = () => {
   return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true });

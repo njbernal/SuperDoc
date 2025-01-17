@@ -7,7 +7,6 @@ import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
-import EditorInputs from './EditorInputs.vue';
 
 /* For local dev */
 let superdoc = shallowRef(null);
@@ -87,57 +86,8 @@ const exportDocx = async () => {
   a.click();
 };
 
-/* Inputs pane and field annotations */
-const draggedInputId = ref(null);
-const activeSigner = ref(null);
-const signersListInfo = ref([
-  {
-    signerindex: 0,
-    signername: 'Signer 1',
-    signeremail: 'signer1@harbourshare.com',
-    isactive: true,
-    signercolor: '#016c59',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 0,
-    signerid: 'signerid-1723657655732-7x1vne6lq1r',
-    iscreator: false,
-  },
-  {
-    signerindex: 1,
-    signername: 'Signer 2',
-    signeremail: 'signer2@harbourshare.com',
-    isactive: true,
-    signercolor: '#6943d0',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 1,
-    signerid: 'signerid-1723657671736-msk8e5qpd0c',
-    iscreator: false,
-  },
-]);
-
-const updateDraggedInputId = (inputId) => {
-  draggedInputId.value = inputId;
-};
-const updateActiveSigner = (signerIdx) => {
-  activeSigner.value = signerIdx;
-};
-
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
-
-  editor.on('fieldAnnotationDropped', ({ sourceField, editor, pos }) => {
-    console.log('fieldAnnotationDropped', { sourceField });
-
-    let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
-    editor.commands.addFieldAnnotation(pos, {
-      displayLabel: 'Enter your info',
-      fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-      fieldType: 'TEXTINPUT',
-      fieldColor: signer?.signercolor,
-    });
-  });
 
   editor.on('fieldAnnotationClicked', (params) => {
     console.log('fieldAnnotationClicked', { params });
@@ -147,7 +97,6 @@ const onEditorCreate = ({ editor }) => {
     console.log('fieldAnnotationSelected', { params });
   });
 };
-/* Inputs pane and field annotations */
 
 onMounted(async () => {
   handleNewFile(await getFileObject(BlankDOCX, 'test.docx', DOCX));
