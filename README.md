@@ -1,13 +1,17 @@
-# 🦋️📝️ SuperDoc
 
-> The modern collaborative document editor for the web
+<h1 align="center">
+  <img alt="SuperDoc logo" src="https://storage.googleapis.com/public_statichosting/SuperDocHomepage/logo.webp" width="170px" height="auto" />
+  <BR />
+  SuperDoc
+</h1>
 
 [![Documentation](https://img.shields.io/badge/docs-available-1355ff.svg)](https://docs.superdoc.dev/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-1355ff.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![npm version](https://img.shields.io/npm/v/@harbour-enterprises/superdoc.svg?color=1355ff)](https://www.npmjs.com/package/@harbour-enterprises/superdoc)
 [![Discord](https://img.shields.io/badge/discord-join-1355ff)](https://discord.gg/FBeRDqWy)
 
-SuperDoc is a powerful document editor that brings Microsoft Word-level capabilities to your web applications. With real-time collaboration, extensive formatting options, and seamless integration capabilities, SuperDoc makes document editing on the web better for everyone.
+SuperDoc ([online demo](https://superdoc.dev/)) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Works great with Vanilla JS, React, Vue, and more ([code examples](https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples)).
+
 
 ## ✨ Features
 
