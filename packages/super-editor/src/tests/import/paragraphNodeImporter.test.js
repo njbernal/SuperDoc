@@ -3,6 +3,7 @@ import { handleParagraphNode } from '@converter/v2/importer/paragraphNodeImporte
 import { defaultNodeListHandler } from '@converter/v2/importer/docxImporter.js';
 import { getTestDataByFileName } from '@tests/helpers/helpers.js';
 
+import { handleListNode } from '@converter/v2/importer/listImporter.js';
 
 describe('paragraph tests to check spacing', () => {
   it('correctly gets spacing [paragraph_spacing_missing]', async () => {
@@ -78,5 +79,18 @@ describe('paragraph tests to check spacing', () => {
     // Specifically, double check we have this important line rule to prevent image clipping
     // due to line height restriction
     expect(spacing.lineRule).toBe('auto');
+  });
+
+  it('correctly gets spacing with lists [list-def-mix]', async () => {
+    const dataName = 'list-def-mix.docx';
+    const docx = await getTestDataByFileName(dataName);
+    const documentXml = docx['word/document.xml'];
+
+    const doc = documentXml.elements[0];
+    const body = doc.elements[0];
+    const content = body.elements;
+
+    const firstListItem = content[0];
+    const { nodes } = handleListNode([content[0]], docx, defaultNodeListHandler(), false);
   });
 });
