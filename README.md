@@ -58,7 +58,7 @@ const superdoc = new SuperDoc({
 
 ## 📖 Documentation
 
-Visit our <a href="https://docs.superdoc.dev" target="_blank">documentation site</a> or <a href="https://docs.superdoc.dev" target="_blank">code examples</a>. Key topics include:
+Visit our <a href="https://docs.superdoc.dev" target="_blank">documentation site</a> and <a href="https://docs.superdoc.dev" target="_blank">code examples</a>. Key topics include:
 
 - Installation
 - Integration guides
