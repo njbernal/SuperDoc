@@ -32,7 +32,7 @@
 - **📐 Extensible architecture**: Modular design makes it easy to extend and customize
 - **✅ Dual licensed**: Available under AGPLv3 for community use and Commercial license for enterprise deployments
 
-## 💡 Quick Start
+## 💡 Quick start
 
 ### Installation
 
@@ -88,7 +88,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for more details.
 - Open Source: [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 - Commercial: [Enterprise License](https://www.harbourshare.com/request-a-demo)
 
-## 🙌 Special shout-outs
+## 🙌 Shout-outs
 
 - Marijn Haverbeke and the community behind <a href="https://prosemirror.net" target="_blank">ProseMirror</a> - which we built on top of to make SuperDoc possible
 - Tiptap and the <a href="https://github.com/JefMari/awesome-wysiwyg-editors" target="_blank">many amazing editors of the web</a> - from which we draw inspiration
