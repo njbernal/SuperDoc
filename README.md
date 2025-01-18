@@ -26,7 +26,7 @@
 
 ## ✨ Features
 
-- **📝 Microsoft Word compatible**: View and edit DOCX documents (and PDFs too) with great import/export, advanced formatting, comments, and tracked changes
+- **📝 Microsoft Word compatible**: View and edit DOCX documents (and view PDFs too) with great import/export, advanced formatting, comments, and tracked changes
 - **🛠️ Easy to integrate**: Open source, can be self-hosted, seamlessly integrates with React, Vue, vanilla JavaScript, and more
 - **👥 Real-time collaboration**: Featyres multiplayer editing, live updates, commenting, sharing, and revision history
 - **📐 Extensible architecture**: Modular design makes it easy to extend and customize
