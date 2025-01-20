@@ -1385,8 +1385,7 @@ const translateFieldAttrsToMarks = (attrs = {}) => {
 function translateFieldAnnotation(params) {
   const { node, isFinalDoc } = params;
   const { attrs = {} } = node;
-
-  console.log(attrs.type);
+  
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
 
