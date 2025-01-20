@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises';
 import { Editor } from '@core/Editor.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import { exportSchemaToJson } from '@converter/exporter';
+import { annotationsBodyNode, annotationsNodeContent } from '../../data/annotations_doc_content.js';
 
 /**
  * Get the (first) text from a node
@@ -37,7 +38,7 @@ const getTestDataAsBuffer = async (name) => {
  */
 export const getExportedResult = async (name) => {
   const buffer = await getTestDataAsBuffer(name);
-  const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(buffer, true)
+  const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(buffer, true);
 
   const editor = new Editor({
     isHeadless: true,
@@ -62,4 +63,32 @@ export const getExportedResult = async (name) => {
   });
 
   return result;
+};
+
+export const getExportedResultForAnnotations = async (isFinalDoc) => {
+  const buffer = await getTestDataAsBuffer('annotations_import.docx');
+  const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(buffer, true);
+  
+  const editor = new Editor({
+    isHeadless: true,
+    extensions: getStarterExtensions(),
+    documentId: 'test-doc',
+    content: docx,
+    media,
+    mediaFiles,
+    fonts,
+  });
+  
+  const [result, params] = exportSchemaToJson({
+    editorSchema: editor.schema,
+    node: annotationsNodeContent,
+    bodyNode: annotationsBodyNode,
+    relationships: [],
+    documentMedia: {},
+    media: {},
+    isFinalDoc,
+    pageStyles: editor.converter.pageStyles,
+  });
+
+  return { result, params };
 };
