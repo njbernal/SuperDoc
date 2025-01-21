@@ -86,7 +86,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for more details.
 ## 📄 License
 
 - Open Source: [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.html)
-- Commercial: [Enterprise License](https://www.harbourshare.com/request-a-demo)
+- Commercial: [Enterprise License](https://www.harbourshare.com/get-in-touch)
 
 ## 🙌 Shout-outs
 
