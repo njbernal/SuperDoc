@@ -79,9 +79,9 @@ See our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 ## 💬 Community
 
-- [Discord Server](https://discord.gg/FBeRDqWy) - Join our community chat
+- [Discord](https://discord.gg/FBeRDqWy) - Join our community chat
 - [GitHub Discussions](https://github.com/Harbour-Enterprises/SuperDoc/discussions) - Ask questions and share ideas
-- [Email](mailto:q@superdoc.dev) - Get help from our team
+- [Team email](mailto:q@superdoc.dev) - Get help from our team
 
 ## 📄 License
 
