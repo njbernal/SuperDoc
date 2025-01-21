@@ -14,7 +14,7 @@
 [![npm version](https://img.shields.io/npm/v/@harbour-enterprises/superdoc.svg?color=1355ff)](https://www.npmjs.com/package/@harbour-enterprises/superdoc)
 [![Discord](https://img.shields.io/badge/discord-join-1355ff)](https://discord.gg/FBeRDqWy)
 
-<strong>SuperDoc</strong> (<a href="https://www.superdoc.dev)" target="_blank">online demo</a>) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Self-hostable with Vanilla JS, React, Vue, and more (<a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples)" target="_blank">code examples</a>).
+<strong>SuperDoc</strong> (<a href="https://www.superdoc.dev" target="_blank">online demo</a>) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Self-hostable with Vanilla JS, React, Vue, and more (<a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples" target="_blank">code examples</a>).
 
 ## 🖼️ Screenshot
 
@@ -58,7 +58,7 @@ const superdoc = new SuperDoc({
 
 ## 📖 Documentation
 
-Visit our <a href="https://docs.superdoc.dev" target="_blank">documentation site</a> and <a href="https://docs.superdoc.dev" target="_blank">code examples</a>. Key topics include:
+Visit our <a href="https://docs.superdoc.dev" target="_blank">documentation site</a> and <a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples" target="_blank">code examples</a>. Key topics include:
 
 - Installation
 - Integration guides
