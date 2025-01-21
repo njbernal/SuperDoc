@@ -28,8 +28,8 @@
 
 - **📝 Microsoft Word compatible**: View and edit DOCX documents (and view PDFs too) with great import/export, advanced formatting, comments, and tracked changes
 - **🛠️ Easy to integrate**: Open source, can be self-hosted, seamlessly integrates with React, Vue, vanilla JavaScript, and more
-- **👥 Real-time collaboration**: Featyres multiplayer editing, live updates, commenting, sharing, and revision history
-- **📐 Extensible architecture**: Modular design makes it easy to extend and customize
+- **👥 Real-time collaboration**: Features multiplayer editing, live updates, commenting, sharing, and revision history
+- **📐 Extensible architecture**: Modular design makes it easy to extend, brand, and customize
 - **✅ Dual licensed**: Available under AGPLv3 for community use and Commercial license for enterprise deployments
 
 ## 💡 Quick start
