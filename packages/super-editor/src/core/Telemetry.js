@@ -34,6 +34,8 @@
  * @property {string} [dsn] - Data Source Name for telemetry service
  * @property {string} [endpoint] - Optional override for telemetry endpoint
  * @property {boolean} [enabled=true] - Whether telemetry is enabled
+ * @property {File} [fileSource] - current editor file
+ * @property {string} documentId - Reference ID
  */
 
 class Telemetry {
@@ -49,6 +51,9 @@ class Telemetry {
   /** @type {string} */
   #token;
 
+  /** @type {object} */
+  #document;
+
   /** @type {string} */
   #sessionId;
 
@@ -62,7 +67,7 @@ class Telemetry {
   static BATCH_SIZE = 50;
 
   /** @type {number} */
-  static FLUSH_INTERVAL = 30000; // 30 seconds
+  static FLUSH_INTERVAL = 5000; // 30 seconds
 
   /** @type {string} */
   static COMMUNITY_DSN = 'https://public@telemetry.superdoc.dev/community';
@@ -76,13 +81,10 @@ class Telemetry {
 
     try {
       const dsn = config.dsn ?? Telemetry.COMMUNITY_DSN;
-      const { projectId, token, endpoint } = this.#parseDsn(dsn);
-      this.#projectId = projectId;
-      this.#token = token;
-      this.#endpoint = config.endpoint ?? endpoint;
+      this.initTelemetry(config, dsn);
     } catch (error) {
-      console.warn('Invalid telemetry configuration, disabling:', error);
-      this.#enabled = false;
+      console.warn('Invalid telemetry configuration, enabling community version:', error);
+      if (config.dsn) this.initTelemetry(config, Telemetry.COMMUNITY_DSN);
       return;
     }
 
@@ -94,12 +96,40 @@ class Telemetry {
   }
 
   /**
+   * Init variables
+   * @param {TelemetryConfig} config
+   * @param {string} dsn - Data Source Name for telemetry service
+   */
+  async initTelemetry(config, dsn) {
+    const { projectId, token, endpoint } = this.#parseDsn(dsn);
+    this.#projectId = projectId;
+    this.#token = token;
+    this.#endpoint = config.endpoint ?? endpoint;
+    this.#document = await this.processDocument(config.fileSource, {
+      id: config.documentId,
+    });
+  }
+  
+  
+  getSourceData() {
+    return {
+      userAgent: window.navigator.userAgent,
+      url: window.location.href,
+      host: window.location.host,
+      referrer: document.referrer,
+      screen: {
+        width: window.screen.width,
+        height: window.screen.height,
+      },
+    };
+  }
+
+  /**
    * Track feature usage
    * @param {string} name - Name of the feature/event
-   * @param {Object} document - Document information
    * @param {Object.<string, *>} [properties] - Additional properties
    */
-  trackUsage(name, document = {}, properties = {}) {
+  trackUsage(name, properties = {}) {
     if (!this.#enabled) return;
 
     /** @type {UsageEvent & BaseEvent} */
@@ -108,8 +138,9 @@ class Telemetry {
       type: 'usage',
       timestamp: new Date().toISOString(),
       sessionId: this.#sessionId,
+      source: this.getSourceData(),
       name,
-      document,
+      document: this.#document,
       properties,
     };
 
@@ -121,10 +152,9 @@ class Telemetry {
    * @param {'mark'|'element'} category - Category of parsed item
    * @param {string} name - Name of the item
    * @param {string} path - Document path where item was found
-   * @param {Object} document - Document information
    * @param {Object.<string, *>} [metadata] - Additional context
    */
-  trackParsing(category, name, path, document = {}, metadata) {
+  trackParsing(category, name, path, metadata) {
     if (!this.#enabled) return;
 
     /** @type {ParsingEvent & BaseEvent} */
@@ -133,10 +163,11 @@ class Telemetry {
       type: 'parsing',
       timestamp: new Date().toISOString(),
       sessionId: this.#sessionId,
+      source: this.getSourceData(),
       category,
       name,
       path,
-      document,
+      document: this.#document,
       ...(metadata && { metadata }),
     };
 
@@ -150,15 +181,24 @@ class Telemetry {
    * @returns {Promise<Object>} Document metadata
    */
   async processDocument(file, options = {}) {
-    const hash = await this.#generateMD5Hash(file);
-
-    return {
-      id: options.id,
-      type: options.type || file.type,
-      internalId: options.internalId,
-      hash,
-      lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
-    };
+    try {
+      const hash = await this.#generateMD5Hash(file);
+      
+      return {
+        id: options.id,
+        type: options.type || file.type,
+        internalId: options.internalId,
+        hash,
+        lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
+      };
+    } catch (error) {
+      return {
+        id: options.id,
+        type: options.type || file.type,
+        internalId: options.internalId,
+        lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
+      }
+    }
   }
 
   /**
@@ -169,7 +209,7 @@ class Telemetry {
    */
   async #generateMD5Hash(file) {
     const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('MD5', buffer);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }

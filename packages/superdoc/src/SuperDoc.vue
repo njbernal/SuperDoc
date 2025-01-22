@@ -303,6 +303,7 @@ const editorOptions = (doc) => {
     collaborationProvider: doc.provider || null,
     isNewFile: doc.isNewFile || false,
     handleImageUpload: proxy.$superdoc.config.handleImageUpload,
+    telemetry: proxy.$superdoc.telemetry,
   };
 
   return options;

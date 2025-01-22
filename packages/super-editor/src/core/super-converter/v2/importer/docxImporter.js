@@ -52,6 +52,15 @@ export const createDocumentJson = (docx, converter) => {
         attributes: json.elements[0].attributes,
       },
     };
+    
+    // Not empty document
+    if (result.content.length > 1) {
+      converter.telemetry?.trackUsage('document_import', {
+        documentType: 'docx',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     return {
       pmDoc: result,
       savedTagsToRestore: node,
@@ -120,7 +129,7 @@ const createNodeListHandler = (nodeHandlers) => {
     
     const processedElements = [];
     const unhandledNodes = [];
-
+    
     try {
       for (let index = 0; index < elements.length; index++) {
         try {
@@ -133,7 +142,7 @@ const createNodeListHandler = (nodeHandlers) => {
             continue;
           }
 
-          const { nodes, consumed } = nodeHandlers.reduce(
+          const { nodes, consumed, unhandled } = nodeHandlers.reduce(
             (res, handler) => {
               if (res.consumed > 0) return res;
               
@@ -149,6 +158,23 @@ const createNodeListHandler = (nodeHandlers) => {
             { nodes: [], consumed: 0 }
           );
 
+          // Track unhandled nodes with safe context
+          if (unhandled) {
+            const context = getSafeElementContext(elements, index);
+            if (!context.elementName) continue;
+
+            unhandledNodes.push({
+              name: context.elementName,
+              attributes: context.elementAttributes
+            });
+
+            converter?.telemetry?.trackParsing('node', 'unhandled', `/word/${filename || 'document.xml'}`, {
+              context
+            });
+            
+            continue;
+          }
+          
           // Bounds check before incrementing index
           if (consumed > 0) {
             index += consumed - 1;
@@ -161,27 +187,14 @@ const createNodeListHandler = (nodeHandlers) => {
               index = 0; // Reset to safe value
             }
           }
-
-          // Track unhandled nodes with safe context
-          if (consumed === 0) {
-            const context = getSafeElementContext(elements, index);
-            unhandledNodes.push({
-              name: context.elementName,
-              attributes: context.elementAttributes
-            });
-            
-            converter?.telemetry?.trackParsing('node', 'unhandled', `/word/${filename || 'document.xml'}`, {
-              context
-            });
-            continue;
-          }
-
+          
           // Process valid nodes
           for (let node of (nodes || [])) {
             if (node?.type) {
               const ignore = ['runProperties'];
               
               if (node.type === 'text' && Array.isArray(node.content) && !node.content.length) {
+                
                 converter?.telemetry?.trackParsing('node', 'empty_text', `/word/${filename || 'document.xml'}`, {
                   context: node.attrs
                 });
@@ -203,8 +216,6 @@ const createNodeListHandler = (nodeHandlers) => {
             },
             context: getSafeElementContext(elements, index)
           });
-          
-          continue;
         }
       }
 

@@ -11,10 +11,24 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
   // Parse properties
   const { name, type } = node;
   const { attributes, elements, marks = [] } = parseProperties(node, docx);
+  
+  if (!getElementName(node)) {
+    return { 
+      nodes: [{
+        type: name,
+        content: elements,
+        attrs: { ...attributes },
+        marks,
+      }], 
+      consumed: 0,
+      unhandled: true,
+    };
+  }
 
   // Iterate through the children and build the schemaNode content
+  // Skip run properties since they are formatting only elements
   const content = [];
-  if (elements && elements.length) {
+  if (elements && elements.length && name !== 'w:rPr') {
     const updatedElements = elements.map((el) => {
       if (!el.marks) el.marks = [];
       el.marks.push(...marks);

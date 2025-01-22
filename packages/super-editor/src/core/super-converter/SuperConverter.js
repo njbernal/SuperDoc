@@ -3,7 +3,6 @@ import xmljs from 'xml-js';
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
-import { Telemetry } from './Telemetry.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -97,15 +96,10 @@ class SuperConverter {
     this.savedTagsToRestore = [];
 
     // Initialize telemetry
-    this.telemetry = new Telemetry({
-      enabled: params?.telemetry?.enabled ?? true,
-      dsn: params?.telemetry?.dsn,
-      endpoint: params?.telemetry?.endpoint
-    });
+    this.telemetry = params?.telemetry || null;
 
-    // Track unknown marks/elements for telemetry
+    // ToDo do we still need to track unknown marks for telemetry 
     this.unknownMarks = [];
-    this.unknownElements = [];
 
     // Parse the initial XML, if provided
     if (this.docx.length || this.xml) this.parseFromXml();
@@ -188,6 +182,7 @@ class SuperConverter {
 
   getSchema() {
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this );
+      
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
