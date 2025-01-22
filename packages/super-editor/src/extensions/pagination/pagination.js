@@ -125,6 +125,24 @@ export const Pagination = Extension.create({
         };
       },
       props: {
+        handleDOMEvents: {
+          keydown: (view, event) => {
+            if (event.key === 'Enter') {
+              const scrollTop = document.documentElement.scrollTop;
+              const lockScroll = () => {
+                document.documentElement.scrollTop = scrollTop;
+              };
+
+              window.addEventListener('scroll', lockScroll);
+              setTimeout(() => {
+                window.removeEventListener('scroll', lockScroll);
+              }, 0);
+
+              return false;
+            }
+            return false;
+          },
+        },
         decorations(state) {
           return PaginationPluginKey.getState(state).decorations;
         },
