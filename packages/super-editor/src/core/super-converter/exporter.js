@@ -1385,19 +1385,22 @@ const translateFieldAttrsToMarks = (attrs = {}) => {
 function translateFieldAnnotation(params) {
   const { node, isFinalDoc } = params;
   const { attrs = {} } = node;
-
+  
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
 
-  const processedNode = annotationHandler(params);
-  let sdtContentElements = [processedNode];
-
-  if (attrs.type === 'html') {
-    sdtContentElements = [...processedNode.elements];
-  }
-
+  let processedNode;
+  let sdtContentElements;
+  
   if (isFinalDoc) {
     return annotationHandler(params);
+  } else {
+    processedNode = annotationHandler(params);
+    sdtContentElements = [processedNode];
+
+    if (attrs.type === 'html') {
+      sdtContentElements = [...processedNode.elements];
+    }
   }
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
