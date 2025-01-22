@@ -17,7 +17,11 @@
   <a href="https://www.discord.com/invite/b9UuaZRyaB" target="_blank"><img src="https://img.shields.io/badge/discord-join-1355ff" height="22px"></a>
 </div>
 
-<strong>SuperDoc</strong> (<a href="https://www.superdoc.dev" target="_blank">online demo</a>) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Self-hostable with Vanilla JS, React, Vue, and more (<a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples" target="_blank">code examples</a>).
+<div>
+  <BR />
+  <strong>SuperDoc</strong> (<a href="https://www.superdoc.dev" target="_blank">online demo</a>) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Self-hostable with Vanilla JS, React, Vue, and more (<a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples" target="_blank">code examples</a>).
+  <BR />
+</div>
 
 ## 🖼️ Screenshot
 
