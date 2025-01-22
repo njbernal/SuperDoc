@@ -62,6 +62,7 @@ onMounted(() => {
   border-radius: 5px;
   background-color: #fff;
   z-index: 3;
+  box-sizing: border-box;
 }
 .option-row {
   display: flex;
@@ -75,6 +76,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   position: relative;
+  box-sizing: border-box;
 }
 
 .option:hover {

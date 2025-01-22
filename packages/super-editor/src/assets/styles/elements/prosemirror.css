@@ -1,10 +1,9 @@
-// https://github.com/ProseMirror/prosemirror-view/blob/master/style/prosemirror.css
-// https://github.com/ueberdosis/tiptap/blob/main/packages/core/src/style.ts
-
 /**
  * Basic ProseMirror styles.
+ * https://github.com/ProseMirror/prosemirror-view/blob/master/style/prosemirror.css
  */
-export const style = `.ProseMirror {
+
+.ProseMirror {
   position: relative;
 }
 
@@ -25,13 +24,14 @@ export const style = `.ProseMirror {
   position: relative;
 }
 
-/* 
-  Hide marker for indented lists. 
-  If a list-item contains a list but doesn't contain a "p" tag with text.
-*/
+/**
+ * Hide marker for indented lists.
+ * If a list-item contains a list but doesn't contain a "p" tag with text.
+ */
 .ProseMirror li:has(> ul:first-child, > ol:first-child):not(:has(> p)) {
   list-style-type: none;
 }
+
 .ProseMirror li:has(> ul:first-child, > ol:first-child):not(:has(> p))::marker {
   content: '';
 }
@@ -95,6 +95,7 @@ img.ProseMirror-separator {
   display: inline-block;
   vertical-align: text-bottom;
 }
+
 .ProseMirror u .tab {
   white-space: pre;
   border-bottom: 1px solid #000;
@@ -134,11 +135,13 @@ img.ProseMirror-separator {
 .ProseMirror .track-delete-widget {
   visibility: hidden;
 }
+/* Track changes - end */
 
 /* Collaboration cursors */
 .ProseMirror > .ProseMirror-yjs-cursor:first-child {
   margin-top: 16px;
 }
+
 .ProseMirror-yjs-cursor {
   position: relative;
   margin-left: -1px;
@@ -149,6 +152,7 @@ img.ProseMirror-separator {
   word-break: normal;
   pointer-events: none;
 }
+
 .ProseMirror-yjs-cursor > div {
   position: absolute;
   top: -1.05em;
@@ -165,6 +169,7 @@ img.ProseMirror-separator {
   padding-right: 2px;
   white-space: nowrap;
 }
+/* Collaboration cursors - end */
 
 /* Image placeholder */
 .ProseMirror placeholder {
@@ -179,46 +184,3 @@ img.ProseMirror-separator {
   line-height: 0.1;
   font-weight: bold;
 }
-
-/* Pagination */
-.pagination-section-header {
-  cursor: default;
-}
-
-.pagination-section-footer {
-  position: relative;
-  width: 100%;
-  minWidth: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  cursor: default;
-}
-.pagination-break-wrapper {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  cursor: default;
-  position: relative;
-}
-
-.pagination-separator {
-  position: relative;
-  display: block;
-  height: 18px;
-  min-height: 18px;
-  min-width: 100%;
-  width: 100%;
-  border-top: 1px solid #DBDBDB;
-  border-bottom: 1px solid #DBDBDB;
-  cursor: default;
-}
-.pagination-inner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-}
-`;

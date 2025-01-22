@@ -1,5 +1,4 @@
 <script setup>
-import '@harbour-enterprises/super-editor/style.css';
 import { getCurrentInstance, ref, onMounted } from 'vue';
 import { Toolbar } from '@harbour-enterprises/super-editor';
 

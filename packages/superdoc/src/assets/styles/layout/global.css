@@ -1,0 +1,105 @@
+/* General */
+.box-sizing {
+  box-sizing: border-box;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* General - end */
+
+.superdoc *,
+.superdoc ::before,
+.superdoc ::after,
+.superdoc-toolbar *,
+.superdoc-toolbar ::before,
+.superdoc-toolbar ::after {
+  box-sizing: border-box;
+}
+
+.super-editor p {
+  padding: 0;
+  margin: 0;
+}
+
+.sd-button {
+  border-radius: 8px;
+  background-color: white;
+  padding: 8px 12px;
+  outline: none;
+  border: 1px solid #dbdbdb;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 250ms ease;
+}
+
+.sd-button:hover {
+  background-color: #dbdbdb;
+}
+
+.primary {
+  background-color: #1355ff;
+  border: none;
+  color: white;
+}
+
+.primary:hover {
+  background-color: #0d3fcc;
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+  min-width: 320px;
+  width: 320px;
+  box-sizing: border-box;
+  flex-grow: 1;
+  padding: 10px;
+}
+
+.comment-box {
+  width: 300px;
+}
+
+.superdoc-field {
+  border-radius: 8px;
+  padding: 12px;
+  outline: none;
+  border: 1px solid #dbdbdb;
+  width: 100%;
+}
+
+.superdoc-field:focus,
+.superdoc-field:active {
+  border: 1px solid #1355ff;
+}
+
+.superdoc-field .ProseMirror {
+  border: 0;
+  outline: 0;
+  margin: 0;
+}
+
+.super-editor-placeholder::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+  pointer-events: none;
+  display: block;
+  height: 0;
+}

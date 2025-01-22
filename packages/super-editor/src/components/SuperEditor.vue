@@ -157,9 +157,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor-component-wrapper">
+  <div class="super-editor-container">
     <div class="super-editor" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick" ref="editorWrapper">
-      <div ref="editorElem" class="editor-element"></div>
+      <div ref="editorElem" class="editor-element super-editor__element"></div>
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">
@@ -183,25 +183,31 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.super-editor-component-wrapper {
-  position: relative;
-  min-height: 11in;
+.super-editor-container {
+  width: auto;
+  height: auto;
   min-width: 8in;
-  margin: 0;
-  padding: 0;
+  min-height: 11in;
+  position: relative;
 }
+
+.super-editor {
+  color: initial;
+}
+
 .placeholder-editor {
   position: absolute;
   top: 0;
   left: 0;
-  box-sizing: border-box;
   width: 100%;
   height: 100%;
   border-radius: 8px;
   padding: 1in;
   z-index: 5;
   background-color: white;
+  box-sizing: border-box;
 }
+
 .placeholder-title {
   display: flex;
   justify-content: center;

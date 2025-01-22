@@ -51,6 +51,7 @@ const handleCommand = ({ item, argument }) => {
     border-radius: 8px;
     z-index: 100;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
   }
 }
 .superdoc-toolbar-overflow {

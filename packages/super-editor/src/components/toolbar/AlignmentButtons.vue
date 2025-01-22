@@ -21,6 +21,7 @@ const select = (alignment) => {
   justify-content: space-between;
   width: 100%;
   padding: 8px;
+  box-sizing: border-box;
 }
 .button-icon {
   cursor: pointer;
@@ -32,6 +33,7 @@ const select = (alignment) => {
   display: flex;
   justify-content: center;
   align-items: center;
+  box-sizing: border-box;
 }
 .button-icon:hover {
   background-color: #d8dee5;

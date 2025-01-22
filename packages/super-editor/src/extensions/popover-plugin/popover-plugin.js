@@ -3,7 +3,6 @@ import { Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import tippy from 'tippy.js';
 
-import LinkInput from '@/components/toolbar/LinkInput.vue';
 import Mentions from '@/components/popovers/Mentions.vue';
 
 const popoverPluginKey = new PluginKey('popoverPlugin');
