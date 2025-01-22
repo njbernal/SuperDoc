@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.14](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.11...v0.3.14) (2025-01-22)
+
+## [0.3.11](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.9...v0.3.11) (2025-01-22)
+
+## [0.3.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.8...v0.3.9) (2025-01-22)
+
+
+### Bug Fixes
+
+* broken links on README.md ([85910c9](https://github.com/Harbour-Enterprises/SuperDoc/commit/85910c9b4e6d835295b0f4ffdf087040031c5e2a))
+
 ## [0.3.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.7...v0.3.8) (2025-01-17)
 
 ## [0.3.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.6...v0.3.7) (2025-01-17)

@@ -7,6 +7,8 @@ import ImageField from '@/components/HrbrFieldsLayer/ImageField.vue';
 import CheckboxField from '@/components/HrbrFieldsLayer/CheckboxField.vue';
 import SelectField from '@/components/HrbrFieldsLayer/SelectField.vue';
 
+const CSS_UNITS = 96.0 / 72.0; // 1.333;
+
 export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
   const superdocStore = useSuperdocStore();
   const { documents, pages } = storeToRefs(superdocStore);
@@ -33,15 +35,22 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
 
   const getAnnotations = computed(() => {
     const mappedAnnotations = [];
+    
     documents.value.forEach((doc) => {
       const { id, annotations } = doc;
 
       const docContainer = doc.container;
-      if (!docContainer) return;
+
+      if (!docContainer) {
+        return;
+      }
 
       const bounds = docContainer.getBoundingClientRect();
       const pageBoundsMap = doc.pageContainers;
-      if (!bounds || !pageBoundsMap) return;
+
+      if (!bounds || !pageBoundsMap) {
+        return;
+      }
 
       annotations.forEach((annotation) => {
         const { itemid: fieldId, page, nostyle } = annotation;
@@ -56,15 +65,19 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
         const coordinates = { x1, y1, x2, y2 };
 
         const pageContainer = document.getElementById(`${id}-page-${page + 1}`);
-        if (!pageContainer) return;
-        const pageBounds = pageContainer.getBoundingClientRect();
 
+        if (!pageContainer) {
+          return;
+        }
+
+        const pageBounds = pageContainer.getBoundingClientRect();
         const pageInfo = doc.pageContainers.find((p) => p.page === page + 1);
         const scale = pageBounds.height / pageInfo.containerBounds.originalHeight;
         const pageBottom = pageBounds.bottom - bounds.top;
         const pageLeft = pageBounds.left - bounds.left;
 
-        const mappedCoordinates = _mapAnnotation(coordinates, scale, pageBottom, pageLeft);
+        const mappedCoordinates = _mapAnnotation(coordinates, scale, pageInfo, pageBottom, pageLeft);
+        
         const annotationStyle = {
           fontSize: annotation.original_font_size + 'px',
           originalFontSize: annotation.original_font_size,
@@ -89,16 +102,20 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
     return mappedAnnotations;
   });
 
-  const _mapAnnotation = (coordinates, scale, pageBottom, boundsLeft) => {
+  const _mapAnnotation = (coordinates, scale, pageInfo, pageBottom, boundsLeft) => {
     const { x1, y1, x2, y2 } = coordinates;
-    const mappedX1 = x1 * scale;
-    const mappedY1 = y1 * scale;
-    const mappedX2 = x2 * scale;
-    const mappedY2 = y2 * scale;
+
+    const mappedX1 = x1 * CSS_UNITS;
+    const mappedY1 = y1 * CSS_UNITS;
+    const mappedX2 = x2 * CSS_UNITS;
+    const mappedY2 = y2 * CSS_UNITS;
+
+    const { originalWidth, originalHeight } = pageInfo.containerBounds;
+    const pageHeight = originalHeight * CSS_UNITS;
 
     return {
-      top: `${pageBottom - mappedY2}px`,
-      left: `${mappedX1 + boundsLeft}px`,
+      top: `${pageHeight - mappedY2}px`,
+      left: `${mappedX1}px`,
       minWidth: `${mappedX2 - mappedX1}px`,
       minHeight: `${mappedY2 - mappedY1}px`,
     };

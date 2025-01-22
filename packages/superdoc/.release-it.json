@@ -24,7 +24,7 @@
     }
   },
   "hooks": {
-    "before:init": [
+    "after:bump": [
       "npm run build"
     ],
     "after:release": "echo Successfully released v${version}"

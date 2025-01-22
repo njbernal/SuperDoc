@@ -116,11 +116,9 @@ export const Pagination = Extension.create({
              * We call calculatePageBreaks which actually generates the decorations
              */
             if (isDebugging) console.debug('--- Calling performUpdate ---')
-            requestAnimationFrame(() => {
-              performUpdate(editor, view, previousDecorations);
-              isUpdating = false;
-              shouldUpdate = false;
-            });
+            performUpdate(editor, view, previousDecorations);
+            isUpdating = false;
+            shouldUpdate = false;
           },
         };
       },
@@ -134,6 +132,7 @@ export const Pagination = Extension.create({
     return [paginationPlugin];
   },
 });
+
 
 /**
  * Calculate page breaks and update the editor state with the new decorations
@@ -244,7 +243,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
   const lastFooterId = footerIds.last || footerIds.default || 'default';
   const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId);
-  const footerBreak = createPageBreak({ editor, footer: lastFooter });
+  const footerBreak = createPageBreak({ editor, footer: lastFooter, isLastFooter: true });
 
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
@@ -340,6 +339,8 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 function createFinalPagePadding(bufferHeight) {
   const div = document.createElement('div');
   div.className = 'pagination-page-spacer';
+  div.style.userSelect = 'none';
+  div.style.pointerEvents = 'none';
   div.style.height = bufferHeight + 'px';
 
   if (isDebugging) div.style.backgroundColor = '#ff000033';
