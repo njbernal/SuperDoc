@@ -99,7 +99,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 - Marijn Haverbeke and the community behind <a href="https://prosemirror.net" target="_blank">ProseMirror</a> - which we built on top of to make SuperDoc possible
 - Tiptap and the <a href="https://github.com/JefMari/awesome-wysiwyg-editors" target="_blank">many amazing editors of the web</a> - from which we draw inspiration
-- These wonderful projects that SuperDoc uses: <a href="https://fontawesome.com/" target="_blank">FontAwesome</a>, <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>, and <a href="https://vite.dev" target="_blank">Vite</a>
+- These wonderful projects that SuperDoc uses: <a href="https://github.com/yjs/yjs" target="_blank">Yjs</a>, <a href="https://fontawesome.com/" target="_blank">FontAwesome</a>, <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>, and <a href="https://vite.dev" target="_blank">Vite</a>
 
 ## 📱 Contact
 
