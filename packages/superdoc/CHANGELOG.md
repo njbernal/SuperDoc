@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.2...v0.4.3) (2025-01-22)
+
+
+### Reverts
+
+* Revert "fix pdf preview scale" ([18d1f02](https://github.com/Harbour-Enterprises/SuperDoc/commit/18d1f0206bbd93989feb89d8400a02e26e949097))
+
 ## [0.4.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.1...v0.4.2) (2025-01-22)
 
 ## [0.4.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.3.14...v0.4.1) (2025-01-22)
