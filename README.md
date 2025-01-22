@@ -9,10 +9,13 @@
   </a>
 </h1>
 
-[![Documentation](https://img.shields.io/badge/docs-available-1355ff.svg)](https://docs.superdoc.dev/)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-1355ff.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![npm version](https://img.shields.io/npm/v/@harbour-enterprises/superdoc.svg?color=1355ff)](https://www.npmjs.com/package/@harbour-enterprises/superdoc)
-[![Discord](https://img.shields.io/badge/discord-join-1355ff)](https://discord.gg/FBeRDqWy)
+<div align="center">
+  <a href="https://www.superdoc.dev" target="_blank"><img src="https://img.shields.io/badge/Official%20Site-1355ff.svg" height="22px"></a>
+  <a href="https://docs.superdoc.dev" target="_blank"><img src="https://img.shields.io/badge/docs-available-1355ff.svg" height="22px"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0" target="_blank"><img src="https://img.shields.io/badge/License-AGPL%20v3-1355ff.svg?color=1355ff" height="22px"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0" target="_blank"><img src="https://img.shields.io/npm/v/@harbour-enterprises/superdoc.svg?color=1355ff" height="22px"></a>
+  <a href="https://www.discord.com/invite/b9UuaZRyaB" target="_blank"><img src="https://img.shields.io/badge/discord-join-1355ff" height="22px"></a>
+</div>
 
 <strong>SuperDoc</strong> (<a href="https://www.superdoc.dev" target="_blank">online demo</a>) is an open source document editor bringing Microsoft Word capabilities to the web with real-time collaboration, extensive formatting options, and easy integration. Self-hostable with Vanilla JS, React, Vue, and more (<a href="https://github.com/Harbour-Enterprises/SuperDoc/tree/main/examples" target="_blank">code examples</a>).
 
