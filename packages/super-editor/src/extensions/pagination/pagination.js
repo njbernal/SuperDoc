@@ -116,25 +116,13 @@ export const Pagination = Extension.create({
              * We call calculatePageBreaks which actually generates the decorations
              */
             if (isDebugging) console.debug('--- Calling performUpdate ---')
-            requestAnimationFrame(() => {
-              performUpdate(editor, view, previousDecorations);
-              isUpdating = false;
-              shouldUpdate = false;
-            });
+            performUpdate(editor, view, previousDecorations);
+            isUpdating = false;
+            shouldUpdate = false;
           },
         };
       },
       props: {
-        handleDOMEvents: {
-          keydown: (view, event) => {
-
-            // This is a necessary workaround due to prosemirror causing parent elements to scroll
-            // when the last node is selected and a new line is inserted
-            if (event.key === 'Enter') {
-              return lockAllScrolls(this.editor.element);
-            };
-          },
-        },
         decorations(state) {
           return PaginationPluginKey.getState(state).decorations;
         },
@@ -145,58 +133,6 @@ export const Pagination = Extension.create({
   },
 });
 
-/**
- * Lock scrolls temporarily when the last node is selected. Workaround
- * to parent element scroll-jump issue when inserting a new line at the last position of the editor
- * @param {Object} baseElement The editor element
- * @param {Number} duration Default 0
- */
-const lockAllScrolls = (baseElement, duration = 0) => {
-  const elements = [];
-  let el = baseElement;
-  let maxElements = 20;
-
-  while (el && maxElements > 0) {
-    if (el.scrollHeight > el.clientHeight || el === document.body || el === document.documentElement) {
-      elements.push({ element: el, scrollTop: el.scrollTop });
-    }
-    el = el.parentElement;
-    maxElements--;
-  }
-
-  elements.push({ element: window, scrollTop: window.scrollY });
-
-  const lockScroll = (event) => {
-    const target = event.target || event.srcElement;
-
-    // Find the corresponding scrollable element and lock its scroll position
-    for (const { element, scrollTop } of elements) {
-      if (target === element || target === document) {
-        if (element === window) {
-          window.scrollTo(0, scrollTop);
-        } else {
-          element.scrollTop = scrollTop;
-        }
-      }
-    }
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    return false;
-  };
-
-  // Attach scroll locks
-  elements.forEach(({ element }) => {
-    element.addEventListener('scroll', lockScroll, { passive: false });
-  });
-
-  // Release locks after the duration
-  setTimeout(() => {
-    elements.forEach(({ element }) => {
-      element.removeEventListener('scroll', lockScroll);
-    });
-  }, duration);
-};
 
 /**
  * Calculate page breaks and update the editor state with the new decorations
