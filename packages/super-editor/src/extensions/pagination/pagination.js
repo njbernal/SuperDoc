@@ -131,11 +131,7 @@ export const Pagination = Extension.create({
             // This is a necessary workaround due to prosemirror causing parent elements to scroll
             // when the last node is selected and a new line is inserted
             if (event.key === 'Enter') {
-              const { doc } = view.state;
-              const { from, to } = view.state.selection;
-              if (from === to && from === doc.content.size - 1) {
-                return lockAllScrolls(this.editor.element);
-              };
+              return lockAllScrolls(this.editor.element);
             };
           },
         },
@@ -407,6 +403,8 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 function createFinalPagePadding(bufferHeight) {
   const div = document.createElement('div');
   div.className = 'pagination-page-spacer';
+  div.style.userSelect = 'none';
+  div.style.pointerEvents = 'none';
   div.style.height = bufferHeight + 'px';
 
   if (isDebugging) div.style.backgroundColor = '#ff000033';
