@@ -97,9 +97,7 @@ class SuperConverter {
 
     // Initialize telemetry
     this.telemetry = params?.telemetry || null;
-
-    // ToDo do we still need to track unknown marks for telemetry 
-    this.unknownMarks = [];
+    this.documentInternalId = null;
 
     // Parse the initial XML, if provided
     if (this.docx.length || this.xml) this.parseFromXml();
@@ -161,6 +159,13 @@ class SuperConverter {
       return { fontSizePt, kern, typeface, panose };
     }
   }
+  
+  getDocumentInternalId() {
+    const settings = this.convertedXml['word/settings.xml'];
+    if (!settings) return '';
+    const w15DocId = settings.elements[0].elements.find((el) => el.name === 'w15:docId');
+    this.documentInternalId = w15DocId?.attributes['w15:val'];
+  }
 
   getThemeInfo(themeName) {
     themeName = themeName.toLowerCase();
@@ -181,6 +186,7 @@ class SuperConverter {
   }
 
   getSchema() {
+    this.getDocumentInternalId();
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this );
       
     if (result) {

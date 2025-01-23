@@ -453,7 +453,7 @@ export class Editor extends EventEmitter {
   /**
    * Initialize telemetry service.
    */
-  #initTelemetry() {
+  async #initTelemetry() {
     if (this.options.telemetry?.enabled) {
       this.telemetryService = new Telemetry({
         enabled: this.options.telemetry.enabled ?? true,
@@ -578,6 +578,13 @@ export class Editor extends EventEmitter {
     this.view.setProps({
       nodeViews: this.extensionService.nodeViews,
     });
+  }
+
+  /**
+   * Get document internal ID(w15:docId) from settings.xml
+   */
+  initDocInternalId() {
+    this.options.documentInternalId = this.converter.getDocumentInternalId();
   }
 
   /**

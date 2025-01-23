@@ -57,6 +57,7 @@ export const createDocumentJson = (docx, converter) => {
     if (result.content.length > 1) {
       converter.telemetry?.trackUsage('document_import', {
         documentType: 'docx',
+        internalId: converter?.documentInternalId,
         timestamp: new Date().toISOString()
       });
     }
@@ -137,7 +138,8 @@ const createNodeListHandler = (nodeHandlers) => {
           if (!nodesToHandle || nodesToHandle.length === 0) {
             converter?.telemetry?.trackParsing('node', 'empty_slice', `/word/${filename || 'document.xml'}`, {
               index,
-              totalElements: elements.length
+              internalId: converter?.documentInternalId,
+              totalElements: elements.length,
             });
             continue;
           }
@@ -169,7 +171,8 @@ const createNodeListHandler = (nodeHandlers) => {
             });
 
             converter?.telemetry?.trackParsing('node', 'unhandled', `/word/${filename || 'document.xml'}`, {
-              context
+              context,
+              internalId: converter?.documentInternalId,
             });
             
             continue;
@@ -182,7 +185,8 @@ const createNodeListHandler = (nodeHandlers) => {
               converter?.telemetry?.trackParsing('node', 'invalid_index', `/word/${filename || 'document.xml'}`, {
                 originalIndex: index - (consumed - 1),
                 consumed,
-                resultingIndex: index
+                resultingIndex: index,
+                internalId: converter?.documentInternalId,
               });
               index = 0; // Reset to safe value
             }
@@ -196,7 +200,8 @@ const createNodeListHandler = (nodeHandlers) => {
               if (node.type === 'text' && Array.isArray(node.content) && !node.content.length) {
                 
                 converter?.telemetry?.trackParsing('node', 'empty_text', `/word/${filename || 'document.xml'}`, {
-                  context: node.attrs
+                  context: node.attrs,
+                  internalId: converter?.documentInternalId,
                 });
                 continue;
               }
@@ -207,14 +212,20 @@ const createNodeListHandler = (nodeHandlers) => {
             }
           }
         } catch (error) {
+          const context = getSafeElementContext(elements, index);
+          if (error.details) {
+            context.elementAttributes = error.details;
+          }
+          
           // Track individual element processing errors with safe context
           converter?.telemetry?.trackParsing('element', 'processing_error', `/word/${filename || 'document.xml'}`, {
             error: {
               message: error.message,
               name: error.name,
-              stack: error.stack
+              stack: error.stack,
             },
-            context: getSafeElementContext(elements, index)
+            internalId: converter?.documentInternalId,
+            context
           });
         }
       }
@@ -230,10 +241,11 @@ const createNodeListHandler = (nodeHandlers) => {
           name: error.name,
           stack: error.stack
         },
+        internalId: converter?.documentInternalId,
         context: {
           totalElements: elements?.length || 0,
           processedCount: processedElements.length,
-          unhandledCount: unhandledNodes.length
+          unhandledCount: unhandledNodes.length,
         }
       });
       

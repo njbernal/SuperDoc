@@ -50,9 +50,9 @@ class Telemetry {
 
   /** @type {string} */
   #token;
-
+  
   /** @type {object} */
-  #document;
+  #documentConfig;
 
   /** @type {string} */
   #sessionId;
@@ -67,7 +67,7 @@ class Telemetry {
   static BATCH_SIZE = 50;
 
   /** @type {number} */
-  static FLUSH_INTERVAL = 5000; // 30 seconds
+  static FLUSH_INTERVAL = 10000; // 30 seconds
 
   /** @type {string} */
   static COMMUNITY_DSN = 'https://public@telemetry.superdoc.dev/community';
@@ -100,17 +100,21 @@ class Telemetry {
    * @param {TelemetryConfig} config
    * @param {string} dsn - Data Source Name for telemetry service
    */
-  async initTelemetry(config, dsn) {
+  initTelemetry(config, dsn) {
     const { projectId, token, endpoint } = this.#parseDsn(dsn);
     this.#projectId = projectId;
     this.#token = token;
     this.#endpoint = config.endpoint ?? endpoint;
-    this.#document = await this.processDocument(config.fileSource, {
-      id: config.documentId,
-    });
+    this.#documentConfig = {
+      documentId: config.documentId,
+      internalId: config.internalId,
+      fileSource: config.fileSource,
+    }
   }
-  
-  
+
+  /**
+   * Create source payload for request
+   */
   getSourceData() {
     return {
       userAgent: window.navigator.userAgent,
@@ -129,8 +133,13 @@ class Telemetry {
    * @param {string} name - Name of the feature/event
    * @param {Object.<string, *>} [properties] - Additional properties
    */
-  trackUsage(name, properties = {}) {
+  async trackUsage(name, properties = {}) {
     if (!this.#enabled) return;
+    
+    const document = await this.processDocument(this.#documentConfig.fileSource, {
+      id: this.#documentConfig.documentId,
+      internalId: properties.internalId,
+    });
 
     /** @type {UsageEvent & BaseEvent} */
     const event = {
@@ -139,8 +148,8 @@ class Telemetry {
       timestamp: new Date().toISOString(),
       sessionId: this.#sessionId,
       source: this.getSourceData(),
+      document,
       name,
-      document: this.#document,
       properties,
     };
 
@@ -154,8 +163,14 @@ class Telemetry {
    * @param {string} path - Document path where item was found
    * @param {Object.<string, *>} [metadata] - Additional context
    */
-  trackParsing(category, name, path, metadata) {
+  async trackParsing(category, name, path, metadata) {
     if (!this.#enabled) return;
+
+    const document = await this.processDocument(this.#documentConfig.fileSource, {
+      id: this.#documentConfig.documentId,
+      internalId: metadata.internalId,
+    });
+
 
     /** @type {ParsingEvent & BaseEvent} */
     const event = {
@@ -165,9 +180,9 @@ class Telemetry {
       sessionId: this.#sessionId,
       source: this.getSourceData(),
       category,
+      document,
       name,
       path,
-      document: this.#document,
       ...(metadata && { metadata }),
     };
 
@@ -181,24 +196,20 @@ class Telemetry {
    * @returns {Promise<Object>} Document metadata
    */
   async processDocument(file, options = {}) {
+    let hash = '';
     try {
-      const hash = await this.#generateMD5Hash(file);
-      
-      return {
-        id: options.id,
-        type: options.type || file.type,
-        internalId: options.internalId,
-        hash,
-        lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
-      };
+      hash = await this.#generateMD5Hash(file);
     } catch (error) {
-      return {
-        id: options.id,
-        type: options.type || file.type,
-        internalId: options.internalId,
-        lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
-      }
+      console.error('Failed to retrieve file hash:', error);
     }
+    
+    return {
+      id: options.id,
+      type: options.type || file.type,
+      internalId: options.internalId,
+      hash,
+      lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
+    };
   }
 
   /**
@@ -232,11 +243,11 @@ class Telemetry {
    * @returns {Promise<void>}
    */
   async flush() {
-    if (!this.#enabled || this.#events.length === 0) return;
+    if (!this.#enabled || !this.#events.length) return;
 
     const eventsToSend = [...this.#events];
     this.#events = [];
-
+    
     try {
       const response = await fetch(this.#endpoint, {
         method: 'POST',

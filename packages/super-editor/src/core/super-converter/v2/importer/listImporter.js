@@ -2,6 +2,7 @@ import { carbonCopy } from '../../../utilities/carbonCopy.js';
 import { hasTextNode, parseProperties } from './importerHelpers.js';
 import { preProcessNodesForFldChar } from './paragraphNodeImporter.js';
 import { mergeTextNodes } from './mergeTextNodes.js';
+import { ErrorWithDetails } from '../../../helpers/ErrorWithDetails.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
@@ -428,7 +429,10 @@ export function getNodeNumberingDefinition(attributes, level, docx) {
   if (unorderedListTypes.includes(listTypeDef?.toLowerCase())) listType = 'bulletList';
   else if (orderedListTypes.includes(listTypeDef)) listType = 'orderedList';
   else {
-    throw new Error(`Unknown list type found during import: ${listTypeDef}`);
+    throw new ErrorWithDetails('ListParsingError', `Unknown list type found during import: ${listTypeDef}`, { 
+      listOrderingType: listTypeDef, ilvl, numId, listrPrs, listpPrs, start, lvlText, lvlJc 
+    });
+    // throw new Error(`Unknown list type found during import: ${listTypeDef}`);
   }
 
   return { listType, listOrderingType: listTypeDef, ilvl, numId, listrPrs, listpPrs, start, lvlText, lvlJc };
