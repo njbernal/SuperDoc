@@ -581,13 +581,6 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * Get document internal ID(w15:docId) from settings.xml
-   */
-  initDocInternalId() {
-    this.options.documentInternalId = this.converter.getDocumentInternalId();
-  }
-
-  /**
    * Initialize default styles for the editor container and ProseMirror.
    * Get page size and margins from the converter.
    * Set document default font and font size.

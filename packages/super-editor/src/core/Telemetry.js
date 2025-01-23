@@ -67,7 +67,7 @@ class Telemetry {
   static BATCH_SIZE = 50;
 
   /** @type {number} */
-  static FLUSH_INTERVAL = 10000; // 30 seconds
+  static FLUSH_INTERVAL = 30000; // 30 seconds
 
   /** @type {string} */
   static COMMUNITY_DSN = 'https://public@telemetry.superdoc.dev/community';

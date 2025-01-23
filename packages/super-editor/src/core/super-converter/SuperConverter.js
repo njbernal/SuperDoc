@@ -256,11 +256,6 @@ class SuperConverter {
     this.media = this.convertedXml.media;
     this.addedMedia = processedData;
   }
-
-  destroy() {
-    // Clean up telemetry when converter is destroyed
-    return this.telemetry?.destroy();
-  }
 }
 
 export { SuperConverter };
