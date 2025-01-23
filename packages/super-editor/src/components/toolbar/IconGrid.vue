@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, computed } from 'vue';
+import { toolbarIcons } from './toolbarIcons.js';
 
 const emit = defineEmits(['select', 'clickoutside']);
 const props = defineProps({
@@ -43,12 +44,18 @@ onMounted(() => {
         :key="optionIndex"
         @click.stop.prevent="handleClick(option)"
       >
-        <i :class="option.icon" :style="option.style"></i>
-        <i
-          class="fas fa-check active-check"
-          :style="getCheckStyle(option.value, optionIndex)"
+        <div 
+          class="option__icon"
+          v-html="option.icon" 
+          :style="option.style">
+        </div>
+
+        <div 
           v-if="isActive(option)"
-        ></i>
+          class="option__check"
+          v-html="toolbarIcons.colorOptionCheck" 
+          :style="getCheckStyle(option.value, optionIndex)">
+        </div>
       </div>
     </div>
   </div>
@@ -64,6 +71,14 @@ onMounted(() => {
   z-index: 3;
   box-sizing: border-box;
 }
+
+.option-grid-ctn :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
 .option-row {
   display: flex;
   flex-direction: row;
@@ -82,7 +97,17 @@ onMounted(() => {
 .option:hover {
   background-color: #dbdbdb;
 }
-.active-check {
+
+.option__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.option__check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
   position: absolute;
 }
 </style>

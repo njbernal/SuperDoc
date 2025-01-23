@@ -1,7 +1,6 @@
 <script setup>
 import '@/style.css';
 import '@harbour-enterprises/common/styles/common-styles.css';
-import '@harbour-enterprises/common/icons/icons.css';
 
 import { ref, computed, onMounted } from 'vue';
 import { SuperEditor } from '@/index.js';

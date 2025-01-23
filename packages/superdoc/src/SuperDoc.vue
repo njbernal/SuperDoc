@@ -1,5 +1,6 @@
 <script setup>
 import '@harbour-enterprises/common/styles/common-styles.css';
+import { superdocIcons } from './icons.js';
 //prettier-ignore
 import {
   getCurrentInstance,
@@ -502,7 +503,7 @@ const handlePdfClick = (e) => {
       <!-- Floating tools menu (shows up when user has text selection)-->
       <div v-if="showToolsFloatingMenu" class="superdoc__tools tools" :style="toolsMenuPosition">
         <div class="tools-item" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')">
-          <i class="fas fa-comment fa-tool-icon"></i>
+          <div class="superdoc__tools-icon" v-html="superdocIcons.comment"></div>
         </div>
       </div>
 
@@ -675,6 +676,12 @@ const handlePdfClick = (e) => {
 
 .tools-item i {
   cursor: pointer;
+}
+
+.superdoc__tools-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 /* Tools styles - end */
 

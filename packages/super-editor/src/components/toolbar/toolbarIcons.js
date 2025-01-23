@@ -1,0 +1,72 @@
+import boldIconSvg from '@harbour-enterprises/common/icons/bold-solid.svg?raw';
+import italicIconSvg from '@harbour-enterprises/common/icons/italic-solid.svg?raw';
+import underlineIconSvg from '@harbour-enterprises/common/icons/underline-solid.svg?raw';
+import listIconSvg from '@harbour-enterprises/common/icons/list-solid.svg?raw';
+import listOlIconSvg from '@harbour-enterprises/common/icons/list-ol-solid.svg?raw';
+import imageIconSvg from '@harbour-enterprises/common/icons/image-solid.svg?raw';
+import linkIconSvg from '@harbour-enterprises/common/icons/link-solid.svg?raw';
+import alignLeftIconSvg from '@harbour-enterprises/common/icons/align-left-solid.svg?raw';
+import alignCenterIconSvg from '@harbour-enterprises/common/icons/align-center-solid.svg?raw';
+import alignRightIconSvg from '@harbour-enterprises/common/icons/align-right-solid.svg?raw';
+import alignJustifyIconSvg from '@harbour-enterprises/common/icons/align-justify-solid.svg?raw';
+import indentIconSvg from '@harbour-enterprises/common/icons/indent-solid.svg?raw';
+import outdentIconSvg from '@harbour-enterprises/common/icons/outdent-solid.svg?raw';
+import paintRollerIconSvg from '@harbour-enterprises/common/icons/paint-roller-solid.svg?raw';
+import textSlashIconSvg from '@harbour-enterprises/common/icons/text-slash-solid.svg?raw';
+import rotateLeftIconSvg from '@harbour-enterprises/common/icons/rotate-left-solid.svg?raw';
+import rotateRightIconSvg from '@harbour-enterprises/common/icons/rotate-right-solid.svg?raw';
+import calendarCheckIconSvg from '@harbour-enterprises/common/icons/calendar-check-solid.svg?raw';
+import calendarXmarkIconSvg from '@harbour-enterprises/common/icons/calendar-xmark-solid.svg?raw';
+import listCheckIconSvg from '@harbour-enterprises/common/icons/list-check-solid.svg?raw';
+import userEditIconSvg from '@harbour-enterprises/common/icons/user-edit-solid.svg?raw';
+import eyeIconSvg from '@harbour-enterprises/common/icons/eye-solid.svg?raw';
+import fileIconSvg from '@harbour-enterprises/common/icons/file-solid.svg?raw';
+import fontIconSvg from '@harbour-enterprises/common/icons/font-solid.svg?raw';
+import fileHalfDashedIconSvg from '@harbour-enterprises/common/icons/file-half-dashed-solid.svg?raw';
+import commentIconSvg from '@harbour-enterprises/common/icons/comment-solid.svg?raw';
+import circleIconSvg from '@harbour-enterprises/common/icons/circle-solid.svg?raw';
+import checkIconSvg from '@harbour-enterprises/common/icons/check-solid.svg?raw';
+import xmarkIconSvg from '@harbour-enterprises/common/icons/xmark-solid.svg?raw';
+import upRightFromSquareIconSvg from '@harbour-enterprises/common/icons/up-right-from-square-solid.svg?raw';
+import ellipsisVerticalIconSvg from '@harbour-enterprises/common/icons/ellipsis-vertical-solid.svg?raw';
+import caretUpIconSvg from '@harbour-enterprises/common/icons/caret-up-solid.svg?raw';
+import caretDownIconSvg from '@harbour-enterprises/common/icons/caret-down-solid.svg?raw';
+
+export const toolbarIcons = {
+  undo: rotateLeftIconSvg,
+  redo: rotateRightIconSvg,
+  bold: boldIconSvg,
+  italic: italicIconSvg,
+  underline: underlineIconSvg,
+  color: fontIconSvg,
+  link: linkIconSvg,
+  image: imageIconSvg,
+  alignLeft: alignLeftIconSvg,
+  alignRight: alignRightIconSvg,
+  alignCenter: alignCenterIconSvg,
+  alignJustify: alignJustifyIconSvg,
+  bulletList: listIconSvg,
+  numberedList: listOlIconSvg,
+  indentLeft: outdentIconSvg,
+  indentRight: indentIconSvg,
+  pageBreak: fileHalfDashedIconSvg,
+  copyFormat: paintRollerIconSvg,
+  clearFormatting: textSlashIconSvg,
+  trackChanges: listCheckIconSvg,
+  trackChangesFinal: fileIconSvg,
+  trackChangesOriginal: eyeIconSvg,
+  trackChangesAccept: calendarCheckIconSvg,
+  trackChangesReject: calendarXmarkIconSvg,
+  documentMode: userEditIconSvg,
+  documentEditingMode: userEditIconSvg,
+  documentSuggestingMode: commentIconSvg,
+  documentViewingMode: eyeIconSvg,
+  colorOption: circleIconSvg,
+  colorOptionCheck: checkIconSvg,
+  linkInput: linkIconSvg,
+  removeLink: xmarkIconSvg,
+  openLink: upRightFromSquareIconSvg,
+  overflow: ellipsisVerticalIconSvg,
+  dropdownCaretUp: caretUpIconSvg,
+  dropdownCaretDown: caretDownIconSvg,
+}

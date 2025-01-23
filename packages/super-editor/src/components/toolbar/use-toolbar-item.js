@@ -41,7 +41,6 @@ export const useToolbarItem = (options) => {
   const parentItem = ref(null);
 
   // icon properties
-  const overflowIcon = ref(options.overflowIcon);
   const iconColor = ref(options.iconColor);
   const hasCaret = ref(options.hasCaret);
 
@@ -121,7 +120,6 @@ export const useToolbarItem = (options) => {
     minWidth,
     argument,
     parentItem,
-    overflowIcon,
     iconColor,
     hasCaret,
     tooltipVisible,
