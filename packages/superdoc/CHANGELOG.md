@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.6...v0.4.7) (2025-01-24)
+
+
+### Features
+
+* add doc info ([d884818](https://github.com/Harbour-Enterprises/SuperDoc/commit/d8848183dd0ec6b05901f91f0bf8161bfaf1a8bc))
+* telemetry service ([1e5f103](https://github.com/Harbour-Enterprises/SuperDoc/commit/1e5f103e73f5b8eadc43574a3d0266492c76e811))
+
 ## [0.4.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.5...v0.4.6) (2025-01-23)
 
 ## [0.4.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.4...v0.4.5) (2025-01-23)
