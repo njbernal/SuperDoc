@@ -79,8 +79,12 @@ export class Editor extends EventEmitter {
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
+    onException: () => null,
     // async (file) => url;
     handleImageUpload: null,
+    
+    // telemetry
+    telemetry: null,
   };
 
   constructor(options) {
@@ -99,7 +103,7 @@ export class Editor extends EventEmitter {
     };
 
     let initMode = modes[this.options.mode] ?? modes.default;
-
+    
     initMode();
   }
 
@@ -113,6 +117,7 @@ export class Editor extends EventEmitter {
     this.on('beforeCreate', this.options.onBeforeCreate);
     this.emit('beforeCreate', { editor: this });
     this.on('contentError', this.options.onContentError);
+    this.on('exception', this.options.onException);
 
     this.#createView();
     this.initDefaultStyles();
@@ -438,6 +443,9 @@ export class Editor extends EventEmitter {
         docx: this.options.content,
         media: this.options.mediaFiles,
         debug: true,
+        telemetry: this.options.telemetry,
+        fileSource: this.options.fileSource,
+        documentId: this.options.documentId,
       });
     }
   }
@@ -495,9 +503,9 @@ export class Editor extends EventEmitter {
   
     try {
       const { mode, fragment, isHeadless, content, loadFromSchema } = this.options;
-  
+      
       if (mode === 'docx') {
-        doc = createDocument(this.converter, this.schema);
+        doc = createDocument(this.converter, this.schema, this);
   
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
@@ -837,6 +845,11 @@ export class Editor extends EventEmitter {
       media,
       fonts: this.options.fonts,
       isHeadless: this.options.isHeadless,
+    });
+    
+    this.telemetry?.trackUsage('document_export', {
+      documentType: 'docx',
+      timestamp: new Date().toISOString()
     });
 
     return result;

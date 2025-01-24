@@ -272,6 +272,10 @@ const onEditorContentError = ({ error, editor }) => {
   proxy.$superdoc.emit('content-error', { error, editor });
 };
 
+const onEditorException = ({ error, editor }) => {
+  proxy.$superdoc.emit('exception', { error, editor });
+};
+
 const updateToolbarState = () => {
   proxy.$superdoc.toolbar.updateToolbarState();
 };
@@ -296,6 +300,7 @@ const editorOptions = (doc) => {
     onSelectionUpdate: onEditorSelectionChange,
     onCollaborationReady: onEditorCollaborationReady,
     onContentError: onEditorContentError,
+    onException: onEditorException,
     // onCommentsLoaded,
     // onCommentClicked,
     // onCommentsUpdate: onEditorCommentsUpdate,
@@ -303,6 +308,7 @@ const editorOptions = (doc) => {
     collaborationProvider: doc.provider || null,
     isNewFile: doc.isNewFile || false,
     handleImageUpload: proxy.$superdoc.config.handleImageUpload,
+    telemetry: proxy.$superdoc.telemetry,
   };
 
   return options;

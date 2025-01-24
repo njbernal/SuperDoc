@@ -12,6 +12,7 @@ import { SuperToolbar } from '@harbour-enterprises/super-editor';
 import { createAwarenessHandler, createProvider } from './collaboration/collaboration';
 import { createSuperdocVueApp } from './create-app';
 import { shuffleArray } from '@harbour-enterprises/common/collaboration/awareness.js';
+import { Telemetry } from '@harbour-enterprises/common/Telemetry.js';
 
 /**
  * @typedef {Object} SuperdocUser The current user of this superdoc
@@ -56,6 +57,9 @@ export class SuperDoc extends EventEmitter {
 
     isDev: false,
 
+    // telemetry config
+    telemetry: null,
+
     // Events
     onEditorBeforeCreate: () => null,
     onEditorCreate: () => null,
@@ -68,6 +72,7 @@ export class SuperDoc extends EventEmitter {
     onPdfDocumentReady: () => null,
     onSidebarToggle: () => null,
     onCollaborationReady: () => null,
+    onException: () => null,
 
     // Image upload handler
     // async (file) => url;
@@ -95,6 +100,8 @@ export class SuperDoc extends EventEmitter {
 
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
+    
+    this.#initTelemetry();
 
     this.#initVueApp();
     this.#initListeners();
@@ -158,6 +165,7 @@ export class SuperDoc extends EventEmitter {
     this.on('sidebar-toggle', this.config.onSidebarToggle);
     this.on('collaboration-ready', this.config.onCollaborationReady);
     this.on('content-error', this.onContentError);
+    this.on('exception', this.config.onException);
   }
 
   /* **
@@ -205,6 +213,19 @@ export class SuperDoc extends EventEmitter {
     });
 
     return processedDocuments;
+  }
+
+  /**
+   * Initialize telemetry service.
+   */
+  #initTelemetry() {
+    if (this.config.telemetry?.enabled) {
+      this.telemetry = new Telemetry({
+        enabled: this.config.telemetry.enabled ?? true,
+        licenceKey: this.config.telemetry.licenceKey,
+        superdocId: this.superdocId,
+      });
+    }
   }
 
   onContentError({ error, editor }) {
@@ -424,6 +445,9 @@ export class SuperDoc extends EventEmitter {
     });
 
     this.superdocStore.reset();
+    
+    // Clean up telemetry when editor is destroyed
+    this.telemetry?.destroy();
 
     this.app.unmount();
     this.removeAllListeners();

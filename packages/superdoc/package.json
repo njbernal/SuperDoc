@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@harbour-enterprises/super-editor": "0.0.1-alpha.0",
+    "buffer-crc32": "^1.0.0",
     "eventemitter3": "^5.0.1",
     "jsdom": "^25.0.1",
     "naive-ui": "^2.39.0",

@@ -64,6 +64,9 @@ const init = async () => {
       //   url: 'ws://localhost:3050/docs/superdoc-id',
       // }
     },
+    telemetry: {
+      enabled: true,
+    },
     onEditorCreate,
     onContentError,
     // handleImageUpload: async (file) => url,

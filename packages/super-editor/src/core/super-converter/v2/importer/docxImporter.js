@@ -30,9 +30,11 @@ import { listHandlerEntity } from './listImporter.js';
 /**
  *
  * @param {ParsedDocx} docx
+ * @param {SuperConverter} converter instance.
+ * @param {Editor} editor instance.
  * @returns {{pmDoc: PmNodeJson, savedTagsToRestore: XmlNode, pageStyles: *}|null}
  */
-export const createDocumentJson = (docx, converter) => {
+export const createDocumentJson = (docx, converter, editor) => {
   const json = carbonCopy(getInitialJSON(docx));
   if (!json) return null;
 
@@ -44,7 +46,7 @@ export const createDocumentJson = (docx, converter) => {
     const ignoreNodes = ['w:sectPr'];
     const content = node.elements?.filter((n) => !ignoreNodes.includes(n.name)) ?? [];
 
-    const parsedContent = nodeListHandler.handler(content, docx, false);
+    const parsedContent = nodeListHandler.handler(content, docx, false, converter, editor);
     const result = {
       type: 'doc',
       content: parsedContent,
@@ -52,10 +54,24 @@ export const createDocumentJson = (docx, converter) => {
         attributes: json.elements[0].attributes,
       },
     };
+    
+    // Not empty document
+    if (result.content.length > 1) {
+      converter?.telemetry?.trackUsage(
+        converter?.fileSource,
+        converter?.documentId,
+        'document_import', 
+        {
+        documentType: 'docx',
+        internalId: converter?.documentInternalId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     return {
       pmDoc: result,
       savedTagsToRestore: node,
-      pageStyles: getDocumentStyles(node, docx, converter),
+      pageStyles: getDocumentStyles(node, docx, converter, editor),
     };
   }
   return null;
@@ -91,48 +107,198 @@ export const defaultNodeListHandler = () => {
  */
 const createNodeListHandler = (nodeHandlers) => {
   /**
-   * @param {XmlNode[]} elements
-   * @param {ParsedDocx} docx
-   * @param {boolean} insideTrackChange
-   * @param {string} filename
-   * @return {{type: string, content: *, attrs: {attributes}}[]}
+   * Gets safe element context even if index is out of bounds
+   * @param {Array} elements Array of elements
+   * @param {number} index Index to check
+   * @returns {Object} Safe context object
    */
-  const nodeListHandlerFn = (elements, docx, insideTrackChange, filename) => {
+  const getSafeElementContext = (elements, index) => {
+    if (!elements || index < 0 || index >= elements.length) {
+      return {
+        elementIndex: index,
+        error: 'index_out_of_bounds',
+        arrayLength: elements?.length
+      };
+    }
+
+    const element = elements[index];
+    return {
+      elementIndex: index,
+      elementName: element?.name,
+      elementAttributes: element?.attributes,
+      hasElements: !!element?.elements,
+      elementCount: element?.elements?.length
+    };
+  };
+
+  const nodeListHandlerFn = (elements, docx, insideTrackChange, converter, editor, filename) => {
     if (!elements || !elements.length) return [];
+    
     const processedElements = [];
-
-    for (let index = 0; index < elements.length; index++) {
-      const { nodes, consumed } = nodeHandlers.reduce(
-        (res, handler) => {
-          if (res.consumed > 0) return res;
+    const unhandledNodes = [];
+    
+    try {
+      for (let index = 0; index < elements.length; index++) {
+        try {
           const nodesToHandle = elements.slice(index);
-          if (!nodesToHandle || nodesToHandle.length === 0) return res;
-          const result = handler.handler(
-            nodesToHandle,
-            docx,
-            { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
-            insideTrackChange,
-            filename,
-          );
-          return result;
-        },
-        { nodes: [], consumed: 0 },
-      );
-      index += consumed - 1;
-      if (consumed === 0) {
-        console.warn("We have a node that we can't handle!", elements[index]);
-      }
-      for (let node of nodes) {
-        if (node?.type) {
-          const ignore = ['runProperties'];
+          if (!nodesToHandle || nodesToHandle.length === 0) {
+            converter?.telemetry?.trackParsing(
+              converter?.fileSource,
+              converter?.documentId,
+              'node', 
+              'empty_slice', 
+              `/word/${filename || 'document.xml'}`, 
+              {
+              index,
+              internalId: converter?.documentInternalId,
+              totalElements: elements.length,
+            });
+            continue;
+          }
 
-          // Ignore empty text nodes
-          if (node.type === 'text' && Array.isArray(node.content) && !node.content.length) continue;
-          if (!ignore.includes(node.type)) processedElements.push(node);
+          const { nodes, consumed, unhandled } = nodeHandlers.reduce(
+            (res, handler) => {
+              if (res.consumed > 0) return res;
+              
+              return handler.handler(
+                nodesToHandle,
+                docx,
+                { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
+                insideTrackChange,
+                converter,
+                editor,
+                filename
+              );
+            },
+            { nodes: [], consumed: 0 }
+          );
+
+          // Track unhandled nodes with safe context
+          if (unhandled) {
+            const context = getSafeElementContext(elements, index);
+            if (!context.elementName) continue;
+
+            unhandledNodes.push({
+              name: context.elementName,
+              attributes: context.elementAttributes
+            });
+
+            converter?.telemetry?.trackParsing(
+              converter?.fileSource,
+              converter?.documentId,
+              'node', 
+              'unhandled', 
+              `/word/${filename || 'document.xml'}`, 
+              {
+              context,
+              internalId: converter?.documentInternalId,
+            });
+            
+            continue;
+          }
+          
+          // Bounds check before incrementing index
+          if (consumed > 0) {
+            index += consumed - 1;
+            if (index < 0) {
+              converter?.telemetry?.trackParsing(
+                converter?.fileSource,
+                converter?.documentId,
+                'node', 
+                'invalid_index', 
+                `/word/${filename || 'document.xml'}`, 
+                {
+                  originalIndex: index - (consumed - 1),
+                  consumed,
+                  resultingIndex: index,
+                  internalId: converter?.documentInternalId, 
+                }
+              );
+              index = 0; // Reset to safe value
+            }
+          }
+          
+          // Process valid nodes
+          for (let node of (nodes || [])) {
+            if (node?.type) {
+              const ignore = ['runProperties'];
+              
+              if (node.type === 'text' && Array.isArray(node.content) && !node.content.length) {
+                
+                converter?.telemetry?.trackParsing(
+                  converter?.fileSource,
+                  converter?.documentId,
+                  'node', 
+                  'empty_text', 
+                  `/word/${filename || 'document.xml'}`, 
+                  {
+                  context: node.attrs,
+                  internalId: converter?.documentInternalId,
+                });
+                continue;
+              }
+
+              if (!ignore.includes(node.type)) {
+                processedElements.push(node);
+              }
+            }
+          }
+        } catch (error) {
+          editor?.emit('exception', { error });
+          
+          const context = getSafeElementContext(elements, index);
+          if (error.details) {
+            context.elementAttributes = error.details;
+          }
+          
+          // Track individual element processing errors with safe context
+          converter?.telemetry?.trackParsing(
+            converter?.fileSource,
+            converter?.documentId,
+            'element', 
+            'processing_error', 
+            `/word/${filename || 'document.xml'}`, 
+            {
+              error: {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+              },
+              internalId: converter?.documentInternalId,
+              context 
+            }
+          );
         }
       }
+
+      return processedElements;
+    } catch (error) {
+      editor?.emit('exception', { error });
+      
+      // Track catastrophic errors in the node list handler
+      converter?.telemetry?.trackParsing(
+        converter?.fileSource,
+        converter?.documentId,
+        'handler', 
+        'nodeListHandler', 
+        `/word/${filename || 'document.xml'}`,
+        {
+          status: 'error',
+          error: {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+          },
+          internalId: converter?.documentInternalId,
+          context: {
+            totalElements: elements?.length || 0,
+            processedCount: processedElements.length,
+            unhandledCount: unhandledNodes.length,
+          }
+        }
+      );
+      throw error;
     }
-    return processedElements;
   };
 
   return nodeListHandlerFn;
@@ -143,7 +309,7 @@ const createNodeListHandler = (nodeHandlers) => {
  * @param {XmlNode} node
  * @returns {Object} The document styles object
  */
-function getDocumentStyles(node, docx, converter) {
+function getDocumentStyles(node, docx, converter, editor) {
   const sectPr = node.elements?.find((n) => n.name === 'w:sectPr');
   const styles = {};
 
@@ -181,17 +347,17 @@ function getDocumentStyles(node, docx, converter) {
         };
         break;
       case 'w:headerReference':
-        getHeaderFooter(el, 'header', docx, converter);
+        getHeaderFooter(el, 'header', docx, converter, editor);
         break;
       case 'w:footerReference':
-        getHeaderFooter(el, 'footer', docx, converter);
+        getHeaderFooter(el, 'footer', docx, converter, editor);
         break;
     }
   });
   return styles;
 }
 
-function getHeaderFooter(el, elementType, docx, converter) {
+function getHeaderFooter(el, elementType, docx, converter, editor) {
   const rels = docx['word/_rels/document.xml.rels'];
   const relationships = rels.elements.find((el) => el.name === 'Relationships');
   const { elements } = relationships;
@@ -208,7 +374,7 @@ function getHeaderFooter(el, elementType, docx, converter) {
   const currentFileName = target;
 
   const nodeListHandler = defaultNodeListHandler();
-  const schema = nodeListHandler.handler(referenceFile.elements[0].elements, docx, false, currentFileName);
+  const schema = nodeListHandler.handler(referenceFile.elements[0].elements, docx, false, converter, editor, currentFileName);
 
   let storage, storageIds;
 
