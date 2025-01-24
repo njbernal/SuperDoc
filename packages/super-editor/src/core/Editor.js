@@ -15,7 +15,6 @@ import { trackedTransaction } from '@extensions/track-changes/trackChangesHelper
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
 import DocxZipper from '@core/DocxZipper.js';
-import { Telemetry } from '@core/Telemetry.js';
 
 /**
  * Editor main class.
@@ -80,13 +79,12 @@ export class Editor extends EventEmitter {
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
+    onExceptionCaught: () => null,
     // async (file) => url;
     handleImageUpload: null,
-
-
+    
     // telemetry
     telemetry: null,
-    telemetryService: null,
   };
 
   constructor(options) {
@@ -105,12 +103,11 @@ export class Editor extends EventEmitter {
     };
 
     let initMode = modes[this.options.mode] ?? modes.default;
-
+    
     initMode();
   }
 
   #init(options) {
-    this.#initTelemetry();
     this.#createExtensionService();
     this.#createCommandService();
     this.#createSchema();
@@ -120,6 +117,7 @@ export class Editor extends EventEmitter {
     this.on('beforeCreate', this.options.onBeforeCreate);
     this.emit('beforeCreate', { editor: this });
     this.on('contentError', this.options.onContentError);
+    this.on('exceptionCaught', this.options.onExceptionCaught);
 
     this.#createView();
     this.initDefaultStyles();
@@ -445,20 +443,7 @@ export class Editor extends EventEmitter {
         docx: this.options.content,
         media: this.options.mediaFiles,
         debug: true,
-        telemetry: this.telemetryService,
-      });
-    }
-  }
-  
-  /**
-   * Initialize telemetry service.
-   */
-  async #initTelemetry() {
-    if (this.options.telemetry?.enabled) {
-      this.telemetryService = new Telemetry({
-        enabled: this.options.telemetry.enabled ?? true,
-        dsn: this.options.telemetry?.dsn,
-        endpoint: this.options.telemetry.endpoint,
+        telemetry: this.options.telemetry,
         fileSource: this.options.fileSource,
         documentId: this.options.documentId,
       });
@@ -520,7 +505,7 @@ export class Editor extends EventEmitter {
       const { mode, fragment, isHeadless, content, loadFromSchema } = this.options;
       
       if (mode === 'docx') {
-        doc = createDocument(this.converter, this.schema);
+        doc = createDocument(this.converter, this.schema, this);
   
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
@@ -862,7 +847,7 @@ export class Editor extends EventEmitter {
       isHeadless: this.options.isHeadless,
     });
     
-    this.telemetryService?.trackUsage('document_export', {
+    this.telemetry?.trackUsage('document_export', {
       documentType: 'docx',
       timestamp: new Date().toISOString()
     });
@@ -890,6 +875,6 @@ export class Editor extends EventEmitter {
     this.removeAllListeners();
     
     // Clean up telemetry when editor is destroyed
-    this.telemetry?.destroy();
+    // this.telemetry?.destroy();
   }
 }

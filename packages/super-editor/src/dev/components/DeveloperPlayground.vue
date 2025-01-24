@@ -8,16 +8,17 @@ import { SuperEditor } from '@/index.js';
 import { getFileObject } from '@harbour-enterprises/common/helpers/get-file-object';
 import { DOCX } from '@harbour-enterprises/common';
 import { SuperToolbar } from '@components/toolbar/super-toolbar';
-import { fieldAnnotationHelpers } from '@extensions/index.js';
 import { PaginationPluginKey } from '@extensions/pagination/pagination-helpers.js';
 import BasicUpload from './BasicUpload.vue';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
+import { Telemetry } from '@harbour-enterprises/common/Telemetry.js';
 
 // Import the component the same you would in your app
 let activeEditor;
 const currentFile = ref(null);
 const pageStyles = ref(null);
 const isDebuggingPagination = ref(false);
+const telemetry = ref(null);
 
 const handleNewFile = async (file) => {
   currentFile.value = null;
@@ -65,9 +66,7 @@ const editorOptions = computed(() => {
     suppressSkeletonLoader: true,
     users: [], // For comment @-mentions, only users that have access to the document
     pagination: true,
-    telemetry: {
-      enabled: true
-    }
+    telemetry: telemetry.value,
   }
 });
 
@@ -109,6 +108,11 @@ const debugPageStyle = computed(() => {
 onMounted(async () => {
   // set document to blank
   currentFile.value = await getFileObject(BlankDOCX, 'blank_document.docx', DOCX);
+
+  telemetry.value = new Telemetry({
+    enabled: true,
+    superdocId: 'dev-playground',
+  });
 });
 </script>
 

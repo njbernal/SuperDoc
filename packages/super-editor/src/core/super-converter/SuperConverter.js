@@ -98,6 +98,10 @@ class SuperConverter {
     // Initialize telemetry
     this.telemetry = params?.telemetry || null;
     this.documentInternalId = null;
+    
+    // Uploaded file
+    this.fileSource = params?.fileSource || null;
+    this.documentId = params?.documentId || null;
 
     // Parse the initial XML, if provided
     if (this.docx.length || this.xml) this.parseFromXml();
@@ -163,6 +167,8 @@ class SuperConverter {
   getDocumentInternalId() {
     const settings = this.convertedXml['word/settings.xml'];
     if (!settings) return '';
+    // New versions of Word will have w15:docId
+    // It's possible to have w14:docId as well but Word(2013 and later) will convert it automatically when document opened
     const w15DocId = settings.elements[0].elements.find((el) => el.name === 'w15:docId');
     this.documentInternalId = w15DocId?.attributes['w15:val'];
   }
@@ -185,9 +191,9 @@ class SuperConverter {
     return { typeface, panose };
   }
 
-  getSchema() {
+  getSchema(editor) {
     this.getDocumentInternalId();
-    const result = createDocumentJson({...this.convertedXml, media: this.media }, this );
+    const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
       
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });

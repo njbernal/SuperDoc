@@ -3,7 +3,7 @@ import { emuToPixels } from '../../helpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChange, filename) => {
+export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChange, converter, editor, filename) => {
   if (nodes.length === 0 || nodes[0].name !== 'w:drawing') {
     return { nodes: [], consumed: 0 };
   }

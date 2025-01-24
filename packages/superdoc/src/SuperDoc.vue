@@ -272,6 +272,10 @@ const onEditorContentError = ({ error, editor }) => {
   proxy.$superdoc.emit('content-error', { error, editor });
 };
 
+const onEditorExceptionCaught = ({ error, editor }) => {
+  proxy.$superdoc.emit('exception-caught', { error, editor });
+};
+
 const updateToolbarState = () => {
   proxy.$superdoc.toolbar.updateToolbarState();
 };
@@ -296,6 +300,7 @@ const editorOptions = (doc) => {
     onSelectionUpdate: onEditorSelectionChange,
     onCollaborationReady: onEditorCollaborationReady,
     onContentError: onEditorContentError,
+    onExceptionCaught: onEditorExceptionCaught,
     // onCommentsLoaded,
     // onCommentClicked,
     // onCommentsUpdate: onEditorCommentsUpdate,

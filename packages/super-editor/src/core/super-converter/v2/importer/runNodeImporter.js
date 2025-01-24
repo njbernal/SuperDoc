@@ -4,7 +4,7 @@ import { createImportMarks } from './markImporter.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-const handleRunNode = (nodes, docx, nodeListHandler, insideTrackChange = false, filename) => {
+const handleRunNode = (nodes, docx, nodeListHandler, insideTrackChange = false, converter, editor, filename) => {
   if (nodes.length === 0 || nodes[0].name !== 'w:r') {
     return { nodes: [], consumed: 0 };
   }

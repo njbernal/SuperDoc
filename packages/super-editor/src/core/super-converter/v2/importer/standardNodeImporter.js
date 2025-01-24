@@ -3,7 +3,7 @@ import { getElementName, parseProperties } from './importerHelpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChange = false, filename) => {
+export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChange = false, converter, editor, filename) => {
   if (!nodes || nodes.length === 0) {
     return { nodes: [], consumed: 0 };
   }
@@ -34,7 +34,7 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
       el.marks.push(...marks);
       return el;
     });
-    content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange, filename));
+    content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange, converter, editor, filename));
   }
 
   const resultNode = {
