@@ -244,7 +244,7 @@ const createNodeListHandler = (nodeHandlers) => {
             }
           }
         } catch (error) {
-          editor?.emit('exceptionCaught', { error });
+          editor?.emit('exception', { error });
           
           const context = getSafeElementContext(elements, index);
           if (error.details) {
@@ -273,7 +273,7 @@ const createNodeListHandler = (nodeHandlers) => {
 
       return processedElements;
     } catch (error) {
-      editor?.emit('exceptionCaught', { error });
+      editor?.emit('exception', { error });
       
       // Track catastrophic errors in the node list handler
       converter?.telemetry?.trackParsing(

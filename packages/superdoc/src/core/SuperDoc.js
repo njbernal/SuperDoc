@@ -72,7 +72,7 @@ export class SuperDoc extends EventEmitter {
     onPdfDocumentReady: () => null,
     onSidebarToggle: () => null,
     onCollaborationReady: () => null,
-    onExceptionCaught: () => null,
+    onException: () => null,
 
     // Image upload handler
     // async (file) => url;
@@ -165,7 +165,7 @@ export class SuperDoc extends EventEmitter {
     this.on('sidebar-toggle', this.config.onSidebarToggle);
     this.on('collaboration-ready', this.config.onCollaborationReady);
     this.on('content-error', this.onContentError);
-    this.on('exception-caught', this.config.onExceptionCaught);
+    this.on('exception', this.config.onException);
   }
 
   /* **
@@ -445,6 +445,9 @@ export class SuperDoc extends EventEmitter {
     });
 
     this.superdocStore.reset();
+    
+    // Clean up telemetry when editor is destroyed
+    this.telemetry?.destroy();
 
     this.app.unmount();
     this.removeAllListeners();

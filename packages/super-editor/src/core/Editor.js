@@ -79,7 +79,7 @@ export class Editor extends EventEmitter {
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
-    onExceptionCaught: () => null,
+    onException: () => null,
     // async (file) => url;
     handleImageUpload: null,
     
@@ -117,7 +117,7 @@ export class Editor extends EventEmitter {
     this.on('beforeCreate', this.options.onBeforeCreate);
     this.emit('beforeCreate', { editor: this });
     this.on('contentError', this.options.onContentError);
-    this.on('exceptionCaught', this.options.onExceptionCaught);
+    this.on('exception', this.options.onException);
 
     this.#createView();
     this.initDefaultStyles();
@@ -873,8 +873,5 @@ export class Editor extends EventEmitter {
     if (this.view) this.view.destroy();
     this.#endCollaboration();
     this.removeAllListeners();
-    
-    // Clean up telemetry when editor is destroyed
-    // this.telemetry?.destroy();
   }
 }
