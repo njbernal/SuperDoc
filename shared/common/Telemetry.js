@@ -41,6 +41,7 @@
  */
 
 import crc32 from 'buffer-crc32';
+import { randomBytes } from 'crypto';
 
 class Telemetry {
   /** @type {boolean} */
@@ -274,7 +275,8 @@ class Telemetry {
    * @private
    */
   generateId() {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const randomValue = randomBytes(4).toString('hex');
+    return `${Date.now()}-${randomValue}`;
   }
 
   /**
