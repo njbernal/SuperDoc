@@ -79,7 +79,6 @@ export default defineConfig(({ mode }) => {
         '@components': fileURLToPath(new URL('./src/components', import.meta.url)),
         '@helpers': fileURLToPath(new URL('./src/core/helpers', import.meta.url)),
         '@packages': fileURLToPath(new URL('../', import.meta.url)),
-        '@vue-3': fileURLToPath(new URL('./src/vue-3', import.meta.url)),
         '@converter': fileURLToPath(new URL('./src/core/super-converter', import.meta.url)),
         '@tests': fileURLToPath(new URL('./src/tests', import.meta.url)),
       },
