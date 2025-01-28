@@ -20,9 +20,7 @@ const handleClick = (item) => {
       :class="{ disabled: option.disabled }"
     >
       <div class="document-mode-column icon-column">
-        <div>
-          <i :class="option.icon"></i>
-        </div>
+        <div class="icon-column__icon" v-html="option.icon"></div>
       </div>
 
       <div class="document-mode-column text-column">
@@ -38,6 +36,13 @@ const handleClick = (item) => {
 </template>
 
 <style scoped>
+.document-mode :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
 .disabled {
   opacity: 0.5;
   cursor: not-allowed !important;
@@ -67,16 +72,31 @@ const handleClick = (item) => {
   font-size: 15px;
   color: #222;
 }
+
 .icon-column {
   margin-right: 5px;
   justify-content: flex-start;
   align-items: center;
   padding: 0 5px;
-  font-size: 18px;
   color: black;
   height: 100%;
   box-sizing: border-box;
 }
+
+.icon-column__icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  height: 18px;
+  color: #47484a;
+}
+
+.icon-column__icon :deep(svg) {
+  width: auto; /* needed for safari */
+  max-height: 18px;
+}
+
 .document-mode-description {
   font-size: 12px;
   color: #666;

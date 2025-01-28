@@ -31,9 +31,6 @@ export default defineConfig(({ mode }) => {
           'yjs',
           'tippy.js',
           'y-protocols',
-          '@fortawesome/fontawesome-free',
-          '@fortawesome/free-solid-svg-icons',
-          '@fortawesome/vue-fontawesome',
         ],
         input: {
           'super-editor': 'src/index.js',

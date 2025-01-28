@@ -1,6 +1,7 @@
 <script setup>
 import ToolbarButtonIcon from './ToolbarButtonIcon.vue';
 import { ref, computed } from 'vue';
+import { toolbarIcons } from './toolbarIcons.js';
 
 const emit = defineEmits(['buttonClick', 'textSubmit']);
 
@@ -74,6 +75,10 @@ const onFontSizeInput = (event) => {
   let { value } = event.target;
   inlineTextInput.value = value.replace(/[^0-9]/g, '');
 };
+
+const caretIcon = computed(() => {
+  return active.value ? toolbarIcons.dropdownCaretUp : toolbarIcons.dropdownCaretDown;
+});
 </script>
 
 <template>
@@ -116,12 +121,14 @@ const onFontSizeInput = (event) => {
         />
       </span>
 
-      <i
+      <div 
         v-if="hasCaret"
-        class="dropdown-caret fas"
-        :class="active ? 'fa-caret-up' : 'fa-caret-down'"
+        class="dropdown-caret"
+        v-html="caretIcon"
         :style="{ opacity: disabled ? 0.6 : 1 }"
-      ></i>
+        >
+      </div>
+
     </div>
   </div>
 </template>
@@ -217,6 +224,16 @@ const onFontSizeInput = (event) => {
 
 .button-text-input::placeholder {
   color: #47484a;
+}
+
+.dropdown-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: auto;
+  width: 10px;
+  height: 10px;
 }
 
 @media (max-width: 1120px) {

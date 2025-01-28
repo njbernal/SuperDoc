@@ -13,13 +13,14 @@ const closeDropdown = (dropdown) => {
   dropdown.expand.value = false;
 };
 
-export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role) => {
+export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role, toolbarIcons) => {
+
   // bold
   const bold = useToolbarItem({
     type: 'button',
     name: 'bold',
     command: 'toggleBold',
-    icon: 'fas fa-bold',
+    icon: toolbarIcons.bold,
     tooltip: 'Bold',
   });
 
@@ -88,7 +89,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     markName: 'textStyle',
     labelAttr: 'fontSize',
     tooltip: 'Font size',
-    overflowIcon: 'fa-text-height',
     hasCaret: true,
     hasInlineTextInput: false,
     inlineTextInputVisible: true,
@@ -128,15 +128,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   const separator = useToolbarItem({
     type: 'separator',
     name: 'separator',
-    icon: 'fa-grip-lines-vertical',
     isNarrow: true,
-  });
-  const separatorRight = useToolbarItem({
-    type: 'separator',
-    name: 'separator',
-    icon: 'fa-grip-lines-vertical',
-    isNarrow: true,
-    group: 'right',
   });
 
   // italic
@@ -144,7 +136,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'italic',
     command: 'toggleItalic',
-    icon: 'fa fa-italic',
+    icon: toolbarIcons.italic,
     active: false,
     tooltip: 'Italic',
   });
@@ -154,7 +146,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'underline',
     command: 'toggleUnderline',
-    icon: 'fa fa-underline',
+    icon: toolbarIcons.underline,
     active: false,
     tooltip: 'Underline',
   });
@@ -163,11 +155,10 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   const colorButton = useToolbarItem({
     type: 'dropdown',
     name: 'color',
-    icon: 'fas fa-font',
+    icon: toolbarIcons.color,
     hideLabel: true,
     markName: 'textStyle',
     labelAttr: 'color',
-    overflowIcon: 'fa-palette',
     active: false,
     tooltip: 'Text color',
     command: 'setColor',
@@ -188,13 +179,12 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   const makeColorOption = (color, label = null) => {
     return {
       label,
-      icon: 'fas fa-circle',
+      icon: toolbarIcons.colorOption,
       value: color,
       style: {
         color,
         boxShadow: '0 0 5px 1px rgba(0, 0, 0, 0.1)',
         borderRadius: '50%',
-        fontSize: '1.25em',
       },
     };
   };
@@ -301,7 +291,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'dropdown',
     name: 'link',
     markName: 'link',
-    icon: 'fas fa-link',
+    icon: toolbarIcons.link,
     active: false,
     tooltip: 'Link',
     options: [
@@ -361,7 +351,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'image',
     command: 'startImageUpload',
-    icon: 'fas fa-image',
+    icon: toolbarIcons.image,
     active: false,
     tooltip: 'Image',
     disabled: false,
@@ -372,7 +362,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'dropdown',
     name: 'textAlign',
     tooltip: 'Alignment',
-    icon: 'fas fa-align-left',
+    icon: toolbarIcons.alignLeft,
     command: 'setTextAlign',
     hasCaret: true,
     markName: 'textAlign',
@@ -409,7 +399,15 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
 
   const setAlignmentIcon = (alignment, e) => {
     let alignValue = e === 'both' ? 'justify' : e;
-    alignment.icon.value = `fas fa-align-${alignValue}`;
+    let icons = {
+      left: toolbarIcons.alignLeft,
+      right: toolbarIcons.alignRight,
+      center: toolbarIcons.alignCenter,
+      justify: toolbarIcons.alignJustify,
+    };
+
+    let icon = icons[alignValue] ?? icons.left;
+    alignment.icon.value = icon;
   };
 
   // bullet list
@@ -417,7 +415,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'list',
     command: 'toggleBulletList',
-    icon: 'fas fa-list',
+    icon: toolbarIcons.bulletList,
     active: false,
     tooltip: 'Bullet list',
   });
@@ -427,7 +425,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'numberedlist',
     command: 'toggleOrderedList',
-    icon: 'fas fa-list-numeric',
+    icon: toolbarIcons.numberedList,
     active: false,
     tooltip: 'Numbered list',
   });
@@ -437,7 +435,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'indentleft',
     command: 'decreaseTextIndent',
-    icon: 'fas fa-outdent',
+    icon: toolbarIcons.indentLeft,
     active: false,
     tooltip: 'Left indent',
     disabled: false,
@@ -448,7 +446,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'indentright',
     command: 'increaseTextIndent',
-    icon: 'fas fa-indent',
+    icon: toolbarIcons.indentRight,
     active: false,
     tooltip: 'Right indent',
     disabled: false,
@@ -459,18 +457,18 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'overflow',
     name: 'overflow',
     command: 'toggleOverflow',
-    icon: 'fas fa-ellipsis-vertical',
+    icon: toolbarIcons.overflow,
     active: false,
     disabled: false,
   });
 
-  const overflowOptions = useToolbarItem({
-    type: 'options',
-    name: 'overflowOptions',
-    preCommand(self, argument) {
-      self.parentItem.active = false;
-    },
-  });
+  // const overflowOptions = useToolbarItem({
+  //   type: 'options',
+  //   name: 'overflowOptions',
+  //   preCommand(self, argument) {
+  //     self.parentItem.active = false;
+  //   },
+  // });
 
   // zoom
   const zoom = useToolbarItem({
@@ -478,7 +476,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'zoom',
     allowWithoutEditor: true,
     tooltip: 'Zoom',
-    overflowIcon: 'fa-magnifying-glass-plus',
     defaultLabel: '100%',
     label: '100%',
     hasCaret: true,
@@ -509,7 +506,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     disabled: true,
     tooltip: 'Undo',
     command: 'undo',
-    icon: 'fa-solid fa-rotate-left',
+    icon: toolbarIcons.undo,
     group: 'left',
     onDeactivate: () => {
       undo.disabled.value = !superToolbar.undoDepth;
@@ -523,7 +520,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'redo',
     tooltip: 'Redo',
     command: 'redo',
-    icon: 'fa fa-rotate-right',
+    icon: toolbarIcons.redo,
     group: 'left',
     onDeactivate: () => {
       redo.disabled.value = !superToolbar.redoDepth;
@@ -537,7 +534,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'toggleTrackChanges',
     tooltip: 'Track Changes',
     command: 'toggleTrackChanges',
-    icon: 'fa-solid fa-list-check',
+    icon: toolbarIcons.trackChanges,
     group: 'left',
   });
 
@@ -547,7 +544,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'acceptTrackedChangeBySelection',
     tooltip: 'Accept changes under selection',
     command: 'acceptTrackedChangeBySelection',
-    icon: 'fa fa-calendar-check',
+    icon: toolbarIcons.trackChangesAccept,
     group: 'left',
   });
 
@@ -557,7 +554,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'rejectTrackedChangeOnSelection',
     tooltip: 'Reject changes under selection',
     command: 'rejectTrackedChangeOnSelection',
-    icon: 'fa fa-calendar-xmark',
+    icon: toolbarIcons.trackChangesReject,
     group: 'left',
   });
 
@@ -567,7 +564,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'toggleTrackChangesShowOriginal',
     tooltip: 'Toggle Show Original',
     command: 'toggleTrackChangesShowOriginal',
-    icon: 'fa fa-eye',
+    icon: toolbarIcons.trackChangesOriginal,
     group: 'left',
   });
 
@@ -577,7 +574,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'toggleTrackChangesShowFinal',
     tooltip: 'Toggle Show Final',
     command: 'toggleTrackChangesShowFinal',
-    icon: 'fa-solid fa-file',
+    icon: toolbarIcons.trackChangesFinal,
     group: 'left',
   });
   //
@@ -589,7 +586,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   //   name: "search",
   //   tooltip: "Search",
   //   disabled: true,
-  //   icon: "fas fa-magnifying-glass",
+  //   icon: "fas fa-magnifying-glass", // change to svg
   //   group: "right",
   // });
 
@@ -598,7 +595,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'clearFormatting',
     command: 'clearFormat',
     tooltip: 'Clear formatting',
-    icon: 'fas fa-text-slash',
+    icon: toolbarIcons.clearFormatting,
   });
 
   const toolbarItemsMobile = [
@@ -615,7 +612,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'copyFormat',
     tooltip: 'Format painter',
-    icon: 'fal fa-paint-roller',
+    icon: toolbarIcons.copyFormat,
     command: 'copyFormat',
     active: false,
   });
@@ -637,7 +634,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     name: 'documentMode',
     command: 'setDocumentMode',
     allowWithoutEditor: true,
-    icon: 'fal fa-user-edit',
+    icon: toolbarIcons.documentMode,
     defaultLabel: getDefaultLabel(role),
     label: getDefaultLabel(role),
     hasCaret: true,
@@ -659,9 +656,24 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
   });
 
   const documentOptions = [
-    { label: 'Editing', value: 'editing', icon: 'fal fa-user-edit', description: 'Edit document directly' },
-    { label: 'Suggesting', value: 'suggesting', icon: 'fal fa-comment-edit', description: 'Edits become suggestions' },
-    { label: 'Viewing', value: 'viewing', icon: 'fal fa-eye', description: 'View clean version of document only' },
+    { 
+      label: 'Editing', 
+      value: 'editing', 
+      icon: toolbarIcons.documentEditingMode, 
+      description: 'Edit document directly' 
+    },
+    { 
+      label: 'Suggesting', 
+      value: 'suggesting', 
+      icon: toolbarIcons.documentSuggestingMode, 
+      description: 'Edits become suggestions' 
+    },
+    { 
+      label: 'Viewing', 
+      value: 'viewing', 
+      icon: toolbarIcons.documentViewingMode, 
+      description: 'View clean version of document only' 
+    },
   ];
 
   function renderDocumentMode(renderDocumentButton) {
@@ -682,7 +694,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     type: 'button',
     name: 'pageBreakTool',
     command: 'insertPageBreak',
-    icon: 'fa fa-file-dashed-line',
+    icon: toolbarIcons.pageBreak,
     active: false,
     tooltip: 'Insert page break',
   });
@@ -740,7 +752,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role)
     clearFormatting,
     overflow,
     documentMode,
-    // separatorRight,
     // search,
   ];
 

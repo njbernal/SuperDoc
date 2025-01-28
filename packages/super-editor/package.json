@@ -60,9 +60,6 @@
     "xml-js": "^1.6.11"
   },
   "peerDependencies": {
-    "@fortawesome/fontawesome-free": "^6.5.2",
-    "@fortawesome/free-solid-svg-icons": "^6.5.2",
-    "@fortawesome/vue-fontawesome": "^3.0.8",
     "naive-ui": "^2.38.2",
     "tippy.js": "^6.3.7",
     "vite-plugin-node-polyfills": "^0.22.0",
@@ -70,9 +67,6 @@
     "yjs": "13.6.19"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^6.5.2",
-    "@fortawesome/free-solid-svg-icons": "^6.5.2",
-    "@fortawesome/vue-fontawesome": "^3.0.8",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/test-utils": "^2.4.6",
     "postcss-nested": "^6.0.1",

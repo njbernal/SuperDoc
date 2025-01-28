@@ -1,4 +1,6 @@
 <script setup>
+import { toolbarIcons } from './toolbarIcons.js';
+
 const emit = defineEmits(['select']);
 
 const select = (alignment) => {
@@ -8,10 +10,10 @@ const select = (alignment) => {
 
 <template>
   <div class="alignment-buttons">
-    <div class="button-icon" @click="select('left')"><i class="fas fa-align-left"></i></div>
-    <div class="button-icon" @click="select('center')"><i class="fas fa-align-center"></i></div>
-    <div class="button-icon" @click="select('right')"><i class="fas fa-align-right"></i></div>
-    <div class="button-icon" @click="select('justify')"><i class="fas fa-align-justify"></i></div>
+    <div class="button-icon" @click="select('left')" v-html="toolbarIcons.alignLeft"></div>
+    <div class="button-icon" @click="select('center')" v-html="toolbarIcons.alignCenter"></div>
+    <div class="button-icon" @click="select('right')" v-html="toolbarIcons.alignRight"></div>
+    <div class="button-icon" @click="select('justify')" v-html="toolbarIcons.alignJustify"></div>
   </div>
 </template>
 
@@ -25,7 +27,7 @@ const select = (alignment) => {
 }
 .button-icon {
   cursor: pointer;
-  padding: 12px;
+  padding: 5px;
   font-size: 16px;
   width: 25px;
   height: 25px;
@@ -37,5 +39,12 @@ const select = (alignment) => {
 }
 .button-icon:hover {
   background-color: #d8dee5;
+}
+
+.button-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
 }
 </style>

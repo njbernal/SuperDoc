@@ -7,6 +7,7 @@ import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
+import { toolbarIcons } from '../../../../super-editor/src/components/toolbar/toolbarIcons';
 
 /* For local dev */
 let superdoc = shallowRef(null);
@@ -70,6 +71,8 @@ const init = async () => {
     onEditorCreate,
     onContentError,
     // handleImageUpload: async (file) => url,
+    // Override icons.
+    toolbarIcons: {},
   };
 
   superdoc.value = new SuperDoc(config);
