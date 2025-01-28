@@ -456,11 +456,14 @@ export const FieldAnnotation = Node.create({
 
           if (dispatch) {
             commands.updateFieldAnnotationsAttributes([annotation], attrs);
-            requestAnimationFrame(() => {
-              const newTr = this.editor.view.state.tr;
-              newTr.setMeta('forceUpdatePagination', true);
-              this.editor.view.dispatch(newTr);
-            })
+
+            if (this.editor.options.pagination) {
+              setTimeout(() => {
+                const newTr = this.editor.view.state.tr;
+                newTr.setMeta('forceUpdatePagination', true);
+                this.editor.view.dispatch(newTr);
+              }, 50);
+            };
             return true;
           }
 
