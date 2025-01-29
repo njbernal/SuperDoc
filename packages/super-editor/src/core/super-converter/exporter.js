@@ -503,7 +503,19 @@ function translateList(params) {
       const pPr = getListParagraphProperties(listNode, level, type);
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
       if (!content.length) {
-        const spacer = { name: 'w:p', elements: [] };
+        // Some empty nodes could have spacing defined
+        const spacingProp = pPr?.elements.find((e) => e.name === 'w:spacing');
+        const elements = spacingProp ? [{
+          name: 'w:pPr',
+          type: 'element',
+          elements: [spacingProp],
+        }] : [];
+        
+        const spacer = { 
+          name: 'w:p',
+          type: 'element',
+          elements
+        };
         return listNodes.push(spacer);
       }
 
