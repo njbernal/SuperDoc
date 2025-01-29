@@ -3,7 +3,8 @@ import { parseProperties } from './importerHelpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-const handleTabNode = (nodes, docx, nodeListHandler, insideTrackChange = false) => {
+const handleTabNode = (params) => {
+  const { nodes } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:tab') {
     return { nodes: [], consumed: 0 };
   }

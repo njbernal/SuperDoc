@@ -1,7 +1,8 @@
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleBookmarkNode = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleBookmarkNode = (params) => {
+  const { nodes, nodeListHandler } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:bookmarkStart') {
     return { nodes: [], consumed: 0 };
   }
@@ -13,8 +14,10 @@ export const handleBookmarkNode = (nodes, docx, nodeListHandler, insideTrackChan
   if (!handleStandardNode) {
     console.error('Standard node handler not found');
     return { nodes: [], consumed: 0 };
-  }
-  const result = handleStandardNode([node], docx, nodeListHandler, insideTrackChange);
+  };
+
+  const updatedParams = {...params, nodes: [node]};
+  const result = handleStandardNode(updatedParams);
   if (result.nodes.length === 1) {
     result.nodes[0].attrs.name = node.attributes['w:name'];
     result.nodes[0].attrs.id = node.attributes['w:id'];

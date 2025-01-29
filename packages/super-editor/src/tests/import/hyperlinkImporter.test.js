@@ -11,7 +11,7 @@ describe('HyperlinkNodeImporter', () => {
     const doc = documentXml.elements[0];
     const body = doc.elements[0];
     const content = body.elements;
-    const { nodes } = handleHyperlinkNode([content[1].elements[1]], docx, defaultNodeListHandler(), false);
+    const { nodes } = handleHyperlinkNode({ nodes: [content[1].elements[1]], docx, nodeListHandler: defaultNodeListHandler() });
     
     const { marks } = nodes[0];
     expect(marks.length).toBe(3);

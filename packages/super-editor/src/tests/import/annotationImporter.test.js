@@ -14,7 +14,9 @@ describe('paragraph tests to check spacing', () => {
     const body = doc.elements[0];
     const content = body.elements;
     const paragraphWithField = content[0].elements[2];
-    const { nodes } = handleAnnotationNode([paragraphWithField], docx, defaultNodeListHandler(), false);
+    const { nodes } = handleAnnotationNode({
+      nodes: [paragraphWithField], docx, nodeListHandler: defaultNodeListHandler()
+    });
 
     const node = nodes[0];
     expect(node.type).toBe('fieldAnnotation');
@@ -37,7 +39,11 @@ describe('paragraph tests to check spacing', () => {
     const body = doc.elements[0];
     const content = body.elements;
     const paragraphWithField = content[0].elements[3];
-    const { nodes } = handleAnnotationNode([paragraphWithField], docx, defaultNodeListHandler(), false);
+    const { nodes } = handleAnnotationNode({
+      nodes: [paragraphWithField],
+      docx,
+      nodeListHandler: defaultNodeListHandler()
+    });
 
     const node = nodes[0];
     expect(node.type).toBe('fieldAnnotation');

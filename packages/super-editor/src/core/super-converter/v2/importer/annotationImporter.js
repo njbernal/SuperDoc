@@ -4,7 +4,8 @@ import { parseMarks } from './markImporter.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleAnnotationNode = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleAnnotationNode = (params) => {
+  const { nodes, docx, nodeListHandler, insideTrackChange } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:sdt') {
     return { nodes: [], consumed: 0 };
   }

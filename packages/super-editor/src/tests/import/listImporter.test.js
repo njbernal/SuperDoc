@@ -25,7 +25,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('bulletList');
     expect(result.nodes[0].content.length).toBe(1);
@@ -59,7 +59,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('orderedList');
     expect(result.nodes[0].content.length).toBe(1);
@@ -165,7 +165,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('bulletList');
     expect(result.nodes[0].content.length).toBe(3);
@@ -291,7 +291,7 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
 
     expect(result.nodes.length).toBe(1);
     const expectedResult = {
@@ -1116,7 +1116,7 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     const expectedResult = {
       type: 'orderedList',
       content: [
@@ -2070,7 +2070,7 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
 
     const expectedResult = {
       type: 'orderedList',
