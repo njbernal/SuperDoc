@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, getCurrentInstance, onMounted } from "vue";
+import { toolbarIcons } from './toolbarIcons.js';
 
 const emit = defineEmits(['submit', 'cancel']);
 const props = defineProps({
@@ -92,7 +93,7 @@ onMounted(() => {
 
     <div v-if="showInput && !isAnchor">
       <div class="input-row">
-        <i class="fas fa-link input-icon"></i>
+        <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input
           type="text"
           placeholder="Type or paste a link"
@@ -101,11 +102,17 @@ onMounted(() => {
           @keydown.enter.stop.prevent="handleSubmit"
           @keydown="urlError = false"
         />
-        <i :class="{ disabled: !validUrl }" class="fal fa-external-link-alt open-link-icon" @click="openLink"></i>
+
+        <div 
+          class="open-link-icon" 
+          :class="{ disabled: !validUrl }" 
+          v-html="toolbarIcons.openLink" 
+          @click="openLink">
+        </div>
       </div>
       <div class="input-row link-buttons">
         <button class="remove-btn" @click="handleRemove" v-if="href">
-          <i class="fal fa-times"></i>
+          <div class="remove-btn__icon" v-html="toolbarIcons.removeLink"></div>
           Remove
         </button>
         <button class="submit-btn" v-if="showApply" @click="handleSubmit" :class="{ 'disable-btn': isDisabled }">
@@ -121,6 +128,13 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.link-input-ctn :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
 .open-link-icon {
   margin-left: 10px;
   width: 30px;
@@ -130,14 +144,22 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
   transition: all 0.2s ease;
   cursor: pointer;
 }
+
 .open-link-icon:hover {
   color: #1355ff;
   background-color: white;
   border: 1px solid #dbdbdb;
 }
+
+.open-link-icon :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+
 .disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -148,9 +170,15 @@ onMounted(() => {
   justify-content: flex-end;
   margin-top: 10px;
 }
-.remove-btn i {
-  margin-right: 5px;
+
+.remove-btn__icon {
+  display: inline-flex;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-right: 4px;
 }
+
 .link-buttons button {
   margin-left: 5px;
 }
@@ -171,13 +199,17 @@ onMounted(() => {
   font-weight: 600;
   margin-bottom: 10px;
 }
+
 .input-icon {
   position: absolute;
   transform: rotate(45deg);
   left: 25px;
-  font-size: 12px;
+  width: auto;
+  height: 12px;
   color: #999;
+  pointer-events: none;
 }
+
 .hasBottomMargin {
   margin-bottom: 1em;
 }
@@ -192,6 +224,9 @@ onMounted(() => {
   box-sizing: border-box;
 }
 .remove-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: 10px 16px;
   border-radius: 8px;
   outline: none;
@@ -208,6 +243,9 @@ onMounted(() => {
   background-color: #dbdbdb;
 }
 .submit-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: 10px 16px;
   border-radius: 8px;
   outline: none;

@@ -8,6 +8,7 @@ import { vClickOutside } from '@harbour-enterprises/common';
 import Toolbar from './Toolbar.vue';
 import { startImageUpload, getFileOpener } from '../../extensions/image/imageHelpers/index.js';
 import { findParentNode } from '@helpers/index.js';
+import { toolbarIcons } from './toolbarIcons.js';
 
 export class SuperToolbar extends EventEmitter {
   config = {
@@ -15,6 +16,7 @@ export class SuperToolbar extends EventEmitter {
     toolbarGroups: ['left', 'center', 'right'],
     role: 'editor',
     pagination: false,
+    icons: { ...toolbarIcons },
   };
 
   #interceptedCommands = {
@@ -151,14 +153,20 @@ export class SuperToolbar extends EventEmitter {
 
   constructor(config) {
     super();
+
     this.config = { ...this.config, ...config };
     this.toolbarItems = [];
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
     this.role = config.role || 'editor';
+    
+    this.config.icons = {
+      ...toolbarIcons,
+      ...config.icons,
+    };
 
-    this.#makeToolbarItems(this, config.isDev);
+    this.#makeToolbarItems(this, this.config.icons, config.isDev);
 
     let el = null;
     if (this.config.element) {
@@ -202,8 +210,8 @@ export class SuperToolbar extends EventEmitter {
     return this.toolbarItems.filter((item) => item.group.value === groupName);
   }
 
-  #makeToolbarItems(superToolbar, isDev = false) {
-    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, window.innerWidth, this.role);
+  #makeToolbarItems(superToolbar, icons, isDev = false) {
+    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, window.innerWidth, this.role, icons);
     this.toolbarItems = defaultItems;
     this.overflowItems = overflowItems;
     this.updateToolbarState();
@@ -250,7 +258,7 @@ export class SuperToolbar extends EventEmitter {
   }
 
   onToolbarResize = () => {
-    this.#makeToolbarItems(this, this.isDev);
+    this.#makeToolbarItems(this, this.config.icons, this.isDev);
   };
 
   #deactivateAll() {

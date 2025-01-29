@@ -9,7 +9,7 @@ import useSelection from '@/helpers/use-selection';
 import useComment from '@/components/CommentsLayer/use-comment';
 import Avatar from '@/components/general/Avatar.vue';
 import InternalDropdown from './InternalDropdown.vue';
-import falCheckIcon from '@/assets/fontawesome/light/check.svg?raw';
+import { superdocIcons } from '@/icons.js';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
@@ -347,25 +347,35 @@ onMounted(() => {
 
         <!-- Tracked changes don't have resolution, only accept / reject -->
         <div class="overflow-menu" v-if="data.isTrackedChange && index === 0">
-          <i class="fal fa-check" @click.stop.prevent="markAccepted" title="Accept change"> </i>
-          <i class="fal fa-times" @click.stop.prevent="markRejected" title="Reject change"> </i>
+          <div 
+            class="overflow-menu__icon" 
+            v-html="superdocIcons.acceptChange"
+            @click.stop.prevent="markAccepted"
+            title="Accept change">
+          </div>
+          <div 
+            class="overflow-menu__icon" 
+            v-html="superdocIcons.rejectChange"
+            @click.stop.prevent="markRejected"
+            title="Reject change">
+          </div>
         </div>
 
         <!-- comment actions -->
         <div class="overflow-menu" v-else>
-          <i
+          <div 
             v-if="index === 0 && getConfig.allowResolve"
-            class="fal fa-check"
+            class="overflow-menu__icon" 
+            v-html="superdocIcons.markDone"
             @click.stop.prevent="markDone"
-            title="Mark done and hide comment thread"
-          >
-          </i>
+            title="Mark done and hide comment thread">
+          </div>
 
           <!-- <n-dropdown
               trigger="click"
               :options="overflowOptions"
               @select="handleOverflowSelection(index, item, $event)">
-                <i class="fal fa-ellipsis-v" title="More options"></i>
+              TODO: icon
           </n-dropdown> -->
         </div>
       </div>
@@ -478,35 +488,30 @@ onMounted(() => {
 .is-active {
   z-index: 10;
 }
+
 .overflow-menu {
   flex-shrink: 1;
   display: flex;
+  gap: 6px;
 }
 
 .overflow-menu__icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-  border-radius: 50%;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
-  transition: all 250ms ease;
-  padding: 3px;
-  margin-left: 2px;
-  cursor: pointer;
-}
-
-.overflow-menu__icon:hover {
-  background-color: #dbdbdb;
 }
 
 .overflow-menu__icon :deep(svg) {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   display: block;
   fill: currentColor;
 }
+
 .comment-header {
   display: flex;
   align-items: center;

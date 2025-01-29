@@ -3,7 +3,8 @@ import { emuToPixels } from '../../helpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChange, converter, editor, filename) => {
+export const handleDrawingNode = (params) => {
+  const { nodes, filename } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:drawing') {
     return { nodes: [], consumed: 0 };
   }
@@ -16,15 +17,16 @@ export const handleDrawingNode = (nodes, docx, nodeListHandler, insideTrackChang
 
   // Some images are identified by wp:anchor
   const isAnchor = elements.find((el) => el.name === 'wp:anchor');
-  if (isAnchor) result = handleImageImport(elements[0], currentFileName, docx);
+  if (isAnchor) result = handleImageImport(elements[0], currentFileName, params);
 
   // Others, wp:inline
   const inlineImage = elements.find((el) => el.name === 'wp:inline');
-  if (inlineImage) result = handleImageImport(inlineImage, currentFileName, docx);
+  if (inlineImage) result = handleImageImport(inlineImage, currentFileName, params);
   return { nodes: result ? [result] : [], consumed: 1 };
 };
 
-export function handleImageImport(node, currentFileName, docx) {
+export function handleImageImport(node, currentFileName, params) {
+  const { docx } = params;
   const { attributes } = node;
   const padding = {
     top: emuToPixels(attributes['distT']),

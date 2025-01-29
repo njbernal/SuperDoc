@@ -7,13 +7,12 @@ import { ErrorWithDetails } from '../../../helpers/ErrorWithDetails.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleListNode = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleListNode = (params) => {
+  const { nodes } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:p') {
     return { nodes: [], consumed: 0 };
   }
   const node = carbonCopy(nodes[0]);
-
-  let schemaNode;
 
   // We need to pre-process paragraph nodes to combine various possible elements we will find ie: lists, links.
   const processedElements = preProcessNodesForFldChar(node.elements);
@@ -26,7 +25,6 @@ export const handleListNode = (nodes, docx, nodeListHandler, insideTrackChange) 
     // Get all siblings that are list items and haven't been processed yet.
     const siblings = carbonCopy(nodes);
     const listItems = [];
-    let consumed = 0;
 
     // Iterate each item until we find the end of the list (a non-list item),
     // then send to the list handler for processing.
@@ -40,7 +38,7 @@ export const handleListNode = (nodes, docx, nodeListHandler, insideTrackChange) 
       }
     }
 
-    const listNodes = handleListNodes(listItems, docx, nodeListHandler, 0);
+    const listNodes = handleListNodes(listItems, params, 0);
     return {
       nodes: [listNodes],
       consumed: listItems.filter((i) => i.seen).length,
@@ -75,15 +73,14 @@ export const listHandlerEntity = {
  */
 function handleListNodes(
   listItems,
-  docx,
-  nodeListHandler,
-  insideTrackChange,
+  params,
   listLevel = 0,
   actualListLevel = 0,
   currentListNumId = null,
   path = '',
   isNested = false,
 ) {
+  const { docx, nodeListHandler, insideTrackChange } = params;
   const parsedListItems = [];
   let overallListType;
   let listStyleType;
@@ -112,7 +109,7 @@ function handleListNodes(
     // Sometimes there are paragraph nodes that only have pPr element and no text node - these are
     // Spacers in the XML and need to be appended to the last item.
     if (item.elements && !hasTextNode(item.elements)) {
-      const n = handleStandardNode([item], docx, nodeListHandler, insideTrackChange).nodes[0];
+      const n = handleStandardNode({ ...params, nodes: [item] }).nodes[0];
       parsedListItems[parsedListItems.length - 1]?.content.push(n);
       item.seen = true;
       continue;
@@ -150,7 +147,7 @@ function handleListNodes(
 
       let parNode = {
         type: 'paragraph',
-        content: nodeListHandler.handler(elements, docx, insideTrackChange)?.filter((n) => n),
+        content: nodeListHandler.handler({ ...params, nodes: elements })?.filter((n) => n),
       };
 
       // Normalize text nodes.
@@ -195,9 +192,7 @@ function handleListNodes(
       const newPath = [...path, listItemIndices[listLevel]];
       const sublist = handleListNodes(
         listItems.slice(index),
-        docx,
-        nodeListHandler,
-        insideTrackChange,
+        params,
         listLevel + 1,
         listLevel,
         numId,

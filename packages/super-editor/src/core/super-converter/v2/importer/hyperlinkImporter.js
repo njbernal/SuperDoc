@@ -1,7 +1,8 @@
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleHyperlinkNode = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleHyperlinkNode = (params) => {
+  const { nodes, docx, nodeListHandler } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:hyperlink') {
     return { nodes: [], consumed: 0 };
   }
@@ -47,7 +48,7 @@ export const handleHyperlinkNode = (nodes, docx, nodeListHandler, insideTrackCha
     }
   }
 
-  const updatedNode = nodeListHandler.handler(runNodes, docx, insideTrackChange);
+  const updatedNode = nodeListHandler.handler({ ...params, nodes: runNodes });
   return { nodes: updatedNode, consumed: 1 };
 };
 

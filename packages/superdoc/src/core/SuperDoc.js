@@ -1,7 +1,6 @@
 // TODO: side-effect with styles
 import '../style.css';
 import '@harbour-enterprises/super-editor/style.css';
-import '@harbour-enterprises/common/icons/icons.css';
 
 import EventEmitter from 'eventemitter3';
 import { v4 as uuidv4 } from 'uuid';
@@ -54,6 +53,7 @@ export class SuperDoc extends EventEmitter {
     // toolbar config
     toolbar: null, // Optional DOM element to render the toolbar in
     toolbarGroups: ['left', 'center', 'right'],
+    toolbarIcons: {},
 
     isDev: false,
 
@@ -283,6 +283,7 @@ export class SuperDoc extends EventEmitter {
       toolbarGroups: this.config.toolbarGroups,
       role: this.config.role,
       pagination: this.config.pagination,
+      icons: this.config.toolbarIcons,
     };
 
     this.toolbar = new SuperToolbar(config);

@@ -1,9 +1,8 @@
 <script setup>
 import '@/style.css';
 import '@harbour-enterprises/common/styles/common-styles.css';
-import '@harbour-enterprises/common/icons/icons.css';
 
-import { ref, computed, onMounted } from 'vue';
+import { ref, shallowRef, computed, onMounted } from 'vue';
 import { SuperEditor } from '@/index.js';
 import { getFileObject } from '@harbour-enterprises/common/helpers/get-file-object';
 import { DOCX } from '@harbour-enterprises/common';
@@ -18,7 +17,7 @@ let activeEditor;
 const currentFile = ref(null);
 const pageStyles = ref(null);
 const isDebuggingPagination = ref(false);
-const telemetry = ref(null);
+const telemetry = shallowRef(null);
 
 const handleNewFile = async (file) => {
   currentFile.value = null;

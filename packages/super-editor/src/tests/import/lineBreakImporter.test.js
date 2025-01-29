@@ -7,7 +7,7 @@ describe('LineBreakNodeImporter', () => {
     const names = Object.keys(SuperConverter.allowedElements).filter((name) => name !== 'w:br');
     const nodesOfNodes = names.map((name) => [{ name }]);
     for (const nodes of nodesOfNodes) {
-      const result = handleLineBreakNode(nodes, null, null, false);
+      const result = handleLineBreakNode({ nodes });
       expect(result.nodes.length).toBe(0);
       expect(result.consumed).toBe(0);
     }
@@ -15,7 +15,7 @@ describe('LineBreakNodeImporter', () => {
 
   it('parses line break nodes and w:br attributes', () => {
     const nodes = [{ name: 'w:br' }];
-    const result = handleLineBreakNode(nodes, null, createNodeListHandlerMock(), false);
+    const result = handleLineBreakNode({ nodes, nodeListHandler: createNodeListHandlerMock() });
     expect(result.nodes.length).toBe(1);
     expect(result.consumed).toBe(1);
     expect(result.nodes[0].type).toBe('lineBreak');

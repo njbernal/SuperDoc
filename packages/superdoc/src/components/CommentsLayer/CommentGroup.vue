@@ -75,9 +75,7 @@ const getVisibleComments = computed(() => {
   <div class="comments-group" :style="getSidebarCommentStyle" @click="handleClick" v-if="!isExpanded && !isActiveGroup">
     <div class="group-collapsed">
       <div class="number-bubble">{{ getNumberOfConversations }}</div>
-      <!-- TODO
-      <i class="fal fa-comment comments-icon"></i> 
-      -->
+      <!-- TODO: icon -->
     </div>
   </div>
 

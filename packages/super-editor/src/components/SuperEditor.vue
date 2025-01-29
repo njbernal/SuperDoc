@@ -2,7 +2,7 @@
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
 import { ref, onMounted, onBeforeUnmount, computed, shallowRef } from 'vue';
-import { Editor } from '@vue-3/index.js';
+import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import { observeDomChanges } from './pagination-helpers.js';
 import { onMarginClickCursorChange } from './cursor-helpers.js';

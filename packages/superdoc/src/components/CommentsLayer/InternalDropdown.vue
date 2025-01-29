@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, h } from 'vue';
 import { NDropdown, NTooltip, NSelect } from 'naive-ui';
+import { superdocIcons } from '@/icons.js';
 
 const emit = defineEmits(['select']);
 const props = defineProps({
@@ -12,7 +13,7 @@ const props = defineProps({
 
 const renderIcon = (icon) => {
   return () => {
-    return h('i', { class: icon });
+    return h('div', { innerHTML: icon, class: 'internal-dropdown__item-icon' });
   };
 };
 
@@ -20,15 +21,15 @@ const options = [
   {
     label: 'Internal',
     key: 'internal',
-    icon: renderIcon('fal fa-user-check'),
-    iconString: 'fal fa-user-check',
+    icon: renderIcon(superdocIcons.internal),
+    iconString: superdocIcons.internal,
     backgroundColor: '#CDE6E6',
   },
   {
     label: 'External',
     key: 'external',
-    icon: renderIcon('fal fa-users'),
-    iconString: 'fal fa-users',
+    icon: renderIcon(superdocIcons.external),
+    iconString: superdocIcons.external,
     backgroundColor: '#F5CFDA',
   },
 ];
@@ -64,9 +65,9 @@ handleSelect(props.state || 'internal');
   <div class="internal-dropdown" :style="getStyle">
     <n-dropdown trigger="click" :options="options" @select="handleSelect">
       <div class="comment-option">
-        <i :class="activeIcon"></i>
+        <div class="active-icon" v-html="activeIcon"></div>
         <div class="option-state">{{ getState }}</div>
-        <i class="fas fa-caret-down dropdown-caret"></i>
+        <div class="dropdown-caret" v-html="superdocIcons.caretDown"></div>
       </div>
     </n-dropdown>
   </div>
@@ -83,9 +84,39 @@ handleSelect(props.state || 'internal');
 .option-state {
   margin: 0 7px;
 }
-.dropdown-caret {
-  font-size: 16px !important;
+
+.active-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
+
+.active-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+.dropdown-caret {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 10px;
+  height: 16px;
+}
+
+.dropdown-caret :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
 .internal-dropdown {
   transition: all 250ms ease;
   display: inline-block;
@@ -95,5 +126,23 @@ handleSelect(props.state || 'internal');
 }
 .internal-dropdown:hover {
   background-color: #f3f3f5;
+}
+</style>
+
+<style>
+.internal-dropdown__item-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.internal-dropdown__item-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
 }
 </style>
