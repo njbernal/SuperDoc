@@ -5,6 +5,7 @@ import { ref, onMounted, onBeforeUnmount, computed, shallowRef } from 'vue';
 import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import { observeDomChanges } from './pagination-helpers.js';
+import { onMarginClickCursorChange } from './cursor-helpers.js';
 
 const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
 
@@ -148,6 +149,12 @@ onMounted(() => {
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
 
+const handleMarginClick = (event) => {
+  if (event.target.classList.contains('ProseMirror')) return;
+
+  onMarginClickCursorChange(event, editor.value);
+};
+
 onBeforeUnmount(() => {
   paginationObserver?.disconnect();
   stopPolling();
@@ -158,7 +165,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="super-editor-container">
-    <div class="super-editor" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick" ref="editorWrapper">
+    <div 
+      class="super-editor"
+      ref="editorWrapper"
+      @keydown="handleSuperEditorKeydown" 
+      @click="handleSuperEditorClick"
+      @mousedown="handleMarginClick"
+    >
       <div ref="editorElem" class="editor-element super-editor__element"></div>
     </div>
 
