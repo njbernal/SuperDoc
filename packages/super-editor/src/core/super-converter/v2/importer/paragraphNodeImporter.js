@@ -87,7 +87,7 @@ export const handleParagraphNode = (params) => {
     const defaultStyleId = node.attributes?.['w:rsidRDefault'];
     schemaNode.attrs['spacing'] = getParagraphSpacing(defaultStyleId, node, docx);
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
-  };
+  }
 
   schemaNode.attrs['filename'] = filename;
 
@@ -102,7 +102,7 @@ export const handleParagraphNode = (params) => {
   return { nodes: schemaNode ? [schemaNode] : [], consumed: 1 };
 };
 
-const getParagraphSpacing = (defaultStyleId, node, docx) => {
+export const getParagraphSpacing = (defaultStyleId, node, docx) => {
   // Check if we have default paragraph styles to override
   const spacing = {
     lineSpaceAfter: 0,
