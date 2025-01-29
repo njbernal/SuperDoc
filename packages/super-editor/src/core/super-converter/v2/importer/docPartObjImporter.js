@@ -1,6 +1,7 @@
 import { tableOfContentsHandler } from './docPartGalleryImporter.js';
 
-export const handleDocPartObj = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleDocPartObj = (params) => {
+  const { nodes } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:sdt') {
     return { nodes: [], consumed: 0 };
   }
@@ -22,7 +23,7 @@ export const handleDocPartObj = (nodes, docx, nodeListHandler, insideTrackChange
 
   const content = node?.elements.find((el) => el.name === 'w:sdtContent');
   const handler = validGalleryTypeMap[docPartGalleryType];
-  const result = handler(content, docx, nodeListHandler, insideTrackChange);
+  const result = handler({ ...params, nodes: [content] });
 
   return {
     nodes: result,

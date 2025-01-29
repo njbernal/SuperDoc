@@ -4,7 +4,8 @@ import { parseProperties } from './importerHelpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleTrackChangeNode = (nodes, docx, nodeListHandler, insideTrackChange = false) => {
+export const handleTrackChangeNode = (params) => {
+  const { nodes, nodeListHandler } = params;
   if (nodes.length === 0 || !(nodes[0].name === 'w:del' || nodes[0].name === 'w:ins')) {
     return { nodes: [], consumed: 0 };
   }
@@ -12,7 +13,7 @@ export const handleTrackChangeNode = (nodes, docx, nodeListHandler, insideTrackC
   const { name } = node;
   const { attributes, elements } = parseProperties(node);
 
-  const subs = nodeListHandler.handler(elements, docx, true);
+  const subs = nodeListHandler.handler({ ...params, insideTrackChange: true, nodes: elements });
   const changeType = name === 'w:del' ? TrackDeleteMarkName : TrackInsertMarkName;
 
   const mappedAttributes = {

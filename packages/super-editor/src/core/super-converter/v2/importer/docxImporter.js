@@ -46,7 +46,9 @@ export const createDocumentJson = (docx, converter, editor) => {
     const ignoreNodes = ['w:sectPr'];
     const content = node.elements?.filter((n) => !ignoreNodes.includes(n.name)) ?? [];
 
-    const parsedContent = nodeListHandler.handler(content, docx, false, converter, editor);
+    const parsedContent = nodeListHandler.handler({
+      nodes: content, nodeListHandler, docx, converter, editor
+    });
     const result = {
       type: 'doc',
       content: parsedContent,
@@ -131,7 +133,7 @@ const createNodeListHandler = (nodeHandlers) => {
     };
   };
 
-  const nodeListHandlerFn = (elements, docx, insideTrackChange, converter, editor, filename) => {
+  const nodeListHandlerFn = ({ nodes: elements, docx, insideTrackChange, converter, editor, filename }) => {
     if (!elements || !elements.length) return [];
     
     const processedElements = [];
@@ -160,15 +162,15 @@ const createNodeListHandler = (nodeHandlers) => {
             (res, handler) => {
               if (res.consumed > 0) return res;
               
-              return handler.handler(
-                nodesToHandle,
+              return handler.handler({
+                nodes: nodesToHandle,
                 docx,
-                { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
+                nodeListHandler: { handler: nodeListHandlerFn, handlerEntities: nodeHandlers },
                 insideTrackChange,
                 converter,
                 editor,
                 filename
-              );
+              });
             },
             { nodes: [], consumed: 0 }
           );
@@ -361,7 +363,7 @@ function getHeaderFooter(el, elementType, docx, converter, editor) {
   const rels = docx['word/_rels/document.xml.rels'];
   const relationships = rels.elements.find((el) => el.name === 'Relationships');
   const { elements } = relationships;
-  
+
   // sectionType as in default, first, odd, even
   const sectionType = el.attributes['w:type'];
 
@@ -374,7 +376,14 @@ function getHeaderFooter(el, elementType, docx, converter, editor) {
   const currentFileName = target;
 
   const nodeListHandler = defaultNodeListHandler();
-  const schema = nodeListHandler.handler(referenceFile.elements[0].elements, docx, false, converter, editor, currentFileName);
+  const schema = nodeListHandler.handler({
+    nodes: referenceFile.elements[0].elements,
+    nodeListHandler,
+    docx,
+    converter,
+    editor,
+    filename: currentFileName
+  });
 
   let storage, storageIds;
 

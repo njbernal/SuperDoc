@@ -141,7 +141,7 @@ describe('table live xml test', () => {
       'word/styles.xml': styles,
     };
 
-    const result = handleAllTableNodes(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleAllTableNodes({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
 
     expect(result.nodes[0].type).toBe('table');
@@ -165,6 +165,7 @@ describe('table live xml test', () => {
     expect(result.nodes[0].content[0].type).toBe('tableRow');
     expect(result.nodes[0].content[0].content.length).toBe(2);
     expect(result.nodes[0].content[0].content[0].content[0].type).toBe('paragraph');
+
     expect(result.nodes[0].content[0].content[0].content[0].content[0].type).toBe('text');
     expect(result.nodes[0].content[0].content[0].content[0].content[0].text).toBe('COL 1 ROW 1');
     expect(result.nodes[0].content[0].content[1].content[0].type).toBe('paragraph');
@@ -189,7 +190,7 @@ describe('table live xml test', () => {
     const docx = {
       'word/styles.xml': styles,
     };
-    const result = handleAllTableNodes(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleAllTableNodes({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes[0].content[0].content[0].attrs.borders).toBeDefined();
     expect(result.nodes[0].content[0].content[1].attrs.borders).toBeDefined();
     expect(result.nodes[0].content[0].content[0].attrs.borders.right.val).toBe('none');

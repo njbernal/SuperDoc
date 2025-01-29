@@ -3,13 +3,15 @@ import { getElementName, parseProperties } from './importerHelpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChange = false, converter, editor, filename) => {
+export const handleStandardNode = (params) => {
+  const { nodes, docx, nodeListHandler } = params;
   if (!nodes || nodes.length === 0) {
     return { nodes: [], consumed: 0 };
   }
-  const node = nodes[0];
+
   // Parse properties
-  const { name, type } = node;
+  const node = nodes[0];
+  const { name } = node;
   const { attributes, elements, marks = [] } = parseProperties(node, docx);
   
   if (!getElementName(node)) {
@@ -34,7 +36,10 @@ export const handleStandardNode = (nodes, docx, nodeListHandler, insideTrackChan
       el.marks.push(...marks);
       return el;
     });
-    content.push(...nodeListHandler.handler(updatedElements, docx, insideTrackChange, converter, editor, filename));
+
+    const childParams = { ...params, nodes: updatedElements };
+    const childContent = nodeListHandler.handler(childParams);
+    content.push(...childContent);
   }
 
   const resultNode = {

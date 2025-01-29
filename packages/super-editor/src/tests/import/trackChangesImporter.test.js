@@ -10,7 +10,7 @@ describe('TrackChangesImporter', () => {
     const names = Object.keys(SuperConverter.allowedElements).filter((name) => name !== 'w:del' && name !== 'w:ins');
     const nodesOfNodes = names.map((name) => [{ name }]);
     for (const nodes of nodesOfNodes) {
-      const result = handleTrackChangeNode(nodes, null, null, false);
+      const result = handleTrackChangeNode({ nodes });
       expect(result.nodes.length).toBe(0);
       expect(result.consumed).toBe(0);
     }
@@ -24,7 +24,7 @@ describe('TrackChangesImporter', () => {
         elements: [{ name: 'w:t', attributes: {}, elements: [{ text: 'This is a test text!' }] }],
       },
     ];
-    const result = handleTrackChangeNode(nodes, null, createNodeListHandlerMock(), false);
+    const result = handleTrackChangeNode({ nodes, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     expect(result.consumed).toBe(1);
     expect(result.nodes[0].marks[0].type).toBe(TrackDeleteMarkName);
@@ -43,7 +43,7 @@ describe('TrackChangesImporter', () => {
         elements: [{ name: 'w:t', attributes: {}, elements: [{ text: 'This is a test text!' }] }],
       },
     ];
-    const result = handleTrackChangeNode(nodes, null, createNodeListHandlerMock(), false);
+    const result = handleTrackChangeNode({ nodes, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     expect(result.consumed).toBe(1);
     expect(result.nodes[0].marks[0].type).toBe(TrackInsertMarkName);
@@ -90,7 +90,7 @@ describe('trackChanges live xml test', () => {
 
   it('parses insert xml', () => {
     const nodes = parseXmlToJson(inserXml).elements;
-    const result = handleTrackChangeNode(nodes, null, defaultNodeListHandler(), false);
+    const result = handleTrackChangeNode({ nodes, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     const insertionMark = result.nodes[0].marks.find((mark) => mark.type === TrackInsertMarkName);
     expect(insertionMark).toBeDefined();
@@ -103,7 +103,7 @@ describe('trackChanges live xml test', () => {
   });
   it('parses delete xml', () => {
     const nodes = parseXmlToJson(deleteXml).elements;
-    const result = handleTrackChangeNode(nodes, null, defaultNodeListHandler(), false);
+    const result = handleTrackChangeNode({ nodes, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
     const deletionMark = result.nodes[0].marks.find((mark) => mark.type === TrackDeleteMarkName);
     expect(deletionMark).toBeDefined();
@@ -117,7 +117,7 @@ describe('trackChanges live xml test', () => {
   it('parses mark change xml', () => {
     const nodes = parseXmlToJson(markChangeXml).elements;
     const handler = defaultNodeListHandler();
-    const result = handler.handler(nodes, null, false);
+    const result = handler.handler({ nodes });
     expect(result.length).toBe(1);
     expect(result[0].type).toBe('paragraph');
     expect(result[0].content.length).toBe(1);

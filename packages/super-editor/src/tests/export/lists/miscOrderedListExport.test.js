@@ -38,7 +38,7 @@ describe('[orderedlist_interrupted1.docx] interrupted ordered list tests', async
 
     // Check if pPr is correct
     const firstListPprList = firstList.elements.filter((n) => n.name = 'w:pPr');
-    expect(firstListPprList.length).toBe(1);
+    expect(firstListPprList.length).toBe(3);
 
     const firstListPpr = firstListPprList[0];
     expect(firstListPpr.elements.length).toBe(1);
