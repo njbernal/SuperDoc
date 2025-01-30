@@ -426,9 +426,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '○',
-                    lvlJc: 'left',
+                    lvlJc: 'both',
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '057544FE',
@@ -556,9 +562,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '3947758C',
@@ -667,9 +679,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '○',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '437AE2E1',
@@ -819,9 +837,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
             listLevel: [2],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '1F70BFCD',
@@ -1180,9 +1204,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '2F6FAED3',
@@ -1290,9 +1320,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '2D072E4D',
@@ -1394,9 +1430,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '2DBCC378',
@@ -1502,9 +1544,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [2],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '45FC6897',
@@ -1605,9 +1653,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '4F17D13D',
@@ -1688,9 +1742,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '01D254E6',
@@ -1796,9 +1856,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [3],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '77BFBBFC',
@@ -2144,9 +2210,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 18,
+              lineRule: 'auto',
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '2BEDC1A3',

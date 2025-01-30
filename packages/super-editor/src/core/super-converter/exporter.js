@@ -116,7 +116,7 @@ function translateParagraphNode(params) {
 
   // Insert paragraph properties at the beginning of the elements array
   const pPr = generateParagraphProperties(params.node);
-  elements.unshift(pPr);
+  if (pPr) elements.unshift(pPr);
 
   let attributes = {};
   if (params.node.attrs?.rsidRDefault) {
@@ -184,7 +184,9 @@ function generateParagraphProperties(node) {
     };
     pPrElements.push(textAlignElement);
   }
-
+  
+  if (!pPrElements.length) return null;
+  
   return {
     name: 'w:pPr',
     elements: pPrElements,
@@ -503,7 +505,19 @@ function translateList(params) {
       const pPr = getListParagraphProperties(listNode, level, type);
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
       if (!content.length) {
-        const spacer = { name: 'w:p', elements: [] };
+        // Some empty nodes could have spacing defined
+        const spacingProp = pPr?.elements.find((e) => e.name === 'w:spacing');
+        const elements = spacingProp ? [{
+          name: 'w:pPr',
+          type: 'element',
+          elements: [spacingProp],
+        }] : [];
+        
+        const spacer = { 
+          name: 'w:p',
+          type: 'element',
+          elements
+        };
         return listNodes.push(spacer);
       }
 
@@ -511,7 +525,7 @@ function translateList(params) {
       listNodes.push(outputNode);
     });
   });
-
+  
   return listNodes;
 }
 
@@ -528,11 +542,13 @@ function getListParagraphProperties(node, level, type) {
 
   // numbering.xml reference
   if (node.attrs.numId) listType = node.attrs.numId;
+  const importAttributes = node.attrs.attributes?.parentAttributes?.paragraphProperties?.elements;
 
   return {
     name: 'w:pPr',
     type: 'element',
     elements: [
+      ...importAttributes.filter(attrs => attrs.name !== 'w:numPr'),
       {
         name: 'w:numPr',
         type: 'element',
