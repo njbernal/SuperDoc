@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, reactive, computed } from 'vue';
 import { useCommentsStore } from './comments-store';
 import { getFileObject } from '@harbour-enterprises/common';
+import { DOCX, PDF } from '@harbour-enterprises/common';
 import useDocument from '@/composables/use-document';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
@@ -109,6 +110,8 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // If we have a URL, fetch the file and return it
     else if (doc.url && doc.type) {
+      if (doc.type.toLowerCase() === 'docx') doc.type = DOCX;
+      else if (doc.type.toLowerCase() === 'pdf') doc.type = PDF;
       const fileObject = await getFileObject(doc.url, doc.name || 'document', doc.type);
       return { ...doc, data: fileObject };
     }
