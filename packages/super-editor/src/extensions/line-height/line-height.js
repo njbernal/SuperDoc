@@ -8,7 +8,7 @@ export const LineHeight = Extension.create({
     return {
       types: ['heading', 'paragraph'],
       defaults: {
-        unit: 'in',
+        unit: '',
       },
     };
   },

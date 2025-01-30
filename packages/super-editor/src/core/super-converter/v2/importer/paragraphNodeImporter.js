@@ -1,4 +1,4 @@
-import { twipsToInches, twipsToPixels } from '../../helpers.js';
+import { twipsToInches, twipsToPixels, twipsToLines } from '../../helpers.js';
 import { testForList } from './listImporter.js';
 import { carbonCopy } from '../../../utilities/carbonCopy.js';
 import { mergeTextNodes } from './mergeTextNodes.js';
@@ -123,7 +123,7 @@ export const getParagraphSpacing = (defaultStyleId, node, docx) => {
   // 2. Default style spacing
   // 3. Default paragraph spacing
   const lineSpacing = inLineSpacing?.['w:line'] || line || pDefaultSpacing?.['w:line'];
-  if (lineSpacing) spacing.line = twipsToPixels(lineSpacing);
+  if (lineSpacing) spacing.line = twipsToLines(lineSpacing);
 
   const beforeSpacing = inLineSpacing?.['w:before'] || lineSpaceBefore || pDefaultSpacing?.['w:before'];
   if (beforeSpacing) spacing.lineSpaceBefore = twipsToPixels(beforeSpacing);

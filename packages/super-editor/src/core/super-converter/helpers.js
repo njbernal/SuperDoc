@@ -22,6 +22,16 @@ function pixelsToTwips(pixels) {
   return inchesToTwips(pixels);
 }
 
+function twipsToLines(twips) {
+  if (twips == null) return;
+  return twips / 240;
+}
+
+function linesToTwips(lines) {
+  if (lines == null) return;
+  return lines * 240;
+}
+
 function halfPointToPixels(halfPoints) {
   if (halfPoints == null) return;
   return Math.round((halfPoints * 96) / 72);
@@ -80,6 +90,8 @@ export {
   twipsToInches,
   twipsToPixels,
   pixelsToTwips,
+  twipsToLines,
+  linesToTwips,
   halfPointToPixels,
   emuToPixels,
   pixelsToEmu,

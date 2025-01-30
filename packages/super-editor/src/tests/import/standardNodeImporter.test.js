@@ -19,7 +19,7 @@ describe('StandardNodeImporter', () => {
     const { marks } = nodes[0].content[0];
     expect(marks[0].type).toBe('textStyle');
     expect(marks[0].attrs).toHaveProperty('fontFamily', 'Arial');
-    expect(marks[0].attrs).toHaveProperty('lineHeight', '0.19in');
+    expect(marks[0].attrs).toHaveProperty('lineHeight', '1.15');
   });
 
 });
