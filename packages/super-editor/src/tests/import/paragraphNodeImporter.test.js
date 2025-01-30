@@ -22,7 +22,7 @@ describe('paragraph tests to check spacing', () => {
 
     const { attrs } = node;
     const { spacing } = attrs;
-    expect(spacing.line).toBe(18);
+    expect(spacing.line).toBe(1.15);
     expect(spacing.lineSpaceAfter).toBe(16);
     expect(spacing.lineSpaceBefore).toBe(16);
   });
@@ -50,7 +50,7 @@ describe('paragraph tests to check spacing', () => {
     const { attrs } = node;
     const { spacing } = attrs;
 
-    expect(spacing.line).toBe(18);
+    expect(spacing.line).toBe(1.15);
     expect(spacing.lineSpaceAfter).toBe(0);
     expect(spacing.lineSpaceBefore).toBe(0);
   });
@@ -72,7 +72,7 @@ describe('paragraph tests to check spacing', () => {
 
     const { attrs } = node;
     const { spacing } = attrs;
-    expect(spacing.line).toBe(18);
+    expect(spacing.line).toBe(1.125);
     expect(spacing.lineSpaceAfter).toBe(16);
     expect(spacing.lineSpaceBefore).toBe(16);
 

@@ -28,7 +28,7 @@ export const Paragraph = Node.create({
           const style = `
             ${lineSpaceBefore ? `margin-top: ${lineSpaceBefore}px;` : ''}
             ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}
-            ${line ? `line-height: ${line}px;` : ''}
+            ${line ? `line-height: ${line};` : ''}
           `.trim();
 
           if (style) return { style };

@@ -1,6 +1,6 @@
 import { SuperConverter } from '../../SuperConverter.js';
 import { TrackFormatMarkName } from '@extensions/track-changes/constants.js';
-import { twipsToInches } from '../../helpers.js';
+import { twipsToInches, twipsToLines } from '../../helpers.js';
 
 /**
  *
@@ -155,5 +155,5 @@ function getLineHeightValue(attributes) {
   // if (!value) value = attributes['w:after'];
   // if (!value) value = attributes['w:before'];
   if (!value || value === '0') return null;
-  return `${twipsToInches(value)}in`;
+  return `${twipsToLines(value)}`;
 }

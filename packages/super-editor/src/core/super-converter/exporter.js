@@ -3,7 +3,7 @@ import { DOMParser as PMDOMParser } from 'prosemirror-model';
 import { EditorState } from 'prosemirror-state';
 import { SuperConverter } from './SuperConverter.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { inchesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsToTwips } from './helpers.js';
+import { inchesToTwips, linesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsToTwips } from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
@@ -153,7 +153,7 @@ function generateParagraphProperties(node) {
     // Zero values have to be considered in export to maintain accurate line height
     if (lineSpaceBefore >= 0) attributes['w:before'] = pixelsToTwips(lineSpaceBefore);
     if (lineSpaceAfter >= 0) attributes['w:after'] = pixelsToTwips(lineSpaceAfter);
-    if (line) attributes['w:line'] = pixelsToTwips(line);
+    if (line) attributes['w:line'] = linesToTwips(line);
     attributes['w:lineRule'] = lineRule || "auto";
 
     const spacingElement = {
@@ -1016,7 +1016,7 @@ function translateMark(mark) {
       break;
 
     case 'lineHeight':
-      markElement.attributes['w:line'] = inchesToTwips(attrs.lineHeight);
+      markElement.attributes['w:line'] = linesToTwips(attrs.lineHeight);
       break;
 
     case 'highlight':
