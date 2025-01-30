@@ -53,12 +53,13 @@ npm install @harbour-enterprises/superdoc
 import '@harbour-enterprises/superdoc/style.css';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
 
+const url = '...'; // The URL to your document
 const superdoc = new SuperDoc({
   selector: '#superdoc',
   documents: [{
     id: 'my-doc-id',
     type: 'docx',
-    data: docFile  // *JS file object or file URL
+    url  // *JS file object or file URL
   }]
 });
 ```
