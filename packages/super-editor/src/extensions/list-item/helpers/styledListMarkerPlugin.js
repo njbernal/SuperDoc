@@ -119,7 +119,7 @@ function getListItemStylingFromParagraphProps(state) {
       const style = `
             ${lineSpaceBefore ? `margin-top: ${lineSpaceBefore}px;` : ''}
             ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}
-            ${line ? `line-height: ${line}px;` : ''}
+            ${line ? `line-height: ${line};` : ''}
           `.trim();
       
       spacingAttrs = {
