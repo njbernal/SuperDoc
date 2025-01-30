@@ -139,6 +139,9 @@ export const getParagraphSpacing = (defaultStyleId, node, docx) => {
 
 const getDefaultParagraphStyle = (docx) => {
   const styles = docx['word/styles.xml'];
+  if (!styles) {
+    return {};
+  }
   const defaults = styles.elements[0].elements?.find((el) => el.name === 'w:docDefaults');
   const pDefault = defaults.elements.find((el) => el.name === 'w:pPrDefault');
   const pPrDefault = pDefault?.elements?.find((el) => el.name === 'w:pPr');

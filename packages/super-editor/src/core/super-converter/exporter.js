@@ -116,7 +116,7 @@ function translateParagraphNode(params) {
 
   // Insert paragraph properties at the beginning of the elements array
   const pPr = generateParagraphProperties(params.node);
-  elements.unshift(pPr);
+  if (pPr) elements.unshift(pPr);
 
   let attributes = {};
   if (params.node.attrs?.rsidRDefault) {
@@ -184,7 +184,9 @@ function generateParagraphProperties(node) {
     };
     pPrElements.push(textAlignElement);
   }
-
+  
+  if (!pPrElements.length) return null;
+  
   return {
     name: 'w:pPr',
     elements: pPrElements,
@@ -523,7 +525,7 @@ function translateList(params) {
       listNodes.push(outputNode);
     });
   });
-
+  
   return listNodes;
 }
 
