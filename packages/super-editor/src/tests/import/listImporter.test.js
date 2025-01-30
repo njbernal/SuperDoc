@@ -2214,7 +2214,7 @@ describe('custom nested list tests', () => {
             listLevel: [1],
             listNumberingType: 'decimal',
             spacing: {
-              line: 18,
+              line: 1.15,
               lineRule: 'auto',
               lineSpaceAfter: 0,
               lineSpaceBefore: 0,
