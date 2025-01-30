@@ -487,8 +487,8 @@ export const FieldAnnotation = Node.create({
           annotations.forEach((annotation) => {
             let { pos, node } = annotation;
             let newPos = tr.mapping.map(pos);
-            let currentNode = tr.doc.nodeAt(pos);
-            let nodeEqual = node.attrs.fieldId === currentNode.attrs.fieldId;
+            let currentNode = tr.doc.nodeAt(newPos);
+            let nodeEqual = node.attrs.fieldId === currentNode?.attrs?.fieldId;
 
             if (nodeEqual) {
               tr.setNodeMarkup(newPos, undefined, {
