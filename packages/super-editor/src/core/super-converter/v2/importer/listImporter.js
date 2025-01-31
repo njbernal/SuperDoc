@@ -182,12 +182,6 @@ function handleListNodes(
       };
       nodeAttributes['numId'] = numId;
 
-      if (docx) {
-        const defaultStyleId = item?.attributes['w:rsidRDefault'];
-        nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
-      }
-
-
       const newListItem = createListItem(schemaElements, nodeAttributes, []);
       parsedListItems.push(newListItem);
     }
