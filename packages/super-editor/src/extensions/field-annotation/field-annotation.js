@@ -534,20 +534,49 @@ export const FieldAnnotation = Node.create({
           return true;
         },
 
-        deleteFieldAnnotation:
-          (annotation) =>
-          ({ dispatch, state, tr }) => {
-            if (!annotation) {
-              return true;
-            }
-
-            if (dispatch) {
-              let { pos, node } = annotation;
-              tr.delete(pos, node.nodeSize);
-            }
-
+      deleteFieldAnnotationsByNode:
+        (annotations) =>
+        ({ dispatch, state, tr }) => {
+          if (!annotations.length) {
             return true;
-          },
+          }
+
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              let { pos, node } = annotation;
+              let newPosFrom = tr.mapping.map(pos); // map the position between transaction steps
+              let newPosTo = tr.mapping.map(pos + node.nodeSize);
+
+              let currentNode = tr.doc.nodeAt(newPosFrom);
+              if (node.eq(currentNode)) {
+                tr.delete(newPosFrom, newPosTo);
+              }
+            });
+          }
+
+          return true;
+        },
+
+      deleteFieldAnnotation:
+        (annotation) =>
+        ({ dispatch, state, tr }) => {
+          if (!annotation) {
+            return true;
+          }
+
+          if (dispatch) {
+            let { pos, node } = annotation;
+            let newPosFrom = tr.mapping.map(pos);
+            let newPosTo = tr.mapping.map(pos + node.nodeSize);
+
+            let currentNode = tr.doc.nodeAt(newPosFrom);
+            if (node.eq(currentNode)) {
+              tr.delete(newPosFrom, newPosTo);
+            }
+          }
+          
+          return true;
+        },
 
       /**
        * Delete a portion of annotations associated with a field.
