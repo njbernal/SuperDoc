@@ -14,6 +14,7 @@ import { initComments } from '@features/index.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
+import { getNecessaryMigrations } from '@core/migrations/index.js';
 import DocxZipper from '@core/DocxZipper.js';
 
 /**
@@ -488,6 +489,16 @@ export class Editor extends EventEmitter {
     return [xmlFiles, mediaFiles, zipper.mediaFiles, zipper.fonts];
   }
 
+  static getDocumentVersion(content) {
+    const version = SuperConverter.getStoredSuperdocVersion(content);
+    return version;
+  };
+
+  static updateDocumentVersion(content, version) {
+    const updatedContent = SuperConverter.updateDocumentVersion(content, version);
+    return updatedContent;
+  };
+
   /**
    * Creates PM schema.
    */
@@ -846,11 +857,13 @@ export class Editor extends EventEmitter {
     const documentXml = await this.converter.exportToDocx(json, this.schema, this.storage.image.media, isFinalDoc);
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
+    const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
     const media = this.converter.addedMedia;
 
     const updatedDocs = {
       'word/document.xml': String(documentXml),
       'word/_rels/document.xml.rels': String(rels),
+      'docProps/custom.xml': String(customXml),
     };
 
     const zipper = new DocxZipper();
@@ -890,4 +903,47 @@ export class Editor extends EventEmitter {
     this.#endCollaboration();
     this.removeAllListeners();
   }
+
+  static checkIfMigrationsNeeded(version) {
+    if (!version) version = 'initial';
+    const migrations = getNecessaryMigrations(version) || [];
+    console.debug('[checkVersionMigrations] Migrations needed:', version, migrations.length);
+    return migrations.length > 0;
+  }
+
+  /**
+   * Check for any necessary document migrations in collaboration mode
+   * 
+   * @returns {Y.Doc | undefined} Updated Y.Doc if any, otherwise undefined
+   */
+  processCollaborationMigrations() {
+    console.debug('[checkVersionMigrations] Current editor version', __APP_VERSION__);
+    if (!this.options.ydoc) return;
+
+    const metaMap = this.options.ydoc.getMap('meta');
+    let docVersion = metaMap.get('version');
+    if (!docVersion) docVersion = 'initial';
+    console.debug('[checkVersionMigrations] Document version', docVersion);
+    const migrations = getNecessaryMigrations(docVersion) || [];
+
+    const plugins = this.state.plugins;
+    const syncPlugin = plugins.find((p) => p.key.startsWith('y-sync'));
+    if (!syncPlugin) return this.options.ydoc;
+
+    let hasRunMigrations = false;
+    for (let migration of migrations) {
+      console.debug('🏃‍♂️ Running migration', migration.name);
+      const result = migration(this);
+      if (!result) throw new Error('Migration failed at ' + migration.name);
+      else hasRunMigrations = true;
+    };
+
+    // If no migrations were run, return undefined (no updated ydoc).
+    if (!hasRunMigrations) return;
+
+    // Return the updated ydoc
+    const pluginState = syncPlugin?.getState(this.state);
+    return pluginState.doc;
+  };
+
 }

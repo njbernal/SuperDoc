@@ -3,6 +3,7 @@ import xmljs from 'xml-js';
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
+import { DEFAULT_CUSTOM_XML } from './exporter-docx-defs.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -125,6 +126,51 @@ class SuperConverter {
     return JSON.parse(xmljs.xml2json(xml, null, 2));
   }
 
+  static getStoredSuperdocVersion(docx) {
+    try {
+      const customXml = docx.find((doc) => doc.name === 'docProps/custom.xml');
+      if (!customXml) return;
+
+      const converter = new SuperConverter();
+      const content = customXml.content;
+      const contentJson = converter.parseXmlToJson(content);
+      const properties = contentJson.elements.find((el) => el.name === 'Properties');
+      if (!properties.elements) return;
+
+      const superdocVersion = properties.elements.find((el) => el.name === 'property' && el.attributes.name === 'SuperdocVersion');
+      if (!superdocVersion) return;
+      
+      const version = superdocVersion.elements[0].elements[0].elements[0].text;
+      return version;
+    } catch (e) {
+      console.warn('Error getting Superdoc version', e);
+      return;
+    };
+  }
+
+  static updateDocumentVersion(docx = this.convertedXml, version = __APP_VERSION__) {
+    const customLocation = 'docProps/custom.xml';
+    if (!docx[customLocation]) {
+      docx[customLocation] = generateCustomXml(__APP_VERSION__);
+    }
+
+    const customXml = docx['docProps/custom.xml'];
+    if (!customXml) return;
+  
+    const properties = customXml.elements.find((el) => el.name === 'Properties');
+    if (!properties.elements) properties.elements = [];
+
+    const superdocVersion = properties.elements.find((el) => el.name === 'property' && el.attributes.name === 'SuperdocVersion');
+    if (!superdocVersion) {
+      const newCustomXml = generateSuperdocVersion();
+      properties.elements.push(newCustomXml);
+    } else {
+      superdocVersion.elements[0].elements[0].elements[0].text = version;
+    }
+
+    return docx;
+  }
+
   getDocumentDefaultStyles() {
     const styles = this.convertedXml['word/styles.xml'];
     if (!styles) return {};
@@ -234,6 +280,9 @@ class SuperConverter {
     // Update the rels table
     this.#exportProcessNewRelationships(params.relationships);
 
+    // Store the SuperDoc version
+    storeSuperdocVersion(this.convertedXml);
+
     return xml;
   }
 
@@ -262,6 +311,53 @@ class SuperConverter {
     this.media = this.convertedXml.media;
     this.addedMedia = processedData;
   }
+
 }
+
+function storeSuperdocVersion(docx) {
+  const customLocation = 'docProps/custom.xml';
+  console.debug('storeSuperdocVersion', docx);
+  if (!docx[customLocation]) {
+    docx[customLocation] = generateCustomXml();
+  };
+
+  const customXml = docx[customLocation];
+  const properties = customXml.elements.find((el) => el.name === 'Properties');
+  if (!properties.elements) properties.elements = [];
+  const elements = properties.elements;
+  elements.push(generateSuperdocVersion());
+  return docx;
+};
+
+function generateCustomXml() {
+  return DEFAULT_CUSTOM_XML;
+}
+
+function generateSuperdocVersion(version = __APP_VERSION__) {
+  return {
+    type: "element",
+    name: "property",
+    attributes: {
+      name: "SuperdocVersion",
+      formatId: "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}",
+      pid: "2"
+    },
+    elements: [
+      {
+        type: "element",
+        name: "vt:superdoc",
+        elements: [
+          {
+            name: "w:t",
+            elements: [{
+              type: "text",
+              text: version
+            }],
+          }
+        ]
+      }
+    ]
+  }
+};
 
 export { SuperConverter };
