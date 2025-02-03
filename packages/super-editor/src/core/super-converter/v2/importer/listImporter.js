@@ -174,20 +174,20 @@ function handleListNodes(
       nodeAttributes['textStyle'] = textStyle;
       nodeAttributes['order'] = start;
       nodeAttributes['lvlText'] = lvlText;
-      nodeAttributes['lvlJc'] = textStyle?.attrs.textAlign;
+      nodeAttributes['textAlign'] = textStyle?.attrs.textAlign;
       nodeAttributes['listLevel'] = thisItemPath;
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
         parentAttributes: attributes || null,
       };
       nodeAttributes['numId'] = numId;
-
+      
       if (docx) {
         const defaultStyleId = attributes['w:rsidRDefault'];
         nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
       }
 
-      const newListItem = createListItem(schemaElements, nodeAttributes, []);
+      const newListItem = createListItem(schemaElements, nodeAttributes, marks);
       parsedListItems.push(newListItem);
     }
 
