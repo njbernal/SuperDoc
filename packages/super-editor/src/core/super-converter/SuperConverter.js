@@ -213,6 +213,8 @@ class SuperConverter {
   getDocumentInternalId() {
     const settings = this.convertedXml['word/settings.xml'];
     if (!settings) return '';
+    if (!settings.elements[0]?.elements) return '';
+
     // New versions of Word will have w15:docId
     // It's possible to have w14:docId as well but Word(2013 and later) will convert it automatically when document opened
     const w15DocId = settings.elements[0].elements.find((el) => el.name === 'w15:docId');
