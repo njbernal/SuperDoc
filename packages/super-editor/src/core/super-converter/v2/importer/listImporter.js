@@ -178,9 +178,14 @@ function handleListNodes(
       nodeAttributes['listLevel'] = thisItemPath;
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
-        parentAttributes: item?.attributes || null,
+        parentAttributes: attributes || null,
       };
       nodeAttributes['numId'] = numId;
+
+      if (docx) {
+        const defaultStyleId = attributes['w:rsidRDefault'];
+        nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
+      }
 
       const newListItem = createListItem(schemaElements, nodeAttributes, []);
       parsedListItems.push(newListItem);
