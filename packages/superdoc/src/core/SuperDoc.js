@@ -101,7 +101,7 @@ export class SuperDoc extends EventEmitter {
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
     
-    this.#initTelemetry();
+    // this.#initTelemetry();
 
     this.#initVueApp();
     this.#initListeners();
