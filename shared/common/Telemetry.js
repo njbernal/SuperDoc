@@ -121,6 +121,11 @@ class Telemetry {
   async trackUsage(fileSource, documentId, name, properties = {}) {
     if (!this.enabled) return;
 
+    if (!fileSource) {
+      console.warn('Telemetry: missing file source');
+      return;
+    }
+
     const processedDoc = await this.processDocument(fileSource, {
       id: documentId,
       internalId: properties.internalId,
@@ -153,6 +158,11 @@ class Telemetry {
    */
   async trackParsing(fileSource, documentId, category, name, path, metadata) {
     if (!this.enabled) return;
+    
+    if (!fileSource) {
+      console.warn('Telemetry: missing file source');
+      return;
+    }
 
     const processedDoc = await this.processDocument(fileSource, {
       id: documentId,
