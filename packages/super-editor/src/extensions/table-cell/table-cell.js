@@ -28,7 +28,7 @@ export const TableCell = Node.create({
       width: {
         renderDOM: ({ width, widthType }) => {
           if (!width) return {};
-          let unit = 'in';
+          let unit = 'px';
           if (widthType === 'pct') unit = '%';
           const style = `width: ${width}${unit};`;
           return { style };

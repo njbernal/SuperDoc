@@ -816,7 +816,7 @@ function generateTableGrid(node) {
   gridColumnWidths?.forEach((width) => {
     elements.push({
       name: 'w:gridCol',
-      attributes: { 'w:w': inchesToTwips(width) },
+      attributes: { 'w:w': pixelsToTwips(width) },
     });
   });
 
