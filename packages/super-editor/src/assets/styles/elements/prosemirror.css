@@ -102,6 +102,10 @@ img.ProseMirror-separator {
   margin-bottom: 1.5px;
 }
 
+.ProseMirror td p {
+  word-break: break-all;
+}
+
 /* Track changes */
 .ProseMirror .track-insert-dec,
 .ProseMirror .track-delete-dec,
