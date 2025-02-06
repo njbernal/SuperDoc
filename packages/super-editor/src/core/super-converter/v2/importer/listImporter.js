@@ -155,7 +155,8 @@ function handleListNodes(
         parNode = {
           ...parNode,
           attrs: {
-            textAlign: textStyle?.attrs.textAlign
+            textAlign: textStyle?.attrs.textAlign || null,
+            rsidRDefault: attributes?.['w:rsidRDefault'] || null,
           },
           content: mergeTextNodes(parNode.content),
         };
@@ -177,20 +178,20 @@ function handleListNodes(
       nodeAttributes['textStyle'] = textStyle;
       nodeAttributes['order'] = start;
       nodeAttributes['lvlText'] = lvlText;
-      nodeAttributes['textAlign'] = textStyle?.attrs.textAlign;
+      nodeAttributes['lvlJc'] = textStyle?.attrs.textAlign;
       nodeAttributes['listLevel'] = thisItemPath;
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
-        parentAttributes: attributes || null,
+        parentAttributes: item?.attributes || null,
       };
       nodeAttributes['numId'] = numId;
       
       if (docx) {
-        const defaultStyleId = attributes['w:rsidRDefault'];
+        const defaultStyleId = item?.attributes['w:rsidRDefault'];
         nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
       }
 
-      const newListItem = createListItem(schemaElements, nodeAttributes, marks);
+      const newListItem = createListItem(schemaElements, nodeAttributes, []);
       parsedListItems.push(newListItem);
     }
 

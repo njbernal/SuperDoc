@@ -120,7 +120,7 @@ function translateParagraphNode(params) {
 
   let attributes = {};
   if (params.node.attrs?.rsidRDefault) {
-    attributes['rsidRDefault'] = params.node.attrs.rsidRDefault;
+    attributes['w:rsidRDefault'] = params.node.attrs.rsidRDefault;
   }
 
   return {
@@ -501,18 +501,28 @@ function translateList(params) {
   flatContent.forEach((listNode) => {
     const { content, level } = listNode;
     content.forEach((contentNode) => {
-      const outputNode = exportSchemaToJson({ ...params, node: contentNode });
-      const pPr = getListParagraphProperties(listNode, level, type);
+      // Get paragraph attributes which were attached to list item node
+      const paragraphNode = Object.assign({}, contentNode);
+      paragraphNode.attrs = {
+        ...paragraphNode.attrs,
+        ...listNode.attrs
+      };
+      
+      const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
+      const propsElementIndex = outputNode.elements.findIndex((e) => e.name === 'w:pPr');
+      
+      const listProps = getListParagraphProperties(listNode, level, type, propsElementIndex > -1);
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
+      
       if (!content.length) {
         // Some empty nodes could have spacing defined
-        const spacingProp = pPr?.elements.find((e) => e.name === 'w:spacing');
+        const spacingProp = outputNode.elements[propsElementIndex]?.elements.find((e) => e.name === 'w:spacing');
         const elements = spacingProp ? [{
           name: 'w:pPr',
           type: 'element',
           elements: [spacingProp],
         }] : [];
-        
+
         const spacer = { 
           name: 'w:p',
           type: 'element',
@@ -520,8 +530,13 @@ function translateList(params) {
         };
         return listNodes.push(spacer);
       }
-
-      outputNode.elements.unshift(pPr);
+      
+      if (propsElementIndex === -1) {
+        outputNode.elements.unshift(listProps);
+      } else {
+        outputNode.elements[propsElementIndex].elements.push(listProps);
+      }
+      
       listNodes.push(outputNode);
     });
   });
@@ -535,37 +550,40 @@ function translateList(params) {
  * @param {SchemaNode} node The list node
  * @param {number} level The list level
  * @param {string} type The list type
+ * @param {boolean} hasParentProps Does output node already have pPr
  * @returns {XmlReadyNode} The list paragraph properties node
  */
-function getListParagraphProperties(node, level, type) {
+function getListParagraphProperties(node, level, type, hasParentProps) {
   let listType = type === 'bulletList' ? 1 : 2;
 
   // numbering.xml reference
   if (node.attrs.numId) listType = node.attrs.numId;
-  const importAttributes = node.attrs.attributes?.parentAttributes?.paragraphProperties?.elements || [];
-
+  
+  const numPr = {
+    name: 'w:numPr',
+    type: 'element',
+    elements: [
+      {
+        name: 'w:ilvl',
+        type: 'element',
+        attributes: { 'w:val': level },
+      },
+      {
+        name: 'w:numId',
+        type: 'element',
+        attributes: { 'w:val': listType },
+      },
+    ],
+  };
+  
+  if (hasParentProps) {
+    return numPr;
+  }
+  
   return {
     name: 'w:pPr',
     type: 'element',
-    elements: [
-      ...importAttributes.filter(attrs => attrs.name !== 'w:numPr'),
-      {
-        name: 'w:numPr',
-        type: 'element',
-        elements: [
-          {
-            name: 'w:ilvl',
-            type: 'element',
-            attributes: { 'w:val': level },
-          },
-          {
-            name: 'w:numId',
-            type: 'element',
-            attributes: { 'w:val': listType },
-          },
-        ],
-      },
-    ],
+    elements: [numPr],
   };
 }
 

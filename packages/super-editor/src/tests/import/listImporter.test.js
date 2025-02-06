@@ -302,6 +302,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '007B64C8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
@@ -322,6 +326,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '007B64C8',
+                        textAlign: 'both'
+                      },
                       content: [
                         {
                           type: 'text',
@@ -630,6 +638,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '007B64C8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
@@ -650,6 +662,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '007B64C8',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1149,6 +1165,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1175,6 +1195,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '006B7646',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1381,6 +1405,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1401,6 +1429,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1604,6 +1636,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1624,6 +1660,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1713,6 +1753,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -2146,6 +2190,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '00B266A8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
