@@ -5,7 +5,7 @@ export const TextAlign = Extension.create({
 
   addOptions() {
     return {
-      types: ['heading', 'paragraph', 'listItem'],
+      types: ['heading', 'paragraph'],
       alignments: ['left', 'center', 'right', 'justify'],
     };
   },

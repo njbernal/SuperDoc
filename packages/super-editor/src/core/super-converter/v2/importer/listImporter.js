@@ -144,16 +144,19 @@ function handleListNodes(
       item.seen = true;
 
       const schemaElements = [];
-
+      
       let parNode = {
         type: 'paragraph',
-        content: nodeListHandler.handler({ ...params, nodes: elements })?.filter((n) => n),
+        content: nodeListHandler.handler({ ...params, nodes: [ attributes.paragraphProperties, ...elements ] })?.filter((n) => n),
       };
 
       // Normalize text nodes.
       if (parNode.content) {
         parNode = {
           ...parNode,
+          attrs: {
+            textAlign: textStyle?.attrs.textAlign
+          },
           content: mergeTextNodes(parNode.content),
         };
       }
