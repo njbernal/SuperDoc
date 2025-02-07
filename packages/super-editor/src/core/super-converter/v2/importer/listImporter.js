@@ -144,16 +144,20 @@ function handleListNodes(
       item.seen = true;
 
       const schemaElements = [];
-
+      
       let parNode = {
         type: 'paragraph',
-        content: nodeListHandler.handler({ ...params, nodes: elements })?.filter((n) => n),
+        content: nodeListHandler.handler({ ...params, nodes: [ attributes.paragraphProperties, ...elements ] })?.filter((n) => n),
       };
 
       // Normalize text nodes.
       if (parNode.content) {
         parNode = {
           ...parNode,
+          attrs: {
+            textAlign: textStyle?.attrs.textAlign || null,
+            rsidRDefault: attributes?.['w:rsidRDefault'] || null,
+          },
           content: mergeTextNodes(parNode.content),
         };
       }
@@ -178,12 +182,12 @@ function handleListNodes(
       nodeAttributes['listLevel'] = thisItemPath;
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
-        parentAttributes: attributes || null,
+        parentAttributes: item?.attributes || null,
       };
       nodeAttributes['numId'] = numId;
-
+      
       if (docx) {
-        const defaultStyleId = attributes['w:rsidRDefault'];
+        const defaultStyleId = item?.attributes['w:rsidRDefault'];
         nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
       }
 

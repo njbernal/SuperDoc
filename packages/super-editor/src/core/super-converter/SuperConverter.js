@@ -211,9 +211,7 @@ class SuperConverter {
     }
   }
   
-  getDocumentInternalId() {
-    console.debug('getDocumentInternalId', this.convertedXml);
-    
+  getDocumentInternalId() {    
     const settingsLocation = 'word/settings.xml'
     if (!this.convertedXml[settingsLocation]) {
       this.convertedXml[settingsLocation] = SETTINGS_CUSTOM_XML;
