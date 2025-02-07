@@ -44,14 +44,13 @@ const init = async () => {
     pagination: true,
     // isDev: true,
     user: {
-      name: 'Super Document Jr.',
+      name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
       email: 'user@harbourshare.com',
     },
     documents: [
       {
         data: currentFile.value,
         id: testId,
-        // type: DOCX,
         isNewFile: true,
       },
     ],
@@ -61,8 +60,11 @@ const init = async () => {
         // allowResolve: false,
       },
       'hrbr-fields': {},
+
+      // To test this dev env with collaboration you must run a local collaboration server here.
       // collaboration: {
       //   url: 'ws://localhost:3050/docs/superdoc-id',
+      //   token: 'token',
       // }
     },
     onEditorCreate,
@@ -152,7 +154,6 @@ onMounted(async () => {
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
   margin: 50px;
-  overflow: hidden;
 }
 .superdoc .layers:hover {
   border: 1px solid #0160cc86;

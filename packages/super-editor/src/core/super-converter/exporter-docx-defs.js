@@ -48,3 +48,14 @@ export const DEFAULT_CUSTOM_XML = {
     }
   ]
 };
+
+export const SETTINGS_CUSTOM_XML = {
+  elements: [{
+    type: 'element',
+    name: 'w:settings',
+    attributes: {
+      'xmlns:w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+    },
+    elements: []
+  }]
+}

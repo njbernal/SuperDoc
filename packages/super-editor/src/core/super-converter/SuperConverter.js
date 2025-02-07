@@ -1,9 +1,10 @@
 import xmljs from 'xml-js';
+import { v4 as uuidv4 } from 'uuid';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
-import { DEFAULT_CUSTOM_XML } from './exporter-docx-defs.js';
+import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -211,14 +212,44 @@ class SuperConverter {
   }
   
   getDocumentInternalId() {
-    const settings = this.convertedXml['word/settings.xml'];
-    if (!settings) return '';
-    if (!settings.elements[0]?.elements) return '';
+    console.debug('getDocumentInternalId', this.convertedXml);
+    
+    const settingsLocation = 'word/settings.xml'
+    if (!this.convertedXml[settingsLocation]) {
+      this.convertedXml[settingsLocation] = SETTINGS_CUSTOM_XML;
+    }
+
+    const settings = Object.assign({}, this.convertedXml[settingsLocation]);
+    if (!settings.elements[0]?.elements?.length) {
+      const idElement = this.createDocumentIdElement(settings);
+      
+      settings.elements[0].elements = [
+        idElement
+      ];
+      if (!settings.elements[0].attributes['xmlns:w15']) {
+        settings.elements[0].attributes['xmlns:w15'] = 'http://schemas.microsoft.com/office/word/2012/wordml';
+      }
+      this.convertedXml[settingsLocation] = settings;
+      return;
+    }
 
     // New versions of Word will have w15:docId
     // It's possible to have w14:docId as well but Word(2013 and later) will convert it automatically when document opened
     const w15DocId = settings.elements[0].elements.find((el) => el.name === 'w15:docId');
     this.documentInternalId = w15DocId?.attributes['w15:val'];
+  }
+
+  createDocumentIdElement() {
+    const docId = uuidv4().toUpperCase();
+    this.documentInternalId = docId;
+    
+    return {
+      type: 'element',
+      name: 'w15:docId',
+      attributes: {
+        'w15:val': `{${docId}}`
+      }
+    }
   }
 
   getThemeInfo(themeName) {
@@ -284,7 +315,7 @@ class SuperConverter {
 
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
-
+    
     return xml;
   }
 
