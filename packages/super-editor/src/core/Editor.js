@@ -13,7 +13,8 @@ import { isActive } from './helpers/isActive.js';
 import { initComments } from '@features/index.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
+import { initPaginationData } from '@extensions/pagination/pagination-helpers';
+import { PaginationPluginKey } from '@extensions/pagination/pagination-plugin-key.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import DocxZipper from '@core/DocxZipper.js';
 
