@@ -683,7 +683,7 @@ export class Editor extends EventEmitter {
     updateScale();
 
     // Update scale on window orientation change
-    screen.orientation.addEventListener('change', () => {
+    screen.orientation?.addEventListener('change', () => {
       setTimeout(() => {
         updateScale();
       }, 150);
