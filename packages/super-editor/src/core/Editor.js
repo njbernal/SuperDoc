@@ -105,7 +105,6 @@ export class Editor extends EventEmitter {
     };
 
     let initMode = modes[this.options.mode] ?? modes.default;
-    
     initMode();
   }
 

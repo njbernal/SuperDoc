@@ -28,9 +28,15 @@ test('can pass file data into playwright', async () => {
 
     // const json = window.editorCommand('getJSON');
     // return json;
+
     const plugins = await window.getPaginationState();
     return plugins;
-  });
 
-  console.debug('EDITOR', result);
+    /**
+     * TODO: The playwright editor is rendering pagination incorrectly (though at least it's rendering it).
+     * We need to find out why it is incorrect, and fix it.
+     * 
+     * Then we need to write tests for the expected location of the pagination.
+     */
+  });
 });
