@@ -811,12 +811,12 @@ function generateTableBorders(node) {
  */
 function generateTableGrid(node) {
   const { gridColumnWidths } = node.attrs;
-
+  
   const elements = [];
   gridColumnWidths?.forEach((width) => {
     elements.push({
       name: 'w:gridCol',
-      attributes: { 'w:w': pixelsToTwips(width) },
+      attributes: { 'w:w': inchesToTwips(width) },
     });
   });
 
@@ -892,11 +892,11 @@ function generateTableCellProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { width, cellWidthType = 'dxa', background = {}, colspan } = attrs;
+  const { width, cellWidthType = 'dxa', background = {}, colspan, widthUnit } = attrs;
 
   const cellWidthElement = {
     name: 'w:tcW',
-    attributes: { 'w:w': inchesToTwips(width), 'w:type': cellWidthType },
+    attributes: { 'w:w': widthUnit === 'px' ? pixelsToTwips(width) : inchesToTwips(width), 'w:type': cellWidthType },
   };
   elements.push(cellWidthElement);
 

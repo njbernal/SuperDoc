@@ -156,7 +156,10 @@ export function handleTableCellNode(
   const { fontSize, fonts = {} } = referencedStyles;
   const fontFamily = fonts['ascii'];
 
-  if (width) attributes['width'] = width;
+  if (width) {
+    attributes['width'] = width;
+    attributes['widthUnit'] = 'px';
+  }
   if (widthType) attributes['widthType'] = widthType;
   if (colspan) attributes['colspan'] = colspan;
   if (background) attributes['background'] = background;
