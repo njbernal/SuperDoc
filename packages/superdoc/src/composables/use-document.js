@@ -16,6 +16,7 @@ export default function useDocument(params, superdocConfig) {
   const container = ref(null);
   const pageContainers = ref([]);
   const isReady = ref(false);
+  const rulers = ref(superdocConfig.rulers);
 
   // Collaboration
   const ydoc = shallowRef(params.ydoc);
@@ -91,6 +92,7 @@ export default function useDocument(params, superdocConfig) {
     container,
     pageContainers,
     isReady,
+    rulers,
 
     // Modules
     rawFields,
