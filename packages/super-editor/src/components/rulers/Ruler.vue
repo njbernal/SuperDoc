@@ -25,6 +25,8 @@ const alignment = 'flex-end';
 
 const rulerHandleOriginalColor = ref('#CCCCCC');
 const rulerHandleActiveColor = ref('#2563EB66');
+const pageSize = ref(null);
+const pageMargins = ref(null);
 
 const isDragging = ref(false);
 const currentHandle = ref(null);
@@ -40,15 +42,18 @@ let offsetX = 0;
 const initRuler = () => {
   const rulerItems = [];
 
-  const { pageMargins, pageSize } = props.editor.getPageStyles();
-  rightHandle.x = pageSize.width * 96 - pageMargins.right * 96;
-  leftHandle.x = pageMargins.left * 96;
+  const { pageMargins: docMargins, pageSize: docSize } = props.editor.getPageStyles();
+  pageSize.value = docSize;
+  pageMargins.value = docMargins;
 
-  for (let i = 0; i < pageSize.width; i++) {
+  rightHandle.x = docSize.width * 96 - docMargins.right * 96;
+  leftHandle.x = docMargins.left * 96;
+
+  for (let i = 0; i < docSize.width; i++) {
     const marginNum = 0.0625 * 96 - 0.5;
     const margin = `${marginNum}px`;
 
-    const diff = pageSize.width - i;
+    const diff = docSize.width - i;
     rulerItems.push(...generateSection(1, 'main', '20%', margin, i));
     rulerItems.push(...generateSection(3, 'eighth', '10%', margin));
     rulerItems.push(...generateSection(1, 'half', '40%', margin));
@@ -169,8 +174,8 @@ const handleMouseMove = (event) => {
       currentHandle.value.x = rightHandle.x - MIN_WIDTH;
     }
   } else {
-    if (newLeft >= props.pageSize.width * 96) {
-      currentHandle.value.x = props.pageSize.width * 96;
+    if (newLeft >= pageSize.value.width * 96) {
+      currentHandle.value.x = pageSize.value.width * 96;
     } else if (newLeft <= leftHandle.x + MIN_WIDTH) {
       currentHandle.value.x = leftHandle.x + MIN_WIDTH;
     }
@@ -222,7 +227,7 @@ const setRulerHandleInactive = () => {
  */
 const getNewMarginValue = () => {
   if (currentHandle.value.side === 'left') return currentHandle.value.x / 96;
-  else return (props.pageSize.width * 96 - currentHandle.value.x) / 96;
+  else return (pageSize.value.width * 96 - currentHandle.value.x) / 96;
 };
 
 /**
