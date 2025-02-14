@@ -53,6 +53,10 @@ export class SuperToolbar extends EventEmitter {
       this.#runCommandWithArgumentOnly({ item, argument });
     },
 
+    toggleRuler: ({ item, argument }) => {
+      this.superdoc.toggleRuler();
+    },
+
     startImageUpload: async ({ item, argument }) => {
       let open = getFileOpener();
       let result = await open();
@@ -159,6 +163,7 @@ export class SuperToolbar extends EventEmitter {
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
+    this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
     
     this.config.icons = {

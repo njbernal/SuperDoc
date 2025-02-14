@@ -102,8 +102,10 @@ export class SuperDoc extends EventEmitter {
     await this.#initCollaboration(this.config.modules);
     
     this.#initTelemetry();
-
     this.#initVueApp();
+    this.superdocStore.init(this.config);
+    this.app.mount(this.config.selector);
+
     this.#initListeners();
 
     this.user = this.config.user; // The current user
@@ -116,9 +118,7 @@ export class SuperDoc extends EventEmitter {
     this.isDev = this.config.isDev || false;
 
     this.activeEditor = null;
-
-    this.app.mount(this.config.selector);
-
+  
     // Required editors
     this.readyEditors = 0;
 
@@ -150,7 +150,6 @@ export class SuperDoc extends EventEmitter {
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.version = this.config.version;
-    this.superdocStore.init(this.config);
   }
 
   #initListeners() {
@@ -275,6 +274,18 @@ export class SuperDoc extends EventEmitter {
     if (this.toolbar) this.toolbar.setActiveEditor(editor);
   }
 
+  /**
+   * Toggle the ruler visibility for SuperEditors
+   * 
+   * @returns {void}
+   */
+  toggleRuler() {
+    this.config.rulers = !this.config.rulers;
+    this.superdocStore.documents.forEach((doc) => {
+      doc.rulers = this.config.rulers;
+    });
+  }
+
   addToolbar() {
     const config = {
       element: this.toolbarElement || null,
@@ -283,6 +294,7 @@ export class SuperDoc extends EventEmitter {
       role: this.config.role,
       pagination: this.config.pagination,
       icons: this.config.toolbarIcons,
+      superdoc: this,
     };
 
     this.toolbar = new SuperToolbar(config);

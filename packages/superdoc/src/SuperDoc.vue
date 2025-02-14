@@ -293,7 +293,7 @@ const editorOptions = (doc) => {
     colors: proxy.$superdoc.colors,
     role: proxy.$superdoc.config.role,
     documentMode: proxy.$superdoc.config.documentMode,
-    rulers: proxy.$superdoc.config.rulers,
+    rulers: doc.rulers,
     onBeforeCreate: onEditorBeforeCreate,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
@@ -314,7 +314,7 @@ const editorOptions = (doc) => {
   };
 
   return options;
-};
+}
 
 const isCommentsEnabled = computed(() => 'comments' in modules);
 const showCommentsSidebar = computed(() => {
@@ -489,6 +489,10 @@ const handleDragEnd = (e) => {
   selectionLayer.value.style.pointerEvents = 'none';
 };
 
+const handleSuperEditorPageMarginsChange = (doc, params) => {
+  doc.documentMarginsLastChange = params.pageMargins;
+};
+
 const handlePdfClick = (e) => {
   if (!isCommentsEnabled.value) return;
   resetSelection();
@@ -563,6 +567,7 @@ const handlePdfClick = (e) => {
             :state="doc.state"
             :document-id="doc.id"
             :options="editorOptions(doc)"
+            @pageMarginsChange="handleSuperEditorPageMarginsChange(doc, $event)"
           />
 
           <!-- omitting field props -->

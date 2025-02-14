@@ -147,20 +147,19 @@ onMounted(async () => {
   min-width: 800px;
   width: 100%;
 }
-.superdoc .layers {
+.superdoc .super-editor {
   background-color: white;
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
-  margin: 50px;
 }
-.superdoc .layers:hover {
+.superdoc .super-editor:hover {
   border: 1px solid #0160cc86;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
-.superdoc .layers:focus-within {
+.superdoc .super-editor:focus-within {
   border: 1px solid #015fcc;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
 }
@@ -206,8 +205,6 @@ onMounted(async () => {
 .dev-app__view {
   display: flex;
   padding-top: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
   overflow-y: auto;
 }
 
@@ -219,8 +216,6 @@ onMounted(async () => {
 }
 
 .dev-app__content-container {
-  /* width: 100%;
-  max-width: 8.5in; */
   width: auto;
 }
 

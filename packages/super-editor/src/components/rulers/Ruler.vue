@@ -11,14 +11,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-  pageSize: {
+  editor: {
     type: Object,
-    default: () => ({ width: 8.5, height: 11 }),
-  },
-  pageMargins: {
-    type: Object,
-    default: () => ({ top: 1, right: 1, bottom: 1, left: 1 }),
-  },
+    required: true,
+  }
 });
 
 const HANDLE_WIDTH = 5;
@@ -26,6 +22,9 @@ const MIN_WIDTH = 200;
 const ruler = ref(null);
 const rulerDefinition = ref([]);
 const alignment = 'flex-end';
+
+const rulerHandleOriginalColor = ref('#CCCCCC');
+const rulerHandleActiveColor = ref('#2563EB66');
 
 const isDragging = ref(false);
 const currentHandle = ref(null);
@@ -40,20 +39,22 @@ let offsetX = 0;
  */
 const initRuler = () => {
   const rulerItems = [];
-  rightHandle.x = props.pageSize.width * 96 - props.pageMargins.right * 96;
-  leftHandle.x = props.pageMargins.left * 96;
 
-  for (let i = 0; i < props.pageSize.width; i++) {
+  const { pageMargins, pageSize } = props.editor.getPageStyles();
+  rightHandle.x = pageSize.width * 96 - pageMargins.right * 96;
+  leftHandle.x = pageMargins.left * 96;
+
+  for (let i = 0; i < pageSize.width; i++) {
     const marginNum = 0.0625 * 96 - 0.5;
     const margin = `${marginNum}px`;
 
-    const diff = props.pageSize.width - i;
-    rulerItems.push(...generateSection(1, 'main', '25%', margin, i));
-    rulerItems.push(...generateSection(3, 'eighth', '25%', margin));
-    rulerItems.push(...generateSection(1, 'half', '50%', margin));
+    const diff = pageSize.width - i;
+    rulerItems.push(...generateSection(1, 'main', '20%', margin, i));
+    rulerItems.push(...generateSection(3, 'eighth', '10%', margin));
+    rulerItems.push(...generateSection(1, 'half', '40%', margin));
 
     if (diff <= 0.5) break;
-    rulerItems.push(...generateSection(3, 'eighth', '25%', margin));
+    rulerItems.push(...generateSection(3, 'eighth', '10%', margin));
   }
   return rulerItems;
 };
@@ -94,7 +95,7 @@ const getStyle = computed(() => (unit) => {
     minWidth: '1px',
     maxWidth: '1px',
     height: unit.height,
-    backgroundColor: unit.color || '#333',
+    backgroundColor: unit.color || '#666',
     marginLeft: unit.numbering === 0 ? null : unit.margin,
     marginRight: unit.margin,
   };
@@ -110,7 +111,6 @@ const getHandlePosition = computed(() => (side) => {
   const handle = side === 'left' ? leftHandle : rightHandle;
   return {
     left: `${handle.x}px`,
-    backgroundColor: '#CCC',
   };
 });
 
@@ -125,7 +125,7 @@ const getVerticalIndicatorStyle = computed(() => {
   const editor = parentElement.querySelector('.super-editor');
   const editorBounds = editor.getBoundingClientRect();
   return {
-    left: `${currentHandle.value.x + 2}px`,
+    left: `${currentHandle.value.x}px`,
     minHeight : `${editorBounds.height}px`,
   };
 });
@@ -138,6 +138,8 @@ const getVerticalIndicatorStyle = computed(() => {
  */
 const handleMouseDown = (event) => {
   isDragging.value = true;
+
+  setRulerHandleActive();
 
   // Get the currently selected handle
   const itemId = event.currentTarget.id;
@@ -156,7 +158,7 @@ const handleMouseDown = (event) => {
  */
 const handleMouseMove = (event) => {
   if (!isDragging.value) return
-
+  
   const newLeft = event.clientX - offsetX;
   currentHandle.value.x = newLeft;
 
@@ -184,6 +186,8 @@ const handleMouseUp = () => {
   isDragging.value = false;
   showVerticalIndicator.value = false;
 
+  setRulerHandleInactive();
+
   if (currentHandle.value && currentHandle.value.x !== initialX.value) {
     const marginValue = getNewMarginValue();
     emit('margin-change', {
@@ -192,6 +196,14 @@ const handleMouseUp = () => {
     });
   }
 };
+
+const setRulerHandleActive = () => {
+  rulerHandleOriginalColor.value = rulerHandleActiveColor.value;
+}
+
+const setRulerHandleInactive = () => {
+  rulerHandleOriginalColor.value = '#CCC';
+}
 
 /**
  * Get the new margin value based on the current handle position
@@ -202,6 +214,14 @@ const getNewMarginValue = () => {
   if (currentHandle.value.side === 'left') return currentHandle.value.x / 96;
   else return (props.pageSize.width * 96 - currentHandle.value.x) / 96;
 };
+
+const getStyleVars = computed(() => {
+  return {
+    '--alignment': alignment,
+    '--ruler-handle-color': rulerHandleOriginalColor.value,
+    '--ruler-handle-active-color': rulerHandleActiveColor.value,
+  };
+});
 
 onMounted(() => {
   rulerDefinition.value = initRuler();
@@ -217,7 +237,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="ruler" ref="ruler" :style="{ '--alignment': alignment }">
+  <div class="ruler" ref="ruler" :style="getStyleVars">
 
     <!-- Margin handles -->
     <div
@@ -261,7 +281,7 @@ onUnmounted(() => {
   width: 56px;
   min-width: 5px;
   max-width: 5px;
-  background-color: #CCC;
+  background-color: var(--ruler-handle-color);
   height: 20px;
   cursor: grab;
   position: absolute;
@@ -270,7 +290,7 @@ onUnmounted(() => {
   transition: background-color 250ms ease;
 }
 .margin-handle:hover {
-  background-color: #999;
+  background-color: var(--ruler-handle-active-color);
 }
 .ruler {
   max-height: 25px;
@@ -281,9 +301,8 @@ onUnmounted(() => {
   padding: 0;
   align-items: var(--alignment);
   box-sizing: border-box;
-  position: absolute;
-  top: -27px;
-  color: #333;
+  position: relative;
+  color: #666;
 }
 .mouse-tracker {
   position: absolute;
@@ -297,7 +316,7 @@ onUnmounted(() => {
 .numbering {
   position: absolute;
   top: -16px;
-  left: -3px;
+  left: -2px;
   font-size: 10px;
   pointer-events: none;
   user-select: none;

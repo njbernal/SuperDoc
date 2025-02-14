@@ -8,7 +8,13 @@ import { observeDomChanges, adjustPaginationBreaks } from './pagination-helpers.
 import { onMarginClickCursorChange } from './cursor-helpers.js';
 import Ruler from './rulers/Ruler.vue';
 
-const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
+const emit = defineEmits([
+  'editor-ready',
+  'editor-click',
+  'editor-keydown',
+  'comments-loaded',
+  'selection-update',
+]);
 
 const props = defineProps({
   documentId: {
@@ -39,8 +45,7 @@ const editor = shallowRef(null);
 
 const editorWrapper = ref(null);
 const editorElem = ref(null);
-const pageSize = reactive({ width: 8.5, height: 11 });
-const pageMargins = reactive({ top: 1, right: 1, bottom: 1, left: 1 });
+
 let dataPollTimeout;
 
 const stopPolling = () => {
@@ -121,12 +126,6 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
     adjustPaginationBreaks(editorElem, editor);
   });
 
-  editor.value.on('create', ({ editor }) => {
-    const { pageSize: docPageSize = {}, pageMargins: docPageMargins = {} } = editor.converter.pageStyles ?? {};
-    Object.assign(pageSize, docPageSize);
-    Object.assign(pageMargins, docPageMargins);
-  });
-
   editor.value.on('collaborationReady', () => {
     setTimeout(() => {
       editorReady.value = true;
@@ -195,11 +194,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="super-editor-container">
-
+  
     <Ruler
-      v-if="options.rulers"
-      :page-size="pageSize"
-      :page-margins="pageMargins"
+      class="ruler"
+      v-if="options.rulers && !!editor"
+      :editor="editor"
       @margin-change="handleMarginChange"
     />
 
@@ -240,6 +239,12 @@ onBeforeUnmount(() => {
   min-width: 8in;
   min-height: 11in;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.ruler {
+  margin-bottom: 2px;
 }
 
 .super-editor {
