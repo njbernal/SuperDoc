@@ -197,10 +197,20 @@ const handleMouseUp = () => {
   }
 };
 
+/**
+ * Set the ruler handle color to active
+ * 
+ * @returns {void}
+ */
 const setRulerHandleActive = () => {
   rulerHandleOriginalColor.value = rulerHandleActiveColor.value;
 }
 
+/**
+ * Set the ruler handle color to inactive
+ * 
+ * @returns {void}
+ */
 const setRulerHandleInactive = () => {
   rulerHandleOriginalColor.value = '#CCC';
 }
@@ -215,6 +225,11 @@ const getNewMarginValue = () => {
   else return (props.pageSize.width * 96 - currentHandle.value.x) / 96;
 };
 
+/**
+ * Set ruler style variables
+ * 
+ * @returns {Object} - Style object
+ */
 const getStyleVars = computed(() => {
   return {
     '--alignment': alignment,
