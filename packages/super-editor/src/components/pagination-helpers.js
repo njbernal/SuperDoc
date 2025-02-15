@@ -18,30 +18,15 @@ export function adjustPaginationBreaks(editorElem, editor) {
 
   breakNodes.forEach((node) => {
     const nodeBounds = node.getBoundingClientRect();
-    if (nodeBounds.left === bounds.left) return;
     const left = ((nodeBounds.left - bounds.left) / zoom) * -1 + 1;
     const minLeft = Math.min(marginLeft * -96, left)
+
+    const inner = node.firstChild;
+    if (inner.children.length >= 2) {
+      const pm = inner.children[2];
+      pm.style.paddingLeft = pageMargins.left * 96 + 'px';
+      pm.style.paddingRight = pageMargins.right * 96 + 'px';
+    };
     node.style.transform = `translateX(${minLeft}px)`;
   });
-}
-
-/**
- * Pagination helper to ensure that breaks are always aligned to the editor container
- * @param {HTMLElement} editorElem The editor container element
- * @param {Object} editor The editor instance
- * @returns {MutationObserver} The observer instance
- */
-export const observeDomChanges = (editorElem, editor) => {
-  if (!editorElem.value || !editor) return;
-
-  const observer = new MutationObserver((mutationsList) => {
-    adjustPaginationBreaks(editorElem, editor);
-  });
-
-  observer.observe(editorElem.value, {
-    childList: true,
-    subtree: true,
-  });
-
-  return observer;
 };
