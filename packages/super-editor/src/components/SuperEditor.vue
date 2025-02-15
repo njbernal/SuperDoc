@@ -4,7 +4,7 @@ import { NSkeleton } from 'naive-ui';
 import { ref, onMounted, onBeforeUnmount, computed, shallowRef, reactive, nextTick } from 'vue';
 import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
-import { observeDomChanges, adjustPaginationBreaks } from './pagination-helpers.js';
+import { adjustPaginationBreaks } from './pagination-helpers.js';
 import { onMarginClickCursorChange } from './cursor-helpers.js';
 import Ruler from './rulers/Ruler.vue';
 
@@ -152,11 +152,7 @@ const handleSuperEditorClick = (event) => {
   }
 };
 
-let paginationObserver;
 onMounted(() => {
-  // Initialize pagination observer if pagination is enabled
-  if (props.options?.pagination) paginationObserver = observeDomChanges(editorWrapper, editor);
-
   initializeData();
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
@@ -185,7 +181,6 @@ const handleMarginChange = ({ side, value }) => {
 };
 
 onBeforeUnmount(() => {
-  paginationObserver?.disconnect();
   stopPolling();
   editor.value?.destroy();
   editor.value = null;
