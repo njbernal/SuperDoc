@@ -256,13 +256,6 @@ export class SuperDoc extends EventEmitter {
     this.emit('editorDestroy');
   }
 
-  // user: {
-  //   email: props.user.email,
-  //   name: props.user.name,
-  // },
-  // timestamp: new Date(),
-  // comment: value,
-
   broadcastComments(type, data) {
     this.log('[comments] Broadcasting:', type, data);
     this.emit('comments-update', type, data);
