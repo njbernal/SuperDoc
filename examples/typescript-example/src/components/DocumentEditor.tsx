@@ -1,6 +1,15 @@
-import { SuperDoc } from '@harbour-enterprises/superdoc';
+import { SuperDoc, SuperDocTypes, Editor } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
 import { useEffect, useRef } from 'react';
+
+
+interface Props {
+    documentId: string,
+    initialData: File | null,
+    documentType?: string,
+    readOnly?: boolean,
+    onEditorReady: (editor: { superdoc: SuperDoc }) => void;
+}
 
 const DocumentEditor = ({ 
   documentId, 
@@ -8,11 +17,10 @@ const DocumentEditor = ({
   initialData = null,
   readOnly = false,
   onEditorReady 
-}) => {
-  const editorRef = useRef(null);
-
+}: Props) => {
+  const editorRef = useRef<SuperDoc>(null);
   useEffect(() => {
-    const editor = new SuperDoc({
+    const config: SuperDocTypes.Config = {
       selector: '#superdoc',
       toolbar: 'superdoc-toolbar',
       documentMode: readOnly ? 'viewing' : 'editing',
@@ -21,19 +29,20 @@ const DocumentEditor = ({
         type: documentType,
         data: initialData
       }],
-      onReady: () => {
+      onReady: (editor: { superdoc: SuperDoc }) => {
         if (onEditorReady) {
           onEditorReady(editor);
         }
       },
-      onEditorCreate: () => {
-        console.log('Editor created');
+      onEditorCreate: (editor: Editor) => {
+        console.log('Editor created', editor);
       },
       onEditorDestroy: () => {
         console.log('Editor destroyed');
-      }
-    });
-
+      },
+    };
+  
+    const editor = new SuperDoc(config);
     editorRef.current = editor;
 
     // Cleanup on unmount
@@ -48,7 +57,7 @@ const DocumentEditor = ({
     <div className="document-editor">
       <div id="superdoc-toolbar" className="toolbar" />
       <div id="superdoc" className="editor" />
-      <style jsx>{`
+      <style>{`
         .document-editor {
           display: flex;
           flex-direction: column;

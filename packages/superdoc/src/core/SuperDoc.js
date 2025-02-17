@@ -1,3 +1,8 @@
+/**
+ * @typedef {import("./types.js").Config} Config
+ * @typedef {import("./types.js").User} User
+ * @typedef {import("./types.js").Document} Document
+ */
 // TODO: side-effect with styles
 import '../style.css';
 import '@harbour-enterprises/super-editor/style.css';
@@ -14,41 +19,32 @@ import { shuffleArray } from '@harbour-enterprises/common/collaboration/awarenes
 import { Telemetry } from '@harbour-enterprises/common/Telemetry.js';
 
 /**
- * @typedef {Object} SuperdocUser The current user of this superdoc
- * @property {string} name The user's name
- * @property {string} email The user's email
- * @property {string | null} image The user's photo
- */
-
-/* **
  * SuperDoc class
  * Expects a config object
+ * @class
  */
 export class SuperDoc extends EventEmitter {
+  /** @type {Array<string>} */
   static allowedTypes = [DOCX, PDF, HTML];
 
-  config;
-
+  /** @type {number} */
   version;
 
-  documentMode;
-
-  version;
-
+  /** @type {Config} */
   config = {
     superdocId: null,
-    selector: '#superdoc', // The selector to mount the superdoc into
+    selector: '#superdoc',
     documentMode: 'editing',
-    role: 'editor', // The role of the user in this superdoc: editor, viewer, suggester
-    documents: [], // The documents to load
+    role: 'editor',
+    documents: [],
 
-    colors: [], // Optional: Colors to use for user awareness
-    user: { name: null, email: null }, // The current user of this superdoc
-    users: [], // Optional: All users of this superdoc (can be used for @-mentions)
+    colors: [],
+    user: { name: null, email: null },
+    users: [],
 
-    modules: {}, // Optional: Modules to load
+    modules: {},
 
-    pagination: false, // Optional: Whether to show pagination in SuperEditors
+    pagination: false,
 
     // toolbar config
     toolbar: null, // Optional DOM element to render the toolbar in
@@ -79,6 +75,9 @@ export class SuperDoc extends EventEmitter {
     handleImageUpload: null,
   };
 
+  /**
+   * @param {Config} config
+   */
   constructor(config) {
     super();
     this.#init(config);
@@ -100,7 +99,7 @@ export class SuperDoc extends EventEmitter {
 
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
-    
+
     this.#initTelemetry();
 
     this.#initVueApp();
@@ -257,6 +256,13 @@ export class SuperDoc extends EventEmitter {
     this.emit('editorDestroy');
   }
 
+  // user: {
+  //   email: props.user.email,
+  //   name: props.user.name,
+  // },
+  // timestamp: new Date(),
+  // comment: value,
+
   broadcastComments(type, data) {
     this.log('[comments] Broadcasting:', type, data);
     this.emit('comments-update', type, data);
@@ -376,7 +382,7 @@ export class SuperDoc extends EventEmitter {
   /**
    * Lock the current superdoc
    * @param {Boolean} isLocked
-   * @param {SuperdocUser} lockedBy The user who locked the superdoc
+   * @param {User} lockedBy The user who locked the superdoc
    */
   lockSuperdoc(isLocked = false, lockedBy) {
     this.isLocked = isLocked;
@@ -445,7 +451,7 @@ export class SuperDoc extends EventEmitter {
     });
 
     this.superdocStore.reset();
-    
+
     // Clean up telemetry when editor is destroyed
     this.telemetry?.destroy();
 
