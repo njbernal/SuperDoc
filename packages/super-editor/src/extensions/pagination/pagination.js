@@ -440,7 +440,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId) {
  * @returns {HTMLElement} The page break element
  */
 function createPageBreak({ editor, header, footer, footerBottom = null, isFirstHeader, isLastFooter }) {
-  const { pageSize } = editor.converter.pageStyles;
+  const { pageSize, pageMargins } = editor.converter.pageStyles;
 
   let sectionHeight = 0;
   const paginationDiv = document.createElement('div');
@@ -479,6 +479,7 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
   paginationDiv.style.maxHeight = sectionHeight + 'px';
   innerDiv.style.height = sectionHeight + 'px';
   paginationDiv.style.width = 100 + 'px';
+  paginationDiv.style.marginLeft = pageMargins.left * -96 + 'px';
 
   if (isDebugging) {
     innerDiv.style.backgroundColor = '#0000ff33';
