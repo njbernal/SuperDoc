@@ -656,8 +656,9 @@ export class Editor extends EventEmitter {
     const initialWidth = element.offsetWidth;
     
     const updateScale = () => {
+      const minPageSideMargin = 10;
       const elementWidth = initialWidth;
-      const availableWidth = document.documentElement.clientWidth;
+      const availableWidth = document.documentElement.clientWidth - minPageSideMargin;
       
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
@@ -686,6 +687,11 @@ export class Editor extends EventEmitter {
 
     // Update scale on window orientation change
     screen.orientation.addEventListener('change', () => {
+      setTimeout(() => {
+        updateScale();
+      }, 150);
+    });
+    window.addEventListener('resize', () => {
       setTimeout(() => {
         updateScale();
       }, 150);
