@@ -91,7 +91,7 @@ export class Editor extends EventEmitter {
 
   constructor(options) {
     super();
-
+    
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
     this.#checkHeadless(options);
     this.setOptions(options);
@@ -313,7 +313,7 @@ export class Editor extends EventEmitter {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
       }, 150);
     }
-
+    
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
@@ -546,7 +546,7 @@ export class Editor extends EventEmitter {
    */
   #createView() {
     let doc = this.#generatePmData();
-
+    
     // Only initialize the doc if we are not using Yjs/collaboration
     const state = { schema: this.schema };
     if (!this.options.ydoc) state.doc = doc;
@@ -982,4 +982,24 @@ export class Editor extends EventEmitter {
     return pluginState.doc;
   };
 
+  async replaceFile(newFile) {
+    const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(newFile);
+    this.setOptions({
+      fileSource: newFile,
+      content: docx,
+      media,
+      mediaFiles,
+      fonts,
+      isNewFile: true
+    });
+
+    this.#createConverter();
+    this.#initMedia();
+    this.initDefaultStyles();
+    
+    this.initializeCollaborationData();
+    
+    if (!this.options.ydoc) this.#initPagination();
+    
+  }
 }
