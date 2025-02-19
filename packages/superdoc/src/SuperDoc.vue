@@ -16,13 +16,13 @@ import { storeToRefs } from 'pinia';
 
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
-import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
-import FloatingComments from '@/components/CommentsLayer/FloatingComments.vue';
-import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
-import useSelection from '@/helpers/use-selection';
+import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
+import FloatingComments from '@superdoc/components/CommentsLayer/FloatingComments.vue';
+import HrbrFieldsLayer from '@superdoc/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
+import useSelection from '@superdoc/helpers/use-selection';
 
-import { useSuperdocStore } from '@/stores/superdoc-store';
-import { useCommentsStore } from '@/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperEditor } from '@harbour-enterprises/super-editor';

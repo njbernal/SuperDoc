@@ -1,7 +1,7 @@
 import { ref, shallowRef, toRaw } from 'vue';
 import { useField } from './use-field';
 import { documentTypes } from '@harbour-enterprises/common';
-import useConversation from '@/components/CommentsLayer/use-conversation';
+import useConversation from '@superdoc/components/CommentsLayer/use-conversation';
 
 export default function useDocument(params, superdocConfig) {
   const id = params.id;

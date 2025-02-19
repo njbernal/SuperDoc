@@ -1,9 +1,7 @@
 import { SuperDoc } from './core/index.js';
-import { SuperConverter, Editor, getRichTextExtensions } from '@harbour-enterprises/super-editor';
-import { createZip } from '@harbour-enterprises/super-editor/zipper';
+import { SuperConverter, Editor, getRichTextExtensions, createZip } from '@harbour-enterprises/super-editor';
 
 import {
-  SuperInput,
   helpers as superEditorHelpers,
   fieldAnnotationHelpers,
   trackChangesHelpers,
@@ -23,9 +21,6 @@ export {
   DOCX,
   PDF,
   HTML,
-
-  // Components
-  SuperInput,
 
   // Helpers
   superEditorHelpers,

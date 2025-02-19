@@ -2,14 +2,14 @@
 import { computed, toRefs, ref, getCurrentInstance, onMounted } from 'vue';
 import { NDropdown, NTooltip, NSelect } from 'naive-ui';
 import { storeToRefs } from 'pinia';
-import { useCommentsStore } from '@/stores/comments-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { SuperInput } from '@harbour-enterprises/super-editor';
-import useSelection from '@/helpers/use-selection';
-import useComment from '@/components/CommentsLayer/use-comment';
-import Avatar from '@/components/general/Avatar.vue';
+import useSelection from '@superdoc/helpers/use-selection';
+import useComment from '@superdoc/components/CommentsLayer/use-comment';
+import Avatar from '@superdoc/components/general/Avatar.vue';
 import InternalDropdown from './InternalDropdown.vue';
-import { superdocIcons } from '@/icons.js';
+import { superdocIcons } from '@superdoc/icons.js';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();

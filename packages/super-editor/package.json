@@ -1,6 +1,6 @@
 {
   "name": "@harbour-enterprises/super-editor",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1",
   "license": "AGPL-3.0",
   "type": "module",
   "files": [
@@ -10,8 +10,8 @@
     ".": {
       "import": "./dist/super-editor.es.js"
     },
-    "./super-converter": {
-      "import": "./dist/super-converter.es.js"
+    "./converter": {
+      "import": "./dist/converter.es.js"
     },
     "./docx-zipper": {
       "import": "./dist/docx-zipper.es.js"
@@ -22,11 +22,11 @@
     "./super-input": {
       "import": "./dist/super-input.es.js"
     },
-    "./super-editor": {
+    "./editor": {
       "import": "./dist/super-editor.es.js"
     },
-    "./zipper": {
-      "import": "./dist/zipper.es.js"
+    "./file-zipper": {
+      "import": "./dist/file-zipper.es.js"
     },
     "./style.css": "./dist/style.css"
   },

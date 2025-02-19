@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, reactive, computed, unref } from 'vue';
 import { comments_module_events } from '@harbour-enterprises/common';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import useConversation from '../components/CommentsLayer/use-conversation';
 
 export const useCommentsStore = defineStore('comments', () => {
