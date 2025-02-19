@@ -1,4 +1,5 @@
-import { SuperDoc, SuperDocTypes, Editor } from '@harbour-enterprises/superdoc';
+import { SuperDoc, Config } from '@harbour-enterprises/superdoc';
+
 import '@harbour-enterprises/superdoc/style.css';
 import { useEffect, useRef } from 'react';
 
@@ -11,7 +12,7 @@ interface Props {
     onEditorReady: (editor: { superdoc: SuperDoc }) => void;
 }
 
-const DocumentEditor = ({ 
+const DocumentEditor = ({
   documentId, 
   documentType = 'docx', 
   initialData = null,
@@ -20,7 +21,7 @@ const DocumentEditor = ({
 }: Props) => {
   const editorRef = useRef<SuperDoc>(null);
   useEffect(() => {
-    const config: SuperDocTypes.Config = {
+    const config: Config = {
       selector: '#superdoc',
       toolbar: 'superdoc-toolbar',
       documentMode: readOnly ? 'viewing' : 'editing',
