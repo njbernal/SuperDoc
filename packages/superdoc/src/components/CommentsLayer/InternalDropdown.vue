@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, h } from 'vue';
 import { NDropdown, NTooltip, NSelect } from 'naive-ui';
-import { superdocIcons } from '@/icons.js';
+import { superdocIcons } from '@superdoc/icons.js';
 
 const emit = defineEmits(['select']);
 const props = defineProps({

@@ -1,8 +1,8 @@
 <script setup>
 import { getCurrentInstance, computed, ref, nextTick, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useCommentsStore } from '@/stores/comments-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import useConversation from './use-conversation';
 
 const superdocStore = useSuperdocStore();

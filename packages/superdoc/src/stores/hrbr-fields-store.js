@@ -1,11 +1,11 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, markRaw } from 'vue';
 import { useSuperdocStore } from './superdoc-store';
-import TextField from '@/components/HrbrFieldsLayer/TextField.vue';
-import ParagraphField from '@/components/HrbrFieldsLayer/ParagraphField.vue';
-import ImageField from '@/components/HrbrFieldsLayer/ImageField.vue';
-import CheckboxField from '@/components/HrbrFieldsLayer/CheckboxField.vue';
-import SelectField from '@/components/HrbrFieldsLayer/SelectField.vue';
+import TextField from '@superdoc/components/HrbrFieldsLayer/TextField.vue';
+import ParagraphField from '@superdoc/components/HrbrFieldsLayer/ParagraphField.vue';
+import ImageField from '@superdoc/components/HrbrFieldsLayer/ImageField.vue';
+import CheckboxField from '@superdoc/components/HrbrFieldsLayer/CheckboxField.vue';
+import SelectField from '@superdoc/components/HrbrFieldsLayer/SelectField.vue';
 
 export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
   const superdocStore = useSuperdocStore();
