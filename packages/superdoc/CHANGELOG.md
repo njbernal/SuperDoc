@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.5.1...v0.5.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* export types ([5fc3526](https://github.com/Harbour-Enterprises/SuperDoc/commit/5fc3526f1510b330d48d0c55b0b1192db17f36f1))
+* package lock json ([cdcc3c8](https://github.com/Harbour-Enterprises/SuperDoc/commit/cdcc3c8920b8745b183faf62a90eb91112f708b5))
+* removed unused export ([6ff128c](https://github.com/Harbour-Enterprises/SuperDoc/commit/6ff128ce21b463a989bddc0d85c1122c45d7bc55))
+
+
+### Features
+
+* added initial TS support ([bcfae25](https://github.com/Harbour-Enterprises/SuperDoc/commit/bcfae25a83b565035b82ce704433a4f984fae39e))
+* added initial TS support for super-editor ([e9b546e](https://github.com/Harbour-Enterprises/SuperDoc/commit/e9b546eda756e6e244a31ef3de6c273afa0f3e5c))
+
 ## [0.5.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.40...v0.5.1) (2025-02-19)
 
 ## [0.4.40](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.4.39...v0.4.40) (2025-02-19)
