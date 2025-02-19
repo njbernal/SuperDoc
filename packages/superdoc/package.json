@@ -19,7 +19,8 @@
       "import": "./dist/docx-zipper.es.js"
     },
     "./super-editor": {
-      "import": "./dist/super-editor.es.js"
+      "import": "./dist/super-editor.es.js",
+      "types": "./dist/super-editor/src/index.d.ts"
     },
     "./common": {
       "import": "./dist/common.es.js"
