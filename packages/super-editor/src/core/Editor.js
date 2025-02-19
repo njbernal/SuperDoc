@@ -80,6 +80,7 @@ export class Editor extends EventEmitter {
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
+    onPaginationUpdate: () => null,
     onException: () => null,
     // async (file) => url;
     handleImageUpload: null,
@@ -90,7 +91,7 @@ export class Editor extends EventEmitter {
 
   constructor(options) {
     super();
-
+    
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
     this.#checkHeadless(options);
     this.setOptions(options);
@@ -140,6 +141,7 @@ export class Editor extends EventEmitter {
     this.on('commentsUpdate', this.options.onCommentsUpdate);
     this.on('locked', this.options.onDocumentLocked);
     this.on('collaborationReady', this.#onCollaborationReady);
+    this.on('paginationUpdate', this.options.onPaginationUpdate);
 
     // this.#loadComments();
     this.initializeCollaborationData();
@@ -311,7 +313,7 @@ export class Editor extends EventEmitter {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
       }, 150);
     }
-
+    
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
@@ -544,7 +546,7 @@ export class Editor extends EventEmitter {
    */
   #createView() {
     let doc = this.#generatePmData();
-
+    
     // Only initialize the doc if we are not using Yjs/collaboration
     const state = { schema: this.schema };
     if (!this.options.ydoc) state.doc = doc;
@@ -654,8 +656,9 @@ export class Editor extends EventEmitter {
     const initialWidth = element.offsetWidth;
     
     const updateScale = () => {
+      const minPageSideMargin = 10;
       const elementWidth = initialWidth;
-      const availableWidth = document.documentElement.clientWidth;
+      const availableWidth = document.documentElement.clientWidth - minPageSideMargin;
       
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
@@ -684,6 +687,11 @@ export class Editor extends EventEmitter {
 
     // Update scale on window orientation change
     screen.orientation.addEventListener('change', () => {
+      setTimeout(() => {
+        updateScale();
+      }, 150);
+    });
+    window.addEventListener('resize', () => {
       setTimeout(() => {
         updateScale();
       }, 150);
@@ -852,6 +860,30 @@ export class Editor extends EventEmitter {
   }
 
   /**
+   * Update page styles
+   * 
+   * @param {Object} param0 
+   * @param {Object} param0.pageMargins The new page margins
+   * @returns {void}
+   */
+  updatePageStyle({ pageMargins }) {
+    if (!this.converter) return;
+
+    let hasMadeUpdate = false;
+    if (pageMargins) {
+      this.converter.pageStyles.pageMargins = pageMargins;
+      this.initDefaultStyles();
+      hasMadeUpdate = true;
+    };
+
+    if (hasMadeUpdate) {
+      const newTr = this.view.state.tr;
+      newTr.setMeta('forceUpdatePagination', true);
+      this.view.dispatch(newTr);
+    };
+  }
+
+  /**
    * Export the editor document to DOCX.
    */
   async exportDocx({ isFinalDoc = false } = {}) {
@@ -950,4 +982,24 @@ export class Editor extends EventEmitter {
     return pluginState.doc;
   };
 
+  async replaceFile(newFile) {
+    const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(newFile);
+    this.setOptions({
+      fileSource: newFile,
+      content: docx,
+      media,
+      mediaFiles,
+      fonts,
+      isNewFile: true
+    });
+
+    this.#createConverter();
+    this.#initMedia();
+    this.initDefaultStyles();
+    
+    this.initializeCollaborationData();
+    
+    if (!this.options.ydoc) this.#initPagination();
+    
+  }
 }

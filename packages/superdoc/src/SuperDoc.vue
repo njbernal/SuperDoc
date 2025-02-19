@@ -16,13 +16,13 @@ import { storeToRefs } from 'pinia';
 
 import PdfViewer from './components/PdfViewer/PdfViewer.vue';
 import CommentsLayer from './components/CommentsLayer/CommentsLayer.vue';
-import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
-import FloatingComments from '@/components/CommentsLayer/FloatingComments.vue';
-import HrbrFieldsLayer from '@/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
-import useSelection from '@/helpers/use-selection';
+import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
+import FloatingComments from '@superdoc/components/CommentsLayer/FloatingComments.vue';
+import HrbrFieldsLayer from '@superdoc/components/HrbrFieldsLayer/HrbrFieldsLayer.vue';
+import useSelection from '@superdoc/helpers/use-selection';
 
-import { useSuperdocStore } from '@/stores/superdoc-store';
-import { useCommentsStore } from '@/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperEditor } from '@harbour-enterprises/super-editor';
@@ -293,6 +293,7 @@ const editorOptions = (doc) => {
     colors: proxy.$superdoc.colors,
     role: proxy.$superdoc.config.role,
     documentMode: proxy.$superdoc.config.documentMode,
+    rulers: doc.rulers,
     onBeforeCreate: onEditorBeforeCreate,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
@@ -313,7 +314,7 @@ const editorOptions = (doc) => {
   };
 
   return options;
-};
+}
 
 const isCommentsEnabled = computed(() => 'comments' in modules);
 const showCommentsSidebar = computed(() => {
@@ -488,6 +489,10 @@ const handleDragEnd = (e) => {
   selectionLayer.value.style.pointerEvents = 'none';
 };
 
+const handleSuperEditorPageMarginsChange = (doc, params) => {
+  doc.documentMarginsLastChange = params.pageMargins;
+};
+
 const handlePdfClick = (e) => {
   if (!isCommentsEnabled.value) return;
   resetSelection();
@@ -562,6 +567,7 @@ const handlePdfClick = (e) => {
             :state="doc.state"
             :document-id="doc.id"
             :options="editorOptions(doc)"
+            @pageMarginsChange="handleSuperEditorPageMarginsChange(doc, $event)"
           />
 
           <!-- omitting field props -->
@@ -690,7 +696,8 @@ const handlePdfClick = (e) => {
   pointer-events: auto;
 } */
 
-@media (max-width: 768px) {
+/* 834px is iPad screen size in portrait orientation */
+@media (max-width: 834px) {
   .superdoc .superdoc__layers {
     margin: 0;
     border: 0 !important;

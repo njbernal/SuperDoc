@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue';
 import { useCommentsStore } from './comments-store';
 import { getFileObject } from '@harbour-enterprises/common';
 import { DOCX, PDF } from '@harbour-enterprises/common';
-import useDocument from '@/composables/use-document';
+import useDocument from '@superdoc/composables/use-document';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
   const currentConfig = ref(null);

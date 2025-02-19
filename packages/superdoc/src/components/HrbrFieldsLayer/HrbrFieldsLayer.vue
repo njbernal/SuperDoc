@@ -1,8 +1,8 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { useHrbrFieldsStore } from '@/stores/hrbr-fields-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useHrbrFieldsStore } from '@superdoc/stores/hrbr-fields-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 
 const hrbrFieldsStore = useHrbrFieldsStore();
 const { getAnnotations } = storeToRefs(hrbrFieldsStore);

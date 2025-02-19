@@ -709,6 +709,15 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     ['fontFamily', 72],
     ['default', 32],
   ]);
+  
+  const ruler = useToolbarItem({
+    type: 'button',
+    name: 'ruler',
+    command: 'toggleRuler',
+    icon: toolbarIcons.ruler,
+    active: false,
+    tooltip: 'Show or hide ruler',
+  });
 
   // Responsive toolbar calculations
   const itemsToHide = ['zoom', 'fontFamily', 'fontSize', 'redo'];
@@ -750,6 +759,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     pageBreakTool,
     copyFormat,
     clearFormatting,
+    ruler,
     overflow,
     documentMode,
     // search,

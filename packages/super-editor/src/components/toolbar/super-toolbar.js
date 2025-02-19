@@ -28,7 +28,17 @@ export class SuperToolbar extends EventEmitter {
       this.emit('superdoc-command', { item, argument });
       const layers = document.querySelector('.layers');
       if (!layers) return;
-      layers.style.zoom = argument;
+
+      const isMobileDevice = typeof screen.orientation !== 'undefined';
+      // 768px breakpoint doesn't consider iPad in portrait orientation
+      const isSmallScreen = window.matchMedia('(max-width: 834px)').matches;
+      
+      if (isMobileDevice && isSmallScreen) {
+        layers.style.transformOrigin = 'top left';
+        layers.style.transform = `scale(${parseInt(argument) / 100})`;
+      } else {
+        layers.style.zoom = argument;
+      }
     },
 
     setDocumentMode: ({ item, argument }) => {
@@ -51,6 +61,10 @@ export class SuperToolbar extends EventEmitter {
 
     setColor: ({ item, argument }) => {
       this.#runCommandWithArgumentOnly({ item, argument });
+    },
+
+    toggleRuler: ({ item, argument }) => {
+      this.superdoc.toggleRuler();
     },
 
     startImageUpload: async ({ item, argument }) => {
@@ -159,6 +173,7 @@ export class SuperToolbar extends EventEmitter {
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
+    this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
     
     this.config.icons = {

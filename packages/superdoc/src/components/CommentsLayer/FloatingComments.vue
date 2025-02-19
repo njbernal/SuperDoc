@@ -1,10 +1,10 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, computed, watch, nextTick } from 'vue';
-import { useCommentsStore } from '@/stores/comments-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import useFloatingConversation from './use-floating-conversation';
-import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
+import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();

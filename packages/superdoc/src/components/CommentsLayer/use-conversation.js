@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
-import useSelection from '@/helpers/use-selection';
-import useComment from '@/components/CommentsLayer/use-comment';
+import useSelection from '@superdoc/helpers/use-selection';
+import useComment from '@superdoc/components/CommentsLayer/use-comment';
 
 export default function useConversation(params) {
   const conversationId = params.conversationId || uuidv4();

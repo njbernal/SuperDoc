@@ -2,7 +2,7 @@
 import '@harbour-enterprises/common/styles/common-styles.css';
 import { nextTick, onMounted, provide, ref, shallowRef } from 'vue';
 
-import { SuperDoc } from '@core/index.js';
+import { SuperDoc } from '@superdoc/core/index.js';
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
@@ -42,6 +42,7 @@ const init = async () => {
     documentMode: 'editing',
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
+    rulers: true,
     // isDev: true,
     user: {
       name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
@@ -143,25 +144,29 @@ onMounted(async () => {
 
 <style>
 .sd-toolbar {
-  min-width: 800px;
   width: 100%;
 }
-.superdoc .layers {
+.superdoc .super-editor {
   background-color: white;
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
-  margin: 50px;
 }
-.superdoc .layers:hover {
+.superdoc .super-editor:hover {
   border: 1px solid #0160cc86;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
-.superdoc .layers:focus-within {
+.superdoc .super-editor:focus-within {
   border: 1px solid #015fcc;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
+}
+
+@media screen and (max-width: 1024px) {
+  .superdoc {
+    max-width: calc(100vw - 10px);
+  }
 }
 </style>
 
@@ -185,6 +190,7 @@ onMounted(async () => {
   justify-content: space-between;
   background-color: rgb(222, 237, 243);
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .dev-app__header-side {
@@ -205,8 +211,6 @@ onMounted(async () => {
 .dev-app__view {
   display: flex;
   padding-top: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
   overflow-y: auto;
 }
 
@@ -218,8 +222,6 @@ onMounted(async () => {
 }
 
 .dev-app__content-container {
-  /* width: 100%;
-  max-width: 8.5in; */
   width: auto;
 }
 

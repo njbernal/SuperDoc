@@ -6,8 +6,8 @@ import workerSrc from './worker.js?raw';
 
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue';
-import { useSuperdocStore } from '@/stores/superdoc-store';
-import useSelection from '@/helpers/use-selection';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
+import useSelection from '@superdoc/helpers/use-selection';
 
 window.pdfjsWorker = pdfjsWorker;
 pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(

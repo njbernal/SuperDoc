@@ -31,6 +31,7 @@ import upRightFromSquareIconSvg from '@harbour-enterprises/common/icons/up-right
 import ellipsisVerticalIconSvg from '@harbour-enterprises/common/icons/ellipsis-vertical-solid.svg?raw';
 import caretUpIconSvg from '@harbour-enterprises/common/icons/caret-up-solid.svg?raw';
 import caretDownIconSvg from '@harbour-enterprises/common/icons/caret-down-solid.svg?raw';
+import rulerSvg from '@harbour-enterprises/common/icons/ruler-solid.svg?raw';
 
 export const toolbarIcons = {
   undo: rotateLeftIconSvg,
@@ -69,4 +70,5 @@ export const toolbarIcons = {
   overflow: ellipsisVerticalIconSvg,
   dropdownCaretUp: caretUpIconSvg,
   dropdownCaretDown: caretDownIconSvg,
+  ruler: rulerSvg,
 }

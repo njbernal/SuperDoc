@@ -60,6 +60,7 @@ const editorOptions = computed(() => {
   return {
     documentId: 'dev-123',
     user,
+    rulers: true,
     onCreate,
     onCommentClicked,
     suppressSkeletonLoader: true,
@@ -212,6 +213,7 @@ onMounted(async () => {
 }
 
 .dev-app__view {
+  width: 100%;
   display: flex;
   padding-top: 20px;
   padding-left: 20px;
