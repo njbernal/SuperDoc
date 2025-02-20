@@ -6,6 +6,8 @@ import CommentsList from './commentsList.vue';
 
 export class SuperComments extends EventEmitter {
 
+  element;
+
   config = {
     comments: [],
     element: null,
@@ -15,6 +17,7 @@ export class SuperComments extends EventEmitter {
   constructor(options, superdoc) {
     super();
     this.config = { ...this.config, ...options };
+    this.element = this.config.element;
     this.app = null;
     this.superdoc = superdoc;
     this.open();
@@ -24,7 +27,11 @@ export class SuperComments extends EventEmitter {
     this.app = createApp(CommentsList);
     this.app.directive('click-outside', vClickOutside);
     this.app.config.globalProperties.$superdoc = this.superdoc;
-    this.element = document.getElementById(this.config.selector);
+
+    if (!this.element && this.config.selector) {
+      this.element = document.getElementById(this.config.selector);
+    }
+
     this.container = this.app.mount(this.element);
   }
 
@@ -34,14 +41,12 @@ export class SuperComments extends EventEmitter {
       this.app = null;
       this.container = null;
       this.element = null;
-      console.debug('SuperComments closed');
     }
   }
 
   open() {
     if (!this.app) {
       this.createVueApp();
-      console.debug('SuperComments opened');
     }
   }
 };

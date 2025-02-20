@@ -2,7 +2,7 @@
 import '@harbour-enterprises/common/styles/common-styles.css';
 import { nextTick, onMounted, provide, ref, shallowRef } from 'vue';
 
-import { SuperDoc } from '@superdoc/core/index.js';
+import { SuperDoc } from '@superdoc/index.js';
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
@@ -15,7 +15,8 @@ const activeEditor = shallowRef(null);
 
 const title = ref('initial title');
 const currentFile = ref(null);
-const showCommentsPanel = ref(false);
+const commentsPanel = ref(null);
+const showCommentsPanel = ref(true);
 
 const user = {
   name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
@@ -231,7 +232,7 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view">
-          <div class="comments-panel" id="comments-panel" v-if="showCommentsPanel"></div>
+          <div class="comments-panel" id="comments-panel" ref="commentsPanel"></div>
 
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">

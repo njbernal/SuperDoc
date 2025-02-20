@@ -300,7 +300,6 @@ class SuperConverter {
   ) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
     const commentDefinitions = comments.map((c, index) => getCommentDefinition(c, index));
-    console.debug('\n\n\nCOMMENT DEFINITIONS', commentDefinitions, '\n\n\n');
     const [result, params] = exportSchemaToJson({
       node: jsonData,
       bodyNode,

@@ -59,6 +59,10 @@ const comments = computed(() => {
   };
 });
 
+const shouldShowResolvedComments = computed(() => {
+  return props.showResolvedComments && comments.value?.resolvedComments?.length > 0;
+});
+
 onMounted(() => {
   commentsStore.isCommentsListVisible = true;
 });
@@ -76,7 +80,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="showResolvedComments">
+    <div v-if="shouldShowResolvedComments">
       <div class="comment-title">Resolved</div>
       <div v-for="comment in comments.resolvedComments" class="comment-item">
         <CommentDialog :comment="comment" />

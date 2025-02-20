@@ -287,7 +287,9 @@ onMounted(() => {
   -moz-box-shadow: 0px 4px 12px 0px rgba(50, 50, 50, 0.15);
   box-shadow: 0px 4px 12px 0px rgba(50, 50, 50, 0.15);
   z-index: 5;
-  width: 300px;
+  max-width: 300px;
+  min-width: 200px;
+  width: 100%;
 }
 .is-active {
   z-index: 10;

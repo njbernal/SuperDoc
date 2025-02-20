@@ -91,9 +91,10 @@ onMounted(() => {
 .comment-option {
   display: flex;
   align-items: center;
+  font-size: 11px;
 }
 .comment-option i {
-  font-size: 12px;
+  font-size: 11px;
 }
 .option-state {
   margin: 0 7px;

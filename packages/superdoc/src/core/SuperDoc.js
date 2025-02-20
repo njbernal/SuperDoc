@@ -186,7 +186,7 @@ export class SuperDoc extends EventEmitter {
     this.addToolbar(this);
   
     // If comments module contains a selector, we can render comments list
-    this.addCommentsList(this);
+    // this.addCommentsList(this);
   }
 
   get requiredNumberOfEditors() {
@@ -344,11 +344,10 @@ export class SuperDoc extends EventEmitter {
     this.toolbar.on('superdoc-command', this.onToolbarCommand.bind(this));
   }
 
-  addCommentsList() {
-    const selector = this.config.modules?.comments?.selector;
-    console.debug('🦋 [superdoc] Adding comments list to:', selector);
-    if (!selector) return;
-
+  addCommentsList(element) {
+    if (!this.config?.modules?.comments || this.config.role === 'viewer') return;
+    console.debug('🦋 [superdoc] Adding comments list to:', element);
+    if (element) this.config.modules.comments.element = element;
     this.commentsList = new SuperComments(this.config.modules?.comments, this);
   }
 
@@ -523,7 +522,7 @@ export class SuperDoc extends EventEmitter {
   }
 
   destroy() {
-    if (!this.app) return;
+    if (!this.app) return; 
     this.log('[superdoc] Unmounting app');
 
     this.config.documents.forEach((doc) => {
