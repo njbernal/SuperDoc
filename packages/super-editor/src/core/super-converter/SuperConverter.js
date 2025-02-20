@@ -4,7 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
+import { getCommentDefinition, updateCommentsXml } from './v2/exporter/commentsExporter.js';
 import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
+import { COMMENTS_XML } from './exporter-docx-defs.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -26,10 +28,10 @@ class SuperConverter {
     'w:sectPr': 'sectionProperties',
     'w:rPr': 'runProperties',
 
-    // // Comments
-    // 'w:commentRangeStart': 'commentRangeStart',
-    // 'w:commentRangeEnd': 'commentRangeEnd',
-    // 'w:commentReference': 'commentReference',
+    // Comments
+    'w:commentRangeStart': 'commentRangeStart',
+    'w:commentRangeEnd': 'commentRangeEnd',
+    'w:commentReference': 'commentReference',
   });
 
   static markTypes = [
@@ -74,6 +76,7 @@ class SuperConverter {
     this.media = params?.media || {};
 
     this.addedMedia = {};
+    this.comments = [];
 
     // XML inputs
     this.xml = params?.xml;
@@ -276,6 +279,7 @@ class SuperConverter {
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
+      this.comments = result.comments;
       return result.pmDoc;
     } else {
       return null;
@@ -287,9 +291,16 @@ class SuperConverter {
     return exporter.schemaToXml(data);
   }
 
-  async exportToDocx(jsonData, editorSchema, documentMedia, isFinalDoc = false) {
+  async exportToDocx(
+    jsonData,
+    editorSchema,
+    documentMedia,
+    isFinalDoc = false,
+    comments = []
+  ) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
-
+    const commentDefinitions = comments.map((c, index) => getCommentDefinition(c, index));
+    console.debug('\n\n\nCOMMENT DEFINITIONS', commentDefinitions, '\n\n\n');
     const [result, params] = exportSchemaToJson({
       node: jsonData,
       bodyNode,
@@ -300,7 +311,10 @@ class SuperConverter {
       editorSchema,
       converter: this,
       pageStyles: this.pageStyles,
+      comments,
+      exportedCommentDefs: commentDefinitions,
     });
+    
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
 
@@ -314,10 +328,22 @@ class SuperConverter {
     // Update the rels table
     this.#exportProcessNewRelationships(params.relationships);
 
+    // Update the comments.xml file
+    this.#updateCommentsFiles(params.exportedCommentDefs);
+  
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
     
     return xml;
+  }
+
+  #updateCommentsFiles(exportedCommentDefs) {
+    if (!exportedCommentDefs?.length) return;
+    const commentsXml = this.convertedXml['word/comments.xml'];
+    const commentsXmlCopy = commentsXml ? { ...commentsXml } : { ...COMMENTS_XML };
+    console.debug('\n\n\ncommentsXmlCopy', commentsXml, '\n\n');
+    // const updatedCommentsXml = updateCommentsXml(exportedCommentDefs, commentsXml);
+    this.convertedXml['word/comments.xml'] = updatedCommentsXml;
   }
 
   #exportProcessNewRelationships(rels = []) {

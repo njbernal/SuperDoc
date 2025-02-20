@@ -35,8 +35,6 @@ export class Editor extends EventEmitter {
 
   #css;
 
-  #comments;
-
   options = {
     element: null,
     isHeadless: false,
@@ -44,6 +42,7 @@ export class Editor extends EventEmitter {
     mockWindow: null,
     content: '', // XML content
     user: null,
+    users: [],
     media: {},
     mediaFiles: {},
     fonts: {},
@@ -143,7 +142,7 @@ export class Editor extends EventEmitter {
     this.on('collaborationReady', this.#onCollaborationReady);
     this.on('paginationUpdate', this.options.onPaginationUpdate);
 
-    // this.#loadComments();
+    this.#loadComments();
     this.initializeCollaborationData();
 
     // Init pagination only if we are not in collaborative mode. Otherwise
@@ -522,7 +521,6 @@ export class Editor extends EventEmitter {
   
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
-          console.debug('🦋 [super-editor] Generated JSON from fragment:', doc);
         }
       } else if (mode === 'text') {
         if (content) {
@@ -804,13 +802,8 @@ export class Editor extends EventEmitter {
    * Load the document comments.
    */
   #loadComments() {
-    this.#comments = initComments(this, this.converter, this.options.documentId);
-
-    this.emit('commentsLoaded', { comments: this.#comments });
-  }
-
-  getComment(id) {
-    return this.#comments.find((c) => c.thread == id);
+    if (!this.converter.comments) return;
+    this.emit('commentsLoaded', { editor: this, comments: this.converter.comments });
   }
 
   /**
@@ -888,13 +881,21 @@ export class Editor extends EventEmitter {
   /**
    * Export the editor document to DOCX.
    */
-  async exportDocx({ isFinalDoc = false } = {}) {
+  async exportDocx({ isFinalDoc = false, comments = [] } = {}) {
     const json = this.getJSON();
-    const documentXml = await this.converter.exportToDocx(json, this.schema, this.storage.image.media, isFinalDoc);
+    const documentXml = await this.converter.exportToDocx(
+      json,
+      this.schema,
+      this.storage.image.media,
+      isFinalDoc,
+      comments,
+    );
+
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
+    const commentsXml = this.converter.schemaToXml(this.converter.convertedXml['word/comments.xml'].elements[0]);
     const media = this.converter.addedMedia;
 
     const updatedDocs = {
@@ -902,6 +903,7 @@ export class Editor extends EventEmitter {
       'word/_rels/document.xml.rels': String(rels),
       'docProps/custom.xml': String(customXml),
       'word/settings.xml': String(customSettings),
+      'word/comments.xml': String(commentsXml),
     };
 
     const zipper = new DocxZipper();

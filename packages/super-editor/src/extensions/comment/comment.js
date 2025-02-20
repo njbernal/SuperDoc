@@ -21,7 +21,11 @@ export const CommentRangeStart = Node.create({
   addAttributes() {
     return {
       'w:id': {
-        default: () => uuidv4(),
+        rendered: false,
+      },
+      internal: {
+        default: true,
+        rendered: false,
       },
     };
   },
@@ -47,7 +51,7 @@ export const CommentRangeEnd = Node.create({
   addAttributes() {
     return {
       'w:id': {
-        default: () => uuidv4(),
+        rendered: false,
       },
     };
   },
