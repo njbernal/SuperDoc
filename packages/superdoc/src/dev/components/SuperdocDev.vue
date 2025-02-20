@@ -137,7 +137,7 @@ const init = async () => {
         // comments: sampleComments,
         selector: 'comments-panel',
       },
-      'hrbr-fields': {},
+      // 'hrbr-fields': {},
 
       // To test this dev env with collaboration you must run a local collaboration server here.
       collaboration: {
@@ -291,7 +291,8 @@ onMounted(async () => {
 }
 
 .dev-app__layout {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
 }

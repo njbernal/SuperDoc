@@ -148,8 +148,10 @@ export class SuperDoc extends EventEmitter {
     this.config.colors = shuffleArray(this.config.colors);
     this.userColorMap = new Map();
     this.colorIndex = 0;
+
     this.version = __APP_VERSION__;
     console.debug('🦋 [superdoc] Using SuperDoc version:', this.version);
+
     this.superdocId = config.superdocId || uuidv4();
     this.colors = this.config.colors;
 
@@ -158,9 +160,6 @@ export class SuperDoc extends EventEmitter {
 
     this.#initTelemetry();
     this.#initVueApp();
-    this.superdocStore.init(this.config);
-    this.app.mount(this.config.selector);
-
     this.#initListeners();
 
     this.user = this.config.user; // The current user
