@@ -6,8 +6,8 @@ import { SuperDoc } from '@superdoc/core/index.js';
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
-import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 import { toolbarIcons } from '../../../../super-editor/src/components/toolbar/toolbarIcons';
+import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
 /* For local dev */
 const superdoc = shallowRef(null);
@@ -15,6 +15,7 @@ const activeEditor = shallowRef(null);
 
 const title = ref('initial title');
 const currentFile = ref(null);
+const showCommentsPanel = ref(false);
 
 const user = {
   name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
@@ -154,6 +155,9 @@ const init = async () => {
   };
 
   superdoc.value = new SuperDoc(config);
+  superdoc.value?.on('ready', () => {
+    console.debug('SuperDoc ready');
+  });
 
   // const ydoc = superdoc.value.ydoc;
   // const metaMap = ydoc.getMap('meta');
@@ -227,7 +231,7 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view">
-          <div class="comments-panel" id="comments-panel"></div>
+          <div class="comments-panel" id="comments-panel" v-if="showCommentsPanel"></div>
 
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">
