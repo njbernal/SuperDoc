@@ -1,8 +1,8 @@
 <script setup>
 import { formatDate } from './helpers';
-import { superdocIcons } from '@/icons.js';
+import { superdocIcons } from '@superdoc/icons.js';
 import { NDropdown } from 'naive-ui';
-import Avatar from '@/components/general/Avatar.vue';
+import Avatar from '@superdoc/components/general/Avatar.vue';
 
 const emit = defineEmits(['resolve', 'overflow-select']);
 const props = defineProps({

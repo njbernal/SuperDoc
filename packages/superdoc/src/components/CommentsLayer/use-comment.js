@@ -1,9 +1,9 @@
 import { ref, reactive, toRaw } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
-import { syncCommentsToClients } from '@core/collaboration/helpers.js';
+import { syncCommentsToClients } from '@superdoc/core/collaboration/helpers.js';
 import { comments_module_events } from '@harbour-enterprises/common';
-import useSelection from '@/helpers/use-selection';
+import useSelection from '@superdoc/helpers/use-selection';
 
 /**
  * Comment composable

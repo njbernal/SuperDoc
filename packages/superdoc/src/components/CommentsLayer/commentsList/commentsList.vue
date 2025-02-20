@@ -1,8 +1,8 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, onMounted, reactive } from 'vue';
-import { useCommentsStore } from '@/stores/comments-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@stores/comments-store';
+import { useSuperdocStore } from '@stores/superdoc-store';
 import CommentDialog from '../CommentDialog.vue';
 
 const props = defineProps({
