@@ -16,7 +16,7 @@ class Telemetry {
 
   /** @type {string} */
   superdocId;
-  
+
   /** @type {string} */
   superdocVersion;
 
@@ -150,13 +150,13 @@ class Telemetry {
       this.errors.push(data);
       this.statistics.errorCount++;
     }
-    
+
     if (data.marks?.length) {
       data.marks.forEach((mark) => {
         this.statistics.markTypes[mark.type] = (this.statistics.markTypes[mark.type] || 0) + 1;
       });
     }
-    
+
     // Style attributes
     if (data.attributes && Object.keys(data.attributes).length) {
       const styleAttributes = [
@@ -238,7 +238,7 @@ class Telemetry {
     const hashBuffer = crc32(buffer);
     return hashBuffer.toString('hex');
   }
-  
+
   isTelemetryDataChanged() {
     const initialStatistics = {
       nodeTypes: {},
@@ -255,7 +255,7 @@ class Telemetry {
     }
     // Empty document case
     if (Object.keys(this.statistics.nodeTypes).length <= 1) return;
-    
+
     return this.statistics !== initialStatistics || initialFileStructure !== this.fileStructure || this.errors.length > 0 || this.unknownElements.length > 0;
   }
 
@@ -265,8 +265,8 @@ class Telemetry {
    */
   async sendReport() {
     if (!this.enabled || !this.isTelemetryDataChanged()) return;
-    
-    const report = {
+
+    const report = [{
       id: this.generateId(),
       type: 'parsing',
       timestamp: new Date().toISOString(),
@@ -279,8 +279,8 @@ class Telemetry {
       fileStructure: this.fileStructure,
       unknownElements: this.unknownElements,
       errors: this.errors,
-    }
-    
+    }];
+
     try {
       const response = await fetch(this.endpoint, {
         method: 'POST',
@@ -300,7 +300,7 @@ class Telemetry {
       console.error('Failed to upload telemetry:', error);
     }
   }
-  
+
   /**
    * Generate unique identifier
    * @returns {string} Unique ID
@@ -330,9 +330,9 @@ class Telemetry {
       totalNodes: 0,
       files: [],
     };
-    
+
     this.unknownElements = [];
-    
+
     this.errors = [];
   }
 }
