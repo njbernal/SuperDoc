@@ -187,7 +187,7 @@ function handleListNodes(
       nodeAttributes['numId'] = numId;
       
       if (docx) {
-        const defaultStyleId = item?.attributes['w:rsidRDefault'];
+        const defaultStyleId = attributes['w:rsidRDefault'];
         nodeAttributes['spacing'] = getParagraphSpacing(defaultStyleId, item, docx);
       }
 
