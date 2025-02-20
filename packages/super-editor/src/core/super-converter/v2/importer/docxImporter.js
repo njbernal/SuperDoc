@@ -128,9 +128,11 @@ const createNodeListHandler = (nodeHandlers) => {
    * Gets safe element context even if index is out of bounds
    * @param {Array} elements Array of elements
    * @param {number} index Index to check
+   * @param {Object} processedNode result node
+   * @param {String} path Occurrence filename
    * @returns {Object} Safe context object
    */
-  const getSafeElementContext = (elements, index, path) => {
+  const getSafeElementContext = (elements, index, processedNode, path) => {
     if (!elements || index < 0 || index >= elements.length) {
       return {
         elementIndex: index,
@@ -142,8 +144,11 @@ const createNodeListHandler = (nodeHandlers) => {
     const element = elements[index];
     return {
       elementName: element?.name,
-      attributes: element?.attributes,
+      attributes: processedNode?.attrs,
+      marks: processedNode?.marks,
       elementPath: path,
+      type: processedNode?.type,
+      content: processedNode?.content,
     };
   };
 
@@ -178,14 +183,25 @@ const createNodeListHandler = (nodeHandlers) => {
           );
 
           // Only track unhandled nodes that should have been handled
-          const context = getSafeElementContext(elements, index, `/word/${filename || 'document.xml'}`);
+          const context = getSafeElementContext(elements, index, nodes[0], `/word/${filename || 'document.xml'}`);
           if (unhandled) {
             if (!context.elementName) continue;
             
-            converter?.telemetry?.trackStatistic('unknown', context);
+            const ignoreElements = ['w:pPr', 'w:tcPr'];
+            if (!ignoreElements.includes(context.elementName)) {
+              converter?.telemetry?.trackStatistic('unknown', context);
+            }
             continue;
           } else {
             converter?.telemetry?.trackStatistic('node', context);
+            
+            // Use Telemetry to track list item attributes
+            if (context.type === 'orderedList' || context.type === 'bulletList') {
+              context.content.forEach((item) => {
+                const innerItemContext = getSafeElementContext([item], 0, item, `/word/${filename || 'document.xml'}`);
+                converter?.telemetry?.trackStatistic('attributes', innerItemContext);
+              })
+            }
           }
 
           // Process and store nodes (no tracking needed for success)

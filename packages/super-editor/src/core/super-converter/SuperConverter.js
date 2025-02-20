@@ -271,6 +271,10 @@ class SuperConverter {
   getSchema(editor) {
     this.getDocumentInternalId();
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
+    
+    setTimeout(() => {
+      this.telemetry?.sendReport();
+    }, 6000);
       
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });

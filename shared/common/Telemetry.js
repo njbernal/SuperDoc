@@ -33,7 +33,7 @@ class Telemetry {
   statistics = {
     nodeTypes: {},
     markTypes: {},
-    styleTypes: {},
+    attributes: {},
     errorCount: 0,
   };
 
@@ -54,12 +54,6 @@ class Telemetry {
   /** @type {Object} */
   documentInfo = null;
 
-  /** @type {number|undefined} */
-  flushInterval;
-
-  /** @type {number} */
-  static FLUSH_INTERVAL = 10000; // 10 seconds
-
   /** @type {string} */
   static COMMUNITY_LICENSE_KEY = 'community-and-eval-agplv3';
 
@@ -79,10 +73,6 @@ class Telemetry {
 
     this.superdocVersion = config.superdocVersion;
     this.sessionId = this.generateId();
-
-    if (this.enabled) {
-      this.startPeriodicFlush();
-    }
   }
 
   /**
@@ -142,14 +132,6 @@ class Telemetry {
     if (category === 'node') {
       this.statistics.nodeTypes[data.elementName] = (this.statistics.nodeTypes[data.elementName] || 0) + 1;
       this.fileStructure.totalNodes++;
-    } else if (category === 'mark') {
-      this.statistics.markTypes[data] = (this.statistics.markTypes[data] || 0) + 1;
-    } else if (category === 'style') {
-      const { type, value } = data;
-      if (!this.statistics.styleTypes[type]) {
-        this.statistics.styleTypes[type] = {};
-      }
-      this.statistics.styleTypes[type][value] = (this.statistics.styleTypes[type][value] || 0) + 1;
     } else if (category === 'unknown') {
       const addedElement = this.unknownElements.find(e => e.elementName === data.elementName);
       if (addedElement) {
@@ -167,6 +149,35 @@ class Telemetry {
     } else if (category === 'error') {
       this.errors.push(data);
       this.statistics.errorCount++;
+    }
+    
+    if (data.marks?.length) {
+      data.marks.forEach((mark) => {
+        this.statistics.markTypes[mark.type] = (this.statistics.markTypes[mark.type] || 0) + 1;
+      });
+    }
+    
+    // Style attributes
+    if (data.attributes && Object.keys(data.attributes).length) {
+      const styleAttributes = [
+        'textIndent',
+        'textAlign',
+        'spacing',
+        'lineHeight',
+        'indent',
+        'list-style-type',
+        'listLevel',
+        'textStyle',
+        'order',
+        'lvlText',
+        'lvlJc',
+        'listNumberingType',
+        'numId'
+      ];
+      Object.keys(data.attributes).forEach((attribute) => {
+        if (!styleAttributes.includes(attribute)) return;
+        this.statistics.attributes[attribute] = (this.statistics.attributes[attribute] || 0) + 1;
+      });
     }
   }
 
@@ -289,16 +300,6 @@ class Telemetry {
       console.error('Failed to upload telemetry:', error);
     }
   }
-
-  /**
-   * Start periodic flush interval
-   * @private
-   */
-  startPeriodicFlush() {
-    this.flushInterval = setInterval(() => {
-      this.sendReport();
-    }, Telemetry.FLUSH_INTERVAL);
-  }
   
   /**
    * Generate unique identifier
@@ -333,17 +334,6 @@ class Telemetry {
     this.unknownElements = [];
     
     this.errors = [];
-  }
-
-  /**
-   * Clean up telemetry service
-   * @returns {Promise<void>}
-   */
-  async destroy() {
-    if (this.flushInterval) {
-      clearInterval(this.flushInterval);
-    }
-    return this.sendReport();
   }
 }
 
