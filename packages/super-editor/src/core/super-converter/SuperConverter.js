@@ -55,6 +55,7 @@ class SuperConverter {
     'w:rPr': 'runProperties',
     'w:sectPr': 'sectionProperties',
     'w:numPr': 'numberingProperties',
+    'w:tcPr': 'tableCellProperties',
   });
 
   static elements = new Set(['w:document', 'w:body', 'w:p', 'w:r', 'w:t', 'w:delText']);

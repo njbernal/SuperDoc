@@ -567,6 +567,8 @@ export class Editor extends EventEmitter {
 
     const dom = this.view.dom;
     dom.editor = this;
+    
+    this.options.telemetry?.sendReport();
   }
 
   /**
@@ -912,7 +914,7 @@ export class Editor extends EventEmitter {
       isHeadless: this.options.isHeadless,
     });
     
-    this.telemetry?.trackUsage('document_export', {
+    this.options.telemetry?.trackUsage('document_export', {
       documentType: 'docx',
       timestamp: new Date().toISOString()
     });
