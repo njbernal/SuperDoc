@@ -85,6 +85,17 @@ export const createDocumentJson = (docx, converter, editor) => {
         attributes: json.elements[0].attributes,
       },
     };
+
+    // Not empty document
+    if (result.content.length > 1) {
+      converter?.telemetry?.trackUsage(
+        'document_import',
+        {
+          documentType: 'docx',
+          timestamp: new Date().toISOString()
+        }
+      );
+    }
     
     return {
       pmDoc: result,
@@ -186,11 +197,8 @@ const createNodeListHandler = (nodeHandlers) => {
           const context = getSafeElementContext(elements, index, nodes[0], `/word/${filename || 'document.xml'}`);
           if (unhandled) {
             if (!context.elementName) continue;
-            
-            const ignoreElements = ['w:pPr', 'w:tcPr'];
-            if (!ignoreElements.includes(context.elementName)) {
-              converter?.telemetry?.trackStatistic('unknown', context);
-            }
+
+            converter?.telemetry?.trackStatistic('unknown', context);
             continue;
           } else {
             converter?.telemetry?.trackStatistic('node', context);

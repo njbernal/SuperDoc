@@ -55,6 +55,7 @@ class SuperConverter {
     'w:rPr': 'runProperties',
     'w:sectPr': 'sectionProperties',
     'w:numPr': 'numberingProperties',
+    'w:tcPr': 'tableCellProperties',
   });
 
   static elements = new Set(['w:document', 'w:body', 'w:p', 'w:r', 'w:t', 'w:delText']);
@@ -271,10 +272,6 @@ class SuperConverter {
   getSchema(editor) {
     this.getDocumentInternalId();
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
-    
-    setTimeout(() => {
-      this.telemetry?.sendReport();
-    }, 6000);
       
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });

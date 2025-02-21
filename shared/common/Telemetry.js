@@ -94,20 +94,11 @@ class Telemetry {
 
   /**
    * Track document usage event
-   * @param {File} fileSource - Document file
-   * @param {string} documentId - Document identifier
    * @param {string} name - Event name
    * @param {Object} properties - Additional properties
    */
-  async trackUsage(fileSource, documentId, name, properties = {}) {
-    // ToDo rewrite when decide how it has to look like
-    // For example to call endpoint every time usage event is fired
+  async trackUsage(name, properties = {}) {
     if (!this.enabled) return;
-
-    const docInfo = await this.processDocument(fileSource, {
-      id: documentId,
-      internalId: properties.internalId,
-    });
 
     const event = {
       id: this.generateId(),
@@ -116,11 +107,13 @@ class Telemetry {
       sessionId: this.sessionId,
       superdocId: this.superdocId,
       superdocVersion: this.superdocVersion,
-      document: docInfo,
+      file: this.documentInfo,
       browser: this.getBrowserInfo(),
       name,
       properties,
     };
+
+    await this.sendDataToTelemetry(event);
   }
 
   /**
@@ -280,7 +273,16 @@ class Telemetry {
       unknownElements: this.unknownElements,
       errors: this.errors,
     }];
+    
+    await this.sendDataToTelemetry(report);
+  }
 
+  /**
+   * Sends data to the service
+   * @returns {Object} payload
+   * @returns {Promise<void>}
+   */
+  async sendDataToTelemetry(data) {
     try {
       const response = await fetch(this.endpoint, {
         method: 'POST',
@@ -288,7 +290,7 @@ class Telemetry {
           'Content-Type': 'application/json',
           'X-License-Key': this.licenseKey,
         },
-        body: JSON.stringify(report),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
