@@ -1,6 +1,6 @@
 <script setup>
 import { storeToRefs } from 'pinia';
-import { computed, onBeforeUnmount, onMounted, reactive } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, getCurrentInstance } from 'vue';
 import { useCommentsStore } from '@stores/comments-store';
 import { useSuperdocStore } from '@stores/superdoc-store';
 import CommentDialog from '../CommentDialog.vue';
@@ -18,71 +18,34 @@ const props = defineProps({
 
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
-const { commentsList } = storeToRefs(commentsStore);
-
-/**
- * Generate the comments list separating resolved and active
- * We only return parent comments here, since CommentDialog.vue will handle threaded comments
- */
-const comments = computed(() => {
-  const parentComments = [];
-  const resolvedComments = [];
-  const childCommentMap = new Map();
-
-  commentsList.value.forEach((comment) => {
-    // Track resolved comments
-    if (comment.resolvedTime) {
-      resolvedComments.push(comment);
-    }
-
-    // Track parent comments
-    else if (!comment.parentCommentId && !comment.resolvedTime) {
-      parentComments.push({ ...comment });
-    }
-
-    // Track child comments (threaded comments)
-    else if (comment.parentCommentId) {
-      if (!childCommentMap.has(comment.parentCommentId)) {
-        childCommentMap.set(comment.parentCommentId, []);
-      }
-      childCommentMap.get(comment.parentCommentId).push(comment);
-    }
-  });
-
-  // Return only parent comments
-  const sortedParentComments = parentComments.sort((a, b) => a.createdTime - b.createdTime);
-  const sortedResolvedComments = resolvedComments.sort((a, b) => a.createdTime - b.createdTime);
-
-  return {
-    parentComments: sortedParentComments,
-    resolvedComments: sortedResolvedComments,
-  };
-});
+const { COMMENT_EVENTS } = commentsStore;
+const { commentsList, getGroupedComments, isCommentsListVisible } = storeToRefs(commentsStore);
+const { proxy } = getCurrentInstance();
 
 const shouldShowResolvedComments = computed(() => {
-  return props.showResolvedComments && comments.value?.resolvedComments?.length > 0;
+  return props.showResolvedComments && getGroupedComments.value?.resolvedComments?.length > 0;
 });
 
 onMounted(() => {
-  commentsStore.isCommentsListVisible = true;
+  isCommentsListVisible.value = true;
 });
 
 onBeforeUnmount(() => {
-  commentsStore.isCommentsListVisible = false;
+  isCommentsListVisible.value = false;
 });
 </script>
 
 <template>
   <div class="comments-list">
     <div v-if="showMainComments">
-      <div v-for="comment in comments.parentComments" class="comment-item">
+      <div v-for="comment in getGroupedComments.parentComments" class="comment-item">
         <CommentDialog :comment="comment" />
       </div>
     </div>
 
     <div v-if="shouldShowResolvedComments">
       <div class="comment-title">Resolved</div>
-      <div v-for="comment in comments.resolvedComments" class="comment-item">
+      <div v-for="comment in getGroupedComments.resolvedComments" class="comment-item">
         <CommentDialog :comment="comment" />
       </div>
     </div>

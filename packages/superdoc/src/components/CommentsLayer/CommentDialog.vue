@@ -50,6 +50,7 @@ const isInternal = ref(true);
 const isEditing = ref(false);
 const isFocused = ref(false);
 const commentInput = ref(null);
+const commentDialogElement = ref(null);
 
 const isActiveComment = computed(() => activeComment.value === props.comment.commentId);
 const showButtons = computed(() => {
@@ -135,20 +136,24 @@ const shouldShowInternalExternal = computed(() => {
   return !suppressInternalExternal.value;
 });
 
+const hasTextContent = computed(() => {
+  return currentCommentText.value && currentCommentText.value !== "<p></p>";
+});
+
 const setFocus = () => {
   activeComment.value = props.comment.commentId;
   props.comment.setActive(proxy.$superdoc);
 };
 
 const handleClickOutside = (e) => {
-  //TODO: Fix this
-
   if (e.target.classList.contains('n-dropdown-option-body__label')) return;
+  if (e.target.classList.contains('comment-highlight')) return;
   if (activeComment.value === props.comment.commentId) {
     floatingCommentsOffset.value = 0;
-
     emit('dialog-exit');
   };
+
+  activeComment.value = null;
 };
 
 const handleAddComment = () => {
@@ -156,6 +161,11 @@ const handleAddComment = () => {
     documentId: props.comment.fileId,
     isInternal: pendingComment.value ? pendingComment.value.isInternal : isInternal.value,
     parentCommentId: pendingComment.value ? null : props.comment.commentId,
+  };
+
+  if (pendingComment.value) {
+    const selection = pendingComment.value.selection.getValues();
+    options.selection = selection;
   };
 
   const comment = commentsStore.getPendingComment(options);
@@ -226,6 +236,7 @@ onMounted(() => {
   if (props.autoFocus) {
     nextTick(() => setFocus());
   };
+  emit('ready', { commentId: props.comment.commentId, elementRef: commentDialogElement });
 })
 </script>
 
@@ -236,6 +247,7 @@ onMounted(() => {
     v-click-outside="handleClickOutside"
     @click.stop.prevent="setFocus"
     :style="getSidebarCommentStyle"
+    ref="commentDialogElement"
   >
 
     <div v-if="shouldShowInternalExternal" class="existing-internal-input">
@@ -294,7 +306,13 @@ onMounted(() => {
 
       <div class="comment-footer" v-if="showButtons && !getConfig.readOnly">
         <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
-        <button class="sd-button primary" @click.stop.prevent="handleAddComment">Comment</button>
+        <button
+          class="sd-button primary"
+          @click.stop.prevent="handleAddComment"
+          :disabled="!hasTextContent"
+          :class="{ disabled: !hasTextContent }">
+            Comment
+          </button>
       </div>
     </div>
 

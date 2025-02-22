@@ -52,7 +52,8 @@ const {
   pendingComment,
   activeComment,
   skipSelectionUpdate,
-  commentsByDocument
+  commentsByDocument,
+  isCommentsListVisible,
 } = storeToRefs(commentsStore);
 const { initialCheck, showAddComment } = commentsStore;
 const { proxy } = getCurrentInstance();
@@ -63,7 +64,7 @@ const layers = ref(null);
 
 // Comments layer
 const commentsLayer = ref(null);
-const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 10 });
+const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 101 });
 
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
@@ -242,7 +243,10 @@ const editorOptions = (doc) => {
 const onEditorCommentsUpdate = (params) => {
   // Set the active comment in the store
   const { activeCommentId } = params;
-  commentsStore.setActiveComment(activeCommentId);
+
+  nextTick(() => {
+    commentsStore.setActiveComment(activeCommentId);
+  });
 
   // Bubble up the event to the user, if handled
   if (typeof proxy.$superdoc.config.onCommentsUpdate === 'function') {
@@ -525,16 +529,9 @@ const handlePdfClick = (e) => {
         v-click-outside="cancelPendingComment"
       />
 
-      <!-- <FloatingComments
-        class="floating-comments"
-        v-if="isReady"
-        v-for="doc in documentsWithConverations"
-        :parent="layers"
-        :current-document="doc"
-      /> -->
       <FloatingComments
         class="floating-comments"
-        v-if="isReady"
+        v-if="isReady && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"
@@ -544,10 +541,6 @@ const handlePdfClick = (e) => {
 </template>
 
 <style scoped>
-.floating-comments {
-  background-color: red;
-}
-
 .superdoc {
   display: flex;
 }
@@ -594,13 +587,13 @@ const handlePdfClick = (e) => {
   padding: 0 10px;
   min-height: 100%;
   position: relative;
-  z-index: 100;
+  z-index: 10;
 }
 
 /* Tools styles */
 .tools {
   position: absolute;
-  z-index: 100;
+  z-index: 11;
   display: flex;
   gap: 6px;
 }

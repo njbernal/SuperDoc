@@ -186,8 +186,6 @@ export class SuperDoc extends EventEmitter {
     // If a toolbar element is provided, render a toolbar
     this.addToolbar(this);
   
-    // If comments module contains a selector, we can render comments list
-    // this.addCommentsList(this);
   }
 
   get requiredNumberOfEditors() {
@@ -350,6 +348,13 @@ export class SuperDoc extends EventEmitter {
     console.debug('🦋 [superdoc] Adding comments list to:', element);
     if (element) this.config.modules.comments.element = element;
     this.commentsList = new SuperComments(this.config.modules?.comments, this);
+  }
+
+  removeCommentsList() {
+    if (this.commentsList) {
+      this.commentsList.close();
+      this.commentsList = null;
+    }
   }
 
   onToolbarCommand({ item, argument }) {

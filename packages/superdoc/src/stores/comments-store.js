@@ -99,13 +99,48 @@ export const useCommentsStore = defineStore('comments', () => {
     activeComment.value = pendingComment.value.commentID;
   };
 
+  /**
+   * Generate the comments list separating resolved and active
+   * We only return parent comments here, since CommentDialog.vue will handle threaded comments
+  */
+  const getGroupedComments = computed(() => {
+    const parentComments = [];
+    const resolvedComments = [];
+    const childCommentMap = new Map();
+  
+    commentsList.value.forEach((comment) => {
+      // Track resolved comments
+      if (comment.resolvedTime) {
+        resolvedComments.push(comment);
+      }
+  
+      // Track parent comments
+      else if (!comment.parentCommentId && !comment.resolvedTime) {
+        parentComments.push({ ...comment });
+      }
+  
+      // Track child comments (threaded comments)
+      else if (comment.parentCommentId) {
+        if (!childCommentMap.has(comment.parentCommentId)) {
+          childCommentMap.set(comment.parentCommentId, []);
+        }
+        childCommentMap.get(comment.parentCommentId).push(comment);
+      }
+    });
+  
+    // Return only parent comments
+    const sortedParentComments = parentComments.sort((a, b) => a.createdTime - b.createdTime);
+    const sortedResolvedComments = resolvedComments.sort((a, b) => a.createdTime - b.createdTime);
+  
+    return {
+      parentComments: sortedParentComments,
+      resolvedComments: sortedResolvedComments,
+    };
+  });
+
   const hasOverlapId = (id) => overlappedIds.includes(id);
   const documentsWithConverations = computed(() => {
     return superdocStore.documents;
-    return superdocStore.documents?.filter((d) => {
-      console.debug("---D", d, "\n")
-      return d.conversations.length > 0
-    }) || [];
   });
 
   const getConfig = computed(() => {
@@ -488,6 +523,7 @@ export const useCommentsStore = defineStore('comments', () => {
     getAllConversations,
     getAllConversationsFiltered,
     getAllGroups,
+    getGroupedComments,
 
     // Actions
     init,

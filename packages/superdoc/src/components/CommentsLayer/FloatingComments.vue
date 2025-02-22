@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia';
 import { onMounted, ref, computed, watch, nextTick } from 'vue';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
-import useFloatingConversation from './use-floating-conversation';
+import { useFloatingComment } from './use-floating-comment';
 import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
 
 const superdocStore = useSuperdocStore();
@@ -15,7 +15,9 @@ const {
   floatingCommentsOffset,
   visibleConversations,
   sortedConversations,
-  activeComment
+  activeComment,
+  commentsList,
+  getGroupedComments,
 } = storeToRefs(commentsStore);
 const { user, activeZoom } = storeToRefs(superdocStore);
 
@@ -41,21 +43,21 @@ const props = defineProps({
 let offset = 0;
 const floatingCommentsContainer = ref(null);
 
-const handleDialogReady = (dialogId, elementRef) => {
+const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
   // Called when a dialog has mounted
   // We must check for collisions against the previous dialog and adjust location if necessary
 
-  const dialogIndex = sortedConversations.value.findIndex((c) => c.conversationId === dialogId);
+  const dialogIndex = sortedConversations.value.findIndex((c) => c.commentId === dialogId);
   if (dialogIndex === -1 || dialogIndex >= sortedConversations.length - 1) return;
-
+  
   // This is our current comment
   const dialog = visibleConversations.value[dialogIndex];
   if (!dialog) return;
 
   // Need to calculate the exact position of the dialog
-  const selectionBounds = dialog.conversation.selection.getContainerLocation(props.parent);
+  const selectionBounds = dialog.comment.selection.getContainerLocation(props.parent);
   const position = elementRef.value.getBoundingClientRect();
-  const selection = dialog.conversation.selection.selectionBounds;
+  const selection = dialog.comment.selection.selectionBounds;
   const top = parseFloat(selection.top) * activeZoom.value;
   const left = (parseFloat(selection.left) + position.left) * activeZoom.value;
 
@@ -107,7 +109,7 @@ const checkCollisions = (proposedPosition, dialogIndex) => {
 
 const renderDialog = (data) => {
   if (!data) return;
-  const nextConvo = useFloatingConversation(data);
+  const nextConvo = useFloatingComment(data);
   visibleConversations.value.push(nextConvo);
 };
 
@@ -130,15 +132,16 @@ const initialize = () => {
 };
 
 const initializeConvos = () => {
-  const firstDoc = documentsWithConverations.value[0];
-  const conversations = [...firstDoc.conversations];
-  sortedConversations.value = conversations.sort(sortByLocation);
-  visibleConversations.value.push(useFloatingConversation(sortedConversations.value[0]));
+  sortedConversations.value = getGroupedComments.value?.parentComments.sort(sortByLocation);
+  if (!sortedConversations.value?.length) return;
+
+  const floatingComment = useFloatingComment(sortedConversations.value[0])
+  visibleConversations.value.push(floatingComment);
 };
 
-const getCommentPosition = (convo) => {
+const getCommentPosition = (floatingComment) => {
   return {
-    top: convo.position.top + 'px',
+    top: floatingComment.position.top + 'px',
   };
 };
 
@@ -149,7 +152,7 @@ const getFloatingSidebarStyle = computed(() => {
 });
 
 // Update the floating comments when the conversations change
-watch(documentsWithConverations, (newVal) => newVal.length && initialize());
+watch(commentsList, (newVal) => newVal.length && initialize());
 watch(activeComment, (newVal) => {
   setTimeout(() => {
     if (!activeComment.value) {
@@ -169,18 +172,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="section-wrapper" v-if="visibleConversations.length" ref="floatingCommentsContainer">
+  <div class="section-wrapper" ref="floatingCommentsContainer">
     <div :style="getFloatingSidebarStyle" class="sidebar-container">
-      <div v-for="floatingConversation in visibleConversations">
+      <div v-for="floatingComment in visibleConversations">
         <CommentDialog
           class="floating-comment"
           @ready="handleDialogReady"
           @dialog-exit="initialize"
-          :style="getCommentPosition(floatingConversation)"
-          :data="floatingConversation.conversation"
-          :current-document="currentDocument"
-          :parent="parent"
-          :user="user"
+          :style="getCommentPosition(floatingComment)"
+          :comment="floatingComment.comment"
+          :is-floating="true"
         />
       </div>
     </div>

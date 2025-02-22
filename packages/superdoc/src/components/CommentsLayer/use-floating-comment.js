@@ -1,9 +1,9 @@
 import { ref, reactive } from 'vue';
 
 export function useFloatingComment(params) {
-  console.debug('\n\n useFloatingComment PARAMS', params, '\n\n')
   const id = params.commentId;
-  const conversation = ref(params);
+  const comment = ref(params);
+
   const position = reactive({
     top: 0,
     left: 0,
@@ -14,7 +14,7 @@ export function useFloatingComment(params) {
 
   return {
     id,
-    conversation,
+    comment,
     position,
     offset,
   };

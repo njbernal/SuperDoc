@@ -118,7 +118,7 @@ export const CommentsPlugin = Extension.create({
             // Otherwise, we update the active comment ID
             const update = {
               type: comments_module_events.SELECTED,
-              activeCommentId: activeThreadId ? Number(activeThreadId) : null
+              activeCommentId: activeThreadId ? activeThreadId : null
             };
 
             editor.emit('commentsUpdate', update);
