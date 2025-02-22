@@ -98,20 +98,12 @@ const handleDocumentMouseDown = (e) => {
 
 const handleHighlightClick = () => (toolsMenuPosition.top = null);
 const cancelPendingComment = (e) => {
+  if (e.target.classList.contains('n-dropdown-option-body__label')) return;
   commentsStore.removePendingComment();
 };
 
 const onCommentsLoaded = ({ editor, comments }) => {
   commentsStore.processLoadedDocxComments({ comments, documentId: editor.options.documentId });
-
-  // TODO
-  // proxy.$superdoc.log('[superdoc] onCommentsLoaded', comments);
-  // comments.forEach((c) => {
-  //   const convo = useConversation(c);
-  //   const doc = getDocument(c.documentId);
-  //   doc.conversations.push(convo);
-  // });
-  // isReady.value = true;
 };
 
 const onEditorBeforeCreate = ({ editor }) => {
@@ -147,23 +139,33 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
     skipSelectionUpdate.value = false;
     return;
   }
+
   const { documentId } = editor.options;
   const { $from, $to } = transaction.selection;
-  if ($from.pos === $to.pos) {
-    updateSelection({ x: null, y: null, x2: null, y2: null, source: 'super-editor' });
-  }
+  if ($from.pos === $to.pos) updateSelection({ x: null, y: null, x2: null, y2: null, source: 'super-editor' });
 
   if (!layers.value) return;
-  const layerBounds = layers.value.getBoundingClientRect();
-  const bounds = getSelectionBoundingBox();
-  if (!bounds || !layerBounds) return;
+  const { view } = editor;
+  const fromCoords = view.coordsAtPos($from.pos);
+  const toCoords = view.coordsAtPos($to.pos);
+  const { pageMargins } = editor.getPageStyles();
 
+  const layerBounds = layers.value.getBoundingClientRect();
+  let top = fromCoords.top - layerBounds.top;
+  top = Math.max(96, (top - 100));
   const selectionBounds = {
-    top: (bounds.top - layerBounds.top) / activeZoom.value,
-    left: (bounds.left - layerBounds.left) / activeZoom.value,
-    right: (bounds.right - layerBounds.left) / activeZoom.value,
-    bottom: (bounds.bottom - layerBounds.top) / activeZoom.value,
+    top,
+    left: fromCoords.left,
+    right: toCoords.left,
+    bottom: toCoords.bottom - layerBounds.top,
   };
+
+  // const selectionBounds = {
+  //   top: (fromCoords.top - layerBounds.top) / activeZoom.value) - ,
+  //   left: (fromCoords.left - layerBounds.left) / activeZoom.value,
+  //   right: (fromCoords.right - layerBounds.left) / activeZoom.value,
+  //   bottom: (fromCoords.bottom - layerBounds.top) / activeZoom.value,
+  // };
 
   const selection = useSelection({
     selectionBounds,
@@ -173,14 +175,6 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
   });
 
   handleSelectionChange(selection);
-
-  // TODO: Figure out why the selection is being undone here and we need the delay
-  // setTimeout(() => {
-  //   const { activeThreadId } = transaction.getMeta('commentsPluginState') || {};
-  //   const document = getDocument(documentId);
-  //   const convo = document.conversations.find((c) => c.thread == activeThreadId);
-  //   activeComment.value = convo?.conversationId;
-  // }, 250);
 };
 
 function getSelectionBoundingBox() {
@@ -193,11 +187,6 @@ function getSelectionBoundingBox() {
 
   return null;
 }
-
-const onCommentClicked = ({ conversation }) => {
-  const { conversationId } = conversation;
-  activeComment.value = conversationId;
-};
 
 const onEditorCollaborationReady = ({ editor }) => {
   proxy.$superdoc.emit('collaboration-ready', { editor });
@@ -239,8 +228,7 @@ const editorOptions = (doc) => {
     onContentError: onEditorContentError,
     onException: onEditorException,
     onCommentsLoaded,
-    // onCommentClicked,
-    // onCommentsUpdate: onEditorCommentsUpdate,
+    onCommentsUpdate: onEditorCommentsUpdate,
     ydoc: doc.ydoc,
     collaborationProvider: doc.provider || null,
     isNewFile: doc.isNewFile || false,
@@ -249,7 +237,18 @@ const editorOptions = (doc) => {
   };
 
   return options;
-}
+};
+
+const onEditorCommentsUpdate = (params) => {
+  // Set the active comment in the store
+  const { activeCommentId } = params;
+  commentsStore.setActiveComment(activeCommentId);
+
+  // Bubble up the event to the user, if handled
+  if (typeof proxy.$superdoc.config.onCommentsUpdate === 'function') {
+    proxy.$superdoc.config.onCommentsUpdate(params);
+  }
+};
 
 const isCommentsEnabled = computed(() => 'comments' in modules);
 const showCommentsSidebar = computed(() => {
@@ -472,7 +471,7 @@ const handlePdfClick = (e) => {
         />
 
         <!-- On-document comments layer -->
-        <CommentsLayer
+        <!-- <CommentsLayer
           class="superdoc__comments-layer comments-layer"
           v-if="showCommentsSidebar"
           style="z-index: 3"
@@ -480,7 +479,7 @@ const handlePdfClick = (e) => {
           :parent="layers"
           :user="user"
           @highlight-click="handleHighlightClick"
-        />
+        /> -->
 
         <div class="superdoc__sub-document sub-document" v-for="doc in documents" :key="doc.id">
           <!-- PDF renderer -->
@@ -522,10 +521,19 @@ const handlePdfClick = (e) => {
         v-if="pendingComment"
         :comment="pendingComment"
         :auto-focus="true"
+        :is-floating="true"
         v-click-outside="cancelPendingComment"
       />
 
+      <!-- <FloatingComments
+        class="floating-comments"
+        v-if="isReady"
+        v-for="doc in documentsWithConverations"
+        :parent="layers"
+        :current-document="doc"
+      /> -->
       <FloatingComments
+        class="floating-comments"
         v-if="isReady"
         v-for="doc in documentsWithConverations"
         :parent="layers"
@@ -536,6 +544,10 @@ const handlePdfClick = (e) => {
 </template>
 
 <style scoped>
+.floating-comments {
+  background-color: red;
+}
+
 .superdoc {
   display: flex;
 }

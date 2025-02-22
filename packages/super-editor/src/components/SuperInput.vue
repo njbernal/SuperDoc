@@ -88,6 +88,7 @@ onBeforeUnmount(() => {
   border: 1px solid #999;
   outline: none;
   transition: border 0.2s ease;
+  background-color: white;
 }
 
 .editor-element {

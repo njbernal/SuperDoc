@@ -101,6 +101,7 @@ export class SuperDoc extends EventEmitter {
     conversations: [],
     pagination: false, // Optional: Whether to show pagination in SuperEditors
     isCollaborative: false,
+    isInternal: false,
 
     // toolbar config
     toolbar: null, // Optional DOM element to render the toolbar in
@@ -471,9 +472,11 @@ export class SuperDoc extends EventEmitter {
     }
   };
 
-  async exportEditorsToDOCX() {
+  async exportEditorsToDOCX({ exportType } = {}) {
     const comments = this.commentsStore?.prepareCommentsForExport();
     const docxPromises = [];
+
+    // TODO: Export clean, internal, external comments here
     this.superdocStore.documents.forEach((doc) => {
       const editor = doc.getEditor();
       if (editor) {
@@ -481,7 +484,7 @@ export class SuperDoc extends EventEmitter {
       }
     });
     return await Promise.all(docxPromises);
-  }
+  };
 
   /**
    * Request an immediate save from all collaboration documents

@@ -2,8 +2,9 @@ import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import { TrackInsertMarkName, TrackDeleteMarkName } from '../track-changes/constants.js';
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { comments_module_events } from '@harbour-enterprises/common';
 
-const CommentsPluginKey = new PluginKey('comments');
+export const CommentsPluginKey = new PluginKey('comments');
 
 export const CommentsPlugin = Extension.create({
   name: 'comments',
@@ -28,6 +29,47 @@ export const CommentsPlugin = Extension.create({
           dispatch(tr);
           return true;
         },
+      
+      setActiveComment: ({ commentId, importedId }) => ({ tr, dispatch, state }) => {
+        let activeThreadId = importedId;
+        if (importedId === undefined || importedId === null) activeThreadId = commentId;
+        tr.setMeta(CommentsPluginKey, { type: 'setActiveComment', activeThreadId });
+        return true;
+      },
+
+      setCommentInternal: ({ commentId, importedId, isInternal}) => ({ tr, dispatch, state }) => {
+        const { doc } = state;
+        let foundStartNode;
+        let foundPos;
+
+        // Find the commentRangeStart node that matches the comment ID
+        doc.descendants((node, pos) => { 
+          if (foundStartNode) return;
+          const { name } = node.type;
+          if (name !== 'commentRangeStart') return;
+
+          const wid = node.attrs['w:id']
+          if (wid == commentId || wid == importedId) {
+            foundStartNode = node;
+            foundPos = pos;
+          }
+        });
+
+        // If no matching node, return false
+        if (!foundStartNode) return false;
+
+        // Otherwise, set the internal attribute to the new value
+        tr.setNodeMarkup(foundPos, undefined, {
+          ...foundStartNode.attrs,
+          internal: isInternal,
+        });
+  
+        // Let comments plugin know we need to update
+        tr.setMeta(CommentsPluginKey, {type: 'setCommentInternal' });
+
+        dispatch(tr);
+        return true;
+      }
     };
   },
 
@@ -39,45 +81,55 @@ export const CommentsPlugin = Extension.create({
         init(_, { doc, selection }) {
           const { commentPositions, decorations:initialDecs } = processDocumentComments(editor, doc) || {};
           const decorations = initialDecs.length ? DecorationSet.create(doc, initialDecs) : DecorationSet.empty;
-
           return {
+            isReadyToInit: false,
             commentPositions,
             decorations,
             activeThreadId: null,
+            externalColor: '#B1124B',
+            internalColor: '#078383',
           };
         },
-        apply(tr, _, __, newEditorState) {
+        apply(tr, oldState, _, newEditorState) {
+          let activeThreadId;
+          let isForcingUpdate = false;
           const { selection } = tr;
           const doc = newEditorState.doc;
 
-          let activeThreadId = null;
+          const meta = tr.getMeta(CommentsPluginKey);
+
+          // If we have plugin meta, we will force update
+          if (meta?.type) isForcingUpdate = true;
+
+          // If we have a new active comment ID, we will update it
+          if (meta?.type === 'setActiveComment') activeThreadId = meta.activeThreadId;
+
+          // If the document hasn't changed, return the old state
+          if (!isForcingUpdate && !tr.docChanged && !tr.selectionSet) return { ...oldState }
 
           // If the selection changes, check if we're inside a comment
-          // if (!tr.docChanged && tr.selectionSet) {
-          //   activeThreadId = getActiveCommentId(doc, selection);
-          // }
+          if (!tr.docChanged && tr.selectionSet) {
+            const previousSelectionId = oldState.activeThreadId;
+            activeThreadId = getActiveCommentId(doc, selection);
 
-          // if (Object.keys(commentPositions)?.length || activeThreadId) {
-          //   tr.setMeta('commentsPluginState', { commentPositions, activeThreadId });
-          //   editor.emit('commentsUpdate', { editor, transaction: tr });
-          // }
+            // If the comment selection didn't change, return the old state
+            if (previousSelectionId === activeThreadId) return { ...oldState };
 
-          // tr.mapping.maps.forEach((stepMap, i) => {
-          //   stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
-          //     let node = newEditorState.doc.nodeAt(newStart);
-          //     if (node && node.type.name === "commentRangeEnd") {
-          //       const params = {
-          //         type: 'new',
-          //         id: node.attrs['w:id'],
-          //       };
-          //     }
-          //   });
-          // });
-          
-          const { commentPositions, decorations } = processDocumentComments(editor, doc) || {};
+            // Otherwise, we update the active comment ID
+            const update = {
+              type: comments_module_events.SELECTED,
+              activeCommentId: activeThreadId ? Number(activeThreadId) : null
+            };
+
+            editor.emit('commentsUpdate', update);
+          }
+
+          // Generate decorations for comment highlights
+          const { commentPositions, decorations } = processDocumentComments(editor, doc, activeThreadId) || {};
           return {
-            commentPositions,
+            ...oldState,
             activeThreadId,
+            commentPositions,
             decorations: DecorationSet.create(doc, decorations),
           };
         },
@@ -175,7 +227,7 @@ const updatePositions = (view, pos, currentPos) => {
  * @param {Number} pos The position of the node
  * @returns {void} allCommentPositions is modified in place
  */
-const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor }) => {
+const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor, activeThreadId }) => {
   const commentIds = new Set();
   const threadId = node.attrs['w:id'];
 
@@ -188,32 +240,41 @@ const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor
       end: null,
       internal: node.attrs.internal,
     };
-    console.debug('---START', allCommentPositions, threadId)
   } else if (node.type.name === 'commentRangeEnd') {
     const currentItem = allCommentPositions[threadId];
-    console.debug('---THREAD', threadId, currentItem, allCommentPositions);
     if (!currentItem) return;
     currentItem.end = pos + node.nodeSize;
 
+    const isInternal = currentItem.internal;
+    const color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
     const deco = Decoration.inline(
       currentItem.start,
       currentItem.end + 1,
-      { style: "background-color: #D2E5E6;" }
+      {
+        style: `background-color: ${color};`,
+        class: 'comment-highlight'
+      }
     );
     decorations.push(deco);
   };
 };
 
-const getCommentData = (editor) => {
-  const converter = editor.converter;
-  if (!converter) return;
-
-  const docx = converter.convertedXml;
-  const comments = docx['word/comments.xml'];
-  
-  return comments;
-};
-
+/**
+ * Get the highlight color for a comment or tracked changes node
+ * 
+ * @param {Object} param0 
+ * @param {String} param0.activeThreadId The active comment ID
+ * @param {String} param0.threadId The current thread ID
+ * @param {Boolean} param0.isInternal Whether the comment is internal or external
+ * @param {EditorView} param0.editor The current editor view
+ * @returns {String} The color to use for the highlight
+ */
+const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => {
+  const pluginState = CommentsPluginKey.getState(editor.state);
+  const color = isInternal ? pluginState.internalColor : pluginState.externalColor;
+  const alpha = activeThreadId == threadId ? '44' : '22';
+  return `${color}${alpha}`;
+}
 
 /**
  * Iterate through the document to track comment and tracked changes nodes
@@ -221,7 +282,7 @@ const getCommentData = (editor) => {
  * @param {*} doc The current document
  * @returns {Object} The positions of all tracked nodes where keys are the thread IDs
  */
-const processDocumentComments = (editor, doc) => {
+const processDocumentComments = (editor, doc, activeThreadId) => {
   const { view } = editor;
   const allCommentPositions = {};
   const decorations = [];
@@ -230,7 +291,7 @@ const processDocumentComments = (editor, doc) => {
   doc.descendants((node, pos) => {
     // Try to track comment nodes
     trackCommentNodes({
-      allCommentPositions, decorations, node, pos, editor,
+      allCommentPositions, decorations, node, pos, editor, activeThreadId,
     });
 
     // Try to track any tracked changes nodes
@@ -269,28 +330,41 @@ const getActiveCommentId = (doc, selection) => {
   }
 
   // Otherwise, we need to check for comment nodes
-  const overlappingThreadIds = new Set();
+  const overlaps = [];
   let found = false;
+  
+  // Look for commentRangeStart nodes before the current position
+  // There could be overlapping comments so we need to track all of them
   doc.descendants((node, pos) => {
     if (found) return;
-
     if (node.type.name === 'commentRangeStart') {
       // Track nodes that overlap with the selection
       if ($from.pos >= pos) {
-        overlappingThreadIds.add(node.attrs['w:id']);
+        node.attrs['w:id']
+        overlaps.push({
+          node,
+          pos,
+        });
       }
     }
 
-    if (node.type.name === 'commentRangeEnd') {
-      const threadId = node.attrs['w:id'];
-      const endPos = pos;
-      if ($from.pos > endPos) overlappingThreadIds.delete(threadId);
-    }
-
-    // If we pass the selection, return the ID if any
     if (pos > $from.pos) {
       found = true;
     }
   });
-  return overlappingThreadIds.size > 0 ? overlappingThreadIds.values().next().value : null;
+
+  let closest = null;
+  let closestCommentRangeStart = null;
+  // Get the closest commentRangeStart node to the current position
+  overlaps.forEach(({ pos, node }) => {
+    if (!closest) closest = $from.pos - pos;
+
+    const diff = $from.pos - pos;
+    if (diff >= 0 && diff <= closest) {
+      closestCommentRangeStart = node;
+      closest = diff;
+    }
+  });
+
+  return closestCommentRangeStart?.attrs['w:id'];
 };

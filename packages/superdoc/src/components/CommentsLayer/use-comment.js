@@ -14,11 +14,13 @@ import useSelection from '@superdoc/helpers/use-selection';
 export default function useComment(params) {
   const uid = ref(params.uid);
   const commentId = params.commentId || uuidv4();
+  const importedId = params.importedId;
   const parentCommentId = params.parentCommentId;
   const fileId = params.fileId;
   const fileType = params.fileType;
   const createdAtVersionNumber = params.createdAtVersionNumber;
   const isInternal = ref(params.isInternal !== undefined ? params.isInternal : true);
+
   const mentions = ref([]);
 
   const commentElement = ref(null);
@@ -75,6 +77,20 @@ export default function useComment(params) {
       comment: getValues()
     };
     propagateUpdate(superdoc, emitData);
+
+    const activeEditor = superdoc.activeEditor;
+    activeEditor.commands.setCommentInternal({ commentId, importedId, isInternal: newIsInternal });
+  };
+ 
+  /**
+   * Set this comment as the active comment in the editor
+   * 
+   * @param {Object} superdoc The SuperDoc instance
+   * @returns {void}
+   */
+  const setActive = (superdoc) => {
+    const { activeEditor } = superdoc;
+    activeEditor?.commands.setActiveComment({ commentId, importedId });
   };
 
   /**
@@ -101,6 +117,12 @@ export default function useComment(params) {
     propagateUpdate(superdoc, emitData);
   };
 
+  /**
+   * Extract mentions from comment contents
+   * 
+   * @param {String} htmlString 
+   * @returns {Array[Object]} An array of unique mentions
+   */
   const extractMentions = (htmlString) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
@@ -147,6 +169,7 @@ export default function useComment(params) {
     return {
       uid: uid.value,
       commentId,
+      importedId,
       parentCommentId,
       fileId,
       fileType,
@@ -168,6 +191,7 @@ export default function useComment(params) {
   return reactive({
     uid,
     commentId,
+    importedId,
     parentCommentId,
     fileId,
     fileType,
@@ -190,6 +214,7 @@ export default function useComment(params) {
     getValues,
     resolveComment,
     setIsInternal,
+    setActive,
   });
 };
 

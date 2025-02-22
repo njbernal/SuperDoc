@@ -58,7 +58,6 @@ const handleFocusChange = (focused) => emit('focus', focused);
 .comment-entry {
   box-sizing: border-box;
   border-radius: 8px;
-  border: 1px solid #dbdbdb !important;
   width: 100%;
   max-width: 100%;
   transition: all 250ms ease;

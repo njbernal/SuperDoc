@@ -4,6 +4,8 @@ export const comments_module_events = Object.freeze({
   ADD: 'add',
   UPDATE: 'update',
   DELETED: 'deleted',
+  PENDING: 'pending',
+  SELECTED: 'selected',
 
   // Tracked changes
   CHANGE_ACCEPTED: 'change-accepted',

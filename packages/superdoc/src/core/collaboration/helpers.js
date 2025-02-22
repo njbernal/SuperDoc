@@ -35,10 +35,14 @@ export const initCollaborationComments = (superdoc) => {
  * @returns {void}
  */
 export const initSuperdocYdoc = (superdoc) => {
+  const { isInternal } = superdoc.config;
+  const baseName = `${superdoc.config.superdocId}-superdoc`;
+  const documentId = isInternal ? baseName : `${baseName}-external`;
+
   const superdocCollaborationOptions = {
     config: superdoc.config.modules.collaboration,
     user: superdoc.config.user,
-    documentId: `${superdoc.config.superdocId}-superdoc`,
+    documentId,
     socket: superdoc.socket,
     superdocInstance: superdoc,
   };

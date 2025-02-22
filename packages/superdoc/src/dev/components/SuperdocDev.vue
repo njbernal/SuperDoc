@@ -120,6 +120,7 @@ const init = async () => {
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
     rulers: true,
+    isInternal: true,
     // isDev: true,
     user,
     title: 'Test document',
@@ -158,7 +159,9 @@ const init = async () => {
   superdoc.value = new SuperDoc(config);
   superdoc.value?.on('ready', () => {
     console.debug('SuperDoc ready');
+    superdoc.value.addCommentsList(commentsPanel.value);
   });
+
 
   // const ydoc = superdoc.value.ydoc;
   // const metaMap = ydoc.getMap('meta');

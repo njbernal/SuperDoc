@@ -53,7 +53,36 @@ export const useCommentsStore = defineStore('comments', () => {
     };
   };
 
+  /**
+   * Get a comment by either ID or imported ID
+   * 
+   * @param {string} id The comment ID
+   * @returns {Object} The comment object
+   */
+  const getComment = (id) => {
+    if (id === undefined || id === null) return null;
+    return commentsList.value.find((c) => c.commentId === id || c.importedId === id);
+  };
+
+  /**
+   * Set the active comment or clear all active comments
+   * 
+   * @param {string | undefined | null} id The comment ID
+   * @returns {void}
+   */
+  const setActiveComment = (id) => {
+    // If no ID, we clear any focused comments
+    if (id === undefined || id === null) {
+      return activeComment.value = null;
+    };
+
+    const comment = getComment(id);
+    if (comment) activeComment.value = comment.commentId;
+  };
+
   const showAddComment = (superdoc) => {    
+    superdoc.broadcastComments({ type: COMMENT_EVENTS.PENDING });
+
     const selection = { ...superdocStore.activeSelection };
     selection.selectionBounds = { ...selection.selectionBounds };
 
@@ -63,15 +92,20 @@ export const useCommentsStore = defineStore('comments', () => {
 
     pendingComment.value = getPendingComment({ selection, documentId: selection.documentId, parentCommentId: null });
 
-    if (pendingComment.value.selection.source === 'super-editor') {
+    if (pendingComment.value.selection.source === 'super-editor' && superdocStore.selectionPosition) {
       superdocStore.selectionPosition.source = 'super-editor';
     }
-    activeComment.value = pendingComment.value.conversationId;
+
+    activeComment.value = pendingComment.value.commentID;
   };
 
   const hasOverlapId = (id) => overlappedIds.includes(id);
   const documentsWithConverations = computed(() => {
-    return superdocStore.documents?.filter((d) => d.conversations.length > 0) || [];
+    return superdocStore.documents;
+    return superdocStore.documents?.filter((d) => {
+      console.debug("---D", d, "\n")
+      return d.conversations.length > 0
+    }) || [];
   });
 
   const getConfig = computed(() => {
@@ -276,6 +310,15 @@ export const useCommentsStore = defineStore('comments', () => {
     const newComment = useComment(comment.getValues());
     newComment.setText({ text: currentCommentText.value, suppressUpdate: true });
 
+    // Set isInternal flag
+    if (parentComment) {
+      const isParentInternal = parentComment.isInternal;
+      newComment.isInternal = isParentInternal;
+    }
+
+    // If the current user is not internal, set the comment to external
+    if (!superdoc.config.isInternal) newComment.isInternal = false;
+
     // Add the new comments to our global list
     commentsList.value.push(newComment);
 
@@ -363,6 +406,7 @@ export const useCommentsStore = defineStore('comments', () => {
       const newComment = useComment({
         fileId: documentId,
         fileType: document.type,
+        importedId: comment.importedId ? Number(comment.importedId): null,
         commentId: comment.id,
         parentCommentId: comment.parentCommentId,
         creatorEmail: comment.creatorEmail,
@@ -447,6 +491,8 @@ export const useCommentsStore = defineStore('comments', () => {
 
     // Actions
     init,
+    getComment,
+    setActiveComment,
     getCommentLocation,
     hasOverlapId,
     checkOverlaps,

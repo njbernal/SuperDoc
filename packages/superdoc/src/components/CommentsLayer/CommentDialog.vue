@@ -23,6 +23,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isFloating: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const { proxy } = getCurrentInstance();
@@ -39,6 +43,8 @@ const {
   pendingComment,
   currentCommentText,
 } = storeToRefs(commentsStore);
+
+const { activeZoom } = storeToRefs(superdocStore);
 
 const isInternal = ref(true);
 const isEditing = ref(false);
@@ -124,24 +130,31 @@ const isEditingThisComment = computed(() => (comment) => {
   return isEditing.value === comment.commentId;
 });
 
+const shouldShowInternalExternal = computed(() => {
+  if (!proxy.$superdoc.config.isInternal) return false;
+  return !suppressInternalExternal.value;
+});
+
 const setFocus = () => {
   activeComment.value = props.comment.commentId;
+  props.comment.setActive(proxy.$superdoc);
 };
 
 const handleClickOutside = (e) => {
+  //TODO: Fix this
+
   if (e.target.classList.contains('n-dropdown-option-body__label')) return;
   if (activeComment.value === props.comment.commentId) {
     floatingCommentsOffset.value = 0;
 
     emit('dialog-exit');
-    if (e.target.dataset.id) activeComment.value = e.target.dataset.id;
-    else if (!e.target.dataset.threadId) activeComment.value = null;
   };
 };
 
 const handleAddComment = () => {
   const options = {
     documentId: props.comment.fileId,
+    isInternal: pendingComment.value ? pendingComment.value.isInternal : isInternal.value,
     parentCommentId: pendingComment.value ? null : props.comment.commentId,
   };
 
@@ -176,10 +189,38 @@ const handleCommentUpdate = (comment) => {
 }
 
 const handleInternalExternalSelect = (value) => {
+  const isPendingComment = !!pendingComment.value;
   const isInternal = value.toLowerCase() === 'internal';
-  props.comment.setIsInternal({ isInternal: isInternal, superdoc: proxy.$superdoc });
+
+  if (!isPendingComment) props.comment.setIsInternal({ isInternal: isInternal, superdoc: proxy.$superdoc });
+  else pendingComment.value.isInternal = isInternal;
 };
 
+const getSidebarCommentStyle = computed(() => {
+  const style = {};
+
+  const comment = props.comment;
+  if (isActiveComment.value) {
+    style.backgroundColor = 'white';
+    style.zIndex = 10;
+  }
+
+  if (props.isFloating) {
+    const top = Math.max(96, (comment.selection.selectionBounds.top) * activeZoom.value);
+    style.top = top + 'px';
+    style.position = 'absolute';
+  }
+
+  // if (!props.data.threadedComments.length && currentElement.value) {
+  //   const selectionBounds = props.data.selection.getContainerLocation(props.parent);
+  //   const bounds = props.data.selection.selectionBounds;
+  //   const parentTop = props.parent?.getBoundingClientRect()?.top || 0;
+  //   const currentBounds = currentElement.value.getBoundingClientRect();
+  //   style.top = bounds.top * activeZoom.value + 'px';
+  // }
+
+  return style;
+});
 
 onMounted(() => {
   if (props.autoFocus) {
@@ -194,9 +235,10 @@ onMounted(() => {
     :class="{ 'is-active': isActiveComment, 'is-resolved': props.comment.resolvedTime }"
     v-click-outside="handleClickOutside"
     @click.stop.prevent="setFocus"
+    :style="getSidebarCommentStyle"
   >
 
-    <div v-if="!suppressInternalExternal" class="existing-internal-input">
+    <div v-if="shouldShowInternalExternal" class="existing-internal-input">
       <InternalDropdown
         class="internal-dropdown"
         :is-disabled="isInternalDropdownDisabled"

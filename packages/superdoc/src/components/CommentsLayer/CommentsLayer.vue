@@ -85,6 +85,7 @@ const setFloatingCommentOffset = (conversation) => {
 };
 
 const activateComment = (conversation) => {
+  console.debug('\n\n\n\nactivateComment', conversation);
   conversation.isFocused = true;
   activeComment.value = conversation.conversationId;
   setFloatingCommentOffset(conversation);
