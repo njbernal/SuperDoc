@@ -453,10 +453,10 @@ export class SuperDoc extends EventEmitter {
     this.emit('locked', { isLocked, lockedBy });
   }
 
-  async export(exportType = ['docx']) {
+  async export({ exportType = ['docx'], commentsType }) {
     // Get the docx files first
     const baseFileName = cleanName(this.config.title);
-    const docxFiles = await this.exportEditorsToDOCX();
+    const docxFiles = await this.exportEditorsToDOCX({ commentsType });
     const blobsToZip = [];
     const filenames = [];
 
@@ -477,15 +477,18 @@ export class SuperDoc extends EventEmitter {
     }
   };
 
-  async exportEditorsToDOCX({ exportType } = {}) {
-    const comments = this.commentsStore?.prepareCommentsForExport();
+  async exportEditorsToDOCX({ commentsType } = {}) {    
+    const comments = [];
+    if (commentsType !== 'clean') {
+      comments.push(...this.commentsStore?.prepareCommentsForExport());
+    };
     const docxPromises = [];
 
     // TODO: Export clean, internal, external comments here
     this.superdocStore.documents.forEach((doc) => {
       const editor = doc.getEditor();
       if (editor) {
-        docxPromises.push(editor.exportDocx({ comments }));
+        docxPromises.push(editor.exportDocx({ comments, commentsType }));
       }
     });
     return await Promise.all(docxPromises);

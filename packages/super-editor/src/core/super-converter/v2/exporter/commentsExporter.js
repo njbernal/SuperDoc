@@ -1,5 +1,6 @@
-import { COMMENTS_XML } from '../../exporter-docx-defs.js';
 import { translateParagraphNode } from '../../exporter.js';
+import { carbonCopy } from '../../../utilities/carbonCopy.js';
+import { COMMENT_REF } from '../../exporter-docx-defs.js';
 
 /**
  * Generate the end node for a comment
@@ -8,25 +9,24 @@ import { translateParagraphNode } from '../../exporter.js';
  * @returns {Object} The translated w:commentRangeEnd node for the comment
  */
 export function translateCommenNode(params, type) {
-  const { node } = params;
+  const { node, commentsExportType, exportedCommentDefs = [] } = params;
+
+  if (!exportedCommentDefs.length || commentsExportType === 'clean') return;
+  
   const nodeId = node.attrs['w:id'];
 
   // Check if the comment is resolved
-  let originalComment = params.comments[Number(nodeId)];
-  if (!originalComment) {
-    originalComment = params.comments.find((comment) => {
-      return comment.commentId === nodeId
-    });
-  };
+  const originalComment = params.comments.find((comment) => {
+    return comment.commentId == nodeId || comment.importedId == nodeId;
+  });
+  const commentIndex = params.comments.findIndex((comment) => comment === originalComment);
 
-  const commentIndex = params.comments.findIndex((comment) => comment.commentId === nodeId);
-  console.debug('---COMMENT', originalComment, commentIndex);
+
+  const isInternal = originalComment.isInternal;
+  if (commentsExportType === 'external' && isInternal) return;
 
   const isResolved = !!originalComment.resolvedTime;
   if (isResolved) return;
-
-  // const comment = params.exportedCommentDefs.find((comment) => comment.attributes['w:id'] === nodeId);
-  // if (!comment) return;
 
   let commentSchema = getCommentSchema(type, commentIndex);
   if (type === 'End') {
@@ -112,10 +112,13 @@ export const toIsoNoFractional = (unixMillis) => {
  * @returns {Object} - The updated portion of the comments XML structure.
  */
 export const updateCommentsXml = (commentDefs, commentsXml) => {
-  const commentsXmlCopy = commentsXml ? { ...commentsXml } : { ...COMMENTS_XML };
-  if (!commentsXmlCopy.elements) commentsXmlCopy.elements = [];
+  const newCommentsXml = carbonCopy(commentsXml);
 
-  console.debug('\n\n\ncommentsXmlCopy', commentsXml, '\n\n')
-  commentsXmlCopy.elements[0].elements = commentDefs;
-  return commentsXmlCopy;
+  // Re-build the comment definitions
+  commentDefs.forEach((commentDef) => {
+    commentDef.elements[0].elements.unshift(COMMENT_REF);
+  });
+
+  newCommentsXml.elements[0].elements = commentDefs;
+  return newCommentsXml;
 };

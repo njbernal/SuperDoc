@@ -183,8 +183,9 @@ const onContentError = ({ editor, error, documentId, file }) => {
   console.debug('Content error on', documentId, error);
 };
 
-const exportDocx = async () => {
-  await superdoc.value.export();
+const exportDocx = async (commentsType) => {
+  console.debug('Exporting docx', { commentsType });
+  await superdoc.value.export({ commentsType });
 };
 
 const onEditorCreate = ({ editor }) => {
@@ -227,7 +228,9 @@ onMounted(async () => {
           </div>
         </div>
         <div class="dev-app__header-side dev-app__header-side--right">
-          <button class="dev-app__header-export-btn" @click="exportDocx">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx()">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('clean')">Export clean Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('external')">Export external Docx</button>
         </div>
       </div>
 

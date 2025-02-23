@@ -114,3 +114,27 @@ export const COMMENTS_XML = {
       }
   ]
 };
+
+export const COMMENT_REF = {
+  "type": "element",
+  "name": "w:r",
+  "elements": [
+      {
+          "type": "element",
+          "name": "w:rPr",
+          "elements": [
+              {
+                  "type": "element",
+                  "name": "w:rStyle",
+                  "attributes": {
+                      "w:val": "CommentReference"
+                  }
+              }
+          ]
+      },
+      {
+          "type": "element",
+          "name": "w:annotationRef"
+      }
+  ]
+};

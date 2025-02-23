@@ -10,7 +10,6 @@ import { SuperConverter } from '@core/super-converter/SuperConverter.js';
 import { Commands, Keymap, Editable, EditorFocus } from './extensions/index.js';
 import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
-import { initComments } from '@features/index.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
@@ -881,13 +880,15 @@ export class Editor extends EventEmitter {
   /**
    * Export the editor document to DOCX.
    */
-  async exportDocx({ isFinalDoc = false, comments = [] } = {}) {
+  async exportDocx({ isFinalDoc = false, commentsType, comments = [] } = {}) {
+    console.debug('\n\n EXPORT COMMENTS WITH:', commentsType, '\n\n')
     const json = this.getJSON();
     const documentXml = await this.converter.exportToDocx(
       json,
       this.schema,
       this.storage.image.media,
       isFinalDoc,
+      commentsType,
       comments,
     );
 
@@ -895,7 +896,9 @@ export class Editor extends EventEmitter {
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
-    const commentsXml = this.converter.schemaToXml(this.converter.convertedXml['word/comments.xml'].elements[0]);
+  
+    const originalCommentsXml = this.converter.convertedXml['word/comments.xml'];
+    const updatedCommentsXml = originalCommentsXml ? this.converter.schemaToXml(originalCommentsXml.elements[0]) : null;
     const media = this.converter.addedMedia;
 
     const updatedDocs = {
@@ -903,8 +906,10 @@ export class Editor extends EventEmitter {
       'word/_rels/document.xml.rels': String(rels),
       'docProps/custom.xml': String(customXml),
       'word/settings.xml': String(customSettings),
-      'word/comments.xml': String(commentsXml),
     };
+
+    // Add comments.xml to the list of files to update if we have any comments
+    if (updatedCommentsXml) updatedDocs['word/comments.xml'] = String(updatedCommentsXml);
 
     const zipper = new DocxZipper();
     const result = await zipper.updateZip({

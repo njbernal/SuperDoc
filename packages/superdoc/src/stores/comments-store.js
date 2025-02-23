@@ -61,7 +61,7 @@ export const useCommentsStore = defineStore('comments', () => {
    */
   const getComment = (id) => {
     if (id === undefined || id === null) return null;
-    return commentsList.value.find((c) => c.commentId === id || c.importedId === id);
+    return commentsList.value.find((c) => c.commentId == id || c.importedId == id);
   };
 
   /**

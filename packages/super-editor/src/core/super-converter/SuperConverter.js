@@ -296,10 +296,12 @@ class SuperConverter {
     editorSchema,
     documentMedia,
     isFinalDoc = false,
-    comments = []
+    commentsExportType,
+    comments = [],
   ) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
     const commentDefinitions = comments.map((c, index) => getCommentDefinition(c, index));
+
     const [result, params] = exportSchemaToJson({
       node: jsonData,
       bodyNode,
@@ -311,8 +313,10 @@ class SuperConverter {
       converter: this,
       pageStyles: this.pageStyles,
       comments,
+      commentsExportType,
       exportedCommentDefs: commentDefinitions,
     });
+
     
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
@@ -328,7 +332,7 @@ class SuperConverter {
     this.#exportProcessNewRelationships(params.relationships);
 
     // Update the comments.xml file
-    this.#updateCommentsFiles(params.exportedCommentDefs);
+    this.#updateCommentsFiles(params.exportedCommentDefs, commentsExportType);
   
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
@@ -336,12 +340,26 @@ class SuperConverter {
     return xml;
   }
 
-  #updateCommentsFiles(exportedCommentDefs) {
-    if (!exportedCommentDefs?.length) return;
-    const commentsXml = this.convertedXml['word/comments.xml'];
-    const commentsXmlCopy = commentsXml ? { ...commentsXml } : { ...COMMENTS_XML };
-    console.debug('\n\n\ncommentsXmlCopy', commentsXml, '\n\n');
-    // const updatedCommentsXml = updateCommentsXml(exportedCommentDefs, commentsXml);
+  /**
+   * Update the comments.xml file with the exported comments if necessary
+   * 
+   * @param {Array[Object]} exportedCommentDefs 
+   * @param {String} commentsExportType 
+   * @returns {void}
+   */
+  #updateCommentsFiles(exportedCommentDefs, commentsExportType) {
+    const originalXml = this.convertedXml['word/comments.xml'];
+
+    // If there were no original comments, and we're exporting a clean document, we don't need to do anything
+    if (!originalXml && commentsExportType === 'clean') return;
+
+    // If we had previous comments, but exporting clean, we need to remove them
+    const commentsXml = { ...this.convertedXml['word/comments.xml'] };
+    if (commentsXml && commentsExportType === 'clean') {
+      return this.convertedXml['word/comments.xml'] = { ...COMMENTS_XML };
+    };
+
+    const updatedCommentsXml = updateCommentsXml(exportedCommentDefs, commentsXml);
     this.convertedXml['word/comments.xml'] = updatedCommentsXml;
   }
 
