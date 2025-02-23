@@ -453,9 +453,9 @@ export class SuperDoc extends EventEmitter {
     this.emit('locked', { isLocked, lockedBy });
   }
 
-  async export({ exportType = ['docx'], commentsType }) {
+  async export({ exportType = ['docx'], commentsType, exportedName }) {
     // Get the docx files first
-    const baseFileName = cleanName(this.config.title);
+    const baseFileName = exportedName ? cleanName(exportedName) : cleanName(this.config.title);
     const docxFiles = await this.exportEditorsToDOCX({ commentsType });
     const blobsToZip = [];
     const filenames = [];
