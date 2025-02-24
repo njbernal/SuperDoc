@@ -8,7 +8,7 @@ import { COMMENT_REF } from '../../exporter-docx-defs.js';
  * @param {Object} params The export params
  * @returns {Object} The translated w:commentRangeEnd node for the comment
  */
-export function translateCommenNode(params, type) {
+export function translateCommentNode(params, type) {
   const { node, commentsExportType, exportedCommentDefs = [] } = params;
 
   if (!exportedCommentDefs.length || commentsExportType === 'clean') return;

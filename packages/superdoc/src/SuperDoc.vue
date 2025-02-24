@@ -520,7 +520,8 @@ const handlePdfClick = (e) => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
+    <div class="superdoc__right-sidebar right-sidebar">
+      {{ isCommentsListVisible }}
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"

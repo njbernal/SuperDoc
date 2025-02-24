@@ -116,8 +116,8 @@ const renderDialog = (data) => {
 const sortByLocation = (a, b) => {
   // Sort comments by page and by position first
 
-  const pageA = a.selection.page;
-  const pageB = b.selection.page;
+  const pageA = a.selection?.page || 0;
+  const pageB = b.selection?.page || 0;
   if (pageA !== pageB) return pageA - pageB;
 
   const topB = b.selection.selectionBounds.top;
@@ -126,6 +126,7 @@ const sortByLocation = (a, b) => {
 };
 
 const initialize = () => {
+  console.debug('\n\n INITIALIZE \n\n')
   visibleConversations.value = [];
   sortedConversations.value = [];
   nextTick(() => initializeConvos());
@@ -152,8 +153,8 @@ const getFloatingSidebarStyle = computed(() => {
 });
 
 // Update the floating comments when the conversations change
-watch(commentsList, (newVal) => newVal.length && initialize());
-watch(activeComment, (newVal) => {
+watch(commentsList.value, (newVal) => initialize());
+watch(activeComment.value, (newVal) => {
   setTimeout(() => {
     if (!activeComment.value) {
       floatingCommentsOffset.value = 0;
@@ -173,6 +174,7 @@ onMounted(() => {
 
 <template>
   <div class="section-wrapper" ref="floatingCommentsContainer">
+    visible {{ visibleConversations }}
     <div :style="getFloatingSidebarStyle" class="sidebar-container">
       <div v-for="floatingComment in visibleConversations">
         <CommentDialog

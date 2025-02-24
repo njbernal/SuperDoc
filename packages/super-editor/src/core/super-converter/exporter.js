@@ -7,7 +7,7 @@ import { inchesToTwips, linesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsTo
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
-import { translateCommenNode } from './v2/exporter/commentsExporter.js';
+import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 
 /**
  * @typedef {Object} ExportParams
@@ -73,8 +73,8 @@ export function exportSchemaToJson(params) {
     tab: translateTab,
     image: translateImageNode,
     hardBreak: translateHardBreak,
-    commentRangeStart: () => translateCommenNode(params, 'Start'),
-    commentRangeEnd: () => translateCommenNode(params, 'End'),
+    commentRangeStart: () => translateCommentNode(params, 'Start'),
+    commentRangeEnd: () => translateCommentNode(params, 'End'),
     commentReference: () => null,
   };
 

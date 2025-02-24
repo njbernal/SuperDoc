@@ -881,7 +881,6 @@ export class Editor extends EventEmitter {
    * Export the editor document to DOCX.
    */
   async exportDocx({ isFinalDoc = false, commentsType, comments = [] } = {}) {
-    console.debug('\n\n EXPORT COMMENTS WITH:', commentsType, '\n\n')
     const json = this.getJSON();
     const documentXml = await this.converter.exportToDocx(
       json,
