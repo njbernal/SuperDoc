@@ -49,7 +49,7 @@ export default defineConfig(({ mode, command}) => {
       targets: [
         {
           src: path.resolve(__dirname, '../super-editor/dist/*'),
-          dest: 'dist',
+          dest: 'dist/super-editor',
         }
       ],
       hook: 'writeBundle'
