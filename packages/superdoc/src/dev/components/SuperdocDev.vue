@@ -121,6 +121,7 @@ const init = async () => {
     pagination: true,
     rulers: true,
     isInternal: true,
+    telemetry: false,
     // isDev: true,
     user,
     title: 'Test document',

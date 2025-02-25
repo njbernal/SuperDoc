@@ -23,9 +23,9 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  isFloating: {
-    type: Boolean,
-    default: false,
+  parent: {
+  type: Object,
+    required: false,
   },
 });
 
@@ -214,20 +214,6 @@ const getSidebarCommentStyle = computed(() => {
     style.backgroundColor = 'white';
     style.zIndex = 10;
   }
-
-  if (props.isFloating) {
-    const top = Math.max(96, (comment.selection.selectionBounds.top) * activeZoom.value);
-    style.top = top + 'px';
-    style.position = 'absolute';
-  }
-
-  // if (!props.data.threadedComments.length && currentElement.value) {
-  //   const selectionBounds = props.data.selection.getContainerLocation(props.parent);
-  //   const bounds = props.data.selection.selectionBounds;
-  //   const parentTop = props.parent?.getBoundingClientRect()?.top || 0;
-  //   const currentBounds = currentElement.value.getBoundingClientRect();
-  //   style.top = bounds.top * activeZoom.value + 'px';
-  // }
 
   return style;
 });

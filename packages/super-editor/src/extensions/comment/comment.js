@@ -1,4 +1,4 @@
-import { Node } from '@core/index.js';
+import { Node, Attribute } from '@core/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export const CommentRangeStart = Node.create({
@@ -6,16 +6,28 @@ export const CommentRangeStart = Node.create({
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
 
   parseDOM() {
     return [{ tag: 'commentRangeStart' }];
   },
 
-  renderDOM() {
-    return ['commentRangeStart', 0];
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
+
+  renderDOM({ htmlAttributes}) {
+    return ['commentRangeStart', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {
@@ -36,16 +48,28 @@ export const CommentRangeEnd = Node.create({
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
+
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
 
   parseDOM() {
     return [{ tag: 'commentRangeEnd' }];
   },
 
-  renderDOM() {
-    return ['commentRangeEnd', 0];
+  renderDOM({ htmlAttributes }) {
+    return ['commentRangeEnd', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {
@@ -62,16 +86,28 @@ export const CommentReference = Node.create({
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
+
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
 
   parseDOM() {
     return [{ tag: 'commentReference' }];
   },
 
-  renderDOM() {
-    return ['commentReference', 0];
+  renderDOM({ htmlAttributes }) {
+    return ['commentReference', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {

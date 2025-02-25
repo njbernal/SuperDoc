@@ -54,8 +54,9 @@ const {
   skipSelectionUpdate,
   commentsByDocument,
   isCommentsListVisible,
+  isFloatingCommentsReady,
 } = storeToRefs(commentsStore);
-const { initialCheck, showAddComment } = commentsStore;
+const { initialCheck, showAddComment, handleEditorLocationsUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -74,7 +75,7 @@ const handleDocumentReady = (documentId, container) => {
   doc.isReady = true;
   doc.container = container;
   if (areDocumentsReady.value) {
-    isReady.value = true;
+    if (!proxy.$superdoc.config.collaboration) isReady.value = true;
     nextTick(() => initialCheck());
   }
   proxy.$superdoc.broadcastPdfDocumentReady();
@@ -161,13 +162,6 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
     bottom: toCoords.bottom - layerBounds.top,
   };
 
-  // const selectionBounds = {
-  //   top: (fromCoords.top - layerBounds.top) / activeZoom.value) - ,
-  //   left: (fromCoords.left - layerBounds.left) / activeZoom.value,
-  //   right: (fromCoords.right - layerBounds.left) / activeZoom.value,
-  //   bottom: (fromCoords.bottom - layerBounds.top) / activeZoom.value,
-  // };
-
   const selection = useSelection({
     selectionBounds,
     page: 1,
@@ -191,6 +185,11 @@ function getSelectionBoundingBox() {
 
 const onEditorCollaborationReady = ({ editor }) => {
   proxy.$superdoc.emit('collaboration-ready', { editor });
+
+  nextTick(() => {
+    commentsStore.lastChange = Date.now();
+    isReady.value = true;
+  });
 };
 
 const onEditorContentError = ({ error, editor }) => {
@@ -230,6 +229,7 @@ const editorOptions = (doc) => {
     onException: onEditorException,
     onCommentsLoaded,
     onCommentsUpdate: onEditorCommentsUpdate,
+    onCommentLocationsUpdate: onEditorCommentLocationsUpdate,
     ydoc: doc.ydoc,
     collaborationProvider: doc.provider || null,
     isNewFile: doc.isNewFile || false,
@@ -239,6 +239,17 @@ const editorOptions = (doc) => {
 
   return options;
 };
+
+/**
+ * Trigger a comment-positions location update
+ * This is called when the editor has updated the comment locations
+ * 
+ * @returns {void}
+ */
+const onEditorCommentLocationsUpdate = () => {
+  if (!proxy.$superdoc.config.modules?.comments) return;
+  handleEditorLocationsUpdate(layers.value);
+}
 
 const onEditorCommentsUpdate = (params) => {
   // Set the active comment in the store
@@ -521,7 +532,6 @@ const handlePdfClick = (e) => {
     </div>
 
     <div class="superdoc__right-sidebar right-sidebar">
-      {{ isCommentsListVisible }}
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"
@@ -529,10 +539,10 @@ const handlePdfClick = (e) => {
         :is-floating="true"
         v-click-outside="cancelPendingComment"
       />
-
+      
       <FloatingComments
         class="floating-comments"
-        v-if="isReady && !isCommentsListVisible"
+        v-if="isReady && isFloatingCommentsReady && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"

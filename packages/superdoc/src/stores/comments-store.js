@@ -26,12 +26,14 @@ export const useCommentsStore = defineStore('comments', () => {
   const currentCommentText = ref('');
   const commentsList = ref([]);
   const isCommentsListVisible = ref(false);
+  const lastChange = ref(Date.now());
 
   // Floating comments
   const floatingCommentsOffset = ref(0);
   const sortedConversations = ref([]);
   const visibleConversations = ref([]);
   const skipSelectionUpdate = ref(false);
+  const isFloatingCommentsReady = ref(false);
 
   const pendingComment = ref(null);
 
@@ -436,6 +438,7 @@ export const useCommentsStore = defineStore('comments', () => {
    */
   const processLoadedDocxComments = ({ comments, documentId }) => {
     const document = superdocStore.getDocument(documentId);
+
     comments.forEach((comment) => {
       const importedName = `${comment.creatorName} (imported)`;
       const newComment = useComment({
@@ -482,6 +485,28 @@ export const useCommentsStore = defineStore('comments', () => {
   };
 
   /**
+   * Triggered when the editor locations are updated
+   * Updates floating comment locations from the editor
+   * 
+   * @param {DOMElement} parentElement The parent element of the editor
+   * @returns {void}
+   */
+  const handleEditorLocationsUpdate = (parentElement) => {
+    setTimeout(() => {
+      const allCommentElements = document.querySelectorAll('[data-thread-id]');
+      allCommentElements.forEach((commentElement) => {
+        const threadId = commentElement.dataset.threadId;
+        const comment = getComment(threadId);
+        const coords = commentElement.getBoundingClientRect();
+        if (comment) comment.updatePosition(coords, parentElement);
+      });
+
+      lastChange.value = Date.now();
+      isFloatingCommentsReady.value = true;
+    }, 50)
+  };
+
+  /**
    * Get HTML content from the comment text JSON (which uses DOCX schema)
    * 
    * @param {Object} commentTextJson The comment text JSON
@@ -510,12 +535,14 @@ export const useCommentsStore = defineStore('comments', () => {
     currentCommentText,
     commentsList,
     isCommentsListVisible,
+    lastChange,
 
     // Floating comments
     floatingCommentsOffset,
     sortedConversations,
     visibleConversations,
     skipSelectionUpdate,
+    isFloatingCommentsReady,
 
     // Getters
     getConfig,
@@ -541,5 +568,6 @@ export const useCommentsStore = defineStore('comments', () => {
     removePendingComment,
     processLoadedDocxComments,
     prepareCommentsForExport,
+    handleEditorLocationsUpdate,
   };
 });

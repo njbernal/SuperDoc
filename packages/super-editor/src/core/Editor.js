@@ -13,6 +13,7 @@ import { isActive } from './helpers/isActive.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
+import { CommentsPluginKey } from '../extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import DocxZipper from '@core/DocxZipper.js';
 
@@ -75,6 +76,7 @@ export class Editor extends EventEmitter {
     onCommentsUpdate: () => null,
     onCommentsLoaded: () => null,
     onCommentClicked: () => null,
+    onCommentLocationsUpdate: () => null,
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
@@ -140,13 +142,16 @@ export class Editor extends EventEmitter {
     this.on('locked', this.options.onDocumentLocked);
     this.on('collaborationReady', this.#onCollaborationReady);
     this.on('paginationUpdate', this.options.onPaginationUpdate);
+    this.on('comment-positions', this.options.onCommentLocationsUpdate);
 
-    this.#loadComments();
     this.initializeCollaborationData();
 
     // Init pagination only if we are not in collaborative mode. Otherwise
     // it will be in itialized via this.#onCollaborationReady
-    if (!this.options.ydoc) this.#initPagination();
+    if (!this.options.ydoc) {
+      this.#initPagination();
+      this.#initComments();
+    };
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -703,7 +708,22 @@ export class Editor extends EventEmitter {
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
     this.#initPagination();
-  }
+    this.#initComments();
+  };
+
+  /**
+   * Initialize comments plugin
+   */
+  #initComments() {
+    if (this.options.isHeadless) return;
+    this.emit('commentsLoaded', { editor: this, comments: this.converter.comments || [] });
+
+    setTimeout(() => {
+      const { state, dispatch } = this.view;
+      const tr = state.tr.setMeta(CommentsPluginKey, { type: 'force' });
+      dispatch(tr);
+    }, 50);
+  };
 
   /**
    * Initialize pagination, if the pagination extension is enabled.
@@ -722,7 +742,7 @@ export class Editor extends EventEmitter {
       const tr = state.tr.setMeta(PaginationPluginKey, { isReadyToInit: true });
       dispatch(tr);
     }
-  }
+  };
 
   /**
    * The callback which is used to intercept View transactions.
@@ -795,14 +815,6 @@ export class Editor extends EventEmitter {
       editor: this,
       transaction,
     });
-  }
-
-  /**
-   * Load the document comments.
-   */
-  #loadComments() {
-    if (!this.converter.comments) return;
-    this.emit('commentsLoaded', { editor: this, comments: this.converter.comments });
   }
 
   /**

@@ -43,7 +43,6 @@ import { Link } from './link/index.js';
 import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
 
 // Plugins
-import { DecorationClick } from './decoration-click/index.js';
 import { CommentsPlugin } from './comment/index.js';
 import { Placeholder } from './placeholder/index.js';
 import { PopoverPlugin } from './popover-plugin/index.js';
@@ -65,7 +64,6 @@ const getRichTextExtensions = () => [
   Text,
   TextStyle,
   Underline,
-  DecorationClick,
   Placeholder,
   PopoverPlugin,
   Mention,
@@ -102,7 +100,6 @@ const getStarterExtensions = () => {
     TextStyle,
     Underline,
     FormatCommands,
-    DecorationClick,
     CommentsPlugin,
     Table,
     TableRow,
@@ -153,7 +150,6 @@ export {
   TextStyle,
   LineHeight,
   FormatCommands,
-  DecorationClick,
   CommentsPlugin,
   Table,
   TableRow,

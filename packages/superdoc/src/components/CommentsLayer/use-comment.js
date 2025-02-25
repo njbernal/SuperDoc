@@ -32,7 +32,14 @@ export default function useComment(params) {
 
   const commentText = ref(params.commentText || '');
 
-  const selection = params.selection ? useSelection(params.selection) : null;
+  const selection = params.selection 
+    ? useSelection(params.selection)
+    : useSelection({
+      documentId: fileId,
+      page: 1,
+      selectionBounds: {},
+    });
+  
   const trackedChange = ref(params.trackedChange);
 
   const resolvedTime = ref(params.resolvedTime || null);
@@ -136,7 +143,7 @@ export default function useComment(params) {
         const hasName = m.name === span.getAttribute('name');
         return hasEmail && hasName;
       });
-      
+
       if (!alreadyExists) {
         uniqueMentions.push({
           name: span.getAttribute('name'),
@@ -146,6 +153,25 @@ export default function useComment(params) {
     });
 
     return uniqueMentions;
+  };
+
+  /**
+   * Update the selection bounds of this comment
+   * 
+   * @param {Object} coords Object containing the selection bounds
+   * @param {*} source Specifies the source of the selection bounds
+   */
+  const updatePosition = (coords, parentElement) => {
+    selection.source = 'super-editor';
+    const parentTop = parentElement?.getBoundingClientRect()?.top
+
+    const newCoords = {
+      top: coords.top - parentTop,
+      left: coords.left,
+      right: coords.right,
+      bottom: coords.bottom - parentTop,
+    }
+    selection.selectionBounds = newCoords;
   };
 
   /**
@@ -215,6 +241,7 @@ export default function useComment(params) {
     resolveComment,
     setIsInternal,
     setActive,
+    updatePosition,
   });
 };
 

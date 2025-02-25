@@ -18,6 +18,7 @@ const {
   activeComment,
   commentsList,
   getGroupedComments,
+  lastChange,
 } = storeToRefs(commentsStore);
 const { user, activeZoom } = storeToRefs(superdocStore);
 
@@ -45,71 +46,41 @@ const floatingCommentsContainer = ref(null);
 
 const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
   // Called when a dialog has mounted
-  // We must check for collisions against the previous dialog and adjust location if necessary
-
   const dialogIndex = sortedConversations.value.findIndex((c) => c.commentId === dialogId);
   if (dialogIndex === -1 || dialogIndex >= sortedConversations.length - 1) return;
-  
+
   // This is our current comment
   const dialog = visibleConversations.value[dialogIndex];
   if (!dialog) return;
 
-  // Need to calculate the exact position of the dialog
-  const selectionBounds = dialog.comment.selection.getContainerLocation(props.parent);
-  const position = elementRef.value.getBoundingClientRect();
-  const selection = dialog.comment.selection.selectionBounds;
-  const top = parseFloat(selection.top) * activeZoom.value;
-  const left = (parseFloat(selection.left) + position.left) * activeZoom.value;
-
-  dialog.position = {
-    top,
-    left,
-    bottom: (top + position.height) * activeZoom.value,
-    right: (left + position.width) * activeZoom.value,
-  };
-
-  // Check for collisions
-  const resultingPosition = checkCollisions({ ...dialog.position }, dialogIndex);
-  if (dialogIndex > 0) dialog.position = resultingPosition;
-
-  // Render the next dialog
-  nextTick(() => renderDialog(sortedConversations.value[dialogIndex + 1]));
+  nextTick(() => {
+    const selectionBounds = elementRef.value.getBoundingClientRect();
+    renderDialog(sortedConversations.value[dialogIndex + 1], sortedConversations.value[dialogIndex], selectionBounds)
+  });
 };
 
-const checkCollisions = (proposedPosition, dialogIndex) => {
-  // Checks for collisions between the current dialog position and the previous one
-  // Important: this only works if the list is sorted to begin with
-
-  const updatedPosition = { ...proposedPosition };
-  if (dialogIndex === 0) return updatedPosition;
-
-  const currentItem = visibleConversations.value[dialogIndex];
-  const previousItem = visibleConversations.value[dialogIndex - 1];
-  const previousPosition = previousItem.position;
-  const topComparison = proposedPosition.top < previousPosition.bottom;
-
-  // If we have a collision, adjust the top and bottom positions
-  if (topComparison) {
-    const height = proposedPosition.bottom - proposedPosition.top;
-    const newTop = (previousPosition.bottom + 5) / activeZoom.value;
-    currentItem.offset = newTop - proposedPosition.top;
-    updatedPosition.top = newTop;
-    updatedPosition.bottom = updatedPosition.top + height;
-  }
-
-  if (currentItem.id === activeComment.value) {
-    floatingCommentsOffset.value += currentItem.offset;
-    offset = updatedPosition.top;
-
-    const diff = updatedPosition.top - proposedPosition.top;
-    floatingCommentsOffset.value += diff;
-  }
-  return updatedPosition;
-};
-
-const renderDialog = (data) => {
+/**
+ * Render the next dialog. Check to see if it would overlap with the previous one and if so,
+ * adjust the top position of the next dialog.
+ * 
+ * @param {Object} data The next comment to render
+ * @param {Object} previousNode The previous comment rendered
+ * @param {Object} previousBounds The bounds of the previous comment
+ * @returns {void}
+ */
+const renderDialog = (data, previousNode, previousBounds) => {
   if (!data) return;
-  const nextConvo = useFloatingComment(data);
+  const nextConvo = data;
+  const commentTop = nextConvo.selection?.selectionBounds.top;
+
+  const previousTop = previousNode.selection?.selectionBounds.top;
+
+  const previousBottom = previousTop + previousBounds.height;
+  nextConvo.selection.selectionBounds.top = data.selection?.selectionBounds.top; 
+
+  if (commentTop <= previousBottom || !nextConvo.selection.selectionBounds.top) {
+    nextConvo.selection.selectionBounds.top = previousBottom + 5;
+  }
   visibleConversations.value.push(nextConvo);
 };
 
@@ -126,9 +97,9 @@ const sortByLocation = (a, b) => {
 };
 
 const initialize = () => {
-  console.debug('\n\n INITIALIZE \n\n')
   visibleConversations.value = [];
   sortedConversations.value = [];
+  updateOffset();
   nextTick(() => initializeConvos());
 };
 
@@ -136,54 +107,61 @@ const initializeConvos = () => {
   sortedConversations.value = getGroupedComments.value?.parentComments.sort(sortByLocation);
   if (!sortedConversations.value?.length) return;
 
-  const floatingComment = useFloatingComment(sortedConversations.value[0])
-  visibleConversations.value.push(floatingComment);
+  const firstComment = sortedConversations.value[0];
+  visibleConversations.value.push(firstComment);
 };
 
 const getCommentPosition = (floatingComment) => {
   return {
-    top: floatingComment.position.top + 'px',
+    top: floatingComment.selection.selectionBounds.top + 'px',
   };
 };
 
 const getFloatingSidebarStyle = computed(() => {
   return {
-    marginTop: floatingCommentsOffset.value * (-1 / 2) + 'px',
+    transform: `translateY(${floatingCommentsOffset.value * (-1 / 2)}px)`,
+    transition: 'all 0.3s ease',
   };
 });
 
+/**
+ * Update the offset of the floating comments
+ * 
+ * @returns {void}
+ */
+const updateOffset = () => {
+  const comment = commentsStore.getComment(activeComment.value);
+  if (!comment) floatingCommentsOffset.value = 0;
+  else floatingCommentsOffset.value = comment.selection.selectionBounds.top;
+};
+
 // Update the floating comments when the conversations change
-watch(commentsList.value, (newVal) => initialize());
-watch(activeComment.value, (newVal) => {
+watch(lastChange, (newVal) => initialize());
+
+watch(activeComment, (newVal) => {
   setTimeout(() => {
     if (!activeComment.value) {
-      floatingCommentsOffset.value = 0;
       initialize();
     }
   });
 });
 watch(activeZoom, () => {
-  floatingCommentsOffset.value = 0;
   initialize();
 });
 
-onMounted(() => {
-  initialize();
-});
 </script>
 
 <template>
   <div class="section-wrapper" ref="floatingCommentsContainer">
-    visible {{ visibleConversations }}
-    <div :style="getFloatingSidebarStyle" class="sidebar-container">
+    <div :style="getFloatingSidebarStyle" class="sidebar-container" :key="lastChange">
       <div v-for="floatingComment in visibleConversations">
         <CommentDialog
           class="floating-comment"
           @ready="handleDialogReady"
           @dialog-exit="initialize"
+          :parent="parent"
           :style="getCommentPosition(floatingComment)"
-          :comment="floatingComment.comment"
-          :is-floating="true"
+          :comment="floatingComment"
         />
       </div>
     </div>

@@ -75,16 +75,13 @@ export const CommentsPlugin = Extension.create({
 
   addPmPlugins() {
     const editor = this.editor;
+    let hasInitialized = false;
     const commentsPlugin = new Plugin({
       key: CommentsPluginKey,
       state: {
         init(_, { doc, selection }) {
-          const { commentPositions, decorations:initialDecs } = processDocumentComments(editor, doc) || {};
-          const decorations = initialDecs.length ? DecorationSet.create(doc, initialDecs) : DecorationSet.empty;
           return {
-            isReadyToInit: false,
-            commentPositions,
-            decorations,
+            decorations: DecorationSet.empty,
             activeThreadId: null,
             externalColor: '#B1124B',
             internalColor: '#078383',
@@ -99,16 +96,16 @@ export const CommentsPlugin = Extension.create({
           const meta = tr.getMeta(CommentsPluginKey);
 
           // If we have plugin meta, we will force update
-          if (meta?.type) isForcingUpdate = true;
+          if (meta?.type === 'force') isForcingUpdate = true;
 
           // If we have a new active comment ID, we will update it
           if (meta?.type === 'setActiveComment') activeThreadId = meta.activeThreadId;
 
           // If the document hasn't changed, return the old state
-          if (!isForcingUpdate && !tr.docChanged && !tr.selectionSet) return { ...oldState }
+          if (!isForcingUpdate && hasInitialized && !tr.docChanged && !tr.selectionSet) return { ...oldState }
 
           // If the selection changes, check if we're inside a comment
-          if (!tr.docChanged && tr.selectionSet) {
+          if (!isForcingUpdate && hasInitialized && !tr.docChanged && tr.selectionSet) {
             const previousSelectionId = oldState.activeThreadId;
             activeThreadId = getActiveCommentId(doc, selection);
 
@@ -125,12 +122,20 @@ export const CommentsPlugin = Extension.create({
           }
 
           // Generate decorations for comment highlights
-          const { commentPositions, decorations } = processDocumentComments(editor, doc, activeThreadId) || {};
+          const { decorations } = processDocumentComments(editor, doc, activeThreadId) || {};
+          const decorationSet = DecorationSet.create(doc, decorations);
+          const previousDecorations = oldState.decorations;
+          if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
+    
+          // Emit the comment-positions event which signals that comments might have changed
+          // SuperDoc will use this to update floating comments as necessary
+          if (hasInitialized) editor.emit('comment-positions');
+
+          hasInitialized = true;
           return {
             ...oldState,
             activeThreadId,
-            commentPositions,
-            decorations: DecorationSet.create(doc, decorations),
+            decorations: decorationSet,
           };
         },
       },
@@ -252,7 +257,8 @@ const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor
       currentItem.end + 1,
       {
         style: `background-color: ${color};`,
-        class: 'comment-highlight'
+        class: 'comment-highlight',
+        'data-thread-id': threadId,
       }
     );
     decorations.push(deco);
@@ -300,7 +306,6 @@ const processDocumentComments = (editor, doc, activeThreadId) => {
   });
 
   return {
-    commentPositions: allCommentPositions,
     decorations,
   };
 };

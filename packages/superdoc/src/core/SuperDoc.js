@@ -159,7 +159,7 @@ export class SuperDoc extends EventEmitter {
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
 
-    this.#initTelemetry();
+    // this.#initTelemetry();
     this.#initVueApp();
     this.#initListeners();
 
@@ -482,9 +482,8 @@ export class SuperDoc extends EventEmitter {
     if (commentsType !== 'clean') {
       comments.push(...this.commentsStore?.prepareCommentsForExport());
     };
-    const docxPromises = [];
 
-    // TODO: Export clean, internal, external comments here
+    const docxPromises = [];
     this.superdocStore.documents.forEach((doc) => {
       const editor = doc.getEditor();
       if (editor) {
@@ -537,8 +536,8 @@ export class SuperDoc extends EventEmitter {
     this.log('[superdoc] Unmounting app');
 
     this.config.documents.forEach((doc) => {
-      doc.ydoc.destroy();
-      doc.provider.destroy();
+      doc.ydoc?.destroy();
+      doc.provider?.destroy();
     });
 
     this.superdocStore.reset();
