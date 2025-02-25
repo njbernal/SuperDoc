@@ -716,7 +716,7 @@ export class Editor extends EventEmitter {
    * Initialize comments plugin
    */
   #initComments() {
-    if (this.options.isHeadless) return;
+    if (this.options.isHeadless || !this.options.isInternal) return;
     this.emit('commentsLoaded', { editor: this, comments: this.converter.comments || [] });
 
     setTimeout(() => {
