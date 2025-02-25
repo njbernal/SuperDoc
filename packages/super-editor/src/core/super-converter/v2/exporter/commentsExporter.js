@@ -21,7 +21,6 @@ export function translateCommentNode(params, type) {
   });
   const commentIndex = params.comments.findIndex((comment) => comment === originalComment);
 
-
   const isInternal = originalComment.isInternal;
   if (commentsExportType === 'external' && isInternal) return;
 

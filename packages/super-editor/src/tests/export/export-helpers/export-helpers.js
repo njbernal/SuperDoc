@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { readFile } from 'fs/promises';
-import { Editor } from '@core/Editor.js';
+import { Editor, getRichTextExtensions } from '@core/Editor.js';
+import { getRichTextExtensions } from '@harbour-enterprises/super-editor';
 import { getStarterExtensions } from '@extensions/index.js';
 import { exportSchemaToJson } from '@converter/exporter';
 import { annotationsBodyNode, annotationsNodeContent } from '../../data/annotations_doc_content.js';
@@ -31,6 +32,18 @@ const getTestDataAsBuffer = async (name) => {
   }
 };
 
+const convertHtmlToSchema = (commentHTML) => {
+  const div = document.createElement('div');
+  div.innerHTML = commentHTML;
+  const editor = new Editor({
+    mode: 'text',
+    isHeadless: true,
+    content: div,
+    extensions: getRichTextExtensions(),
+  });
+  return editor.getJSON().content[0];
+};
+
 /**
  * Simplify getting exported data from the editor for export testing
  * Pass in a docx file in the test data folder, and returns the exported result
@@ -53,8 +66,12 @@ export const getExportedResult = async (name, comments = []) => {
 
   const schema = editor.converter.getSchema();
   const bodyNode = editor.converter.savedTagsToRestore.find((el) => el.name === 'w:body');
+  const processedComments = comments.map((c) => ({
+    ...c,
+    commentJSON: convertHtmlToSchema(c.commentText),
+  }));
+  const commentDefinitions = processedComments.map((c, index) => getCommentDefinition(c, index));
 
-  const commentDefinitions = comments.map((c, index) => getCommentDefinition(c, index));
   const [result, params] = exportSchemaToJson({
     node: schema,
     bodyNode,
