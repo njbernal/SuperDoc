@@ -15,6 +15,7 @@ import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
 import { tabNodeEntityHandler } from './tabImporter.js';
 import { listHandlerEntity } from './listImporter.js';
 import { importCommentData } from './documentCommentsImporter.js';
+import { getDefaultStyleDefinition } from './paragraphNodeImporter.js';
 
 /**
  * @typedef {import()} XmlNode
@@ -104,6 +105,7 @@ export const createDocumentJson = (docx, converter, editor) => {
       savedTagsToRestore: node,
       pageStyles: getDocumentStyles(node, docx, converter, editor),
       comments,
+      linkedStyles: getStyleDefinitions(docx, converter, editor),
     };
   }
   return null;
@@ -309,10 +311,53 @@ function getDocumentStyles(node, docx, converter, editor) {
       case 'w:footerReference':
         getHeaderFooter(el, 'footer', docx, converter, editor);
         break;
+      case 'w:titlePg':
+        converter.headerIds.titlePg = true;
     }
   });
   return styles;
-}
+};
+
+/**
+ * Import style definitions from the document
+ * 
+ * @param {Object} docx The parsed docx object
+ * @returns {Object[]} The style definitions
+ */
+function getStyleDefinitions(docx) {
+  const styles = docx['word/styles.xml'];
+  if (!styles) return [];
+  
+  const { elements } = styles.elements[0];
+  const styleDefinitions = elements.filter((el) => el.name === 'w:style');
+
+  // Track latent style exceptions
+  const latentStyles = elements.find((el) => el.name === 'w:latentStyles');
+  const matchedLatentStyles = [];
+  latentStyles?.elements.forEach((el) => {
+    const { attributes } = el;
+    const match = styleDefinitions.find((style) => style.attributes['w:styleId'] === attributes['w:name']);
+    if (match) matchedLatentStyles.push(el);
+  });
+
+  // Parse all styles
+  const allParsedStyles = [];
+  styleDefinitions.forEach((style) => {
+    const id = style.attributes['w:styleId'];
+    const parsedStyle = getDefaultStyleDefinition(id, docx);
+
+    const importedStyle = {
+      id: style.attributes['w:styleId'],
+      type: style.attributes['w:type'],
+      definition: parsedStyle,
+      attributes: {},
+    };
+
+    allParsedStyles.push(importedStyle);
+  });
+
+  return allParsedStyles;
+};
 
 function getHeaderFooter(el, elementType, docx, converter, editor) {
   const rels = docx['word/_rels/document.xml.rels'];

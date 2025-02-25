@@ -95,6 +95,9 @@ class SuperConverter {
     this.footers = {};
     this.footerIds = { default: null, even: null, odd: null, first: null };
 
+    // Linked Styles
+    this.linkedStyles = [];
+
     // This is the JSON schema that we will be working with
     this.json = params?.json;
 
@@ -275,11 +278,13 @@ class SuperConverter {
   getSchema(editor) {
     this.getDocumentInternalId();
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
-      
+  
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
       this.comments = result.comments;
+      this.linkedStyles = result.linkedStyles;
+
       return result.pmDoc;
     } else {
       return null;
@@ -393,7 +398,6 @@ class SuperConverter {
 
 function storeSuperdocVersion(docx) {
   const customLocation = 'docProps/custom.xml';
-  console.debug('storeSuperdocVersion', docx);
   if (!docx[customLocation]) {
     docx[customLocation] = generateCustomXml();
   };
