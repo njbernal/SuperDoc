@@ -66,6 +66,7 @@ export default defineConfig(({ mode, command}) => {
     plugins,
     build: {
       target: 'es2022',
+      cssCodeSplit: false,
       lib: {
         entry: "src/index.js",
         formats: ['es'],
