@@ -276,6 +276,7 @@ const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor
  * @returns {String} The color to use for the highlight
  */
 const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => {
+  if (!editor.options.isInternal && isInternal) return 'transparent';
   const pluginState = CommentsPluginKey.getState(editor.state);
   const color = isInternal ? pluginState.internalColor : pluginState.externalColor;
   const alpha = activeThreadId == threadId ? '44' : '22';

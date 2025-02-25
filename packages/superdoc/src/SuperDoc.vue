@@ -218,6 +218,7 @@ const editorOptions = (doc) => {
     role: proxy.$superdoc.config.role,
     documentMode: proxy.$superdoc.config.documentMode,
     rulers: doc.rulers,
+    isInternal: proxy.$superdoc.config.isInternal,
     onBeforeCreate: onEditorBeforeCreate,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
@@ -481,7 +482,7 @@ const handlePdfClick = (e) => {
           v-if="'hrbr-fields' in modules && layers"
           :fields="modules['hrbr-fields']"
           class="superdoc__comments-layer comments-layer"
-          style="z-index: 5"
+          style="z-index: 2"
           ref="hrbrFieldsLayer"
         />
 
@@ -578,7 +579,7 @@ const handlePdfClick = (e) => {
   position: absolute;
   min-width: 100%;
   min-height: 100%;
-  z-index: 10;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -598,13 +599,13 @@ const handlePdfClick = (e) => {
   padding: 0 10px;
   min-height: 100%;
   position: relative;
-  z-index: 10;
+  z-index: 2;
 }
 
 /* Tools styles */
 .tools {
   position: absolute;
-  z-index: 11;
+  z-index: 3;
   display: flex;
   gap: 6px;
 }

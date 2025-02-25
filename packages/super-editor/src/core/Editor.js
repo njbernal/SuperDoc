@@ -61,6 +61,7 @@ export class Editor extends EventEmitter {
     coreExtensionOptions: {},
     isNewFile: false,
     scale: 1,
+    isInternal: false,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
