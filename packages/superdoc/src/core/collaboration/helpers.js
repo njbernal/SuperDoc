@@ -22,7 +22,6 @@ export const initCollaborationComments = (superdoc) => {
 
     // Update conversations
     const comments = commentsMap.get('comments');
-    console.debug('Comments updated:', comments);
     superdoc.commentsStore.commentsList = comments.map((c) => useComment(c));
   });
 };

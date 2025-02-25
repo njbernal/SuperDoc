@@ -1,3 +1,9 @@
+/**
+ * Comments helper to format dates from timestamp
+ * 
+ * @param {Number} timestamp The timestamp to format
+ * @returns {String} The formatted date
+ */
 export function formatDate(timestamp) {
   const date = new Date(timestamp);
   const hours = date.getHours();
@@ -11,4 +17,3 @@ export function formatDate(timestamp) {
   const formattedDate = `${formattedTime} ${month} ${day}`;
   return formattedDate;
 };
-

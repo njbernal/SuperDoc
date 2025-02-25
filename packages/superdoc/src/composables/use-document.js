@@ -63,7 +63,6 @@ export default function useDocument(params, superdocConfig) {
   const conversationsBackup = ref(conversations.value);
 
   function initConversations() {
-    // TODO: CHECK HERE
     if (!config.modules.comments) return [];
     return params.conversations?.map((c) => useComment(c)) || [];
   }

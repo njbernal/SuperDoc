@@ -26,7 +26,6 @@
     "pack": "npm run build:super-editor && npm --prefix ./packages/superdoc run pack"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
     "prettier": "3.3.3",
     "rollup": "^4.26.0",
     "rollup-plugin-visualizer": "^5.12.0",

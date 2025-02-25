@@ -252,37 +252,6 @@ export const useCommentsStore = defineStore('comments', () => {
     }
   };
 
-  // const addConversation = (activeDocument, initialComment) => {
-  //   console.log('addConversation', activeDocument, initialComment);
-  //   const newConversation = { ...pendingComment.value };
-  //   commentsByDocument[activeDocument.id] = [];
-  //   commentsByDocument[activeDocument.id].push(newConversation);
-
-  //   //   const parentBounds = props.parent.getBoundingClientRect();
-
-  //   //   const selection = pendingComment.value.selection.getValues();
-  //   //   selection.selectionBounds.top = selection.selectionBounds.top; // - parentBounds.top;
-  //   //   selection.selectionBounds.bottom = selection.selectionBounds.bottom; // - parentBounds.top;
-
-  //   //   const bounds = selection.selectionBounds;
-  //   //   if (bounds.top > bounds.bottom) {
-  //   //     const temp = bounds.top;
-  //   //     bounds.top = bounds.bottom;
-  //   //     bounds.bottom = temp;
-  //   //   }
-  //   //   if (bounds.left > bounds.right) {
-  //   //     const temp = bounds.left;
-  //   //     bounds.left = bounds.right;
-  //   //     bounds.right = temp;
-  //   //   }
-  //   //   newConversation.selection = useSelection(selection);
-  //   //   newConversation.comments.push(comment);
-    
-  //   console.debug('activeDocument', activeDocument.conversations.length, newConversation);
-  //   activeDocument.conversations.push(newConversation);
-  //   console.debug('activeDocument after', activeDocument.conversations.length);
-  // };
-
   /**
    * Get a new pending comment
    * 
@@ -371,32 +340,6 @@ export const useCommentsStore = defineStore('comments', () => {
     // Emit event for end users
     superdoc.emit('comments-update', { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() });
 
-    //   // Suppress click if the selection was made by the super-editor
-    //   newConversation.suppressClick = isSuppressClick(pendingComment.value.selection);
-    //   newConversation.thread = newConversation.conversationId;
-
-    //   // Remove the pending comment
-    //   removePendingComment();
-    //   skipSelectionUpdate.value = true;
-
-    //   const editor = proxy.$superdoc.activeEditor;
-    //   if (editor) {
-    //     createNewEditorComment({ conversation: newConversation, editor });
-    //     newConversation.suppressHighlight = true;
-    //   };
-
-    //   newConversation.isInternal = isInternal.value;
-    //   // props.currentDocument.conversations.push(newConversation);
-
-
-    // } else {
-    //   // props.data.comments.push(comment);
-    //   // proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
-    // }
-
-    // currentComment.value = '';
-    // emit('dialog-exit');
-    // activeComment.value = null;
   };
 
   const deleteComment = ({ commentId: commentIdToDelete, superdoc }) => {

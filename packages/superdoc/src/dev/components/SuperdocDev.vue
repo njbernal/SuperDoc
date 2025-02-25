@@ -33,79 +33,6 @@ const handleNewFile = async (file) => {
   });
 };
 
-const sampleComments = [
-  {
-    "uid": "123",
-    "commentId": "2ed4f843-2618-4c69-ab20-ab35e593fc88",
-    "fileId": "document-123",
-    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "creatorEmail": "test@harbourshare.com",
-    "creatorName": "SuperDoc 6379",
-    "isInternal": true,
-    "commentText": "<p>first comment</p>",
-    "selection": {
-        "documentId": "document-123",
-        "page": 1,
-        "selectionBounds": {
-            "top": 1,
-            "left": 2,
-            "right": 721,
-            "bottom": 115.390625
-        }
-    },
-    "resolvedTime": 123456,
-    "resolvedByEmail": null,
-    "resolvedByName": null
-  },
-  {
-    "uid": "abc",
-    "commentId": "2ed4f843-2618-4c69-ab20-abc",
-    "parentCommentId": "2ed4f843-2618-4c69-ab20-ab35e593fc88",
-    "fileId": "document-123",
-    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "creatorEmail": "test@harbourshare.com",
-    "creatorName": "SuperDoc 6379",
-    "isInternal": true,
-    "commentText": "<p>I am a subcomment</p>",
-    "selection": {
-        "documentId": "document-123",
-        "page": 1,
-        "selectionBounds": {
-            "top": 1,
-            "left": 2,
-            "right": 721,
-            "bottom": 115.390625
-        }
-    },
-    "resolvedTime": null,
-    "resolvedByEmail": null,
-    "resolvedByName": null
-  },
-  {
-    "uid": "1basd",
-    "commentId": "2ed4f843-2618-4c69-ab20-xx",
-    "fileId": "document-123",
-    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "creatorEmail": "test@harbourshare.com",
-    "creatorName": "SuperDoc 6379",
-    "isInternal": true,
-    "commentText": "<p>second comment</p>",
-    "selection": {
-        "documentId": "document-123",
-        "page": 1,
-        "selectionBounds": {
-            "top": 1,
-            "left": 2,
-            "right": 721,
-            "bottom": 115.390625
-        }
-    },
-    "resolvedTime": null,
-    "resolvedByEmail": null,
-    "resolvedByName": null
-  },
-];
-
 const init = async () => {
 
   let testId = 'document-123';
@@ -159,10 +86,8 @@ const init = async () => {
 
   superdoc.value = new SuperDoc(config);
   superdoc.value?.on('ready', () => {
-    console.debug('SuperDoc ready');
     superdoc.value.addCommentsList(commentsPanel.value);
   });
-
 
   // const ydoc = superdoc.value.ydoc;
   // const metaMap = ydoc.getMap('meta');
