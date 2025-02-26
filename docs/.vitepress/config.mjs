@@ -97,6 +97,10 @@ function sidebar() {
               },
             ],
           },
+          {
+            text: 'License',
+            link: '/resources/#license',
+          },
         ],
       },
     ],
