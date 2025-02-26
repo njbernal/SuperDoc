@@ -267,12 +267,13 @@ const superdoc = new SuperDoc({
 
 // Then in your custom toolbar, you can use SuperDoc methods
 document.getElementById('bold-button').addEventListener('click', () => {
-  superdoc.getActiveEditor().chain().toggleBold().focus().run();
+  // Use event-based approach to access the editor
+  superdoc.on('editorCreate', ({ editor }) => {
+    editor.commands.toggleBold();
+    editor.commands.focus();
+  });
 });
 ```
-
-**Q: Is SuperDoc accessible?**  
-A: SuperDoc follows WCAG 2.1 guidelines and includes keyboard navigation, screen reader support, and other accessibility features.
 
 ## Guides
 
@@ -324,76 +325,24 @@ If you're already using Prosemirror for your document editing needs, migrating t
    });
    ```
 
-3. **Convert Schema Elements**
+3. **Accessing Prosemirror Instances**
 
-   If you have custom schema elements in Prosemirror, you may need to adapt them:
+   While SuperDoc doesn't currently support custom Prosemirror plugins or extensions, you can still access the underlying Prosemirror instances:
 
    ```javascript
-   // OLD Prosemirror schema
-   const schema = new Schema({
-     nodes: {
-       custom_node: {
-         // Node definition
-       },
-     },
-     marks: {
-       custom_mark: {
-         // Mark definition
-       },
-     },
-   });
-
-   // NEW SuperDoc approach - access the underlying editor
    superdoc.on('editorCreate', ({ editor }) => {
-     // Access the Prosemirror schema
-     const schema = editor.view.state.schema;
+     // Access Prosemirror view
+     const view = editor.view;
 
-     // Use SuperEditor extension system
-     editor.registerExtension({
-       // Extension configuration
-     });
+     // Access Prosemirror state
+     const state = view.state;
+
+     // Note: SuperDoc doesn't currently provide a way to add custom
+     // Prosemirror plugins or extensions
    });
    ```
 
-4. **Migrate Plugin Functionality**
-
-   Replace Prosemirror plugins with SuperDoc modules or editor extensions:
-
-   ```javascript
-   // OLD Prosemirror plugin
-   import { Plugin } from 'prosemirror-state';
-
-   const myPlugin = new Plugin({
-     // Plugin configuration
-   });
-
-   // NEW SuperDoc approach
-   const superdoc = new SuperDoc({
-     selector: '#editor',
-     documents: [
-       {
-         /* ... */
-       },
-     ],
-     modules: {
-       myCustomModule: {
-         // Module configuration
-       },
-     },
-   });
-   ```
-
-For accessing the underlying Prosemirror instance when needed:
-
-```javascript
-superdoc.on('editorCreate', ({ editor }) => {
-  // Access Prosemirror view
-  const view = editor.view;
-
-  // Access Prosemirror state
-  const state = view.state;
-});
-```
+   SuperDoc modules (which are configured in the initialization options) serve different purposes than Prosemirror plugins and aren't used as direct replacements.
 
 #### Migrating Document Operations
 
@@ -407,7 +356,11 @@ view.dispatch(view.state.tr.insertText('Hello world'));
 const content = view.state.doc.content;
 
 // NEW SuperDoc operations
-superdoc.getActiveEditor().chain().insertContent('Hello world').run();
+// Access the editor through events
+superdoc.on('editorCreate', ({ editor }) => {
+  // Insert content using editor commands
+  editor.commands.insertContent('Hello world');
+});
 
 // Get content
 superdoc.exportDocx().then((docxFile) => {
