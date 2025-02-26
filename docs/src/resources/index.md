@@ -276,7 +276,7 @@ A: SuperDoc follows WCAG 2.1 guidelines and includes keyboard navigation, screen
 
 ## Guides
 
-### Migration from Prosemirror
+### Migrate from Prosemirror
 
 If you're already using Prosemirror for your document editing needs, migrating to SuperDoc can provide significant advantages. SuperDoc builds upon Prosemirror's powerful core while adding ready-to-use components and features.
 

@@ -93,6 +93,14 @@ const config = {
     },
   ],
 
+  // Optional: For enterprise users, set the license key
+  licenseKey: 'community-and-eval-agplv3',
+
+  // Optional: Enable telemetry to help us improve SuperDoc
+  telemetry: {
+    enabled: true,
+  },
+
   // Optional: The current user
   user: {
     name: 'Superdoc User',
