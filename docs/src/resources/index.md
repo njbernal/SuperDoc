@@ -255,26 +255,6 @@ A: SuperDoc supports all modern browsers, including:
 - Safari 14+
 - Edge 85+
 
-**Q: How can I customize the toolbar?**  
-A: You can provide a custom toolbar element and implement your own controls:
-
-```javascript
-const superdoc = new SuperDoc({
-  selector: '#superdoc-container',
-  toolbar: '#custom-toolbar',
-  // ...other options
-});
-
-// Then in your custom toolbar, you can use SuperDoc methods
-document.getElementById('bold-button').addEventListener('click', () => {
-  // Use event-based approach to access the editor
-  superdoc.on('editorCreate', ({ editor }) => {
-    editor.commands.toggleBold();
-    editor.commands.focus();
-  });
-});
-```
-
 ## Guides
 
 ### Migrate from Prosemirror

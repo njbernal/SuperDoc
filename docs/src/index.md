@@ -25,7 +25,7 @@ SuperDoc is an open source document editor bringing Microsoft Word capabilities 
 
 ### Key Features
 
-- **Document Compatibility**: View and edit DOCX and PDF documents directly in the browser
+- **Document Compatibility**: View and edit DOCX and PDF (view only) documents directly in the browser
 - **Microsoft Word Integration**: Full support for importing/exporting, advanced formatting, comments, and tracked changes
 - **Real-time Collaboration**: Built-in multiplayer editing, live updates, commenting, sharing, and revision history
 - **Framework Agnostic**: Seamlessly integrates with Vue, React, or vanilla JavaScript
@@ -60,15 +60,18 @@ import '@harbour-enterprises/superdoc/style.css';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
 
 const superdoc = new SuperDoc({
-  selector: '#superdoc',
+  selector: '#root',
   documents: [
-    {
-      id: 'my-doc-id',
-      type: 'docx',
-      data: fileObject, // Optional: JS File object if not using collaboration
-    },
+    id: 'pets-123',
+    type: 'docx',
+    url: 'http://my-document-url.docx',
   ],
-});
+  pagination: true,
+  licenseKey: 'community-and-eval-agplv3',
+  telemetry: { 
+    enabled: true,
+  } //basic usage metrics and exceptions
+})
 ```
 
 ## Configuration Options {#configuration}
@@ -77,6 +80,9 @@ const superdoc = new SuperDoc({
 const config = {
   // Optional: Give the superdoc an id
   superdocId: 'my-superdoc-id',
+
+  // Optional: SuperDoc title
+  title: 'My SuperDoc',
 
   // Required: A DOM element ID to render superdoc into
   selector: '#superdoc',
@@ -119,21 +125,17 @@ const config = {
       token: 'your-auth-token', // Required: Your auth token
     },
 
-    // The comments module
-    comments: {
-      readOnly: false, // Optional: Comments are read-only. Defaults to false
-      allowResolve: true, // Optional: Allow comment resolution. Defaults to true
-      suppressInternalExternal: false, // Optional: Don't separate comments into internal/external. Defaults to false
-    },
+    // More coming soon
   },
 
   // Optional: events - pass in your own functions for each
-  onEditorCreate: () => null,
-  onEditorDestroy: () => null,
-  onReady: () => null,
-  onCommentsUpdate: () => null,
-  onAwarenessUpdate: () => null,
-  onLocked: () => null,
+    onEditorBeforeCreate: () => null,
+    onEditorCreate: () => null,
+    onEditorDestroy: () => null,
+    onContentError: () => null,
+    onReady: () => null,
+    onPdfDocumentReady: () => null,
+    onException: () => null,
 };
 ```
 
@@ -178,18 +180,6 @@ const superdoc = new SuperDoc({
   ],
 });
 
-// Listen for events
-superdoc.on('ready', () => {
-  console.log('SuperDoc is ready to use');
-});
-
-superdoc.on('editorCreate', ({ editor }) => {
-  console.log('Editor created', editor);
-});
-
-superdoc.on('commentsUpdate', ({ comments }) => {
-  console.log('Comments updated', comments);
-});
 
 // Remove event listeners
 superdoc.off('ready', myReadyHandler);
@@ -199,21 +189,15 @@ superdoc.off('ready', myReadyHandler);
 
 ```javascript
 // Export the document as DOCX
-superdoc.exportDocx().then((blob) => {
-  // Use the exported DOCX blob
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'document.docx';
-  a.click();
-});
+await superdoc.export();
 
 // Switch between viewing and editing modes
 superdoc.setDocumentMode('viewing');
 superdoc.setDocumentMode('editing');
 
-// When working with multiple documents
-superdoc.setActiveDocument('document-id-2');
+// Get a list of HTML strings (one per DOCX editor)
+superdoc.getHTML()
+
 ```
 
 ## Next Steps
