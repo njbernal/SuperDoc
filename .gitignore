@@ -33,3 +33,5 @@ lerna-debug.log*
 .vuepress/.temp
 .vuepress/.cache
 .vuepress/dist
+
+packages/super-editor/src/tests/data/*
