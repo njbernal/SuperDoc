@@ -20,8 +20,8 @@ export function importCommentData({ docx }) {
   const { elements } = comments;
   if (!elements || !elements.length) return;
 
-  const { elements: allComments } = elements[0];
-  const extractedComments = allComments?.map((el) => {
+  const { elements: allComments = [] } = elements[0];
+  const extractedComments = allComments.map((el) => {
     const { attributes } = el;
     const commentId = attributes['w:id'];
     const authorName = attributes['w:author'];
