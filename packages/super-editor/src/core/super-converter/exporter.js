@@ -1111,6 +1111,8 @@ function translateMark(mark) {
 }
 
 function getPngDimensions(base64) {
+  if (!base64) return {};
+
   const type = base64.split(';')[0].split('/')[1];
   if (!base64 || type !== 'png') {
     return {
@@ -1515,7 +1517,6 @@ function translateFieldAnnotation(params) {
         elements: [
           { name: 'w:tag', attributes: { 'w:val': attrs.fieldId } },
           { name: 'w:alias', attributes: { 'w:val': attrs.displayLabel } },
-          { name: 'w:lock', attributes: { 'w:val': 'sdtContentLocked' } },
           {
             name: 'w:fieldType',
             attributes: {
