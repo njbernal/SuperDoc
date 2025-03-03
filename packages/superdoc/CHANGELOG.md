@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.15](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.14...v0.6.15) (2025-03-03)
+
+
+### Features
+
+* added tests on ci/cd ([#314](https://github.com/Harbour-Enterprises/SuperDoc/issues/314)) ([bc4296f](https://github.com/Harbour-Enterprises/SuperDoc/commit/bc4296f9fdf926e6af2542d58987ec7c39b0c40e))
+
 ## [0.6.14](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.13...v0.6.14) (2025-02-28)
 
 ## [0.6.13](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.12...v0.6.13) (2025-02-28)
