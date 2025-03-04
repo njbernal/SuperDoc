@@ -477,6 +477,8 @@ function translateLinkNode(params) {
  */
 function addNewLinkRelationship(params, link) {
   const newId = 'rId' + generateDocxRandomId();
+
+  if (!params.relationships || !Array.isArray(params.relationships)) params.relationships = [];
   params.relationships.push({
     type: 'element',
     name: 'Relationship',
