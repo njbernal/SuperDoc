@@ -42,6 +42,7 @@ import { Highlight } from './highlight/index.js';
 import { Strike } from './strike/index.js';
 import { Link } from './link/index.js';
 import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
+import { CommentsMark } from './comment/index.js';
 
 // Plugins
 import { CommentsPlugin } from './comment/index.js';
@@ -119,6 +120,7 @@ const getStarterExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
+    CommentsMark,
     Pagination,
     Highlight,
     LinkedStyles,
@@ -174,6 +176,7 @@ export {
   TrackInsert,
   TrackDelete,
   TrackFormat,
+  CommentsMark,
   trackChangesHelpers,
   getStarterExtensions,
   getRichTextExtensions,
