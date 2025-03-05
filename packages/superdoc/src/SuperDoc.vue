@@ -497,6 +497,7 @@ const handlePdfClick = (e) => {
 
         <!-- On-document comments layer -->
         <CommentsLayer
+          v-if="layers"
           class="superdoc__comments-layer comments-layer"
           style="z-index: 3"
           ref="commentsLayer"
