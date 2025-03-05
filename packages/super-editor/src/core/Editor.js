@@ -910,7 +910,8 @@ export class Editor extends EventEmitter {
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
     const styles = this.converter.schemaToXml(this.converter.convertedXml['word/styles.xml'].elements[0]);
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
-  
+    const contentTypes = this.converter.schemaToXml(this.converter.convertedXml['[Content_Types].xml'].elements[0]);
+
     const originalCommentsXml = this.converter.convertedXml['word/comments.xml'];
     const updatedCommentsXml = originalCommentsXml ? this.converter.schemaToXml(originalCommentsXml.elements[0]) : null;
     const media = this.converter.addedMedia;
@@ -922,6 +923,7 @@ export class Editor extends EventEmitter {
       'word/settings.xml': String(customSettings),
       // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
       'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
+      '[Content_Types].xml': String(contentTypes),
     };
 
     // Add comments.xml to the list of files to update if we have any comments
