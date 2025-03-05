@@ -350,7 +350,7 @@ export const useCommentsStore = defineStore('comments', () => {
     const document = superdocStore.getDocument(documentId);
 
     comments.forEach((comment) => {
-      const importedName = `${comment.creatorName} (imported)`;
+      const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
       const newComment = useComment({
         fileId: documentId,
         fileType: document.type,
@@ -358,7 +358,7 @@ export const useCommentsStore = defineStore('comments', () => {
         commentId: comment.id,
         parentCommentId: comment.parentCommentId,
         creatorEmail: comment.creatorEmail,
-        creatorName: `${comment.creatorName} (imported)`,
+        creatorName: importedName,
         commentText: getHTmlFromComment(comment.textJson),
         resolvedTime: comment.isDone ? Date.now() : null,
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
