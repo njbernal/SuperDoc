@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.34](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.32...v0.6.34) (2025-03-06)
+
+
+### Bug Fixes
+
+* remove only handleSynced listener after it's triggered ([#354](https://github.com/Harbour-Enterprises/SuperDoc/issues/354)) ([2805de6](https://github.com/Harbour-Enterprises/SuperDoc/commit/2805de67470d05af4658ce244cfb5225de45e7ad))
+
 ## [0.6.32](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.31...v0.6.32) (2025-03-06)
 
 ## [0.6.31](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.30...v0.6.31) (2025-03-05)
