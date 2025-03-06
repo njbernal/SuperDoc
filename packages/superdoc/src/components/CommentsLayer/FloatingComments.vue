@@ -110,6 +110,8 @@ const initializeConvos = () => {
   if (!sortedConversations.value?.length) return;
 
   const firstComment = sortedConversations.value[0];
+  const offset = firstComment.selection?.selectionBounds?.top || floatingCommentsOffset.value;
+  firstComment.floatingPosition = { top: offset };
   visibleConversations.value.push(firstComment);
 };
 

@@ -4,7 +4,7 @@ import { superdocIcons } from '@superdoc/icons.js';
 import { NDropdown } from 'naive-ui';
 import Avatar from '@superdoc/components/general/Avatar.vue';
 
-const emit = defineEmits(['resolve', 'overflow-select']);
+const emit = defineEmits(['resolve', 'reject', 'overflow-select']);
 const props = defineProps({
   user: {
     type: Object,
@@ -28,6 +28,11 @@ const props = defineProps({
     required: false,
     default: false,
   },
+  allowReject: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   overflowOptions: {
     type: Array,
     required: false,
@@ -35,6 +40,7 @@ const props = defineProps({
 });
 
 const handleResolve = () => emit('resolve');
+const handleReject = () => emit('reject');
 const handleSelect = (value) => emit('overflow-select', value);
 
 </script>
@@ -70,6 +76,13 @@ const handleSelect = (value) => emit('overflow-select', value);
         class="overflow-menu__icon" 
         v-html="superdocIcons.markDone"
         @click.stop.prevent="handleResolve">
+      </div>
+
+      <div 
+        v-if="allowReject"
+        class="overflow-menu__icon" 
+        v-html="superdocIcons.rejectChange"
+        @click.stop.prevent="handleReject">
       </div>
 
       <n-dropdown
