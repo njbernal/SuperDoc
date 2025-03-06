@@ -808,11 +808,11 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     redo,
 
     // Dev - tracked changes
-    toggleTrackChanges,
-    acceptTrackedChangeBySelection,
-    rejectTrackedChangeOnSelection,
-    toggleTrackChangesOriginal,
-    toggleTrackChangesFinal,
+    // toggleTrackChanges,
+    // acceptTrackedChangeBySelection,
+    // rejectTrackedChangeOnSelection,
+    // toggleTrackChangesOriginal,
+    // toggleTrackChangesFinal,
 
     zoom,
     separator,

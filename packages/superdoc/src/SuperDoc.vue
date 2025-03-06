@@ -57,7 +57,7 @@ const {
   isCommentsListVisible,
   isFloatingCommentsReady,
 } = storeToRefs(commentsStore);
-const { initialCheck, showAddComment, handleEditorLocationsUpdate } = commentsStore;
+const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -253,10 +253,14 @@ const onEditorCommentLocationsUpdate = () => {
   }, 250);
 };
 
-const onEditorCommentsUpdate = (params) => {
+const onEditorCommentsUpdate = (params = {}) => {
   // Set the active comment in the store
-  const { activeCommentId } = params;
+  const { activeCommentId, type } = params;
 
+  if (type === 'trackedChange') {
+    handleTrackedChangeUpdate({ superdoc: proxy.$superdoc, params });
+  }
+  
   nextTick(() => {
     commentsStore.setActiveComment(activeCommentId);
   });

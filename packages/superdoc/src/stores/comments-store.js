@@ -82,6 +82,36 @@ export const useCommentsStore = defineStore('comments', () => {
     if (comment) activeComment.value = comment.commentId;
   };
 
+  /**
+   * Called when a tracked change is updated. Creates a new comment if necessary, 
+   * or updates an existing tracked-change comment.
+   * 
+   * @param {Object} param0 
+   * @param {Object} param0.superdoc The SuperDoc instance
+   * @param {Object} param0.params The tracked change params
+   * @returns {void}
+   */
+  const handleTrackedChangeUpdate = ({ superdoc, params }) => {
+    const { changeId, trackedChangeText, trackedChangeType, deletedText } = params;
+
+    const existingTrackedChange = commentsList.value.find((comment) => comment.commentId === changeId)
+    if (!existingTrackedChange) {
+      const comment = getPendingComment({
+        documentId: 'test',
+        commentId: changeId,
+        trackedChange: true,
+        trackedChangeText,
+        trackedChangeType,
+        deletedText,
+      });
+
+      addComment({ superdoc, comment });
+    } else {
+      existingTrackedChange.trackedChangeText = trackedChangeText;
+      existingTrackedChange.trackedChangeType = trackedChangeType;
+    }
+  };
+
   const showAddComment = (superdoc) => {    
     superdoc.emit('comments-update', { type: COMMENT_EVENTS.PENDING });
 
@@ -291,7 +321,7 @@ export const useCommentsStore = defineStore('comments', () => {
     // Add the new comments to our global list
     commentsList.value.push(newComment);
 
-    if (superdoc.activeEditor?.commands) {
+    if (!comment.trackedChange && superdoc.activeEditor?.commands) {
       // Add the comment to the active editor
       superdoc.activeEditor.commands.insertComment(newComment.getValues());
     };
@@ -402,13 +432,26 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {void}
    */
   const handleEditorLocationsUpdate = (parentElement) => {
+
     setTimeout(() => {
       const allCommentElements = document.querySelectorAll('[data-thread-id]');
+      const trackedChanges = document.querySelectorAll('.track-delete, .track-insert');
+      trackedChanges.forEach((change) => {
+        const threadId = change.dataset.id;
+        const comment = getComment(threadId);
+        const coords = change.getBoundingClientRect();
+        if (comment) {
+          comment.updatePosition(coords, parentElement);
+        };
+      })
+
       allCommentElements.forEach((commentElement) => {
         const threadId = commentElement.dataset.threadId;
         const comment = getComment(threadId);
         const coords = commentElement.getBoundingClientRect();
-        if (comment) comment.updatePosition(coords, parentElement);
+        if (comment) {
+          comment.updatePosition(coords, parentElement);
+        }
       });
 
       lastChange.value = Date.now();
@@ -476,5 +519,6 @@ export const useCommentsStore = defineStore('comments', () => {
     processLoadedDocxComments,
     prepareCommentsForExport,
     handleEditorLocationsUpdate,
+    handleTrackedChangeUpdate,
   };
 });

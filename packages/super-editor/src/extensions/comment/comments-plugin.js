@@ -148,11 +148,12 @@ export const CommentsPlugin = Extension.create({
           const { decorations } = processDocumentComments(editor, doc, activeThreadId) || {};
           const decorationSet = DecorationSet.create(doc, decorations);
           const previousDecorations = oldState.decorations;
-          if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
-    
+
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
           if (hasInitialized) editor.emit('comment-positions');
+
+          if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
 
           hasInitialized = true;
           return {
@@ -178,50 +179,11 @@ export const CommentsPlugin = Extension.create({
  * @returns {Node | null} Either a tracked change node (insert, delete) or null
  */
 const getTrackedChangeNode = (node) => {
+  if (!node) return;
   const nodeMarks = node.marks;
   const trackedChangeMark = nodeMarks?.find((mark) => mark.type.name === TrackInsertMarkName);
   const trackedDeleteMark = nodeMarks?.find((mark) => mark.type.name === TrackDeleteMarkName);
   return trackedChangeMark || trackedDeleteMark;
-};
-
-/**
- * Process tracking for tracked changes nodes
- * @param {EditorView} view The current editor view
- * @param {Object} allCommentPositions The current positions of nodes being tracked
- * @param {Node} node The current node to consider
- * @param {Number} pos The position of the node
- * @returns {void} allCommentPositions is modified in place
- */
-const trackTrackedChangeNodes = (view, allCommentPositions, node, pos) => {
-  // Check for tracked changes
-
-  const changeMark = getTrackedChangeNode(node);
-  if (changeMark) {
-    const wid = changeMark.attrs.wid;
-    if (wid) {
-      try {
-        const domPos = view.coordsAtPos(pos);
-        if (!allCommentPositions[wid]) allCommentPositions[wid] = {};
-        allCommentPositions[wid].threadId = wid;
-        allCommentPositions[wid].top = domPos.top;
-        allCommentPositions[wid].left = domPos.left;
-        allCommentPositions[wid].bottom = domPos.bottom;
-        allCommentPositions[wid].right = domPos.right;
-        allCommentPositions[wid].type = 'trackedChange';
-        allCommentPositions[wid].wid = wid;
-        allCommentPositions[wid].start = pos;
-        allCommentPositions[wid].end = node.nodeSize + pos;
-
-        if (changeMark.type.name === TrackInsertMarkName) {
-          allCommentPositions[wid].insertion = node.textContent;
-        }
-
-        if (changeMark.type.name === TrackDeleteMarkName) {
-          allCommentPositions[wid].deletion = node.textContent;
-        }
-      } catch (e) {}
-    }
-  }
 };
 
 /**
@@ -255,11 +217,21 @@ const updatePositions = (view, pos, currentPos) => {
  * @param {Number} pos The position of the node
  * @returns {void} allCommentPositions is modified in place
  */
-const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor, activeThreadId }) => {
+const trackCommentNodes = ({
+  allCommentPositions,
+  linkedNodes,
+  decorations,
+  node,
+  pos,
+  editor,
+  doc,
+  activeThreadId
+}) => {
   // Check if it contains the commentMarkName
   const { marks = [] } = node;
-  const commentMark = marks.find((mark) => mark.type.name === CommentMarkName);
 
+  // Check if this is a comment node (ie: has commentMark)
+  const commentMark = marks.find((mark) => mark.type.name === CommentMarkName);
   if (commentMark) {
     const { attrs } = commentMark;
     const threadId = attrs.commentId || attrs.importedId;
@@ -282,6 +254,41 @@ const trackCommentNodes = ({ allCommentPositions, decorations, node, pos, editor
       end: pos + node.nodeSize,
       internal: isInternal,
     };
+  };
+
+  const trackChangeNode = getTrackedChangeNode(node);
+  if (trackChangeNode) {
+    const nextNode = doc.nodeAt(pos + node.nodeSize);
+    const nextTrackedNode = getTrackedChangeNode(nextNode);
+
+    const { attrs, type } = trackChangeNode;
+    const { name: trackedChangeType } = type;
+    const { author, authorEmail, date } = attrs;
+
+    let id = attrs.id;
+
+    const isDeletionInsertion = (
+      trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
+    );
+    if (isDeletionInsertion) linkedNodes[nextTrackedNode.attrs.id] = id;
+
+    // If we've already seen this linked item, we can skip it
+    if (linkedNodes[id]) return;
+
+    allCommentPositions[id] = {
+      threadId: id,
+      start: pos,
+      end: pos + node.nodeSize,
+    };
+
+    const params = {
+      type: 'trackedChange',
+      changeId: id,
+      trackedChangeType: isDeletionInsertion ? 'both' : trackedChangeType,
+      trackedChangeText: isDeletionInsertion ? nextNode.text : node.text,
+      deletedText: trackedChangeType === TrackDeleteMarkName ? node?.text : null,
+    }
+    editor.emit('commentsUpdate', params)
   }
 };
 
@@ -313,21 +320,17 @@ const processDocumentComments = (editor, doc, activeThreadId) => {
   const { view } = editor;
   const allCommentPositions = {};
   const decorations = [];
+  const linkedNodes = {};
 
-  // Both of the funcitons below alter coordinates in allCommentPositions
   doc.descendants((node, pos) => {
-    // Try to track comment nodes
     trackCommentNodes({
-      allCommentPositions, decorations, node, pos, editor, activeThreadId,
+      allCommentPositions, linkedNodes, decorations, node, pos, editor, doc, activeThreadId,
     });
-
-    // Try to track any tracked changes nodes
-    // trackTrackedChangeNodes(view, allCommentPositions, node, pos);
-
   });
 
   return {
     decorations,
+    linkedNodes,
   };
 };
 
