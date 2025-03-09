@@ -242,11 +242,12 @@ const editorOptions = (doc) => {
  * Trigger a comment-positions location update
  * This is called when the editor has updated the comment locations
  * 
+ * @param {Array[string]} allCommentIds - All comment ids
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = () => {
+const onEditorCommentLocationsUpdate = (allCommentIds = []) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(layers.value);
+  handleEditorLocationsUpdate(layers.value, allCommentIds);
 
   setTimeout(() => {
     commentsStore.lastChange = Date.now();
@@ -543,7 +544,7 @@ const handlePdfClick = (e) => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
+    <div class="superdoc__right-sidebar right-sidebar">
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"
@@ -554,7 +555,6 @@ const handlePdfClick = (e) => {
 
       <FloatingComments
         class="floating-comments"
-        v-if="isReady && isFloatingCommentsReady && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"

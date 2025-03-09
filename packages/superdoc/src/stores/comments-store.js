@@ -34,6 +34,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const visibleConversations = ref([]);
   const skipSelectionUpdate = ref(false);
   const isFloatingCommentsReady = ref(false);
+  const generalCommentIds = ref([]);
 
   const pendingComment = ref(null);
 
@@ -321,7 +322,9 @@ export const useCommentsStore = defineStore('comments', () => {
     // Add the new comments to our global list
     commentsList.value.push(newComment);
 
-    if (!comment.trackedChange && superdoc.activeEditor?.commands) {
+    // If this is not a tracked change, and it belongs to a Super Editor, and its not a child comment
+    // We need to let the editor know about the new comment
+    if (!comment.trackedChange && superdoc.activeEditor?.commands && !comment.parentCommentId) {
       // Add the comment to the active editor
       superdoc.activeEditor.commands.insertComment(newComment.getValues());
     };
@@ -431,7 +434,17 @@ export const useCommentsStore = defineStore('comments', () => {
    * @param {DOMElement} parentElement The parent element of the editor
    * @returns {void}
    */
-  const handleEditorLocationsUpdate = (parentElement) => {
+  const handleEditorLocationsUpdate = (parentElement, allCommentIds = []) => {
+
+    // Track comment IDs that we do not find in the editor
+    // These will remain as 'general' comments
+    generalCommentIds.value = commentsList.value
+      .filter((c) => {
+        const isSuperEditor = c.selection.source === 'super-editor';
+        const noCommentInEditor = !allCommentIds.includes(c.commentId || c.importedId);
+        return isSuperEditor && noCommentInEditor;
+      })
+      .map((c) => c.commentId || c.importedId);
 
     setTimeout(() => {
       const allCommentElements = document.querySelectorAll('[data-thread-id]');
@@ -489,6 +502,7 @@ export const useCommentsStore = defineStore('comments', () => {
     commentsList,
     isCommentsListVisible,
     lastChange,
+    generalCommentIds,
 
     // Floating comments
     floatingCommentsOffset,

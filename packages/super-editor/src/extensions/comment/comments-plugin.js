@@ -102,6 +102,7 @@ export const CommentsPlugin = Extension.create({
           return {
             decorations: DecorationSet.empty,
             activeThreadId: null,
+            allCommentIds: [],
             externalColor: '#B1124B',
             internalColor: '#078383',
           };
@@ -145,13 +146,13 @@ export const CommentsPlugin = Extension.create({
           }
 
           // Generate decorations for comment highlights
-          const { decorations } = processDocumentComments(editor, doc, activeThreadId) || {};
+          const { decorations, allCommentIds } = processDocumentComments(editor, doc, activeThreadId) || {};
           const decorationSet = DecorationSet.create(doc, decorations);
           const previousDecorations = oldState.decorations;
 
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
-          if (hasInitialized) editor.emit('comment-positions');
+          if (hasInitialized) editor.emit('comment-positions', allCommentIds);
 
           if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
 
@@ -159,6 +160,7 @@ export const CommentsPlugin = Extension.create({
           return {
             ...oldState,
             activeThreadId,
+            allCommentIds,
             decorations: decorationSet,
           };
         },
@@ -328,9 +330,13 @@ const processDocumentComments = (editor, doc, activeThreadId) => {
     });
   });
 
+  // Get all current thread IDs in the document
+  const allCommentIds = Object.keys(allCommentPositions).map((threadId) => threadId);
+
   return {
     decorations,
     linkedNodes,
+    allCommentIds, 
   };
 };
 
