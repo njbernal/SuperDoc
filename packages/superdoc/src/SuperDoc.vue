@@ -250,9 +250,9 @@ const editorOptions = (doc) => {
  * 
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = () => {
+const onEditorCommentLocationsUpdate = (commentPositions = []) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(layers.value);
+  handleEditorLocationsUpdate(layers.value, commentPositions);
 
   setTimeout(() => {
     commentsStore.lastChange = Date.now();

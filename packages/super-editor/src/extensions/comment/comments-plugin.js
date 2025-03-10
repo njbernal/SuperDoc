@@ -152,7 +152,9 @@ export const CommentsPlugin = Extension.create({
 
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
-          if (hasInitialized) editor.emit('comment-positions', allCommentIds);
+          if (hasInitialized) {
+            editor.emit('comment-positions', allCommentIds);
+          }
 
           if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
 
@@ -319,7 +321,6 @@ const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => 
  * @returns {Object} The positions of all tracked nodes where keys are the thread IDs
  */
 const processDocumentComments = (editor, doc, activeThreadId) => {
-  const { view } = editor;
   const allCommentPositions = {};
   const decorations = [];
   const linkedNodes = {};
