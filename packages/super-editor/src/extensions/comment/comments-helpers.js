@@ -1,4 +1,5 @@
 import { CommentMarkName } from './comments-constants.js';
+import { COMMENTS_XML_DEFINITIONS } from '@converter/exporter-docx-defs.js';
 
 
 /**
@@ -55,29 +56,87 @@ export const getCommentPositionsById = (commentId, importedId, doc) => {
  * @param {import('prosemirror-model').Node} doc The prosemirror document
  * @param {import('prosemirror-state').Transaction} tr The preparation transaction
  * @param {import('prosemirror-model').Schema} schema The editor schema
+ * @param {Array[Object]} comments The comments to prepare
  * @returns {void}
  */
-export const prepareCommentsForExport = (doc, tr, schema) => {
-  doc.descendants((node, pos) => {
-    const { marks = [] } = node;
-    const commentMark = marks.find(mark => mark.type.name === CommentMarkName);
-    if (commentMark) {
-      const { attrs } = commentMark;
-      const { commentId, importedId, internal } = attrs;
-  
-      const commentStartNodeAttrs = {
-        'w:id': commentId || importedId,
-        internal,
-      };
+export const prepareCommentsForExport = (doc, tr, schema, comments = []) => {
+  // Collect all pending insertions in an array
+  const startNodes = [];
+  const endNodes = [];
 
+  doc.descendants((node, pos) => {
+    const commentMark = node.marks?.find(mark => mark.type.name === CommentMarkName);
+    if (commentMark) {
+      const commentStartNodeAttrs = getPreparedComment(commentMark.attrs);
       const startNode = schema.nodes.commentRangeStart.create(commentStartNodeAttrs);
+      startNodes.push({
+        pos,
+        node: startNode,
+      });
+
       const endNode = schema.nodes.commentRangeEnd.create(commentStartNodeAttrs);
-  
-      tr.insert(pos, startNode);
-      tr.insert(pos + node.nodeSize + 1, endNode);
+      endNodes.push({
+        pos: pos + node.nodeSize,
+        node: endNode,
+      });
+
+      const { commentId, importedId } = commentMark.attrs;
+      const parentId = commentId || importedId;
+      if (parentId) {
+        const childComments = comments
+          .filter((c) => c.parentCommentId == parentId || c.parentCommentId == parentId)
+          .sort((a, b) => a.createdTime - b.createdTime);
+
+        childComments.forEach((c) => {
+          const childMark =  getPreparedComment(c);
+          const childStartNode = schema.nodes.commentRangeStart.create(childMark);
+          startNodes.push({
+            pos: pos,
+            node: childStartNode,
+          });
+
+          const childEndNode = schema.nodes.commentRangeEnd.create(childMark);
+          endNodes.push({
+            pos: pos + node.nodeSize,
+            node: childEndNode,
+          });
+        });
+      }
     }
   });
+
+  startNodes.forEach((n) => {
+    const { pos, node } = n;
+    const mappedPos = tr.mapping.map(pos);
+
+    tr.insert(mappedPos, node);
+  });
+
+  endNodes.forEach((n) => {
+    const { pos, node } = n;
+    const mappedPos = tr.mapping.map(pos);
+
+    tr.insert(mappedPos, node);
+  });
+
+  return tr;
 };
+
+
+/**
+ * Generate the prepared comment attrs for export
+ * 
+ * @param {Object} attrs The comment mark attributes
+ * @returns {Object} The prepared comment attributes
+ */
+export const getPreparedComment = (attrs) => {
+  const { commentId, importedId, internal } = attrs;
+  return {
+    'w:id': commentId || importedId,
+    internal: internal,
+  };
+}
+
 
 /**
  * Prepare comments for import by removing the commentRange nodes and replacing with marks
