@@ -111,6 +111,8 @@ export const useCommentsStore = defineStore('comments', () => {
       existingTrackedChange.trackedChangeText = trackedChangeText;
       existingTrackedChange.trackedChangeType = trackedChangeType;
     }
+
+    syncCommentsToClients(superdoc);
   };
 
   const showAddComment = (superdoc) => {    
@@ -442,7 +444,7 @@ export const useCommentsStore = defineStore('comments', () => {
       .filter((c) => {
         const isSuperEditor = c.selection.source === 'super-editor';
         const noCommentInEditor = !allCommentIds.includes(c.commentId || c.importedId);
-        return isSuperEditor && noCommentInEditor;
+        return isSuperEditor && noCommentInEditor && !c.trackedChange;
       })
       .map((c) => c.commentId || c.importedId);
 

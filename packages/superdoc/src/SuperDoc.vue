@@ -192,6 +192,12 @@ const onEditorCollaborationReady = ({ editor }) => {
   nextTick(() => {
     commentsStore.lastChange = Date.now();
     isReady.value = true;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const commentId = urlParams.get('commentId');
+    if (commentId) scrollToComment(commentId);
+    
+    commentsStore.lastChange = Date.now();
   });
 };
 
@@ -242,12 +248,11 @@ const editorOptions = (doc) => {
  * Trigger a comment-positions location update
  * This is called when the editor has updated the comment locations
  * 
- * @param {Array[string]} allCommentIds - All comment ids
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = (allCommentIds = []) => {
+const onEditorCommentLocationsUpdate = () => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(layers.value, allCommentIds);
+  handleEditorLocationsUpdate(layers.value);
 
   setTimeout(() => {
     commentsStore.lastChange = Date.now();
@@ -298,6 +303,21 @@ const showActiveSelection = computed(() => {
 watch(showCommentsSidebar, (value) => {
   proxy.$superdoc.broadcastSidebarToggle(value);
 });
+
+/**
+ * Scroll the page to a given commentId
+ * 
+ * @param {String} commentId The commentId to scroll to
+ */
+const scrollToComment = (commentId) => {
+  if (!proxy.$superdoc.config?.modules?.comments) return;
+
+  const element = document.querySelector(`[data-thread-id=${commentId}]`);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    commentsStore.setActiveComment(commentId);
+  }
+};
 
 onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
@@ -544,7 +564,7 @@ const handlePdfClick = (e) => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar">
+    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"
@@ -555,6 +575,7 @@ const handlePdfClick = (e) => {
 
       <FloatingComments
         class="floating-comments"
+        v-if="isReady && isFloatingCommentsReady && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"
