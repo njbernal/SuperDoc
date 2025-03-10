@@ -192,6 +192,12 @@ const onEditorCollaborationReady = ({ editor }) => {
   nextTick(() => {
     commentsStore.lastChange = Date.now();
     isReady.value = true;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const commentId = urlParams.get('commentId');
+    if (commentId) scrollToComment(commentId);
+    
+    commentsStore.lastChange = Date.now();
   });
 };
 
@@ -244,9 +250,9 @@ const editorOptions = (doc) => {
  * 
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = () => {
+const onEditorCommentLocationsUpdate = (commentPositions = []) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(layers.value);
+  handleEditorLocationsUpdate(layers.value, commentPositions);
 
   setTimeout(() => {
     commentsStore.lastChange = Date.now();
@@ -297,6 +303,21 @@ const showActiveSelection = computed(() => {
 watch(showCommentsSidebar, (value) => {
   proxy.$superdoc.broadcastSidebarToggle(value);
 });
+
+/**
+ * Scroll the page to a given commentId
+ * 
+ * @param {String} commentId The commentId to scroll to
+ */
+const scrollToComment = (commentId) => {
+  if (!proxy.$superdoc.config?.modules?.comments) return;
+
+  const element = document.querySelector(`[data-thread-id=${commentId}]`);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    commentsStore.setActiveComment(commentId);
+  }
+};
 
 onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
