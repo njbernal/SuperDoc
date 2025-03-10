@@ -29,9 +29,9 @@ describe('[simple-ordered-list.docx] simple ordered list tests', async () => {
     testListNodes({ node: item2, expectedLevel: 0, expectedNumPr: 0, text: 'Item 2' });
   
     const item3 = body.elements[titleIndex + 4];
-    testListNodes({ node: item3, expectedLevel: 0, expectedNumPr: 0 });getTextFromNode
- 
-    const nonListNode = body.elements[titleIndex + 5];
+    testListNodes({ node: item3, expectedLevel: 0, expectedNumPr: 0 });
+
+    const nonListNode = body.elements[titleIndex + 6];
     testListNodes({ node: nonListNode, expectedLevel: undefined, expectedNumPr: undefined, text: undefined });
   });
 

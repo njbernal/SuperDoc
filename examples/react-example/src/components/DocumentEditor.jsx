@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
+import { useEffect, useRef } from 'react';
 
 const DocumentEditor = ({ 
   documentId, 

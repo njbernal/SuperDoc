@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3';
-import { createApp } from 'vue';
+import { createApp, h } from 'vue';
 import { undoDepth, redoDepth } from 'prosemirror-history';
 import { TextSelection } from 'prosemirror-state';
 import { makeDefaultItems } from './defaultItems';
@@ -9,6 +9,9 @@ import Toolbar from './Toolbar.vue';
 import { startImageUpload, getFileOpener } from '../../extensions/image/imageHelpers/index.js';
 import { findParentNode } from '@helpers/index.js';
 import { toolbarIcons } from './toolbarIcons.js';
+import { getQuickFormatList } from '@extensions/linked-styles/linked-styles.js';
+import { getAvailableColorOptions, makeColorOption, renderColorOptions } from './color-dropdown-helpers.js';
+import { isInTable } from '@helpers/isInTable.js';
 
 export class SuperToolbar extends EventEmitter {
   config = {
@@ -17,6 +20,7 @@ export class SuperToolbar extends EventEmitter {
     role: 'editor',
     pagination: false,
     icons: { ...toolbarIcons },
+    mode: 'docx',
   };
 
   #interceptedCommands = {
@@ -28,7 +32,20 @@ export class SuperToolbar extends EventEmitter {
       this.emit('superdoc-command', { item, argument });
       const layers = document.querySelector('.layers');
       if (!layers) return;
-      layers.style.zoom = argument;
+
+      const isMobileDevice = typeof screen.orientation !== 'undefined';
+      // 768px breakpoint doesn't consider iPad in portrait orientation
+      const isSmallScreen = window.matchMedia('(max-width: 834px)').matches;
+      
+      // Zoom property doesn't work correctly when testing on mobile devices
+      if (isMobileDevice && isSmallScreen) {
+        layers.style.transformOrigin = '0 0';
+        layers.style.transform = `scale(${parseInt(argument) / 100})`;
+      } else {
+        layers.style.zoom = parseInt(argument) / 100;
+      }
+
+      this.superdoc.superdocStore.activeZoom = parseInt(argument);
     },
 
     setDocumentMode: ({ item, argument }) => {
@@ -51,6 +68,14 @@ export class SuperToolbar extends EventEmitter {
 
     setColor: ({ item, argument }) => {
       this.#runCommandWithArgumentOnly({ item, argument });
+    },
+    
+    setHighlight: ({ item, argument }) => {
+      this.#runCommandWithArgumentOnly({ item, argument });
+    },
+
+    toggleRuler: ({ item, argument }) => {
+      this.superdoc.toggleRuler();
     },
 
     startImageUpload: async ({ item, argument }) => {
@@ -149,6 +174,22 @@ export class SuperToolbar extends EventEmitter {
       }
       this.updateToolbarState();
     },
+
+    insertTable: ({ item, argument }) => {
+      this.#runCommandWithArgumentOnly({ item, argument });
+    },
+
+    executeTableCommand: ({ item, argument }) => {
+      if (!argument) return;
+      
+      let command = argument.command;
+
+      if (command in this.activeEditor.commands) {
+        this.activeEditor.commands[command](argument);
+      }
+
+      this.updateToolbarState();
+    },
   };
 
   constructor(config) {
@@ -159,6 +200,7 @@ export class SuperToolbar extends EventEmitter {
     this.overflowItems = [];
     this.documentMode = 'editing';
     this.isDev = config.isDev || false;
+    this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
     
     this.config.icons = {
@@ -190,10 +232,9 @@ export class SuperToolbar extends EventEmitter {
   }
 
   setZoom(percent_int) {
-    const percent = percent_int / 100;
     const allItems = [...this.toolbarItems, ...this.overflowItems];
     const item = allItems.find((item) => item.name.value === 'zoom');
-    this.#interceptedCommands.setZoom({ item, argument: percent });
+    this.#interceptedCommands.setZoom({ item, argument: percent_int });
   }
 
   /**
@@ -203,7 +244,6 @@ export class SuperToolbar extends EventEmitter {
   setActiveEditor(editor) {
     this.activeEditor = editor;
     this.activeEditor.on('transaction', this.onEditorTransaction.bind(this));
-    this.updateToolbarState();
   }
 
   getToolbarItemByGroup(groupName) {
@@ -211,10 +251,10 @@ export class SuperToolbar extends EventEmitter {
   }
 
   #makeToolbarItems(superToolbar, icons, isDev = false) {
-    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, window.innerWidth, this.role, icons);
+    const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar
+    const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, documentWidth, this.role, icons);
     this.toolbarItems = defaultItems;
     this.overflowItems = overflowItems;
-    this.updateToolbarState();
   }
 
   #initDefaultFonts() {
@@ -226,6 +266,35 @@ export class SuperToolbar extends EventEmitter {
     const fontFamilyItem = this.toolbarItems.find((item) => item.name.value === 'fontFamily');
     if (fontFamilyItem) fontFamilyItem.defaultLabel.value = typeface;
   }
+  
+  #updateHighlightColors() {
+    if (!this.activeEditor || !this.activeEditor.converter) return;
+    if (!this.activeEditor.converter.docHiglightColors.size) return;
+    
+    const highlightItem = this.toolbarItems.find((item) => item.name.value === 'highlight');
+
+    const pickerColorOptions = getAvailableColorOptions();
+    const perChunk = 7; // items per chunk
+
+    const result = Array.from(this.activeEditor.converter.docHiglightColors).reduce((resultArray, item, index) => {
+      const chunkIndex = Math.floor(index / perChunk);
+      if (!resultArray[chunkIndex]) {
+        resultArray[chunkIndex] = [];
+      }
+
+      if (!pickerColorOptions.includes(item)) resultArray[chunkIndex].push(makeColorOption(item));
+      return resultArray;
+    }, []);
+    
+    const option = {
+      key: 'color',
+      type: 'render',
+      render: () => renderColorOptions(this, highlightItem, result),
+    }
+
+    highlightItem.nestedOptions.value = [option];
+  }
+
 
   /**
    * Update the toolbar state. Expects a list of marks in the form: { name, attrs }
@@ -234,6 +303,7 @@ export class SuperToolbar extends EventEmitter {
   updateToolbarState() {
     this.#updateToolbarHistory();
     this.#initDefaultFonts();
+    this.#updateHighlightColors();
 
     // Decativate toolbar items if no active editor
     // This will skip buttons that are marked as allowWithoutEditor
@@ -243,9 +313,20 @@ export class SuperToolbar extends EventEmitter {
     }
 
     const marks = getActiveFormatting(this.activeEditor);
+    const inTable = isInTable(this.activeEditor.state);
 
     this.toolbarItems.forEach((item) => {
       item.resetDisabled();
+
+      // Linked Styles dropdown behaves a bit different from other buttons.
+      // We need to disable it manually if there are no linked styles to show
+      if (item.name.value === 'linkedStyles') {
+        if (this.activeEditor && !getQuickFormatList(this.activeEditor).length) {
+          return item.deactivate();
+        } else {
+          return item.activate();
+        }
+      };
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
 
@@ -253,6 +334,11 @@ export class SuperToolbar extends EventEmitter {
         item.activate(activeMark.attrs);
       } else {
         item.deactivate();
+      }
+
+      if (item.name.value === 'tableActions') {
+        if (inTable) item.disabled.value = false;
+        else item.disabled.value = true;
       }
     });
   }
@@ -279,7 +365,10 @@ export class SuperToolbar extends EventEmitter {
   /**
    * React to editor transactions. Might want to debounce this.
    */
-  onEditorTransaction({ editor, transaction }) {}
+  onEditorTransaction({ editor, transaction }) {
+    if (!transaction.docChanged && !transaction.selectionSet) return;
+    this.updateToolbarState();
+  }
 
   /**
    * Main handler for toolbar commands.
@@ -289,7 +378,7 @@ export class SuperToolbar extends EventEmitter {
    */
   emitCommand({ item, argument }) {
     const { command } = item;
-
+    
     if (!command) {
       return;
     }

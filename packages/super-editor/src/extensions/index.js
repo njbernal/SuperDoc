@@ -8,6 +8,7 @@ import { TextIndent } from './text-indent/index.js';
 import { LineHeight } from './line-height/index.js';
 import { FormatCommands } from './format-commands/index.js';
 import { DropCursor } from './dropcursor/index.js';
+import { Gapcursor } from './gapcursor/index.js';
 import { Collaboration } from './collaboration/index.js';
 import { CollaborationCursor } from './collaboration-cursor/index.js';
 
@@ -41,14 +42,15 @@ import { Highlight } from './highlight/index.js';
 import { Strike } from './strike/index.js';
 import { Link } from './link/index.js';
 import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
+import { CommentsMark } from './comment/index.js';
 
 // Plugins
-import { DecorationClick } from './decoration-click/index.js';
 import { CommentsPlugin } from './comment/index.js';
 import { Placeholder } from './placeholder/index.js';
 import { PopoverPlugin } from './popover-plugin/index.js';
 import { TrackChanges } from "./track-changes/index.js";
 import { Pagination } from "./pagination/index.js";
+import { LinkedStyles } from './linked-styles/linked-styles.js';
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
@@ -65,7 +67,6 @@ const getRichTextExtensions = () => [
   Text,
   TextStyle,
   Underline,
-  DecorationClick,
   Placeholder,
   PopoverPlugin,
   Mention,
@@ -102,8 +103,8 @@ const getStarterExtensions = () => {
     TextStyle,
     Underline,
     FormatCommands,
-    DecorationClick,
     CommentsPlugin,
+    Gapcursor,
     Table,
     TableRow,
     TableCell,
@@ -119,8 +120,10 @@ const getStarterExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
+    CommentsMark,
     Pagination,
-    Highlight
+    Highlight,
+    LinkedStyles,
   ];
 };
 
@@ -153,8 +156,8 @@ export {
   TextStyle,
   LineHeight,
   FormatCommands,
-  DecorationClick,
   CommentsPlugin,
+  Gapcursor,
   Table,
   TableRow,
   TableCell,
@@ -173,6 +176,7 @@ export {
   TrackInsert,
   TrackDelete,
   TrackFormat,
+  CommentsMark,
   trackChangesHelpers,
   getStarterExtensions,
   getRichTextExtensions,

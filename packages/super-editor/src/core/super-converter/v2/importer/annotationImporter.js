@@ -13,7 +13,7 @@ export const handleAnnotationNode = (params) => {
   const node = nodes[0];
   const sdtPr = node.elements.find((el) => el.name === 'w:sdtPr');
   const sdtContent = node.elements.find((el) => el.name === 'w:sdtContent');
-  const marksAsAttrs = parseAnnotationMarks(sdtContent);
+  const { attrs: marksAsAttrs, marks } = parseAnnotationMarks(sdtContent);
 
   const docPartObj = sdtPr?.elements.find((el) => el.name === 'w:docPartObj');
   if (docPartObj) {
@@ -35,12 +35,21 @@ export const handleAnnotationNode = (params) => {
     fieldColor,
     multipleImage: isMultipleImage === 'true',
   };
-
-  const result = {
-    type: 'fieldAnnotation',
-    attrs: { ...attrs, ...marksAsAttrs }
+  
+  let result = {
+    type: 'text',
+    text: `{{${attrs.displayLabel}}}`,
+    attrs: { ...attrs, ...marksAsAttrs },
+    marks,
   };
-
+  
+  if (params.editor.options.annotations) {
+    result = {
+      type: 'fieldAnnotation',
+      attrs: { ...attrs, ...marksAsAttrs }
+    };
+  };
+  
   return {
     nodes: [result],
     consumed: 1,
@@ -52,7 +61,7 @@ export const handleAnnotationNode = (params) => {
  * @param {Object} content The sdtContent node
  * @returns {Object} The attributes object
  */
-const parseAnnotationMarks = (content = {}) => {
+export const parseAnnotationMarks = (content = {}) => {
   const run = content.elements?.find((el) => el.name === 'w:r');
   const rPr = run?.elements?.find((el) => el.name === 'w:rPr');
   if (!rPr) return {};
@@ -79,7 +88,10 @@ const parseAnnotationMarks = (content = {}) => {
     const { type } = mark;
     attrs[type] = mark.attrs || true;
   })
-  return attrs;
+  return {
+    attrs,
+    marks
+  };
 }
 
 /**

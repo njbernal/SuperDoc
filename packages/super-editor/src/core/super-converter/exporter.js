@@ -3,10 +3,19 @@ import { DOMParser as PMDOMParser } from 'prosemirror-model';
 import { EditorState } from 'prosemirror-state';
 import { SuperConverter } from './SuperConverter.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { inchesToTwips, linesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsToTwips } from './helpers.js';
+import {
+  emuToPixels,
+  inchesToTwips,
+  linesToTwips,
+  pixelsToEightPoints,
+  pixelsToEmu,
+  pixelsToTwips,
+} from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
+import { translateCommentNode } from './v2/exporter/commentsExporter.js';
+import { marks } from 'prosemirror-schema-basic';
 
 /**
  * @typedef {Object} ExportParams
@@ -53,7 +62,7 @@ import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@
  */
 export function exportSchemaToJson(params) {
   // console.debug('\nExporting schema to JSON:', params.node, '\n');
-  const { type } = params.node;
+  const { type } = params.node || {};
 
   // Node handlers for each node type that we can export
   const router = {
@@ -72,6 +81,9 @@ export function exportSchemaToJson(params) {
     tab: translateTab,
     image: translateImageNode,
     hardBreak: translateHardBreak,
+    commentRangeStart: () => translateCommentNode(params, 'Start'),
+    commentRangeEnd: () => translateCommentNode(params, 'End'),
+    commentReference: () => null,
   };
 
   if (!router[type]) {
@@ -92,6 +104,18 @@ export function exportSchemaToJson(params) {
  */
 function translateBodyNode(params) {
   const sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
+
+  if (params.converter) {
+    const newMargins = params.converter.pageStyles.pageMargins;
+    const sectPrMargins = sectPr.elements.find((n) => n.name === 'w:pgMar');
+    const { attributes } = sectPrMargins;
+    Object.entries(newMargins).forEach(([key, value]) => {
+      const convertedValue = inchesToTwips(value);
+      attributes[`w:${key}`] = convertedValue;
+    });
+    sectPrMargins.attributes = attributes;
+  };
+
   const elements = translateChildNodes(params);
   return {
     name: 'w:body',
@@ -105,7 +129,7 @@ function translateBodyNode(params) {
  * @param {ExportParams} node A prose mirror paragraph node
  * @returns {XmlReadyNode} JSON of the XML-ready paragraph node
  */
-function translateParagraphNode(params) {
+export function translateParagraphNode(params) {
   const elements = translateChildNodes(params);
 
   // Replace current paragraph with content of html annotation
@@ -278,7 +302,7 @@ function getTextNodeForExport(text, marks) {
     elements: [{ text, type: 'text' }],
     attributes: nodeAttrs,
   };
-
+  
   return wrapTextInRun(textNode, outputMarks);
 }
 
@@ -389,7 +413,7 @@ function wrapTextInRun(node, marks) {
 function generateRunProps(marks = []) {
   return {
     name: 'w:rPr',
-    elements: marks,
+    elements: marks.filter((mark) => !!Object.keys(mark).length),
   };
 }
 
@@ -453,6 +477,8 @@ function translateLinkNode(params) {
  */
 function addNewLinkRelationship(params, link) {
   const newId = 'rId' + generateDocxRandomId();
+
+  if (!params.relationships || !Array.isArray(params.relationships)) params.relationships = [];
   params.relationships.push({
     type: 'element',
     name: 'Relationship',
@@ -530,7 +556,6 @@ function translateList(params) {
         };
         return listNodes.push(spacer);
       }
-      
       if (propsElementIndex === -1) {
         outputNode.elements.unshift(listProps);
       } else {
@@ -540,7 +565,7 @@ function translateList(params) {
       listNodes.push(outputNode);
     });
   });
-
+  
   return listNodes;
 }
 
@@ -643,7 +668,7 @@ function translateLineBreak(params) {
  * @returns {XmlReadyNode} The translated table node
  */
 function translateTable(params) {
-  params.node = preProcessVerticalMergeCells(params.node);
+  params.node = preProcessVerticalMergeCells(params.node, params);
   const elements = translateChildNodes(params);
   const tableProperties = generateTableProperties(params.node);
   const gridProperties = generateTableGrid(params.node);
@@ -661,19 +686,39 @@ function translateTable(params) {
  * @param {ExportParams.node} table The table node
  * @returns {ExportParams.node} The table node with merged cells restored
  */
-function preProcessVerticalMergeCells(table) {
+function preProcessVerticalMergeCells(table, { editorSchema }) {
   const { content } = table;
   for (let rowIndex = 0; rowIndex < content.length; rowIndex++) {
     const row = content[rowIndex];
     if (!row.content) continue;
     for (let cellIndex = 0; cellIndex < row.content?.length; cellIndex++) {
       const cell = row.content[cellIndex];
+      if (!cell) {
+        console.log('no cell');
+        continue;
+      }
       const { attrs } = cell;
       if (attrs.rowspan > 1) {
-        const { mergedCells } = attrs;
+        // const { mergedCells } = attrs;
         const rowsToChange = content.slice(rowIndex + 1, rowIndex + attrs.rowspan);
+        const mergedCell = {
+          type: cell.type,
+          content: [
+            // cells must end with a paragraph
+            editorSchema.nodes.paragraph.createAndFill().toJSON(),
+          ],
+          attrs: {
+            ...cell.attrs,
+            // reset colspan and rowspan
+            colspan: null,
+            rowspan: null,
+            // to add vMerge
+            continueMerge: true,
+          },
+        };
+
         rowsToChange.forEach((rowToChange, mergedIndex) => {
-          rowToChange.content.splice(cellIndex, 0, mergedCells[mergedIndex]);
+          rowToChange.content.splice(cellIndex, 0, mergedCell);
         });
       }
     }
@@ -776,14 +821,24 @@ function generateTableBorders(node) {
   borderTypes.forEach((type) => {
     const border = borders[type];
     if (!border) return;
-    const borderElement = {
-      name: `w:${type}`,
-      attributes: {
+    
+    let attributes = {};
+    if (!Object.keys(border).length || !border.size) {
+      attributes = {
+        'w:val': 'nil',
+      };
+    } else {
+      attributes = {
         'w:val': 'single',
         'w:sz': pixelsToEightPoints(border.size),
         'w:space': border.space || 0,
         'w:color': border?.color?.substring(1) || '000000',
-      },
+      }
+    }
+    
+    const borderElement = {
+      name: `w:${type}`,
+      attributes
     };
     elements.push(borderElement);
   });
@@ -802,7 +857,7 @@ function generateTableBorders(node) {
  */
 function generateTableGrid(node) {
   const { gridColumnWidths } = node.attrs;
-
+  
   const elements = [];
   gridColumnWidths?.forEach((width) => {
     elements.push({
@@ -883,18 +938,19 @@ function generateTableCellProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { width, cellWidthType = 'dxa', background = {}, colspan } = attrs;
+  const { colwidth = [], cellWidthType = 'dxa', background = {}, colspan, rowspan, widthUnit } = attrs;
+  const colwidthSum = colwidth.reduce((acc, curr) => acc + curr, 0);
 
   const cellWidthElement = {
     name: 'w:tcW',
-    attributes: { 'w:w': inchesToTwips(width), 'w:type': cellWidthType },
+    attributes: { 'w:w': widthUnit === 'px' ? pixelsToTwips(colwidthSum) : inchesToTwips(colwidthSum), 'w:type': cellWidthType },
   };
   elements.push(cellWidthElement);
 
   if (colspan) {
     const gridSpanElement = {
       name: 'w:gridSpan',
-      attributes: { 'w:val': colspan },
+      attributes: { 'w:val': `${colspan}` },
     };
     elements.push(gridSpanElement);
   }
@@ -925,12 +981,20 @@ function generateTableCellProperties(node) {
     };
     elements.push(vertAlignElement);
   }
-
-  const { vMerge } = attrs;
-  if (vMerge) {
+  
+  // const { vMerge } = attrs;
+  // if (vMerge) {}
+   if (rowspan && rowspan > 1) {
     const vMergeElement = {
       name: 'w:vMerge',
-      attributes: { 'w:val': null },
+      type: 'element',
+      attributes: { 'w:val': 'restart' },
+    };
+    elements.push(vMergeElement);
+  } else if (attrs.continueMerge) {
+    const vMergeElement = {
+      name: 'w:vMerge',
+      type: 'element',
     };
     elements.push(vMergeElement);
   }
@@ -939,15 +1003,25 @@ function generateTableCellProperties(node) {
   if (!!borders && Object.keys(borders).length) {
     const cellBordersElement = {
       name: 'w:tcBorders',
-      elements: Object.entries(borders).map(([key, value]) => ({
-        name: `w:${key}`,
-        attributes: {
-          'w:val': 'single',
-          'w:color': value.color ? value.color.substring(1) : 'auto',
-          'w:sz': pixelsToEightPoints(value.size),
-          'w:space': value.space || 0,
-        },
-      })),
+      elements: Object.entries(borders).map(([key, value]) => {
+        if (!value.size) {
+          return {
+            name: `w:${key}`,
+            attributes: {
+              'w:val': 'nil',
+            }
+          };
+        }
+        return {
+          name: `w:${key}`,
+          attributes: {
+            'w:val': 'single',
+            'w:color': value.color ? value.color.substring(1) : 'auto',
+            'w:sz': pixelsToEightPoints(value.size),
+            'w:space': value.space || 0,
+          },
+        };
+      }),
     };
 
     elements.push(cellBordersElement);
@@ -1054,14 +1128,52 @@ function translateMark(mark) {
       break;
 
     case 'highlight':
-      markElement.attributes['w:val'] = attrs.color;
+      markElement.attributes['w:fill'] = attrs.color.substring(1);
+      markElement.attributes['w:color'] = 'auto';
+      markElement.attributes['w:val'] = 'clear';
+      markElement.name = 'w:shd';
       break;
 
     case 'link':
       break;
   }
-
+  
   return markElement;
+}
+
+function getPngDimensions(base64) {
+  if (!base64) return {};
+
+  const type = base64.split(';')[0].split('/')[1];
+  if (!base64 || type !== 'png') {
+    return {
+      originalWidth: undefined,
+      originalHeight: undefined,
+    }
+  }
+  
+  let header = base64.split(',')[1].slice(0, 50)
+  let uint8 = Uint8Array.from(atob(header), c => c.charCodeAt(0))
+  let dataView = new DataView(uint8.buffer, 0, 28)
+
+  return {
+    originalWidth: dataView.getInt32(16),
+    originalHeight: dataView.getInt32(20)
+  }
+}
+
+function getScaledSize(originalWidth, originalHeight, maxWidth, maxHeight) {
+  let scaledWidth = originalWidth;
+  let scaledHeight = originalHeight;
+
+  // Calculate aspect ratio
+  let ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight);
+
+  // Scale dimensions
+  scaledWidth = Math.round(scaledWidth * ratio);
+  scaledHeight = Math.round(scaledHeight * ratio);
+
+  return { scaledWidth, scaledHeight };
 }
 
 function translateImageNode(params, imageSize) {
@@ -1070,27 +1182,41 @@ function translateImageNode(params, imageSize) {
   } = params;
 
   let imageId = attrs.rId;
-  const size = attrs.size
+  
+  const src = attrs.src || attrs.imageSrc;
+  const { originalWidth, originalHeight } = getPngDimensions(src);
+  
+  let size = attrs.size
     ? {
       w: pixelsToEmu(attrs.size.width),
       h: pixelsToEmu(attrs.size.height),
     } : imageSize;
 
+  if (originalWidth && originalHeight) {
+    const boxWidthPx = emuToPixels(size.w);
+    const boxHeightPx = emuToPixels(size.h);
+    const { scaledWidth, scaledHeight } = getScaledSize(originalWidth, originalHeight, boxWidthPx, boxHeightPx);
+    size = {
+      w: pixelsToEmu(scaledWidth),
+      h: pixelsToEmu(scaledHeight),
+    };
+  }
+  
   if (params.node.type === 'image' && !imageId) {
-    const path = attrs.src?.split('word/')[1];
+    const path = src?.split('word/')[1];
     imageId = addNewImageRelationship(params, path);
   } else if (params.node.type === 'fieldAnnotation' && !imageId) {
-    const type = attrs.imageSrc?.split(';')[0].split('/')[1];
+    const type = src?.split(';')[0].split('/')[1];
     if (!type) {
       return prepareTextAnnotation(params);
     }
-
+    
     const hash = generateDocxRandomId(4);
     const cleanUrl = attrs.fieldId.replace('-', '_');
     const imageUrl = `media/${cleanUrl}_${hash}.${type}`;
 
     imageId = addNewImageRelationship(params, imageUrl);
-    params.media[`${cleanUrl}_${hash}.${type}`] = attrs.imageSrc;
+    params.media[`${cleanUrl}_${hash}.${type}`] = src;
   }
 
   const inlineAttrs = attrs.originalPadding || {
@@ -1422,7 +1548,6 @@ function translateFieldAnnotation(params) {
         elements: [
           { name: 'w:tag', attributes: { 'w:val': attrs.fieldId } },
           { name: 'w:alias', attributes: { 'w:val': attrs.displayLabel } },
-          { name: 'w:lock', attributes: { 'w:val': 'sdtContentLocked' } },
           {
             name: 'w:fieldType',
             attributes: {
@@ -1459,7 +1584,7 @@ function translateFieldAnnotation(params) {
       },
     ],
   };
-}
+};
 
 export function translateHardBreak() {
   return {
@@ -1472,24 +1597,6 @@ export function translateHardBreak() {
 export class DocxExporter {
   constructor(converter) {
     this.converter = converter;
-  }
-
-  // Currently for hyperlinks but there will be other uses
-  #generateFldCharNode(type) {
-    return {
-      name: 'w:r',
-      type: 'element',
-      elements: [{ name: 'w:fldChar', attributes: { 'w:fldCharType': type } }],
-    };
-  }
-
-  // Used for generating hyperlinks
-  #generateInstrText(data) {
-    return {
-      name: 'w:r',
-      type: 'element',
-      elements: [{ name: 'w:instrText', elements: [{ type: 'text', text: data }] }],
-    };
   }
 
   schemaToXml(data) {

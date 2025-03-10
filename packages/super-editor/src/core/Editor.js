@@ -10,12 +10,12 @@ import { SuperConverter } from '@core/super-converter/SuperConverter.js';
 import { Commands, Keymap, Editable, EditorFocus } from './extensions/index.js';
 import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
-import { initComments } from '@features/index.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { initPaginationData } from '@extensions/pagination/pagination-helpers';
-import { PaginationPluginKey } from '@extensions/pagination/pagination-plugin-key.js';
+import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
+import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
+import { prepareCommentsForExport, prepareCommentsForImport } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
 
 /**
@@ -36,8 +36,6 @@ export class Editor extends EventEmitter {
 
   #css;
 
-  #comments;
-
   options = {
     element: null,
     isHeadless: false,
@@ -45,6 +43,7 @@ export class Editor extends EventEmitter {
     mockWindow: null,
     content: '', // XML content
     user: null,
+    users: [],
     media: {},
     mediaFiles: {},
     fonts: {},
@@ -61,8 +60,11 @@ export class Editor extends EventEmitter {
     editorProps: {},
     parseOptions: {},
     coreExtensionOptions: {},
+    isCommentsEnabled: false,
     isNewFile: false,
     scale: 1,
+    annotations: false,
+    isInternal: false,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -78,9 +80,11 @@ export class Editor extends EventEmitter {
     onCommentsUpdate: () => null,
     onCommentsLoaded: () => null,
     onCommentClicked: () => null,
+    onCommentLocationsUpdate: () => null,
     onDocumentLocked: () => null,
     onFirstRender: () => null,
     onCollaborationReady: () => null,
+    onPaginationUpdate: () => null,
     onException: () => null,
     // async (file) => url;
     handleImageUpload: null,
@@ -91,7 +95,7 @@ export class Editor extends EventEmitter {
 
   constructor(options) {
     super();
-
+    
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
     this.#checkHeadless(options);
     this.setOptions(options);
@@ -140,13 +144,17 @@ export class Editor extends EventEmitter {
     this.on('commentsUpdate', this.options.onCommentsUpdate);
     this.on('locked', this.options.onDocumentLocked);
     this.on('collaborationReady', this.#onCollaborationReady);
+    this.on('paginationUpdate', this.options.onPaginationUpdate);
+    this.on('comment-positions', this.options.onCommentLocationsUpdate);
 
-    // this.#loadComments();
     this.initializeCollaborationData();
 
     // Init pagination only if we are not in collaborative mode. Otherwise
     // it will be in itialized via this.#onCollaborationReady
-    if (!this.options.ydoc) this.#initPagination();
+    if (!this.options.ydoc) {
+      this.#initPagination();
+      this.#initComments();
+    };
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -311,7 +319,7 @@ export class Editor extends EventEmitter {
         this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
       }, 150);
     }
-
+    
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
@@ -517,10 +525,12 @@ export class Editor extends EventEmitter {
       
       if (mode === 'docx') {
         doc = createDocument(this.converter, this.schema, this);
-  
+
+        // Perform any additional document processing prior to finalizing the doc here
+        doc = this.#prepareDocumentForImport(doc);
+
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
-          console.debug('🦋 [super-editor] Generated JSON from fragment:', doc);
         }
       } else if (mode === 'text') {
         if (content) {
@@ -544,7 +554,7 @@ export class Editor extends EventEmitter {
    */
   #createView() {
     let doc = this.#generatePmData();
-
+    
     // Only initialize the doc if we are not using Yjs/collaboration
     const state = { schema: this.schema };
     if (!this.options.ydoc) state.doc = doc;
@@ -565,6 +575,8 @@ export class Editor extends EventEmitter {
 
     const dom = this.view.dom;
     dom.editor = this;
+    
+    this.options.telemetry?.sendReport();
   }
 
   /**
@@ -654,8 +666,9 @@ export class Editor extends EventEmitter {
     const initialWidth = element.offsetWidth;
     
     const updateScale = () => {
+      const minPageSideMargin = 10;
       const elementWidth = initialWidth;
-      const availableWidth = document.documentElement.clientWidth;
+      const availableWidth = document.documentElement.clientWidth - minPageSideMargin;
       
       this.options.scale = Math.min(1, availableWidth / elementWidth);
 
@@ -688,6 +701,11 @@ export class Editor extends EventEmitter {
         updateScale();
       }, 150);
     });
+    window.addEventListener('resize', () => {
+      setTimeout(() => {
+        updateScale();
+      }, 150);
+    });
   };
 
   #onCollaborationReady({ editor, ydoc }) {
@@ -696,7 +714,23 @@ export class Editor extends EventEmitter {
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
     this.#initPagination();
-  }
+    this.#initComments();
+  };
+
+  /**
+   * Initialize comments plugin
+   */
+  #initComments() {
+    if (!this.options.isCommentsEnabled) return;
+    if (this.options.isHeadless || !this.options.isInternal) return;
+    this.emit('commentsLoaded', { editor: this, comments: this.converter.comments || [] });
+
+    setTimeout(() => {
+      const { state, dispatch } = this.view;
+      const tr = state.tr.setMeta(CommentsPluginKey, { type: 'force' });
+      dispatch(tr);
+    }, 50);
+  };
 
   /**
    * Initialize pagination, if the pagination extension is enabled.
@@ -715,7 +749,7 @@ export class Editor extends EventEmitter {
       const tr = state.tr.setMeta(PaginationPluginKey, { isReadyToInit: true });
       dispatch(tr);
     }
-  }
+  };
 
   /**
    * The callback which is used to intercept View transactions.
@@ -777,8 +811,6 @@ export class Editor extends EventEmitter {
         transaction,
       });
     }
-
-    this.toolbar?.updateToolbarState();
     
     if (!transaction.docChanged) {
       return;
@@ -788,19 +820,6 @@ export class Editor extends EventEmitter {
       editor: this,
       transaction,
     });
-  }
-
-  /**
-   * Load the document comments.
-   */
-  #loadComments() {
-    this.#comments = initComments(this, this.converter, this.options.documentId);
-
-    this.emit('commentsLoaded', { comments: this.#comments });
-  }
-
-  getComment(id) {
-    return this.#comments.find((c) => c.thread == id);
   }
 
   /**
@@ -852,15 +871,98 @@ export class Editor extends EventEmitter {
   }
 
   /**
+   * Update page styles
+   * 
+   * @param {Object} param0 
+   * @param {Object} param0.pageMargins The new page margins
+   * @returns {void}
+   */
+  updatePageStyle({ pageMargins }) {
+    if (!this.converter) return;
+
+    let hasMadeUpdate = false;
+    if (pageMargins) {
+      this.converter.pageStyles.pageMargins = pageMargins;
+      this.initDefaultStyles();
+      hasMadeUpdate = true;
+    };
+
+    if (hasMadeUpdate) {
+      const newTr = this.view.state.tr;
+      newTr.setMeta('forceUpdatePagination', true);
+      this.view.dispatch(newTr);
+    };
+  }
+
+  /**
+   * Perform any post conversion pre prosemirror import processing.
+   * Comments are processed here.
+   * 
+   * @param {import('prosemirror-model').Node} doc The prosemirror document
+   * @returns {import('prosemirror-model').Node} The updated prosemirror document
+   */
+  #prepareDocumentForImport(doc) {
+
+    const newState = EditorState.create({
+      schema: this.schema,
+      doc,
+    });
+
+    const { tr, doc: newDoc } = newState;
+
+    // Perform comments processing (replaces comment nodes with marks)
+    prepareCommentsForImport(newDoc, tr, this.schema);
+
+    const updatedState = newState.apply(tr);
+    return updatedState.doc;
+  }
+
+  /**
+   * Prepare the document for export. Any necessary pre-export processing to the state
+   * can happen here.
+   * 
+   * @returns {Record<string, any>} The updated document JSON
+   */
+  #prepareDocumentForExport() {
+    const newState = EditorState.create({
+      schema: this.schema,
+      doc: this.state.doc,
+      plugins: this.state.plugins
+    });
+
+    const { tr, doc } = newState;
+
+    prepareCommentsForExport(doc, tr, this.schema);
+    const updatedState = newState.apply(tr);
+    return updatedState.doc.toJSON();
+  }
+
+  /**
    * Export the editor document to DOCX.
    */
-  async exportDocx({ isFinalDoc = false } = {}) {
-    const json = this.getJSON();
-    const documentXml = await this.converter.exportToDocx(json, this.schema, this.storage.image.media, isFinalDoc);
+  async exportDocx({ isFinalDoc = false, commentsType, comments = [] } = {}) {
+    // Pre-process the document state to prepare for export
+    const json = this.#prepareDocumentForExport();
+
+    // Export the document to DOCX
+    const documentXml = await this.converter.exportToDocx(
+      json,
+      this.schema,
+      this.storage.image.media,
+      isFinalDoc,
+      commentsType,
+      comments,
+    );
+
     const relsData = this.converter.convertedXml['word/_rels/document.xml.rels'];
     const rels = this.converter.schemaToXml(relsData.elements[0]);
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
+    const styles = this.converter.schemaToXml(this.converter.convertedXml['word/styles.xml'].elements[0]);
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
+    const contentTypes = this.converter.schemaToXml(this.converter.convertedXml['[Content_Types].xml'].elements[0]);
+
+    const originalCommentsXml = this.converter.convertedXml['word/comments.xml'];
+    const updatedCommentsXml = originalCommentsXml ? this.converter.schemaToXml(originalCommentsXml.elements[0]) : null;
     const media = this.converter.addedMedia;
 
     const updatedDocs = {
@@ -868,7 +970,13 @@ export class Editor extends EventEmitter {
       'word/_rels/document.xml.rels': String(rels),
       'docProps/custom.xml': String(customXml),
       'word/settings.xml': String(customSettings),
+      // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
+      'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
+      '[Content_Types].xml': String(contentTypes),
     };
+
+    // Add comments.xml to the list of files to update if we have any comments
+    if (updatedCommentsXml) updatedDocs['word/comments.xml'] = String(updatedCommentsXml);
 
     const zipper = new DocxZipper();
     const result = await zipper.updateZip({
@@ -880,7 +988,7 @@ export class Editor extends EventEmitter {
       isHeadless: this.options.isHeadless,
     });
     
-    this.telemetry?.trackUsage('document_export', {
+    this.options.telemetry?.trackUsage('document_export', {
       documentType: 'docx',
       timestamp: new Date().toISOString()
     });
@@ -950,4 +1058,24 @@ export class Editor extends EventEmitter {
     return pluginState.doc;
   };
 
+  async replaceFile(newFile) {
+    const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(newFile);
+    this.setOptions({
+      fileSource: newFile,
+      content: docx,
+      media,
+      mediaFiles,
+      fonts,
+      isNewFile: true
+    });
+
+    this.#createConverter();
+    this.#initMedia();
+    this.initDefaultStyles();
+    
+    this.initializeCollaborationData();
+    
+    if (!this.options.ydoc) this.#initPagination();
+    
+  }
 }

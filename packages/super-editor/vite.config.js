@@ -34,17 +34,15 @@ export default defineConfig(({ mode }) => {
         external: [
           'vue',
           'yjs',
-          'tippy.js',
           'y-protocols',
         ],
         input: {
           'super-editor': 'src/index.js',
           'editor': '@core/Editor',
-          'super-converter': '@core/super-converter/SuperConverter',
+          'converter': '@core/super-converter/SuperConverter',
           'docx-zipper': '@core/DocxZipper',
           'toolbar': '@components/toolbar/Toolbar.vue',
-          'super-input': '@components/SuperInput.vue',
-          'zipper': '@core/super-converter/zipper.js',
+          'file-zipper': '@core/super-converter/zipper.js',
         },
         output: {
           globals: {
@@ -52,11 +50,12 @@ export default defineConfig(({ mode }) => {
             'tippy.js': 'tippy',
           },
           manualChunks: {
-            'super-converter': ['@core/super-converter/SuperConverter'],
+            'converter': ['@core/super-converter/SuperConverter'],
             'editor': ['@core/Editor'],
             'docx-zipper': ['@core/DocxZipper'],
             'toolbar': ['@components/toolbar/Toolbar.vue'],
             'super-input': ['@components/SuperInput.vue'],
+            'file-zipper': ['@core/super-converter/zipper.js'],
           },
           entryFileNames: '[name].es.js',
           chunkFileNames: 'chunks/[name]-[hash].js'
@@ -64,9 +63,6 @@ export default defineConfig(({ mode }) => {
       },
       minify: false,
       sourcemap: true,
-      esbuild: {
-        drop: [],
-      },
     },
     server: {
       port: 9096,

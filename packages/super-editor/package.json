@@ -1,6 +1,6 @@
 {
   "name": "@harbour-enterprises/super-editor",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1",
   "license": "AGPL-3.0",
   "type": "module",
   "files": [
@@ -10,8 +10,8 @@
     ".": {
       "import": "./dist/super-editor.es.js"
     },
-    "./super-converter": {
-      "import": "./dist/super-converter.es.js"
+    "./converter": {
+      "import": "./dist/converter.es.js"
     },
     "./docx-zipper": {
       "import": "./dist/docx-zipper.es.js"
@@ -22,11 +22,11 @@
     "./super-input": {
       "import": "./dist/super-input.es.js"
     },
-    "./super-editor": {
+    "./editor": {
       "import": "./dist/super-editor.es.js"
     },
-    "./zipper": {
-      "import": "./dist/zipper.es.js"
+    "./file-zipper": {
+      "import": "./dist/file-zipper.es.js"
     },
     "./style.css": "./dist/style.css"
   },
@@ -35,10 +35,11 @@
   "scripts": {
     "dev": "vite",
     "playwright": "playwright test ./src/tests/playwright",
-    "build": "vite build",
+    "preview": "vite preview",
+    "build": "vite build && tsc",
     "clean": "rm -rf dist",
     "test": "vitest",
-    "preview": "vite preview",
+    "build:watch": "vite build --watch --logLevel warn",
     "pack": "rm *.tgz 2>/dev/null || true && npm run build && npm pack && mv harbour-enterprises-super-editor-0.0.1-alpha.0.tgz ./super-editor.tgz"
   },
   "dependencies": {
@@ -48,6 +49,7 @@
     "jszip": "^3.10.1",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-dropcursor": "^1.8.1",
+    "prosemirror-gapcursor": "^1.3.2",
     "prosemirror-history": "^1.4.0",
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-model": "^1.21.0",
@@ -74,6 +76,7 @@
     "postcss-nested": "^6.0.1",
     "postcss-nested-import": "^1.3.0",
     "tippy.js": "^6.3.7",
+    "typescript": "^5.7.3",
     "vite": "^5.4.12",
     "vitest": "^1.6.1",
     "vue-draggable-next": "^2.2.1",

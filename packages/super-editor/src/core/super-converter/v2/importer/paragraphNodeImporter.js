@@ -2,6 +2,8 @@ import { twipsToInches, twipsToPixels, twipsToLines } from '../../helpers.js';
 import { testForList } from './listImporter.js';
 import { carbonCopy } from '../../../utilities/carbonCopy.js';
 import { mergeTextNodes } from './mergeTextNodes.js';
+import { parseMarks } from './markImporter.js';
+import { kebabCase } from '@harbour-enterprises/common';
 
 /**
  * Special cases of w:p based on paragraph properties
@@ -49,19 +51,7 @@ export const handleParagraphNode = (params) => {
   const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
   if (styleTag) {
     schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
-
-    const { textAlign, firstLine, leftIndent, rightIndent } = getDefaultStyleDefinition(
-      styleTag.attributes['w:val'],
-      docx,
-    );
-    schemaNode.attrs['textAlign'] = textAlign;
-
-    schemaNode.attrs['indent'] = {
-      left: leftIndent,
-      right: rightIndent,
-      firstLine: firstLine,
-    };
-  }
+  };
 
   const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
   if (indent && indent.attributes) {
@@ -112,7 +102,7 @@ export const getParagraphSpacing = (defaultStyleId, node, docx) => {
   }
 
   const { spacing: pDefaultSpacing = {} } = getDefaultParagraphStyle(docx);
-  const { lineSpaceAfter, lineSpaceBefore, line, lineRule: lineRuleStyle } = getDefaultStyleDefinition(defaultStyleId, docx);
+  let lineSpaceAfter, lineSpaceBefore, line, lineRuleStyle;
 
   const pPr = node.elements?.find((el) => el.name === 'w:pPr');
   const inLineSpacingTag = pPr?.elements?.find((el) => el.name === 'w:spacing');
@@ -165,7 +155,7 @@ export const paragraphNodeHandlerEntity = {
  * @param {string} defaultStyleId
  * @param {ParsedDocx} docx
  */
-function getDefaultStyleDefinition(defaultStyleId, docx) {
+export function getDefaultStyleDefinition(defaultStyleId, docx) {
   const result = { lineSpaceBefore: null, lineSpaceAfter: null };
   if (!defaultStyleId) return result;
 
@@ -181,21 +171,91 @@ function getDefaultStyleDefinition(defaultStyleId, docx) {
   const firstMatch = elementsWithId[0];
   if (!firstMatch) return result;
 
+  const qFormat = elementsWithId.find((el) => {
+    const qFormat = el.elements.find((innerEl) => innerEl.name === 'w:qFormat');
+    return qFormat;
+  });
+
+  const name = elementsWithId.find(el =>
+    el.elements.some(inner => inner.name === 'w:name')
+  )?.elements.find(inner => inner.name === 'w:name')?.attributes['w:val'];
+
+  // pPr
   const pPr = firstMatch.elements.find((el) => el.name === 'w:pPr');
-  const spacing = pPr?.elements.find((el) => el.name === 'w:spacing');
-  const justify = pPr?.elements.find((el) => el.name === 'w:jc');
-  const indent = pPr?.elements.find((el) => el.name === 'w:ind');
-  if (!spacing && !justify && !indent) return result;
+  const spacing = pPr?.elements?.find((el) => el.name === 'w:spacing');
+  const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
+  const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
 
-  const lineSpaceBefore = spacing?.attributes['w:before'];
-  const lineSpaceAfter = spacing?.attributes['w:after'];
-  const line = spacing?.attributes['w:line'];
-  const textAlign = justify?.attributes['w:val'];
-  const leftIndent = twipsToPixels(indent?.attributes['w:left']);
-  const rightIndent = twipsToPixels(indent?.attributes['w:right']);
-  const firstLine = twipsToPixels(indent?.attributes['w:firstLine']);
+  let lineSpaceBefore, lineSpaceAfter, line;
+  if (spacing) {
+    lineSpaceBefore = twipsToPixels(spacing?.attributes['w:before']);
+    lineSpaceAfter = twipsToPixels(spacing?.attributes['w:after']);
+    line = twipsToLines(spacing?.attributes['w:line']);
+  };
 
-  return { lineSpaceBefore, lineSpaceAfter, line, textAlign, leftIndent, rightIndent, firstLine };
+  let textAlign, leftIndent, rightIndent, firstLine;
+  if (indent) {
+    textAlign = justify?.attributes['w:val'];
+    leftIndent = twipsToPixels(indent?.attributes['w:left']);
+    rightIndent = twipsToPixels(indent?.attributes['w:right']);
+    firstLine = twipsToPixels(indent?.attributes['w:firstLine']);
+  };
+
+  const keepNext = pPr?.elements?.find((el) => el.name === 'w:keepNext');
+  const keepLines = pPr?.elements?.find((el) => el.name === 'w:keepLines');
+
+  const outlineLevel = pPr?.elements?.find((el) => el.name === 'w:outlineLvl');
+  const outlineLvlValue = outlineLevel?.attributes['w:val'];
+
+  const pageBreakBefore = pPr?.elements?.find((el) => el.name === 'w:pageBreakBefore');
+  let pageBreakBeforeVal = 0;
+  if (pageBreakBefore) {
+     if (!pageBreakBefore.attributes?.['w:val']) pageBreakBeforeVal = 1;
+     else pageBreakBeforeVal = Number(pageBreakBefore?.attributes?.['w:val'])
+  };
+  const pageBreakAfter = pPr?.elements?.find((el) => el.name === 'w:pageBreakAfter');
+  let pageBreakAfterVal;
+  if (pageBreakAfter) {
+    if (!pageBreakAfter.attributes?.['w:val']) pageBreakAfterVal = 1;
+    else pageBreakAfterVal = Number(pageBreakAfter?.attributes?.['w:val'])
+ };
+
+  const parsedAttrs = {
+    name,
+    qFormat: qFormat ? true : false,
+    keepNext: keepNext ? true : false,
+    keepLines: keepLines ? true : false,
+    outlineLevel: outlineLevel ? parseInt(outlineLvlValue) : null,
+    pageBreakBefore: pageBreakBeforeVal ? true : false,
+    pageBreakAfter: pageBreakAfterVal ? true : false,
+  };
+
+  // rPr
+  const rPr = firstMatch.elements.find((el) => el.name === 'w:rPr');
+  const parsedMarks = parseMarks(rPr, [], docx) || {};
+  const parsedStyles = {
+    spacing: { lineSpaceAfter, lineSpaceBefore, line },
+    textAlign,
+    indent: { leftIndent, rightIndent, firstLine },
+  };
+
+  parsedMarks.forEach((mark) => {
+    const { type, attrs } = mark;
+    if (type === 'textStyle') {
+      Object.entries(attrs).forEach(([key, value]) => {
+        parsedStyles[kebabCase(key)] = value
+      });
+      return;
+    };
+
+    parsedStyles[type] = attrs;
+  });
+
+  // pPr marks 
+  return {
+    attrs: parsedAttrs,
+    styles: parsedStyles,
+  };
 }
 
 /**

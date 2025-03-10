@@ -60,14 +60,20 @@ const editorOptions = computed(() => {
   return {
     documentId: 'dev-123',
     user,
+    rulers: true,
     onCreate,
     onCommentClicked,
+    onCommentsLoaded,
     suppressSkeletonLoader: true,
     users: [], // For comment @-mentions, only users that have access to the document
     pagination: true,
     telemetry: telemetry.value,
   }
 });
+
+const onCommentsLoaded = ({ comments }) => {
+  console.debug('💬 [Dev] Comments loaded', comments);
+};
 
 const exportDocx = async () => {
   const result = await activeEditor?.exportDocx();
@@ -94,7 +100,7 @@ const attachAnnotationEventHandlers = () => {
 };
 
 const initToolbar = () => {
-  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true });
+  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true, });
 };
 
 /* For pagination debugging / visual cues */
@@ -109,7 +115,7 @@ onMounted(async () => {
   currentFile.value = await getFileObject(BlankDOCX, 'blank_document.docx', DOCX);
 
   telemetry.value = new Telemetry({
-    enabled: true,
+    enabled: false,
     superdocId: 'dev-playground',
   });
 });
@@ -212,6 +218,7 @@ onMounted(async () => {
 }
 
 .dev-app__view {
+  width: 100%;
   display: flex;
   padding-top: 20px;
   padding-left: 20px;

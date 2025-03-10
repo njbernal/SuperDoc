@@ -47,30 +47,31 @@ function createProvider({ config, user, documentId, socket, superdocInstance }) 
  */
 function createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }) {
   const ydoc = new YDoc({ gc: false });
-  const provider = new HocuspocusProvider({
+  const options = {
     websocketProvider: socket,
-    name: documentId,
     document: ydoc,
+    name: documentId,
     token: config.token || '',
-    onAuthenticationFailed,
-    onConnect: () => onConnect(superdocInstance),
-    onDisconnect: () => onDisconnect(superdocInstance),
-  });
+    onAuthenticationFailed: () => onAuthenticationFailed(documentId),
+    onConnect: () => onConnect(superdocInstance, documentId),
+    onDisconnect: () => onDisconnect(superdocInstance, documentId),
+  };
 
+  const provider = new HocuspocusProvider(options);
   provider.setAwarenessField('user', user);
   return { provider, ydoc };
 }
 
-const onAuthenticationFailed = (data) => {
-  console.warn('🔒 [superdoc] Authentication failed', data);
+const onAuthenticationFailed = (data, documentId) => {
+  console.warn('🔒 [superdoc] Authentication failed', data, 'document', documentId);
 };
 
-const onConnect = (superdocInstance) => {
-  console.warn('🔌 [superdoc] Connected -- ', superdocInstance.config.documents[0]);
+const onConnect = (superdocInstance, documentId) => {
+  console.warn('🔌 [superdoc] Connected -- ', documentId);
 };
 
-const onDisconnect = (superdocInstance) => {
-  console.warn('🔌 [superdoc] Disconnected', superdocInstance.config.documents[0]);
+const onDisconnect = (superdocInstance, documentId) => {
+  console.warn('🔌 [superdoc] Disconnected', documentId);
 };
 
 export { createAwarenessHandler, createProvider };

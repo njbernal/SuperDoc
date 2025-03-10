@@ -1,7 +1,7 @@
 import { ref, shallowRef, toRaw } from 'vue';
 import { useField } from './use-field';
 import { documentTypes } from '@harbour-enterprises/common';
-import useConversation from '@/components/CommentsLayer/use-conversation';
+import useComment from '@superdoc/components/CommentsLayer/use-comment';
 
 export default function useDocument(params, superdocConfig) {
   const id = params.id;
@@ -16,6 +16,7 @@ export default function useDocument(params, superdocConfig) {
   const container = ref(null);
   const pageContainers = ref([]);
   const isReady = ref(false);
+  const rulers = ref(superdocConfig.rulers);
 
   // Collaboration
   const ydoc = shallowRef(params.ydoc);
@@ -63,7 +64,7 @@ export default function useDocument(params, superdocConfig) {
 
   function initConversations() {
     if (!config.modules.comments) return [];
-    return params.conversations?.map((c) => useConversation(c)) || [];
+    return params.conversations?.map((c) => useComment(c)) || [];
   }
 
   const core = ref(null);
@@ -91,6 +92,7 @@ export default function useDocument(params, superdocConfig) {
     container,
     pageContainers,
     isReady,
+    rulers,
 
     // Modules
     rawFields,

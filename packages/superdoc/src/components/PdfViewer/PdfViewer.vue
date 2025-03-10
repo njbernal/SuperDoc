@@ -6,8 +6,8 @@ import workerSrc from './worker.js?raw';
 
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue';
-import { useSuperdocStore } from '@/stores/superdoc-store';
-import useSelection from '@/helpers/use-selection';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
+import useSelection from '@superdoc/helpers/use-selection';
 
 window.pdfjsWorker = pdfjsWorker;
 pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
@@ -144,10 +144,10 @@ function getSelectedTextBoundingBox(container) {
   const viewerRect = viewer.value.getBoundingClientRect();
 
   // Adjust the bounding box relative to the page
-  boundingBox.top = (boundingBox.top - containerRect.top) / activeZoom.value + container.scrollTop;
-  boundingBox.left = (boundingBox.left - containerRect.left) / activeZoom.value + container.scrollLeft;
-  boundingBox.bottom = (boundingBox.bottom - containerRect.top) / activeZoom.value + container.scrollTop;
-  boundingBox.right = (boundingBox.right - containerRect.left) / activeZoom.value + container.scrollLeft;
+  boundingBox.top = (boundingBox.top - containerRect.top) / (activeZoom.value / 100) + container.scrollTop;
+  boundingBox.left = (boundingBox.left - containerRect.left) / (activeZoom.value / 100) + container.scrollLeft;
+  boundingBox.bottom = (boundingBox.bottom - containerRect.top) / (activeZoom.value / 100) + container.scrollTop;
+  boundingBox.right = (boundingBox.right - containerRect.left) / (activeZoom.value / 100) + container.scrollLeft;
 
   return boundingBox;
 }
@@ -182,14 +182,19 @@ const handleMouseUp = (e) => {
   </div>
 </template>
 
+<style lang="postcss">
+/** Global styles */
+.superdoc-pdf-viewer {
+  @nested-import 'pdfjs-dist/web/pdf_viewer.css';
+}
+</style>
+
 <style lang="postcss" scoped>
 .superdoc-pdf-viewer-container {
   width: 100%;
 }
 
 .superdoc-pdf-viewer {
-  @nested-import 'pdfjs-dist/web/pdf_viewer.css';
-
   display: flex;
   flex-direction: column;
   width: 100%;

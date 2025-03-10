@@ -22,20 +22,21 @@ export const Mention = Node.create({
   parseDOM() {
     return [
       {
-        tag: `span[data-type="${this.name}"]`,
+        tag: `span[data-type="${this.name || this.email}"]`,
         getAttrs: (node) => ({
           name: node.getAttribute('name') || null,
+          email: node.getAttribute('email') || null,
         }),
       },
     ];
   },
 
   renderDOM({ node, htmlAttributes }) {
-    const { name, email } = node.attrs;
+    const { name } = node.attrs;
 
     return [
       'span',
-      Attribute.mergeAttributes({ 'data-type': this.name }, this.options.htmlAttributes, htmlAttributes),
+      Attribute.mergeAttributes({ 'data-type': this.name || this.email, }, this.options.htmlAttributes, htmlAttributes),
       `@${name}`,
     ];
   },
@@ -43,6 +44,7 @@ export const Mention = Node.create({
   addAttributes() {
     return {
       name: { default: null },
+      email: { default: null },
     };
   },
 });

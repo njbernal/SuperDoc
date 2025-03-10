@@ -2,9 +2,11 @@ import xmljs from 'xml-js';
 import { v4 as uuidv4 } from 'uuid';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
-import { createDocumentJson } from './v2/importer/docxImporter.js';
+import { createDocumentJson, addDefaultStylesIfMissing } from './v2/importer/docxImporter.js';
 import { getArrayBufferFromUrl } from './helpers.js';
+import { getCommentDefinition, updateCommentsXml, updateContentTypes } from './v2/exporter/commentsExporter.js';
 import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
+import { COMMENTS_XML } from './exporter-docx-defs.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -26,10 +28,10 @@ class SuperConverter {
     'w:sectPr': 'sectionProperties',
     'w:rPr': 'runProperties',
 
-    // // Comments
-    // 'w:commentRangeStart': 'commentRangeStart',
-    // 'w:commentRangeEnd': 'commentRangeEnd',
-    // 'w:commentReference': 'commentReference',
+    // Comments
+    'w:commentRangeStart': 'commentRangeStart',
+    'w:commentRangeEnd': 'commentRangeEnd',
+    'w:commentReference': 'commentReference',
   });
 
   static markTypes = [
@@ -48,6 +50,7 @@ class SuperConverter {
     { name: 'w:spacing', type: 'lineHeight', mark: 'textStyle', property: 'lineHeight' },
     { name: 'link', type: 'link', mark: 'link', property: 'href' },
     { name: 'w:highlight', type: 'highlight', mark: 'highlight', property: 'color' },
+    { name: 'w:shd', type: 'highlight', mark: 'highlight', property: 'color'}
   ];
 
   static propertyTypes = Object.freeze({
@@ -55,6 +58,7 @@ class SuperConverter {
     'w:rPr': 'runProperties',
     'w:sectPr': 'sectionProperties',
     'w:numPr': 'numberingProperties',
+    'w:tcPr': 'tableCellProperties',
   });
 
   static elements = new Set(['w:document', 'w:body', 'w:p', 'w:r', 'w:t', 'w:delText']);
@@ -73,6 +77,10 @@ class SuperConverter {
     this.media = params?.media || {};
 
     this.addedMedia = {};
+    this.comments = [];
+
+    // Store custom highlight colors
+    this.docHiglightColors = new Set([]);
 
     // XML inputs
     this.xml = params?.xml;
@@ -90,6 +98,9 @@ class SuperConverter {
     this.headerIds = { default: null, even: null, odd: null, first: null };
     this.footers = {};
     this.footerIds = { default: null, even: null, odd: null, first: null };
+
+    // Linked Styles
+    this.linkedStyles = [];
 
     // This is the JSON schema that we will be working with
     this.json = params?.json;
@@ -115,6 +126,10 @@ class SuperConverter {
 
       if (file.name === 'word/document.xml') {
         this.documentAttributes = this.convertedXml[file.name].elements[0]?.attributes;
+      }
+
+      if (file.name === 'word/styles.xml') {
+        this.convertedXml[file.name] = addDefaultStylesIfMissing(this.convertedXml[file.name]);
       }
     });
     this.initialJSON = this.convertedXml['word/document.xml'];
@@ -271,10 +286,13 @@ class SuperConverter {
   getSchema(editor) {
     this.getDocumentInternalId();
     const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
-      
+  
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
+      this.comments = result.comments;
+      this.linkedStyles = result.linkedStyles;
+
       return result.pmDoc;
     } else {
       return null;
@@ -286,8 +304,17 @@ class SuperConverter {
     return exporter.schemaToXml(data);
   }
 
-  async exportToDocx(jsonData, editorSchema, documentMedia, isFinalDoc = false) {
+  async exportToDocx(
+    jsonData,
+    editorSchema,
+    documentMedia,
+    isFinalDoc = false,
+    commentsExportType,
+    comments = [],
+  ) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
+    const commentDefinitions = comments.map((c, index) => getCommentDefinition(c, index));
+
     const [result, params] = exportSchemaToJson({
       node: jsonData,
       bodyNode,
@@ -296,8 +323,14 @@ class SuperConverter {
       media: {},
       isFinalDoc,
       editorSchema,
+      converter: this,
       pageStyles: this.pageStyles,
+      comments,
+      commentsExportType,
+      exportedCommentDefs: commentDefinitions,
     });
+
+    
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
 
@@ -311,10 +344,48 @@ class SuperConverter {
     // Update the rels table
     this.#exportProcessNewRelationships(params.relationships);
 
+    // Update the comments.xml file
+    this.#updateCommentsFiles(params.exportedCommentDefs, commentsExportType);
+
+    // Update content types
+    this.#prepareCommentsForExport();
+  
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
     
     return xml;
+  }
+
+  /**
+   * Update [Content_Types].xml and docment.xml.rels for comments
+   */
+  #prepareCommentsForExport() {
+    this.convertedXml = updateContentTypes(this.convertedXml);
+  }
+
+  /**
+   * Update the comments.xml file with the exported comments if necessary
+   * 
+   * @param {Array[Object]} exportedCommentDefs 
+   * @param {String} commentsExportType 
+   * @returns {void}
+   */
+  #updateCommentsFiles(exportedCommentDefs, commentsExportType) {
+    const originalXml = this.convertedXml['word/comments.xml'];
+
+    // If there were no original comments, and we're exporting a clean document, we don't need to do anything
+    if (!originalXml && commentsExportType === 'clean') return;
+
+    if (!this.convertedXml['word/comments.xml']) this.convertedXml['word/comments.xml'] = { ...COMMENTS_XML };
+  
+    // If we had previous comments, but exporting clean, we need to remove them
+    const commentsXml = { ...this.convertedXml['word/comments.xml'] };
+    if (commentsXml && commentsExportType === 'clean') {
+      return this.convertedXml['word/comments.xml'] = { ...COMMENTS_XML };
+    };
+
+    const updatedCommentsXml = updateCommentsXml(exportedCommentDefs, commentsXml);
+    this.convertedXml['word/comments.xml'] = updatedCommentsXml;
   }
 
   #exportProcessNewRelationships(rels = []) {
@@ -347,7 +418,6 @@ class SuperConverter {
 
 function storeSuperdocVersion(docx) {
   const customLocation = 'docProps/custom.xml';
-  console.debug('storeSuperdocVersion', docx);
   if (!docx[customLocation]) {
     docx[customLocation] = generateCustomXml();
   };

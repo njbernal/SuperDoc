@@ -127,7 +127,7 @@ export function handleTableCellNode(
   const gridColumnWidths = getGridColumnWidths(table);
 
   const tcWidth = tcPr?.elements?.find((el) => el.name === 'w:tcW');
-  let width = tcWidth ? twipsToInches(tcWidth.attributes['w:w']) : null;
+  let width = tcWidth ? twipsToPixels(tcWidth.attributes['w:w']) : null;
   const widthType = tcWidth?.attributes['w:type'];
 
   if (!width && columnWidth) width = columnWidth;
@@ -156,9 +156,13 @@ export function handleTableCellNode(
   const { fontSize, fonts = {} } = referencedStyles;
   const fontFamily = fonts['ascii'];
 
-  if (width) attributes['width'] = width;
+  if (width) {
+    attributes['colwidth'] = [width];
+    attributes['widthUnit'] = 'px';
+  }
+
   if (widthType) attributes['widthType'] = widthType;
-  if (colspan) attributes['colspan'] = colspan;
+  if (colspan) attributes['colspan'] = Number(colspan);
   if (background) attributes['background'] = background;
   if (verticalAlign) attributes['verticalAlign'] = verticalAlign;
   if (fontSize) attributes['fontSize'] = fontSize;
@@ -167,7 +171,7 @@ export function handleTableCellNode(
   if (inlineBorders) attributes['borders'] = Object.assign(attributes['borders'] || {}, inlineBorders);
 
   // Tables can have vertically merged cells, indicated by the vMergeAttrs
-  if (vMerge) attributes['vMerge'] = vMergeAttrs || 'merged';
+  // if (vMerge) attributes['vMerge'] = vMergeAttrs || 'merged';
   if (vMergeAttrs && vMergeAttrs['w:val'] === 'restart') {
     const rows = table.elements.filter((el) => el.name === 'w:tr');
     const currentRowIndex = rows.findIndex((r) => r === row);
@@ -175,7 +179,6 @@ export function handleTableCellNode(
 
     const cellsInRow = row.elements.filter((el) => el.name === 'w:tc');
     let cellIndex = cellsInRow.findIndex((el) => el === node);
-    const mergedCells = [];
     let rowspan = 1;
 
     // Iterate through all remaining rows after the current cell, and find all cells that need to be merged
@@ -184,17 +187,6 @@ export function handleTableCellNode(
       const cellAtIndex = remainingRow.elements[firstCell + cellIndex];
 
       if (!cellAtIndex) break;
-
-      const convertedCell = handleTableCellNode(
-        cellAtIndex,
-        remainingRow,
-        table,
-        rowBorders,
-        gridColumnWidths[firstCell + cellIndex],
-        styleTag,
-        params
-      );
-      mergedCells.push(convertedCell);
 
       const vMerge = getTableCellMergeTag(cellAtIndex);
       const { attributes: currentCellMergeAttrs } = vMerge || {};
@@ -211,7 +203,6 @@ export function handleTableCellNode(
       remainingRow.elements.splice(firstCell + cellIndex, 1);
     }
     attributes['rowspan'] = rowspan;
-    attributes['mergedCells'] = rowspan > 1 ? mergedCells : [];
   }
 
   return {
@@ -456,7 +447,7 @@ const getGridColumnWidths = (tableNode) => {
   return (
     tblGrid?.elements?.flatMap((el) => {
       if (el.name !== 'w:gridCol') return [];
-      return twipsToInches(el.attributes['w:w']);
+      return twipsToPixels(el.attributes['w:w']);
     }) || {}
   );
 };

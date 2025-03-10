@@ -5,6 +5,7 @@ import { Decoration, DecorationSet } from 'prosemirror-view';
 import { PaginationPluginKey } from './pagination-plugin-key';
 import { CollaborationPluginKey } from '@extensions/collaboration/collaboration.js';
 import { ImagePlaceholderPluginKey } from '@extensions/image/imageHelpers/imagePlaceholderPlugin.js';
+import { LinkedStylesPluginKey } from '@extensions/linked-styles/linked-styles.js';
 
 const isDebugging = false;
 
@@ -177,6 +178,9 @@ const performUpdate = (editor, view, previousDecorations) => {
     );
     view.dispatch(updateTransaction);
   };
+
+  // Emit that pagination has been updated
+  editor.emit('paginationUpdate');
 };
 
 /**
@@ -260,7 +264,8 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   let footer = null, header = null;
   const { headerIds, footerIds } = editor.converter;
 
-  const firstHeaderId = headerIds.first || headerIds.even || headerIds.default || 'default';
+  let firstHeaderId = headerIds.first || headerIds.even || headerIds.default || 'default';
+  if (headerIds.titlePg) firstHeaderId = null;
   const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId);
   const pageBreak = createPageBreak({ editor, header: firstHeader, isFirstHeader: true });
   decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
@@ -282,24 +287,33 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   doc.descendants((node, pos) => {
     coords = view?.coordsAtPos(pos);
     if (!coords) return;
-
-    let shouldAddPageBreak = coords.bottom > pageHeightThreshold * scale;
+    
+    let shouldAddPageBreak = coords.bottom > pageHeightThreshold;
     const isHardBreakNode = node.type.name === 'hardBreak';
+
+    if (node.type.name === 'paragraph' && node.attrs.styleId) {
+      const linkedStyles = LinkedStylesPluginKey.getState(editor.state)?.styles;
+      const style = linkedStyles?.find((style) => style.id === node.attrs.styleId);
+      if (style) {
+        const { definition = {} } = style;
+        const { pageBreakBefore, pageBreakAfter } = definition.attrs || {};
+        if (pageBreakBefore || pageBreakAfter) shouldAddPageBreak = true;
+      }
+    };
 
     if (isHardBreakNode || shouldAddPageBreak) {
       // The node we've found extends past our threshold
       // We need to zoom in and investigate position by position until we find the exact break point
       // And we get the actual top and bottom of the break
-      const calculatedThreshold = pageHeightThreshold * scale;
       const {
         top: actualBreakTop,
         bottom: actualBreakBottom,
         pos: breakPos,
-      } = getActualBreakCoords(view, pos, calculatedThreshold);
+      } = getActualBreakCoords(view, pos, pageHeightThreshold);
 
       if (isDebugging) {
         console.debug('----- [pagination page break] ----');
-        console.debug('[pagination page break] Expected pageHeightThreshold:', pageHeightThreshold, 'Calculated threshold:', calculatedThreshold);
+        console.debug('[pagination page break] Expected pageHeightThreshold:', pageHeightThreshold);
         console.debug('[pagination page break]  Actual top:', actualBreakTop, 'Actual bottom:', actualBreakBottom);
         console.debug('[pagination page break]  Pos:', pos, 'Break pos:', breakPos);
         console.debug('---- [pagination page break end] ---- \n\n\n');
@@ -441,7 +455,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId) {
  * @returns {HTMLElement} The page break element
  */
 function createPageBreak({ editor, header, footer, footerBottom = null, isFirstHeader, isLastFooter }) {
-  const { pageSize } = editor.converter.pageStyles;
+  const { pageSize, pageMargins } = editor.converter.pageStyles;
 
   let sectionHeight = 0;
   const paginationDiv = document.createElement('div');
@@ -480,6 +494,7 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
   paginationDiv.style.maxHeight = sectionHeight + 'px';
   innerDiv.style.height = sectionHeight + 'px';
   paginationDiv.style.width = 100 + 'px';
+  paginationDiv.style.marginLeft = pageMargins.left * -96 + 'px';
 
   if (isDebugging) {
     innerDiv.style.backgroundColor = '#0000ff33';

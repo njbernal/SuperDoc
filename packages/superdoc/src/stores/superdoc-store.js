@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue';
 import { useCommentsStore } from './comments-store';
 import { getFileObject } from '@harbour-enterprises/common';
 import { DOCX, PDF } from '@harbour-enterprises/common';
-import useDocument from '@/composables/use-document';
+import useDocument from '@superdoc/composables/use-document';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
   const currentConfig = ref(null);
@@ -12,8 +12,9 @@ export const useSuperdocStore = defineStore('superdoc', () => {
   const documentBounds = ref([]);
   const pages = reactive({});
   const documentUsers = ref([]);
-  const activeZoom = ref(1);
+  const activeZoom = ref(100);
   const isReady = ref(false);
+  const isInternal = ref(false);
 
   const users = ref([]);
 
@@ -62,9 +63,6 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     // Initialize documents
     await initializeDocuments(configDocs);
 
-    if ('comments' in modules) {
-      commentsStore.suppressInternalExternal = modules.comments.suppressInternalExternal || false;
-    }
     isReady.value = true;
   };
 
@@ -163,6 +161,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     users,
     activeZoom,
     documentScroll,
+    isInternal,
 
     selectionPosition,
     activeSelection,

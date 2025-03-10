@@ -2,18 +2,26 @@
 import '@harbour-enterprises/common/styles/common-styles.css';
 import { nextTick, onMounted, provide, ref, shallowRef } from 'vue';
 
-import { SuperDoc } from '@core/index.js';
+import { SuperDoc } from '@superdoc/index.js';
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
-import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 import { toolbarIcons } from '../../../../super-editor/src/components/toolbar/toolbarIcons';
+import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
 /* For local dev */
-let superdoc = shallowRef(null);
-let activeEditor = shallowRef(null);
+const superdoc = shallowRef(null);
+const activeEditor = shallowRef(null);
 
+const title = ref('initial title');
 const currentFile = ref(null);
+const commentsPanel = ref(null);
+const showCommentsPanel = ref(true);
+
+const user = {
+  name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
+  email: 'user@harbourshare.com',
+};
 
 const handleNewFile = async (file) => {
   // Generate a file url
@@ -26,10 +34,6 @@ const handleNewFile = async (file) => {
 };
 
 const init = async () => {
-  const user = {
-    name: 'Super Document Jr.',
-    email: 'user@harbourshare.com',
-  };
 
   let testId = 'document-123';
   // const testId = "document_6a9fb1e0725d46989bdbb3f9879e9e1b";
@@ -42,11 +46,17 @@ const init = async () => {
     documentMode: 'editing',
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
+    rulers: true,
+    annotations: false,
+    isInternal: true,
+    telemetry: false,
     // isDev: true,
-    user: {
-      name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
-      email: 'user@harbourshare.com',
-    },
+    user,
+    title: 'Test document',
+    users: [
+      { name: 'Nick Bernal', email: 'nick@harbourshare.com' },
+      { name: 'Eric Doversberger', email: 'eric@harbourshare.com' },
+    ],
     documents: [
       {
         data: currentFile.value,
@@ -56,10 +66,11 @@ const init = async () => {
     ],
     modules: {
       comments: {
-        // readOnly: true,
-        // allowResolve: false,
+        // comments: sampleComments,
+        overflow: true,
+        selector: 'comments-panel',
       },
-      'hrbr-fields': {},
+      // 'hrbr-fields': {},
 
       // To test this dev env with collaboration you must run a local collaboration server here.
       // collaboration: {
@@ -72,23 +83,37 @@ const init = async () => {
     // handleImageUpload: async (file) => url,
     // Override icons.
     toolbarIcons: {},
+    onCommentsUpdate,
   };
 
   superdoc.value = new SuperDoc(config);
+  superdoc.value?.on('ready', () => {
+    superdoc.value.addCommentsList(commentsPanel.value);
+  });
+
+  // const ydoc = superdoc.value.ydoc;
+  // const metaMap = ydoc.getMap('meta');
+  // metaMap.observe((event) => {
+  //   const { keysChanged } = event;
+  //   keysChanged.forEach((key) => {
+  //     if (key === 'title') {
+  //       title.value = metaMap.get('title');
+  //     }
+  //   });
+  // });
+};
+
+const onCommentsUpdate = (updateData) => {
+  console.debug('[END USER] Comments updated', updateData);
 };
 
 const onContentError = ({ editor, error, documentId, file }) => {
   console.debug('Content error on', documentId, error);
 };
 
-const exportDocx = async () => {
-  const result = await activeEditor.value?.exportDocx();
-  const blob = new Blob([result], { type: DOCX });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'exported.docx';
-  a.click();
+const exportDocx = async (commentsType) => {
+  console.debug('Exporting docx', { commentsType });
+  await superdoc.value.export({ commentsType });
 };
 
 const onEditorCreate = ({ editor }) => {
@@ -101,6 +126,15 @@ const onEditorCreate = ({ editor }) => {
   editor.on('fieldAnnotationSelected', (params) => {
     console.log('fieldAnnotationSelected', { params });
   });
+};
+
+const handleTitleChange = (e) => {
+  title.value = e.target.innerText;
+
+  const ydoc = superdoc.value.ydoc;
+  const metaMap = ydoc.getMap('meta');
+  metaMap.set('title', title.value);
+  console.debug('Title changed', metaMap.toJSON());
 };
 
 onMounted(async () => {
@@ -122,7 +156,9 @@ onMounted(async () => {
           </div>
         </div>
         <div class="dev-app__header-side dev-app__header-side--right">
-          <button class="dev-app__header-export-btn" @click="exportDocx">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx()">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('clean')">Export clean Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('external')">Export external Docx</button>
         </div>
       </div>
 
@@ -130,6 +166,8 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view">
+          <div class="comments-panel" id="comments-panel" ref="commentsPanel"></div>
+
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">
               <div id="superdoc"></div>
@@ -143,29 +181,46 @@ onMounted(async () => {
 
 <style>
 .sd-toolbar {
-  min-width: 800px;
   width: 100%;
 }
-.superdoc .layers {
+.superdoc .super-editor {
   background-color: white;
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
-  margin: 50px;
 }
-.superdoc .layers:hover {
+.superdoc .super-editor:hover {
   border: 1px solid #0160cc86;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
-.superdoc .layers:focus-within {
+.superdoc .super-editor:focus-within {
   border: 1px solid #015fcc;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
+}
+
+@media screen and (max-width: 1024px) {
+  .superdoc {
+    max-width: calc(100vw - 10px);
+  }
 }
 </style>
 
 <style scoped>
+.temp-comment {
+  margin: 5px;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+}
+.comments-panel {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  background-color: #FAFAFA;
+  z-index: 100;
+}
 .dev-app {
   --header-height: 154px;
   --toolbar-height: 39px;
@@ -175,7 +230,8 @@ onMounted(async () => {
 }
 
 .dev-app__layout {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
 }
@@ -185,6 +241,7 @@ onMounted(async () => {
   justify-content: space-between;
   background-color: rgb(222, 237, 243);
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .dev-app__header-side {
@@ -205,9 +262,6 @@ onMounted(async () => {
 .dev-app__view {
   display: flex;
   padding-top: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  overflow-y: auto;
 }
 
 .dev-app__content {
@@ -218,8 +272,6 @@ onMounted(async () => {
 }
 
 .dev-app__content-container {
-  /* width: 100%;
-  max-width: 8.5in; */
   width: auto;
 }
 

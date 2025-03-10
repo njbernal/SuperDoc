@@ -1,13 +1,16 @@
 import { undoDepth, redoDepth } from 'prosemirror-history';
-import { h, onDeactivated } from 'vue';
+import { h } from 'vue';
 
 import { scrollToElement } from './scroll-helpers';
 import { sanitizeNumber } from './helpers';
 import { useToolbarItem } from './use-toolbar-item';
-import IconGrid from './IconGrid.vue';
 import AlignmentButtons from './AlignmentButtons.vue';
 import LinkInput from './LinkInput.vue';
 import DocumentMode from './DocumentMode.vue';
+import LinkedStyle from './LinkedStyle.vue';
+import { renderColorOptions } from './color-dropdown-helpers.js';
+import TableGrid from './TableGrid.vue';
+import TableActions from './TableActions.vue';
 
 const closeDropdown = (dropdown) => {
   dropdown.expand.value = false;
@@ -36,7 +39,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     labelAttr: 'fontFamily',
     hasCaret: true,
     isWide: true,
-    style: { width: '70px' },
+    style: { width: '116px' },
     suppressActiveHighlight: true,
     options: [
       {
@@ -150,6 +153,31 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     active: false,
     tooltip: 'Underline',
   });
+  
+  // highlight
+  const highlight = useToolbarItem({
+    type: 'dropdown',
+    name: 'highlight',
+    icon: toolbarIcons.highlight,
+    hideLabel: true,
+    markName: 'highlight',
+    labelAttr: 'color',
+    active: false,
+    tooltip: 'Highlight color',
+    command: 'setHighlight',
+    suppressActiveHighlight: true,
+    options: [
+      {
+        key: 'color',
+        type: 'render',
+        render: () => renderColorOptions(superToolbar, highlight),
+      },
+    ],
+    onActivate: ({ color }) => {
+      highlight.iconColor.value = color || '';
+    },
+    onDeactivate: () => (highlight.iconColor.value = ''),
+  })
 
   // color
   const colorButton = useToolbarItem({
@@ -167,7 +195,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
       {
         key: 'color',
         type: 'render',
-        render: () => renderColorOptions(colorButton),
+        render: () => renderColorOptions(superToolbar, colorButton),
       },
     ],
     onActivate: ({ color }) => {
@@ -175,116 +203,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     },
     onDeactivate: () => (colorButton.iconColor.value = '#000'),
   });
-
-  const makeColorOption = (color, label = null) => {
-    return {
-      label,
-      icon: toolbarIcons.colorOption,
-      value: color,
-      style: {
-        color,
-        boxShadow: '0 0 5px 1px rgba(0, 0, 0, 0.1)',
-        borderRadius: '50%',
-      },
-    };
-  };
-  const icons = [
-    [
-      makeColorOption('#111111'),
-      makeColorOption('#333333'),
-      makeColorOption('##5C5C5C'),
-      makeColorOption('#858585'),
-      makeColorOption('#ADADAD'),
-      makeColorOption('#D6D6D6'),
-      makeColorOption('#FFFFFF'),
-    ],
-
-    [
-      makeColorOption('#860028'),
-      makeColorOption('#D2003F'),
-      makeColorOption('#DB3365'),
-      makeColorOption('#E4668C'),
-      makeColorOption('#ED99B2'),
-      makeColorOption('#F6CCD9'),
-      makeColorOption('#FF004D'),
-    ],
-
-    [
-      makeColorOption('#83015E'),
-      makeColorOption('#CD0194'),
-      makeColorOption('#D734A9'),
-      makeColorOption('#E167BF'),
-      makeColorOption('#EB99D4'),
-      makeColorOption('#F5CCEA'),
-      makeColorOption('#FF00A8'),
-    ],
-
-    [
-      makeColorOption('#8E220A'),
-      makeColorOption('#DD340F'),
-      makeColorOption('#E45C3F'),
-      makeColorOption('#EB856F'),
-      makeColorOption('#F1AE9F'),
-      makeColorOption('#F8D6CF'),
-      makeColorOption('#FF7A00'),
-    ],
-
-    [
-      makeColorOption('#947D02'),
-      makeColorOption('#E7C302'),
-      makeColorOption('#ECCF35'),
-      makeColorOption('#F1DB67'),
-      makeColorOption('#F5E79A'),
-      makeColorOption('#FAF3CC'),
-      makeColorOption('#FAFF09'),
-    ],
-
-    [
-      makeColorOption('#055432'),
-      makeColorOption('#07834F'),
-      makeColorOption('#399C72'),
-      makeColorOption('#6AB595'),
-      makeColorOption('#9CCDB9'),
-      makeColorOption('#CDE6DC'),
-      makeColorOption('#05F38F'),
-    ],
-
-    [
-      makeColorOption('#063E7E'),
-      makeColorOption('#0A60C5'),
-      makeColorOption('#3B80D1'),
-      makeColorOption('#6CA0DC'),
-      makeColorOption('#9DBFE8'),
-      makeColorOption('#CEDFF3'),
-      makeColorOption('#00E0FF'),
-    ],
-
-    [
-      makeColorOption('#3E027A'),
-      makeColorOption('#6103BF'),
-      makeColorOption('#8136CC'),
-      makeColorOption('#A068D9'),
-      makeColorOption('#C09AE6'),
-      makeColorOption('#DFCDF2'),
-      makeColorOption('#A91DFF'),
-    ],
-  ];
-
-  function renderColorOptions(colorButton) {
-    const handleSelect = (e) => {
-      colorButton.iconColor.value = e;
-      superToolbar.emitCommand({ item: colorButton, argument: e });
-      closeDropdown(colorButton);
-    };
-
-    return h('div', {}, [
-      h(IconGrid, {
-        icons,
-        activeColor: colorButton.iconColor,
-        onSelect: handleSelect,
-      }),
-    ]);
-  }
 
   // link
   const link = useToolbarItem({
@@ -356,6 +274,126 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     tooltip: 'Image',
     disabled: false,
   });
+
+  // table
+  const tableItem = useToolbarItem({
+    type: 'dropdown',
+    name: 'table',
+    icon: toolbarIcons.table,
+    hideLabel: true,
+    labelAttr: 'table',
+    active: false,
+    tooltip: 'Insert table',
+    command: 'insertTable',
+    suppressActiveHighlight: true,
+    options: [
+      {
+        key: 'table',
+        type: 'render',
+        render: () => renderTableGrid(tableItem),
+      },
+    ],
+  });
+
+  function renderTableGrid(tableItem) {
+    const handleSelect = (e) => {
+      superToolbar.emitCommand({ item: tableItem, argument: e });
+      closeDropdown(tableItem);
+    };
+
+    return h('div', {}, [
+      h(TableGrid, {
+        onSelect: handleSelect,
+      }),
+    ]);
+  }
+
+  // table actions
+  const tableActionsItem = useToolbarItem({
+    type: 'dropdown',
+    name: 'tableActions',
+    command: 'executeTableCommand',
+    icon: toolbarIcons.tableActions,
+    hideLabel: true,
+    disabled: true,
+    options: [
+      {
+        type: 'render',
+        render: () => renderTableActions(tableActionsItem),
+      },
+    ],
+  });
+
+  const tableActionsOptions = [
+    { 
+      label: 'Insert row above',
+      command: 'addRowBefore',
+      icon: toolbarIcons.addRowBefore,
+    },
+    { 
+      label: 'Insert row below',
+      command: 'addRowAfter',
+      icon: toolbarIcons.addRowAfter,
+    },
+    { 
+      label: 'Insert column left',
+      command: 'addColumnBefore',
+      icon: toolbarIcons.addColumnBefore,
+    },
+    { 
+      label: 'Insert column right',
+      command: 'addColumnAfter',
+      icon: toolbarIcons.addColumnAfter,
+      bottomBorder: true,
+    },
+    { 
+      label: 'Delete row',
+      command: 'deleteRow',
+      icon: toolbarIcons.deleteRow,
+    },
+    { 
+      label: 'Delete column',
+      command: 'deleteColumn',
+      icon: toolbarIcons.deleteColumn,
+    },
+    { 
+      label: 'Delete table',
+      command: 'deleteTable',
+      icon: toolbarIcons.deleteTable,
+    },
+    { 
+      label: 'Delete borders',
+      command: 'deleteCellAndTableBorders',
+      icon: toolbarIcons.deleteBorders,
+      bottomBorder: true,
+    },
+    { 
+      label: 'Merge cells',
+      command: 'mergeCells',
+      icon: toolbarIcons.mergeCells,
+    },
+    { 
+      label: 'Split cell',
+      command: 'splitCell',
+      icon: toolbarIcons.splitCell,
+    },
+    { 
+      label: 'Fix tables',
+      command: 'fixTables',
+      icon: toolbarIcons.fixTables,
+    },
+  ];
+
+  function renderTableActions(tableActionsItem) {
+    return h(TableActions, {
+      options: tableActionsOptions,
+      onSelect: (event) => {
+        closeDropdown(tableActionsItem);
+        const { command } = event;
+        superToolbar.emitCommand({ item: tableActionsItem, argument: { command } });
+      },
+    });
+  };
 
   // alignment
   const alignment = useToolbarItem({
@@ -645,7 +683,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     group: 'right',
     attributes: {
       dropdownPosition: 'right',
-      className: 'doc-mode',
+      className: 'toolbar-item--doc-mode',
     },
     options: [
       {
@@ -702,30 +740,90 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
   // define sizes to calculate toolbar overflow items
   const controlSizes = new Map([
     ['separator', 20],
-    ['textAlign', 37],
-    ['documentMode', 45],
-    ['zoom', 70],
-    ['fontSize', 56],
-    ['fontFamily', 72],
+    ['zoom', 71],
+    ['fontFamily', 118],
+    ['fontSize', 57],
+    ['textAlign', 40],
+    ['linkedStyles', 142],
+    ['documentMode', 47],
     ['default', 32],
   ]);
+  
+  const ruler = useToolbarItem({
+    type: 'button',
+    name: 'ruler',
+    command: 'toggleRuler',
+    icon: toolbarIcons.ruler,
+    active: false,
+    tooltip: 'Show or hide ruler',
+  });
+
+  const linkedStyles = useToolbarItem({
+    type: 'dropdown',
+    name: 'linkedStyles',
+    command: 'setLinkedStyle',
+    icon: toolbarIcons.paintbrush,
+    defaultLabel: 'Format text',
+    label: 'Format text',
+    hasCaret: true,
+    isWide: true,
+    style: { width: '140px' },
+    suppressActiveHighlight: true,
+    disabled: false,
+    attributes: {
+      className: 'toolbar-item--linked-styles',
+    },
+    options: [
+      {
+        type: 'render',
+        key: 'linkedStyle',
+        render: () => {
+          const handleSelect = (style) => {
+            closeDropdown(linkedStyles);
+            const itemWithCommand = { ...linkedStyles, command: 'setLinkedStyle' };
+            superToolbar.emitCommand({ item: itemWithCommand, argument: style });
+          };
+
+          return h('div', {}, [
+            h(LinkedStyle, {
+              editor: superToolbar.activeEditor,
+              onSelect: handleSelect,
+            })
+          ])
+        }
+      }
+    ],
+    onActivate: () => {
+      linkedStyles.disabled.value = false;
+    },
+    onDeactivate: () => {
+      linkedStyles.disabled.value = true;
+    },
+  });
 
   // Responsive toolbar calculations
-  const itemsToHide = ['zoom', 'fontFamily', 'fontSize', 'redo'];
-  const hideWideItemsEndpoint = 600;
-  const toolbarPadding = 32;
+  const breakpoints = {
+    sm: 768,
+    md: 1024,
+    lg: 1280,
+    xl: 1410,
+  };
   const stickyItemsWidth = 120;
+  const toolbarPadding = 32;
+
+  const itemsToHideXL = ['linkedStyles', 'clearFormatting', 'copyFormat', 'ruler'];
+  const itemsToHideSM = ['zoom', 'fontFamily', 'fontSize', 'redo'];
 
   let toolbarItems = [
     undo,
     redo,
 
     // Dev - tracked changes
-    toggleTrackChanges,
-    acceptTrackedChangeBySelection,
-    rejectTrackedChangeOnSelection,
-    toggleTrackChangesOriginal,
-    toggleTrackChangesFinal,
+    // toggleTrackChanges,
+    // acceptTrackedChangeBySelection,
+    // rejectTrackedChangeOnSelection,
+    // toggleTrackChangesOriginal,
+    // toggleTrackChangesFinal,
 
     zoom,
     separator,
@@ -737,9 +835,12 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     italic,
     underline,
     colorButton,
+    highlight,
     separator,
     link,
     image,
+    tableItem,
+    tableActionsItem,
     separator,
     alignment,
     bulletedList,
@@ -747,16 +848,19 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     indentLeft,
     indentRight,
     separator,
+    linkedStyles,
+    separator,
     pageBreakTool,
     copyFormat,
     clearFormatting,
+    ruler,
     overflow,
     documentMode,
     // search,
   ];
 
   // Hide separators on small screens
-  if (windowWidth <= hideWideItemsEndpoint) {
+  if (windowWidth <= breakpoints.md) {
     toolbarItems = toolbarItems.filter((item) => item.type !== 'separator');
   }
 
@@ -765,9 +869,15 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     toolbarItems = toolbarItems.filter((item) => item.name.value !== 'pageBreakTool');
   }
 
+  // Remove docx only items
+  if (superToolbar.config.mode !== 'docx') {
+    const getLinkedStylesIndex = toolbarItems.findIndex((item) => item.name.value === 'linkedStyles');
+    toolbarItems.splice(getLinkedStylesIndex - 1, 2);
+    toolbarItems = toolbarItems.filter((item) => item.name.value !== 'ruler');
+  }
+
   // Track changes test buttons
   const devItems = [toggleTrackChanges, toggleTrackChangesOriginal, toggleTrackChangesFinal];
-
   if (!isDev) {
     if (role === 'viewer') {
       devItems.push(...[acceptTrackedChangeBySelection, rejectTrackedChangeOnSelection]);
@@ -777,21 +887,31 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
 
   // always visible items
   const toolbarItemsSticky = [undo, overflow, documentMode].map((item) => item.name);
-
   const isStickyItem = (item) => toolbarItemsSticky.includes(item.name);
 
   const overflowItems = [];
   const visibleItems = [];
-  // initial width with padding
 
+  // initial width with padding
   let totalWidth = toolbarPadding + stickyItemsWidth;
+
   toolbarItems.forEach((item) => {
     const itemWidth = controlSizes.get(item.name.value) || controlSizes.get('default');
 
-    if (windowWidth < hideWideItemsEndpoint && itemsToHide.includes(item.name.value)) {
+    if (windowWidth < breakpoints.xl && itemsToHideXL.includes(item.name.value)) {
+      overflowItems.push(item);
+      if (item.name.value === 'linkedStyles') {
+        const linkedStylesIdx = toolbarItems.findIndex((item) => item.name.value === 'linkedStyles');
+        toolbarItems.splice(linkedStylesIdx + 1, 1);
+      }
+      return;
+    }
+
+    if (windowWidth < breakpoints.sm && itemsToHideSM.includes(item.name.value)) {
       overflowItems.push(item);
       return;
     }
+
     if (isStickyItem(item)) {
       visibleItems.push(item);
       totalWidth += itemWidth;

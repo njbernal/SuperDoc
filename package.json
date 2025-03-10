@@ -9,9 +9,10 @@
   "scripts": {
     "test": "vitest --root ./packages/super-editor",
     "unzip": "bash packages/super-editor/src/tests/helpers/unzip.sh",
-    "dev": "npm run build:super-editor && npm run dev:superdoc",
+    "dev": "npm --workspace=@harbour-enterprises/superdoc run dev",
     "dev:superdoc": "npm run dev --workspace=packages/superdoc",
     "dev:super-editor": "npm run dev --workspace=packages/super-editor",
+    "watch:super-editor": "npm run build:watch --workspace=packages/super-editor",
     "build:superdoc": "npm run build --workspace=packages/superdoc",
     "build:super-editor": "npm run build --workspace=packages/super-editor",
     "build": "npm run build:super-editor && npm run build:superdoc",
@@ -22,14 +23,14 @@
     "fix:prettier": "prettier --write \"**/*.{js,css,vue}\"",
     "lint:prettier": "prettier --check \"**/*.{js,css,vue}\"",
     "prettier": "if [ \"$(echo $npm_config_argv | grep -o '\"remain\":\\[\\]' | wc -l)\" -eq 1 ]; then echo 'Error: No arguments passed to prettier'; exit 1; fi && npx prettier --write",
-    "pack": "npm --prefix ./packages/superdoc run pack"
+    "pack": "npm run build:super-editor && npm --prefix ./packages/superdoc run pack"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.1",
-    "rollup-plugin-visualizer": "^5.12.0",
     "prettier": "3.3.3",
     "rollup": "^4.26.0",
+    "rollup-plugin-visualizer": "^5.12.0",
     "xml-js": "^1.6.11"
   }
 }
