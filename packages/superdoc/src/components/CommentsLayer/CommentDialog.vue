@@ -294,6 +294,7 @@ onMounted(() => {
 
     <div v-if="shouldShowInternalExternal" class="existing-internal-input">
       <InternalDropdown
+        @click.stop.prevent
         class="internal-dropdown"
         :is-disabled="isInternalDropdownDisabled"
         :state="comment.isInternal ? 'internal' : 'external'"
