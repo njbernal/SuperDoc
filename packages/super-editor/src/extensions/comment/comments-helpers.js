@@ -149,47 +149,48 @@ export const getPreparedComment = (attrs) => {
 export const prepareCommentsForImport = (doc, tr, schema) => {
   const toMark = [];
   const toDelete = [];
+
   doc.descendants((node, pos) => {
     const { type } = node;
 
-    // If the node is a commentRangeStart, store the starting position. Will use it when we find the end
+    // If the node is a commentRangeStart, record it so we can place a mark once we find the end.
     if (type.name === 'commentRangeStart') {
-      const startPos = {
+      toMark.push({
         'w:id': node.attrs['w:id'],
         internal: node.attrs.internal,
         start: pos,
-      }
-      toMark.push(startPos);
-      toDelete.push({ start: pos - 1, end: pos});
+      });
+``
+      // We'll remove this node from the final doc
+      toDelete.push({ start: pos, end: pos + 1 });
     }
-    
-    // Replace the comment range end with a mark
+
+    // When we reach the commentRangeEnd, add a mark spanning from start to current pos,
+    // then mark it for deletion as well.
     else if (type.name === 'commentRangeEnd') {
       const itemToMark = toMark.find((p) => p['w:id'] === node.attrs['w:id']);
-      if (!itemToMark) return;
+      if (!itemToMark) return; // No matching start? just skip
 
       const { start } = itemToMark;
       const markAttrs = {
-        importedId: itemToMark['w:id'],
-        internal: itemToMark.internal
+        importedId: node.attrs['w:id'],
+        internal: itemToMark.internal,
       };
+
       tr.addMark(start, pos + 1, schema.marks[CommentMarkName].create(markAttrs));
       toDelete.push({ start: pos, end: pos + 1 });
     }
-    
-    // Simply mark for deletion all commentReference nodes. They are already accounted for by the above
+
+    // commentReference nodes likewise get deleted
     else if (type.name === 'commentReference') {
       toDelete.push({ start: pos, end: pos + 1 });
     }
   });
 
-  // Delete the comment nodes
+  // Sort descending so deletions don't mess up positions
   toDelete
-  .sort((a, b) => b.end - a.end)
-  .forEach((item) => {
-    const { start, end } = item;
-    tr.delete(end, end + 1);
-    tr.delete(start, start + 1);
-  });
-
+    .sort((a, b) => b.start - a.start)
+    .forEach(({ start, end }) => {
+      tr.delete(start, end);
+    });
 };
