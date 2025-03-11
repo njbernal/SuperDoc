@@ -394,7 +394,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId) {
   const headerMargin = pageMargins.header * 96;
 
   // If the header content is larger than the available space, we need to add the 'header' margin
-  const hasHeaderOffset = headerDef?.height < (minHeaderHeight - headerMargin);
+  const hasHeaderOffset = headerDef?.height > (minHeaderHeight - headerMargin);
   const headerOffset = hasHeaderOffset ? headerMargin : 0;
   const headerHeight = Math.max(headerDef?.height || 0, minHeaderHeight) + headerOffset;
 

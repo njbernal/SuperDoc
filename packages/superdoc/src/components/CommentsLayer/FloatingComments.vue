@@ -19,6 +19,7 @@ const {
   commentsList,
   getGroupedComments,
   lastChange,
+  generalCommentIds,
 } = storeToRefs(commentsStore);
 const { user, activeZoom } = storeToRefs(superdocStore);
 
@@ -106,7 +107,9 @@ const initialize = () => {
 const initializeConvos = () => {
   sortedConversations.value = getGroupedComments.value?.parentComments
     .filter((c) => !c.resolvedTime)
+    .filter((c) => !generalCommentIds.value.includes(c.commentId || c.importedId))
     .sort(sortByLocation);
+  
   if (!sortedConversations.value?.length) return;
 
   const firstComment = sortedConversations.value[0];
@@ -143,6 +146,7 @@ const updateOffset = () => {
 watch(commentsList.value, () => initialize());
 watch(lastChange, (newVal) => setTimeout(() => initialize()));
 watch(activeComment, (newVal) => {
+  if (generalCommentIds.value.includes(newVal)) return;
   setTimeout(() => {
     if (!activeComment.value) {
       initialize();
