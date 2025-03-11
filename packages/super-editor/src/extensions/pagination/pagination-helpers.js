@@ -1,6 +1,8 @@
+import { PluginKey } from 'prosemirror-state';
 import { Editor as SuperEditor } from '@core/Editor.js';
 import { getStarterExtensions } from '@extensions/index.js';
 
+export const PaginationPluginKey = new PluginKey('paginationPlugin');
 
 /**
  * Initialize the pagination data for the editor

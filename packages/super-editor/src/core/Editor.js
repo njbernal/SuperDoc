@@ -12,8 +12,7 @@ import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { initPaginationData } from '@extensions/pagination/pagination-helpers';
-import { PaginationPluginKey } from '../extensions/pagination/pagination-plugin-key.js';
+import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
 import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import {
@@ -113,6 +112,7 @@ export class Editor extends EventEmitter {
     };
 
     let initMode = modes[this.options.mode] ?? modes.default;
+    
     initMode();
   }
 
@@ -700,7 +700,7 @@ export class Editor extends EventEmitter {
     updateScale();
 
     // Update scale on window orientation change
-    screen.orientation?.addEventListener('change', () => {
+    screen.orientation.addEventListener('change', () => {
       setTimeout(() => {
         updateScale();
       }, 150);
