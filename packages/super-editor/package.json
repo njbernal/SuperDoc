@@ -34,7 +34,7 @@
   "module": "./dist/super-editor.es.js",
   "scripts": {
     "dev": "vite",
-    "playwright": "playwright test ./src/tests/playwright",
+    "test:e2e": "playwright test ./src/tests/e2e",
     "preview": "vite preview",
     "build": "vite build && tsc",
     "clean": "rm -rf dist",

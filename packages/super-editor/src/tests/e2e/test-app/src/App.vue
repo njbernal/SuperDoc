@@ -41,7 +41,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="editor" ref="editorDiv">
+  <div id="editor" ref="editorDiv" class="super-editor">
     Initial content
   </div>
 </template>
