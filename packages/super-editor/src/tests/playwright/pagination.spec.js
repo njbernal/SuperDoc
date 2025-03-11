@@ -3,40 +3,122 @@ import { test, expect } from '@playwright/test';
 // Tests in this file will share a page object
 let page;
 
-test.beforeAll(async ({ browser }) => {
-  const context = await browser.newContext();
-  page = await context.newPage();
-  await page.goto('http://localhost:4173');
-});
 
-test('should be positioned at (0, 0) and have the correct dimensions', async () => {
-  await page.waitForSelector('#editor');
+test.describe('pagination', () => {
+  test.describe('blank document', () => {
+    test.beforeAll(async ({ browser }) => {
+      const context = await browser.newContext();
+      page = await context.newPage();
+      await page.goto('http://localhost:4173?file=blank');
+    });
+  
+    test('should be positioned at (0, 0) and have the correct dimensions', async () => {
+      await page.waitForSelector('#editor');
 
-  // Verify the bounding box (position & size)
-  const editorDiv = await page.$("#editor");
-  const rect = await editorDiv.boundingBox();
+      // Verify the bounding box (position & size)
+      const editorDiv = await page.$('#editor');
+      const rect = await editorDiv.boundingBox();
 
-  expect(rect.x).toBe(0);
-  expect(rect.y).toBe(0);
-});
+      expect(rect.x).toBe(0);
+      expect(rect.y).toBe(0);
+    });
 
-test('can pass file data into playwright', async () => {
-  await page.waitForFunction(() => typeof window.initTestApp === 'function');
+    test('should render pagination elements', async () => {
+      // Wait for pagination elements to be rendered
+      await page.waitForSelector('.pagination-page-spacer.ProseMirror-widget');
+      await page.waitForSelector('.pagination-break-wrapper.ProseMirror-widget');
 
-  const result = await page.evaluate(async () => {
-    await window.initTestApp();
+      // Get all pagination elements
+      const spacers = await page.$$('.pagination-page-spacer.ProseMirror-widget');
+      const breaks = await page.$$('.pagination-break-wrapper.ProseMirror-widget');
 
-    // const json = window.editorCommand('getJSON');
-    // return json;
+      // Verify counts
+      expect(spacers.length).toBe(1); // Should have one page spacer
+      expect(breaks.length).toBe(2); // Should have two page breaks
+    });
 
-    const plugins = await window.getPaginationState();
-    return plugins;
+    test('should have header with correct dimensions', async () => {
+      // Wait for header element to be rendered
+      await page.waitForSelector('.pagination-section-header');
 
-    /**
-     * TODO: The playwright editor is rendering pagination incorrectly (though at least it's rendering it).
-     * We need to find out why it is incorrect, and fix it.
-     * 
-     * Then we need to write tests for the expected location of the pagination.
-     */
+      // Get header element
+      const header = await page.$('.pagination-section-header');
+
+      // Get header dimensions
+      const headerBox = await header.boundingBox();
+
+      // Verify header height is 96px
+      expect(headerBox.height).toBe(96);
+    });
+
+    test('should have footer with correct dimensions', async () => {
+      // Wait for footer element to be rendered
+      await page.waitForSelector('.pagination-section-footer');
+
+      // Get footer element
+      const footer = await page.$('.pagination-section-footer');
+      const styles = await footer.evaluate((el) => {
+        const styles = window.getComputedStyle(el);
+        const height = styles.getPropertyValue('height');
+        const marginBottom = styles.getPropertyValue('margin-bottom');
+        return {
+          height,
+          marginBottom,
+        };
+      });
+
+      // Verify footer and height have a total of 96px
+      expect(styles.height).toBe('48px');
+      expect(styles.marginBottom).toBe('48px');
+    });
+
+    test('should have page spacer with correct dimensions', async () => {
+      // Wait for necessary elements to be rendered
+      await page.waitForSelector('#editor');
+      await page.waitForSelector('.ProseMirror p');
+      await page.waitForSelector('.pagination-page-spacer.ProseMirror-widget');
+
+      // These are the sizes of the elements in the editor
+      const editorHeight = 1069.66;
+      const firstParagraphMarginTop = 14.667;
+      const firstParagraphMarginBottom = 14.667;
+      const firstParagraphHeight = 16.86 + firstParagraphMarginTop + firstParagraphMarginBottom;
+      const headerHeight = 96;
+      const footerHeight = 96;
+      const expectedSpacerHeight = parseInt(editorHeight - firstParagraphHeight - headerHeight - footerHeight);
+
+      // Get actual spacer height
+      const spacer = await page.$('.pagination-page-spacer.ProseMirror-widget');
+      const spacerBox = await spacer.boundingBox();
+      const spacerHeight = parseInt(spacerBox.height);
+
+      expect(spacerHeight).toBe(expectedSpacerHeight);
+    });
   });
+
+  test.describe('document with hard break', () => {
+    test.beforeAll(async ({ browser }) => {
+      const context = await browser.newContext();
+      page = await context.newPage();
+      await page.goto('http://localhost:4173?file=hard-break');
+    });
+
+    test('should render pagination elements', async () => {
+      // Wait for pagination elements to be rendered
+      await page.waitForSelector('.pagination-page-spacer.ProseMirror-widget');
+      await page.waitForSelector('.pagination-break-wrapper.ProseMirror-widget');
+    });
+
+    test('should have header with correct dimensions', async () => {
+      // Wait for header element to be rendered
+      await page.waitForSelector('.pagination-section-header');
+
+      // Get header element
+      const header = await page.$('.pagination-section-header');
+      const headerBox = await header.boundingBox();
+
+      // Verify header height is 192px
+      expect(headerBox.height).toBe(192);
+    });
+  })
 });
