@@ -374,17 +374,29 @@ const getActiveCommentId = (doc, selection) => {
   doc.descendants((node, pos) => {
     if (found) return;
 
+    // node goes from `pos` to `end = pos + node.nodeSize`
+    const end = pos + node.nodeSize;
+
+    // If $from.pos is outside this node’s range, skip it
+    if ($from.pos < pos || $from.pos >= end) {
+      return;
+    }
+
+    // Now we know $from.pos is within this node’s start/end
     const { marks = [] } = node;
     const commentMark = marks.find((mark) => mark.type.name === CommentMarkName);
     if (commentMark) {
       overlaps.push({
         node,
-        pos
-      })
+        pos,
+        size: node.nodeSize,
+      });
     }
 
-    // If we have passed the current position, we can stop
-    if (pos > $from.pos) found = true;
+    // If we've passed the position, we can stop
+    if (pos > $from.pos) {
+      found = true;
+    }
   });
 
   // Get the closest commentRangeStart node to the current position

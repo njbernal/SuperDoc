@@ -54,6 +54,12 @@ const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
   const dialog = visibleConversations.value[dialogIndex];
   if (!dialog) return;
 
+  if (!activeComment.value) {
+    floatingCommentsOffset.value = 0;
+  } else if (dialogId === activeComment.value) {
+    floatingCommentsOffset.value = (dialog.floatingPosition.top - dialog.selection?.selectionBounds?.top) * -1;
+  }
+
   nextTick(() => {
     const selectionBounds = elementRef.value?.getBoundingClientRect();
     renderDialog(sortedConversations.value[dialogIndex + 1], sortedConversations.value[dialogIndex], selectionBounds)
@@ -72,7 +78,7 @@ const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
 const renderDialog = (data, previousNode, previousBounds) => {
   if (!data) return;
   const nextConvo = data;
-  const commentTop = Number(nextConvo.floatingPosition?.top);
+  const commentTop = Number(nextConvo.selection?.selectionBounds?.top);
 
   const previousTop = Number(previousNode.floatingPosition?.top);
   const previousBottom = previousTop + Number(previousBounds.height);
@@ -98,10 +104,11 @@ const sortByLocation = (a, b) => {
 };
 
 const initialize = () => {
-  visibleConversations.value = [];
-  sortedConversations.value = [];
-  updateOffset();
-  nextTick(() => initializeConvos());
+  requestAnimationFrame(() => {
+    visibleConversations.value = [];
+    sortedConversations.value = [];
+    nextTick(() => initializeConvos());
+  });
 };
 
 const initializeConvos = () => {
@@ -126,7 +133,7 @@ const getCommentPosition = (floatingComment) => {
 
 const getFloatingSidebarStyle = computed(() => {
   return {
-    transform: `translateY(${floatingCommentsOffset.value * (-1 / 2)}px)`,
+    transform: `translateY(${floatingCommentsOffset.value}px)`,
     transition: 'all 0.3s ease',
   };
 });
@@ -139,19 +146,18 @@ const getFloatingSidebarStyle = computed(() => {
 const updateOffset = () => {
   const comment = commentsStore.getComment(activeComment.value);
   if (!comment) floatingCommentsOffset.value = 0;
-  else floatingCommentsOffset.value = comment.floatingPosition.top;
+  else {
+    const bounds = floatingCommentsOffset.value = comment.floatingPosition.top;
+  }
 };
 
 // Update the floating comments when the conversations change
-watch(commentsList.value, () => initialize());
-watch(lastChange, (newVal) => setTimeout(() => initialize()));
+watch(lastChange, (newVal) => initialize());
 watch(activeComment, (newVal) => {
   if (generalCommentIds.value.includes(newVal)) return;
-  setTimeout(() => {
-    if (!activeComment.value) {
-      initialize();
-    }
-  });
+  if (!activeComment.value) {
+    initialize();
+  }
 });
 watch(activeZoom, () => {
   initialize();
@@ -166,7 +172,6 @@ watch(activeZoom, () => {
         <CommentDialog
           class="floating-comment"
           @ready="handleDialogReady"
-          @dialog-exit="initialize"
           :parent="parent"
           :style="getCommentPosition(floatingComment)"
           :comment="floatingComment"

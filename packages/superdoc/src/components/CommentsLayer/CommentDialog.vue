@@ -81,7 +81,7 @@ const comments = computed(() => {
       const isThisComment = c.commentId === props.comment.commentId;
       return isThreadedComment || isThisComment;
     })
-    .sort((a, b) => a.commentId === props.comment.commetnId && a.createdTime - b.createdTime);
+    .sort((a, b) => a.commentId === props.comment.commentId && a.createdTime - b.createdTime);
 });
 
 const getCommentUser = computed(() => (comment) => {
@@ -217,6 +217,7 @@ const handleOverflowSelect = (value, comment) => {
     case 'edit':
       currentCommentText.value = comment.commentText;
       isEditing.value = comment.commentId;
+      activeComment.value = comment.commentId;
       break;
     case 'delete':
       deleteComment({ superdoc: proxy.$superdoc, commentId: comment.commentId });
@@ -277,6 +278,7 @@ onMounted(() => {
   if (props.autoFocus) {
     nextTick(() => setFocus());
   };
+
   emit('ready', { commentId: props.comment.commentId, elementRef: commentDialogElement });
 })
 </script>
@@ -351,7 +353,7 @@ onMounted(() => {
       </div>
       <div class="comment-separator" v-if="showSeparator(index)"></div>
     </div>
-  
+
     <!-- This area is appended to a comment if adding a new sub comment -->
     <div v-if="showInputSection && !getConfig.readOnly">
       <CommentInput
