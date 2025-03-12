@@ -918,9 +918,12 @@ function generateTableRowProperties(node) {
  * @returns {XmlReadyNode} The translated table cell node
  */
 function translateTableCell(params) {
-  const elements = translateChildNodes(params);
+  const elements = translateChildNodes({
+    ...params,
+    tableCell: params.node,
+  });
   const cellProps = generateTableCellProperties(params.node);
-
+  
   elements.unshift(cellProps);
   return {
     name: 'w:tc',
@@ -1179,6 +1182,7 @@ function getScaledSize(originalWidth, originalHeight, maxWidth, maxHeight) {
 function translateImageNode(params, imageSize) {
   const {
     node: { attrs = {}, marks = [] },
+    tableCell,
   } = params;
 
   let imageId = attrs.rId;
@@ -1200,6 +1204,16 @@ function translateImageNode(params, imageSize) {
       w: pixelsToEmu(scaledWidth),
       h: pixelsToEmu(scaledHeight),
     };
+  }
+  
+  if (tableCell) {
+    // Image inside tableCell
+    const colwidthSum = tableCell.attrs.colwidth.reduce((acc, curr) => acc + curr, 0);
+    const leftMargin = tableCell.attrs.cellMargins?.left || 8;
+    const rightMargin = tableCell.attrs.cellMargins?.right || 8;
+    const maxWidthEmu = pixelsToEmu(colwidthSum - (leftMargin + rightMargin));
+    const { width: w, height: h } = resizeKeepAspectRatio(size.w, size.h, maxWidthEmu);
+    if (w && h) size = { w, h };
   }
   
   if (params.node.type === 'image' && !imageId) {
@@ -1654,4 +1668,14 @@ export class DocxExporter {
     if (!selfClosing) tags.push(`</${name}>`);
     return tags;
   }
+}
+
+
+function resizeKeepAspectRatio(width, height, maxWidth) {
+  if (width > maxWidth) {
+    let scale = maxWidth / width;
+    let newHeight = Math.round(height * scale);
+    return { width: maxWidth, height: newHeight };
+  }
+  return { width, height };
 }
