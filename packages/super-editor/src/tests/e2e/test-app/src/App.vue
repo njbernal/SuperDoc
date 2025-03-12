@@ -3,8 +3,8 @@ import '@harbour-enterprises/super-editor/style.css';
 import '@harbour-enterprises/common/styles/common-styles.css';
 import { onMounted, shallowRef, ref } from 'vue';
 import { Editor, getStarterExtensions } from '@harbour-enterprises/super-editor';
-import paginationTestDocx from '@testData/untitled.docx?url';
-import paginationTestDocxWithHardBreak from '@testData/hard-break.docx?url';
+import paginationTestDocx from '@testData/pagination-blank.docx?url';
+import paginationTestDocxWithHardBreak from '@testData/pagination-with-hard-break.docx?url';
 
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const getFileObject = async (fileUrl, name, type) => {
