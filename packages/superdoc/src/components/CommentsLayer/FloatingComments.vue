@@ -152,7 +152,6 @@ const updateOffset = () => {
 };
 
 // Update the floating comments when the conversations change
-// watch(commentsList.value, () => initialize());
 watch(lastChange, (newVal) => initialize());
 watch(activeComment, (newVal) => {
   if (generalCommentIds.value.includes(newVal)) return;
