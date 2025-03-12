@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor super-input" :class="{ 'super-input-active': isFocused }">
+  <div class="super-editor super-input" :class="{ 'super-input-active': isFocused }" @click.stop.prevent>
     <div id="currentContent" style="display: none" v-html="modelValue"></div>
     <div ref="editorElem" class="editor-element super-editor__element"></div>
   </div>
