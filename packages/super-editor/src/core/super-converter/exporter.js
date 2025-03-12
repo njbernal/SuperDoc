@@ -1616,7 +1616,10 @@ export class DocxExporter {
 
   #replaceSpecialCharacters(text) {
     if (!text) return;
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return text.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   #generateXml(node, debug = false) {
