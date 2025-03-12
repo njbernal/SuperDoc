@@ -103,19 +103,18 @@ test.describe('pagination', () => {
       await page.goto('http://localhost:4173?file=hard-break');
     });
 
-    // test('should render pagination elements', async () => {
-    //   // Wait for pagination elements to be rendered
-    //   await page.waitForSelector('.pagination-page-spacer.ProseMirror-widget');
-    //   await page.waitForSelector('.pagination-break-wrapper.ProseMirror-widget');
+    test('should render pagination elements', async () => {
+      // Wait for the page to be completely rendered
+      await page.waitForLoadState('networkidle');
 
-    //   // Get all pagination elements
-    //   const spacers = await page.$$('.pagination-page-spacer.ProseMirror-widget');
-    //   const breaks = await page.$$('.pagination-break-wrapper.ProseMirror-widget');
+      // Get all pagination elements
+      const spacers = await page.$$('.pagination-page-spacer.ProseMirror-widget');
+      const breaks = await page.$$('.pagination-break-wrapper.ProseMirror-widget');
 
-    //   // Verify counts
-    //   expect(spacers.length).toBe(2); // Should have two page spacers
-    //   expect(breaks.length).toBe(2); // Should have two page breaks
-    // });
+      // Verify counts
+      expect(spacers.length).toBe(2); // Should have two page spacers
+      expect(breaks.length).toBe(3); // Should have three page breaks
+    });
 
     test('should have header with correct dimensions', async () => {
       // Wait for header element to be rendered
