@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test": "vitest --root ./packages/super-editor",
-    "test:e2e": "cd packages/super-editor && npm run test:e2e",
+    "test:e2e": "cd packages/super-editor && npx playwright install && npm run test:e2e",
     "unzip": "bash packages/super-editor/src/tests/helpers/unzip.sh",
     "dev": "npm --workspace=@harbour-enterprises/superdoc run dev",
     "dev:superdoc": "npm run dev --workspace=packages/superdoc",
