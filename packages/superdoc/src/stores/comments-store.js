@@ -18,6 +18,8 @@ export const useCommentsStore = defineStore('comments', () => {
 
   const COMMENT_EVENTS = comments_module_events;
   const hasInitializedComments = ref(false);
+  const hasSyncedCollaborationComments = ref(false);
+  const commentsParentElement = ref(null);
   const activeComment = ref(null);
   const commentDialogs = ref([]);
   const overlappingComments = ref([]);
@@ -27,6 +29,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const commentsList = ref([]);
   const isCommentsListVisible = ref(false);
   const lastChange = ref(Date.now());
+  const editorCommentIds = ref([]);
 
   // Floating comments
   const floatingCommentsOffset = ref(0);
@@ -195,6 +198,12 @@ export const useCommentsStore = defineStore('comments', () => {
       top: top,
       left: left,
     };
+  };
+
+  const updateLastChange = () => {
+    setTimeout(() => {
+      lastChange.value = Date.now();
+    }, 50);
   };
 
   const initialCheck = () => {
@@ -401,6 +410,8 @@ export const useCommentsStore = defineStore('comments', () => {
       });
       commentsList.value.push(newComment);
     });
+
+    updateLastChange();
   }
 
   const prepareCommentsForExport = () => {
@@ -437,6 +448,8 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {void}
    */
   const handleEditorLocationsUpdate = (parentElement, allCommentIds = []) => {
+    editorCommentIds.value = allCommentIds;
+    commentsParentElement.value = parentElement;
 
     // Track comment IDs that we do not find in the editor
     // These will remain as 'general' comments
@@ -469,7 +482,7 @@ export const useCommentsStore = defineStore('comments', () => {
         }
       });
 
-      lastChange.value = Date.now();
+      updateLastChange();
       isFloatingCommentsReady.value = true;
     }, 50)
   };
@@ -494,6 +507,7 @@ export const useCommentsStore = defineStore('comments', () => {
   return {
     COMMENT_EVENTS,
     hasInitializedComments,
+    hasSyncedCollaborationComments,
     activeComment,
     commentDialogs,
     overlappingComments,
@@ -505,6 +519,8 @@ export const useCommentsStore = defineStore('comments', () => {
     isCommentsListVisible,
     lastChange,
     generalCommentIds,
+    editorCommentIds,
+    commentsParentElement,
 
     // Floating comments
     floatingCommentsOffset,
@@ -536,5 +552,6 @@ export const useCommentsStore = defineStore('comments', () => {
     prepareCommentsForExport,
     handleEditorLocationsUpdate,
     handleTrackedChangeUpdate,
+    updateLastChange,
   };
 });

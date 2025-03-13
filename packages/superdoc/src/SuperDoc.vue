@@ -23,6 +23,7 @@ import useSelection from '@superdoc/helpers/use-selection';
 
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
+import { onSuperDocYdocSynced } from '@superdoc/core/collaboration/helpers';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperEditor } from '@harbour-enterprises/super-editor';
@@ -191,14 +192,11 @@ const onEditorCollaborationReady = ({ editor }) => {
   proxy.$superdoc.emit('collaboration-ready', { editor });
 
   nextTick(() => {
-    commentsStore.lastChange = Date.now();
     isReady.value = true;
 
     const urlParams = new URLSearchParams(window.location.search);
     const commentId = urlParams.get('commentId');
     if (commentId) scrollToComment(commentId);
-    
-    commentsStore.lastChange = Date.now();
   });
 };
 
@@ -253,11 +251,23 @@ const editorOptions = (doc) => {
  */
 const onEditorCommentLocationsUpdate = (commentPositions = []) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(layers.value, commentPositions);
 
-  setTimeout(() => {
-    commentsStore.lastChange = Date.now();
-  }, 250);
+  // If we have not yet synced the collaboration comments, wait for the sync event
+  const provider = proxy.$superdoc.provider;
+  const hasSyncedCollaborationComments = proxy.$superdoc.commentsStore.hasSyncedCollaborationComments;
+  if (provider && !hasSyncedCollaborationComments) {
+    const syncPositions = () => {
+      handleEditorLocationsUpdate(layers.value, commentPositions);
+      provider.off('synced', syncPositions);
+    };
+
+    provider.on('synced', syncPositions);
+  }
+
+  // Otherwise, update the comment locations right away
+  else {
+    handleEditorLocationsUpdate(layers.value, commentPositions);
+  };
 };
 
 const onEditorCommentsUpdate = (params = {}) => {
@@ -382,7 +392,7 @@ const handleSelectionChange = (selection) => {
   activeSelection.value = selection;
 
   // Place the tools menu at the level of the selection
-  let top = selection.selectionBounds.bottom - 50;
+  let top = selection.selectionBounds.top;
   toolsMenuPosition.top = top + 'px';
   toolsMenuPosition.right = isMobileView ? '0' : '-25px';
 };
