@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.53](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.52...v0.6.53) (2025-03-13)
+
+
+### Reverts
+
+* Revert "chore(deps): bump the npm_and_yarn group across 1 directory with 2 updates" ([931801f](https://github.com/Harbour-Enterprises/SuperDoc/commit/931801fc0f2b0ab004837d000811bf2f53960671))
+
 ## [0.6.52](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.50...v0.6.52) (2025-03-13)
 
 ## [0.6.50](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.49...v0.6.50) (2025-03-12)
