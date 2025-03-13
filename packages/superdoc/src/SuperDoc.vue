@@ -23,7 +23,6 @@ import useSelection from '@superdoc/helpers/use-selection';
 
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
-import { onSuperDocYdocSynced } from '@superdoc/core/collaboration/helpers';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { SuperEditor } from '@harbour-enterprises/super-editor';
