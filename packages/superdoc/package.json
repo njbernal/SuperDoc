@@ -28,7 +28,7 @@
     "./file-zipper": {
       "import": "./dist/super-editor/file-zipper.es.js"
     },
-    "./style.css": "./dist/superdoc.css"
+    "./style.css": "./dist/style.css"
   },
   "main": "./dist/superdoc.umd.js",
   "module": "./dist/superdoc.es.js",
