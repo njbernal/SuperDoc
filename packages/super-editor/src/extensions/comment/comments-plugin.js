@@ -3,7 +3,7 @@ import { Extension } from '@core/Extension.js';
 import { TrackInsertMarkName, TrackDeleteMarkName } from '../track-changes/constants.js';
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { comments_module_events } from '@harbour-enterprises/common';
-import { removeCommentsById, getCommentPositionsById } from './comments-helpers.js';
+import { removeCommentsById } from './comments-helpers.js';
 import { CommentMarkName } from './comments-constants.js';
 
 export const CommentsPluginKey = new PluginKey('comments');
@@ -152,9 +152,7 @@ export const CommentsPlugin = Extension.create({
 
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
-          if (hasInitialized) {
-            editor.emit('comment-positions', allCommentIds);
-          }
+          editor.emit('comment-positions', allCommentIds);
 
           if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
 
