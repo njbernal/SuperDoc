@@ -16,6 +16,8 @@ export const useCommentsStore = defineStore('comments', () => {
     showResolved: false,
   });
 
+  const isDebugging = false;
+
   const COMMENT_EVENTS = comments_module_events;
   const hasInitializedComments = ref(false);
   const hasSyncedCollaborationComments = ref(false);
@@ -140,6 +142,8 @@ export const useCommentsStore = defineStore('comments', () => {
     }
 
     activeComment.value = pendingComment.value.commentID;
+
+    updateLastChange();
   };
 
   /**
@@ -333,6 +337,9 @@ export const useCommentsStore = defineStore('comments', () => {
     // Add the new comments to our global list
     commentsList.value.push(newComment);
 
+    // Clean up the pending comment
+    removePendingComment(superdoc);
+
     // If this is not a tracked change, and it belongs to a Super Editor, and its not a child comment
     // We need to let the editor know about the new comment
     if (!comment.trackedChange && superdoc.activeEditor?.commands && !comment.parentCommentId) {
@@ -342,9 +349,6 @@ export const useCommentsStore = defineStore('comments', () => {
 
     // If collaboration is enabled, sync the comments to all clients
     syncCommentsToClients(superdoc);
-
-    // Clean up the pending comment
-    removePendingComment(superdoc);
 
     // Emit event for end users
     superdoc.emit('comments-update', { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() });
@@ -483,8 +487,26 @@ export const useCommentsStore = defineStore('comments', () => {
       });
 
       updateLastChange();
-      isFloatingCommentsReady.value = true;
     }, 50)
+  };
+
+  const getFloatingComments = computed(() => {
+    return getGroupedComments.value?.parentComments
+      .filter((c) => !c.resolvedTime)
+      .filter((c) => !generalCommentIds.value.includes(c.commentId || c.importedId))
+      .sort(sortFloatingCommentsByLocation);
+  });
+
+  const sortFloatingCommentsByLocation = (a, b) => {
+    // Sort comments by page and by position first
+  
+    const pageA = a.selection?.page || 0;
+    const pageB = b.selection?.page || 0;
+    if (pageA !== pageB) return pageA - pageB;
+  
+    const topB = b.selection.selectionBounds?.top;
+    const topA = a.selection.selectionBounds?.top;
+    return topA - topB;
   };
 
   /**
@@ -506,6 +528,7 @@ export const useCommentsStore = defineStore('comments', () => {
 
   return {
     COMMENT_EVENTS,
+    isDebugging,
     hasInitializedComments,
     hasSyncedCollaborationComments,
     activeComment,
@@ -533,6 +556,7 @@ export const useCommentsStore = defineStore('comments', () => {
     getConfig,
     documentsWithConverations,
     getGroupedComments,
+    getFloatingComments,
 
     // Actions
     init,
