@@ -57,6 +57,7 @@ const {
   isCommentsListVisible,
   isFloatingCommentsReady,
   generalCommentIds,
+  getFloatingComments,
 } = storeToRefs(commentsStore);
 const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
@@ -289,14 +290,11 @@ const onEditorCommentsUpdate = (params = {}) => {
 
 const isCommentsEnabled = computed(() => 'comments' in modules);
 const showCommentsSidebar = computed(() => {
-
-  const documentComments = commentsList.value.filter((c) => !generalCommentIds.value?.includes(c.commentId || c.importedId));
   return (
     pendingComment.value ||
     (
-      documentComments?.length > 0
+      getFloatingComments.value?.length > 0
         && layers.value
-        && isReady.value
         && isCommentsEnabled.value
         && !isCommentsListVisible.value
     )
@@ -587,7 +585,7 @@ const handlePdfClick = (e) => {
 
       <FloatingComments
         class="floating-comments"
-        v-if="isReady && isFloatingCommentsReady && !isCommentsListVisible"
+        v-if="getFloatingComments.length && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"

@@ -316,14 +316,6 @@ export class Editor extends EventEmitter {
    * so that we can initialize the data
    */
   initializeCollaborationData() {
-    const hasData = this.extensionService.extensions.find((e) => e.name === 'collaboration')
-      ?.options.isReady;
-    if (hasData) {
-      setTimeout(() => {
-        this.emit('collaborationReady', { editor: this, ydoc: this.options.ydoc });
-      }, 150);
-    }
-    
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
@@ -701,7 +693,7 @@ export class Editor extends EventEmitter {
 
     // Update scale on window orientation change
     screen.orientation.addEventListener('change', () => {
-      setTimeout(() => {
+    setTimeout(() => {
         updateScale();
       }, 150);
     });
@@ -715,6 +707,7 @@ export class Editor extends EventEmitter {
   #onCollaborationReady({ editor, ydoc }) {
     if (this.options.collaborationIsReady) return;
     console.debug('🔗 [super-editor] Collaboration ready');
+
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
     this.#initPagination();
@@ -1012,7 +1005,9 @@ export class Editor extends EventEmitter {
    * Destroy collaboration provider and ydoc
    */
   #endCollaboration() {
+    if (!this.options.ydoc) return;
     try {
+      console.debug('🔗 [super-editor] Ending collaboration');
       if (this.options.collaborationProvider) this.options.collaborationProvider.disconnect();
       if (this.options.ydoc) this.options.ydoc.destroy();
     } catch (error) {}

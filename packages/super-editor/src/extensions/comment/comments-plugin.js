@@ -41,7 +41,7 @@ export const CommentsPlugin = Extension.create({
         let activeThreadId = importedId;
         if (importedId === undefined || importedId === null) activeThreadId = commentId;
         tr.setMeta(CommentsPluginKey, { type: 'setActiveComment', activeThreadId });
-      return true;
+        return true;
       },
 
       setCommentInternal: ({ commentId, importedId, isInternal}) => ({ tr, dispatch, state }) => {
@@ -188,27 +188,8 @@ const getTrackedChangeNode = (node) => {
   return trackedChangeMark || trackedDeleteMark;
 };
 
-/**
- * Update tracked positions of comment or track changes nodes
- * @param {String} threadId The ID of the comment thread
- * @param {EditorView} view Current editor view
- * @param {Number} pos The position of the node to consider
- * @returns {Object} The updated positions of the node
- */
-const updatePositions = (view, pos, currentPos) => {
-  const coords = view.coordsAtPos(pos);
-  const existingTop = currentPos.top || 0;
-  const existingLeft = currentPos.left || 0;
-  const existingRight = currentPos.right || 0;
-  const existingBottom = currentPos.bottom || 0;
 
-  return {
-    top: Math.min(coords.top, existingTop),
-    left: Math.min(coords.left, existingLeft),
-    right: Math.max(coords.right, existingRight),
-    bottom: Math.max(coords.bottom, existingBottom),
-  };
-};
+
 
 /**
  * Main function to track comment and tracked change nodes
@@ -233,8 +214,8 @@ const trackCommentNodes = ({
   const { marks = [] } = node;
 
   // Check if this is a comment node (ie: has commentMark)
-  const commentMark = marks.find((mark) => mark.type.name === CommentMarkName);
-  if (commentMark) {
+  const commentMarks = marks.filter((mark) => mark.type.name === CommentMarkName);
+  commentMarks.forEach((commentMark) => {
     const { attrs } = commentMark;
     const threadId = attrs.commentId || attrs.importedId;
     const isInternal = attrs.internal;
@@ -256,7 +237,7 @@ const trackCommentNodes = ({
       end: pos + node.nodeSize,
       internal: isInternal,
     };
-  };
+  });
 
   const trackChangeNode = getTrackedChangeNode(node);
   if (trackChangeNode) {
