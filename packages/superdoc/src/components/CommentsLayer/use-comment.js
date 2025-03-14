@@ -67,9 +67,20 @@ export default function useComment(params) {
     resolvedByEmail.value = email;
     resolvedByName.value = name;
 
+    if (trackedChange.value) {
+      const changeEmitData = { type: comments_module_events.ADD, comment: getValues() };
+      propagateUpdate(superdoc, changeEmitData);
+      
+      setTimeout(() => {
+        const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
+        propagateUpdate(superdoc, emitData);
+        superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
+      }, 1500);
+      return;
+    };
+
     const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
     propagateUpdate(superdoc, emitData);
-
     superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
   };
 
