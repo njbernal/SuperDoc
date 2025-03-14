@@ -377,7 +377,14 @@ export const useCommentsStore = defineStore('comments', () => {
 
     superdoc.activeEditor?.commands?.removeComment({ commentId, importedId });
 
+    // Remove the current comment
     commentsList.value.splice(commentIndex, 1);
+
+    // Remove any child comments of the removed comment
+    const childCommentIds = commentsList.value
+      .filter((c) => c.parentCommentId === commentId)
+      .map((c) => c.commentId || c.importedId);
+    commentsList.value = commentsList.value.filter((c) => !childCommentIds.includes(c.commentId));
 
     const emitData = {
       type: COMMENT_EVENTS.DELETED,
