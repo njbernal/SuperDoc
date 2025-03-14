@@ -348,18 +348,16 @@ class SuperConverter {
     });
 
     // Update content types and comments files as needed
-    const { documentXml, relationships } = this.#prepareCommentsXmlFilesForExport({
+    const { documentXml: updatedXml, relationships } = this.#prepareCommentsXmlFilesForExport({
       defs: params.exportedCommentDefs,
       exportType: commentsExportType,
       commentsWithParaIds,
-      relationships: params.relationships,
     });
     
-    this.convertedXml = documentXml;
-    const updatedRelationships = relationships;
-
+    this.convertedXml = { ...this.convertedXml, ...updatedXml };
+  
     // Update the rels table
-    this.#exportProcessNewRelationships(updatedRelationships);
+    this.#exportProcessNewRelationships([...params.relationships, ...relationships]);
 
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
@@ -384,23 +382,24 @@ class SuperConverter {
   #exportProcessNewRelationships(rels = []) {
     const relsData = this.convertedXml['word/_rels/document.xml.rels'];
     const relationships = relsData.elements.find((x) => x.name === 'Relationships');
-    const newRels = [...relationships.elements];
+    const newRels = [];
 
     let largestId = Math.max(...relationships.elements.map((el) => Number(el.attributes.Id.replace('rId', ''))));
     rels.forEach((rel) => {
-      const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
-      if (existingTarget) {
-        console.debug('Duplicate relationship found', rel.attributes.Target);
-        return;
-      };
 
-      rel.attributes.Target = rel.attributes?.Target?.replace(/&/g, '&amp;').replace(/-/g, '&#45;');
-      rel.attributes.Id = `rId${++largestId}`;
+      const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
+      if (existingTarget) return;
+
+      // Update the target to escape ampersands
+      rel.attributes.Target = rel.attributes?.Target?.replace(/&/g, '&amp;');
+
+      // Update the ID. If we've assigned a long ID (ie: images) we leave it alone
+      const existingId = rel.attributes.Id;
+      rel.attributes.Id = existingId.length > 6 ? existingId : `rId${++largestId}`;
       newRels.push(rel);
     });
 
-    relationships.elements = newRels;
-    console.debug('New relationships added', newRels, relsData);
+    relationships.elements = [...relationships.elements, ...newRels];
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   }
 

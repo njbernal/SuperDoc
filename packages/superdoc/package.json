@@ -36,9 +36,11 @@
   "scripts": {
     "dev": "vite",
     "build": "cd ../super-editor && npm run build && cd ../superdoc && vite build && tsc && npm run build:umd",
+    "build:es": "cd ../super-editor && npm run build && cd ../superdoc && vite build",
     "build:umd": "vite build --config vite.config.umd.js",
     "release": "release-it --ci --increment=patch",
     "clean": "rm -rf dist",
+    "pack:local": "npm run build:es && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz",
     "pack": "npm run build && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz"
   },
   "dependencies": {

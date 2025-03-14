@@ -361,8 +361,9 @@ export const prepareCommentsXmlFilesForExport = ({
   commentsWithParaIds,
   exportType,
   converter,
-  relationships = [],
 }) => {
+  const relationships = [];
+
   // If we're exporting clean, simply remove the comments files
   if (exportType === 'clean') {
     const documentXml = removeCommentsFilesFromConvertedXml(convertedXml);
