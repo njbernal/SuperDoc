@@ -154,8 +154,6 @@ export const CommentsPlugin = Extension.create({
           // SuperDoc will use this to update floating comments as necessary
           editor.emit('comment-positions', allCommentIds);
 
-          if (!isForcingUpdate && hasInitialized && previousDecorations.eq(decorationSet)) return { ...oldState };
-
           hasInitialized = true;
           return {
             ...oldState,

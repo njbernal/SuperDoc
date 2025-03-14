@@ -28,6 +28,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  comment: {
+    type: Object,
+    required: false,
+  },
 });
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
@@ -39,7 +43,7 @@ const handleFocusChange = (focused) => emit('focus', focused);
 
 <template>
   <div class="input-section">
-    <CommentHeader v-if="includeHeader" :user="user" :config="config" />
+    <CommentHeader v-if="includeHeader" :user="user" :config="config" :comment="comment" />
 
     <div class="comment-entry" :class="{ 'input-active': isFocused }">
       <SuperInput
