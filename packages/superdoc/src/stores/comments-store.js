@@ -100,7 +100,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const handleTrackedChangeUpdate = ({ superdoc, params }) => {
     const { changeId, trackedChangeText, trackedChangeType, deletedText } = params;
 
-    const existingTrackedChange = commentsList.value.find((comment) => comment.commentId === changeId)
+    const existingTrackedChange = commentsList.value.find((comment) => comment.commentId === changeId);
     if (!existingTrackedChange) {
       const comment = getPendingComment({
         documentId: 'test',
@@ -351,7 +351,9 @@ export const useCommentsStore = defineStore('comments', () => {
     syncCommentsToClients(superdoc);
 
     // Emit event for end users
-    superdoc.emit('comments-update', { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() });
+    if (!comment.trackedChange) {
+      superdoc.emit('comments-update', { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() });
+    };
 
   };
 

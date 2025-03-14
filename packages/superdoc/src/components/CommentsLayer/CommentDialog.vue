@@ -89,12 +89,12 @@ const comments = computed(() => {
     .sort((a, b) => a.commentId === props.comment.commentId && a.createdTime - b.createdTime);
 });
 
-const getCommentUser = computed(() => (comment) => {
+const getCommentUser = (comment) => {
   return {
     name: comment.creatorName,
     email: comment.creatorEmail,
   };
-});
+};
 
 const isInternalDropdownDisabled = computed(() => {
   if (props.comment.resolvedTime) return true;
@@ -117,11 +117,11 @@ const showOverflow = computed(() => (comment) => {
   return isAllowed(PERMISSIONS.COMMENTS_OVERFLOW_OTHER, role, isInternal);
 });
 
-const getOverflowOptions = computed(() => (comment) => {
+const getOverflowOptions = (comment) => {
   const isOwnComment = comment.creatorEmail === superdocStore.user.email;
   if (isOwnComment) return overflowOptions.filter((o) => o.key === 'delete');
   return overflowOptions;
-}); 
+};
 
 const isEditingThisComment = computed(() => (comment) => {
   return isEditing.value === comment.commentId;
@@ -171,10 +171,15 @@ const handleAddComment = () => {
 
 const handleReject = () => {
   if (props.comment.trackedChange) {
+    props.comment.resolveComment({
+      email: superdocStore.user.email,
+      name: superdocStore.user.name,
+      superdoc: proxy.$superdoc,
+    });
     proxy.$superdoc.activeEditor.commands.rejectTrackedChangeById(props.comment.commentId);
+  } else {
+    commentsStore.deleteComment({ superdoc: proxy.$superdoc, commentId: props.comment.commentId });
   };
-
-  commentsStore.deleteComment({ superdoc: proxy.$superdoc, commentId: props.comment.commentId });
 
   nextTick(() => {
     commentsStore.lastUpdate = new Date();
@@ -307,10 +312,10 @@ onMounted(() => {
       <div class="card-section comment-body" v-if="comment.trackedChange">
         <div class="tracked-change">
           <div class="tracked-change">
-            <div v-if="['trackInsert', 'both'].includes(comment.trackedChangeType)">
+            <div v-if="comment.trackedChangeText">
               <span class="change-type">Added: </span><span class="tracked-change-text">{{ comment.trackedChangeText }}</span>
             </div>
-            <div v-if="['trackDelete', 'both'].includes(comment.trackedChangeType)">
+            <div v-if="comment.deletedText">
               <span class="change-type">Deleted: </span><span class="tracked-change-text">{{ comment.deletedText }}</span>
             </div>
           </div>

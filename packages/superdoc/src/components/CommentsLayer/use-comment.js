@@ -48,6 +48,7 @@ export default function useComment(params) {
   const trackedChange = ref(params.trackedChange);
   const trackedChangeType = ref(params.trackedChangeType || null);
   const trackedChangeText = ref(params.trackedChangeText || null);
+  console.debug('trackedChange', trackedChangeText.value);
   const deletedText = ref(params.deletedText || null);
 
   const resolvedTime = ref(params.resolvedTime || null);
@@ -67,9 +68,20 @@ export default function useComment(params) {
     resolvedByEmail.value = email;
     resolvedByName.value = name;
 
+    if (trackedChange.value) {
+      const changeEmitData = { type: comments_module_events.ADD, comment: getValues() };
+      propagateUpdate(superdoc, changeEmitData);
+      
+      setTimeout(() => {
+        const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
+        propagateUpdate(superdoc, emitData);
+        superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
+      }, 1500);
+      return;
+    };
+
     const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
     propagateUpdate(superdoc, emitData);
-
     superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
   };
 
