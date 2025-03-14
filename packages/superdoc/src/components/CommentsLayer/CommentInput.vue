@@ -43,7 +43,7 @@ const handleFocusChange = (focused) => emit('focus', focused);
 
 <template>
   <div class="input-section">
-    <CommentHeader v-if="includeHeader" :user="user" :config="config" :comment="comment" />
+    <CommentHeader v-if="includeHeader" :user="user" :config="config" :comment="comment" :is-pending-input="true" />
 
     <div class="comment-entry" :class="{ 'input-active': isFocused }">
       <SuperInput
