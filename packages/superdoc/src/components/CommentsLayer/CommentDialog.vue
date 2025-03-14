@@ -119,7 +119,7 @@ const showOverflow = computed(() => (comment) => {
 
 const getOverflowOptions = (comment) => {
   const isOwnComment = comment.creatorEmail === superdocStore.user.email;
-  if (isOwnComment) return overflowOptions.filter((o) => o.key === 'delete');
+  if (!isOwnComment) return overflowOptions.filter((o) => o.key !== 'delete');
   return overflowOptions;
 };
 
@@ -266,6 +266,11 @@ const getSidebarCommentStyle = computed(() => {
   return style;
 });
 
+const handleCancel = (comment) => {
+  isEditing.value = null;
+  cancelComment(proxy.$superdoc);
+};
+
 onMounted(() => {
   console.debug('-- CommentDialog mounted', props.comment.commentId);
   if (props.autoFocus) {
@@ -338,7 +343,7 @@ onMounted(() => {
             :comment="comment"
           />
           <div class="comment-footer">
-            <button class="sd-button" @click.stop.prevent="cancelComment(proxy.$superdoc)">Cancel</button>
+            <button class="sd-button" @click.stop.prevent="handleCancel(comment)">Cancel</button>
             <button
               class="sd-button primary"
               @click.stop.prevent="handleCommentUpdate(comment)"

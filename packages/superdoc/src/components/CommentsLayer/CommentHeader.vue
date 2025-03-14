@@ -18,11 +18,6 @@ const props = defineProps({
     type: Number,
     required: false,
   },
-  isTrackedChange: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
   config: {
     type: Object,
     required: true,
@@ -34,6 +29,11 @@ const props = defineProps({
   comment: {
     type: Object,
     required: false,
+  },
+  isPendingInput: {
+    type: Boolean,
+    required: false,
+    default: false,
   }
 });
 
@@ -42,25 +42,35 @@ const role = proxy.$superdoc.config.role;
 const isInternal = proxy.$superdoc.config.isInternal;
 const isOwnComment = props.comment.creatorEmail === proxy.$superdoc.config.user.email;
 
-const allowResolve = computed(() => {
-  if (!props.comment || !!commentsStore.pendingComment) return false;
+const generallyAllowed = computed(() => {
+  if (!props.comment) return false;
   if (props.comment.resolvedTime) return false;
+  if (commentsStore.pendingComment) return false;
+  if (props.comment.parentCommentId) return false;
+  if (props.isPendingInput) return false;
+  return true;
+});
 
+const allowResolve = computed(() => {
+  if (!generallyAllowed.value) return false;
   if (isOwnComment) return isAllowed(PERMISSIONS.RESOLVE_OWN, role, isInternal);
   else return isAllowed(PERMISSIONS.RESOLVE_OTHER, role, isInternal);
 });
 
 const allowReject = computed(() => {
-  if (!props.comment || !!commentsStore.pendingComment) return false;
-  if (props.comment.resolvedTime) return false;
-
+  if (!generallyAllowed.value) return false;
+  if (!props.comment.trackedChange) return false;
   if (isOwnComment) return isAllowed(PERMISSIONS.REJECT_OWN, role, isInternal);
   else return isAllowed(PERMISSIONS.REJECT_OTHER, role, isInternal);
 });
 
 const allowOverflow = computed(() => {
+  if (!generallyAllowed.value) return false;
+  if (props.comment.trackedChange) return false;
   if (!props.overflowOptions || !props.overflowOptions.length) return false;
-  if (!!commentsStore.pendingComment) return false;
+  if (props.isPendingInput) return false;
+
+  return true;
 });
 
 const handleResolve = () => emit('resolve');
@@ -75,7 +85,7 @@ const handleSelect = (value) => emit('overflow-select', value);
       <Avatar :user="props.user" class="avatar" />
       <div class="user-info">
         <div class="user-name">{{ props.user.name }}</div>
-        <div class="user-timestamp" v-if="props.timestamp">{{ formatDate(props.timestamp) }}</div>
+        <div class="user-timestamp" v-if="props.comment.createdTime">{{ formatDate(props.comment.createdTime) }}</div>
       </div>
     </div>
 
