@@ -243,7 +243,7 @@ export class SuperDoc extends EventEmitter {
     this.isCollaborative = true;
 
     // Start a socket for all documents and general metaMap for this SuperDoc
-    this.socket = new HocuspocusProviderWebsocket({
+    this.config.socket = new HocuspocusProviderWebsocket({
       url: collaborationModuleConfig.url,
     });
 
@@ -558,12 +558,22 @@ export class SuperDoc extends EventEmitter {
   destroy() {
     if (!this.app) return; 
     this.log('[superdoc] Unmounting app');
-    
-    this.config.documents.forEach((doc) => {
-      doc.ydoc?.destroy();
 
-      doc.provider?.configuration.websocketProvider.disconnect();
-      doc.provider?.disconnect();
+    this.config.socket.cancelWebsocketRetry();
+    this.config.socket.disconnect();
+    this.config.socket.destroy();
+    this.ydoc?.destroy();
+    this.provider?.disconnect();
+    this.provider?.destroy();
+
+    this.config.documents.forEach((doc) => {
+      if (doc.provider) {
+        doc.provider.disconnect();
+        doc.provider.destroy();
+      };
+
+      // Destroy the ydoc
+      doc.ydoc.destroy();
     });
 
     this.superdocStore.reset();

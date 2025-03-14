@@ -43,7 +43,7 @@ export const initSuperdocYdoc = (superdoc) => {
     config: superdoc.config.modules.collaboration,
     user: superdoc.config.user,
     documentId,
-    socket: superdoc.socket,
+    socket: superdoc.config.socket,
     superdocInstance: superdoc,
   };
   const { provider: superdocProvider, ydoc: superdocYdoc } = createProvider(superdocCollaborationOptions);
@@ -84,13 +84,13 @@ export const makeDocumentsCollaborative = (superdoc) => {
       config: superdoc.config.modules.collaboration,
       user: superdoc.config.user,
       documentId: doc.id,
-      socket: superdoc.socket,
+      socket: superdoc.config.socket,
       superdocInstance: superdoc,
     };
 
     const { provider, ydoc } = createProvider(options);
     doc.provider = provider;
-    doc.socket = superdoc.socket;
+    doc.socket = superdoc.config.socket;
     doc.ydoc = ydoc;
     doc.role = superdoc.config.role;
     provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(superdoc, states));
