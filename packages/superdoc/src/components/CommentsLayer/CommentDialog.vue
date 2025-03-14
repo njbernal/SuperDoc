@@ -267,6 +267,7 @@ const getSidebarCommentStyle = computed(() => {
 });
 
 onMounted(() => {
+  console.debug('-- CommentDialog mounted', props.comment.commentId);
   if (props.autoFocus) {
     nextTick(() => setFocus());
   };

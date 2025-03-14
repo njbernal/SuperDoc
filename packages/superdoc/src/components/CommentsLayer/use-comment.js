@@ -48,7 +48,6 @@ export default function useComment(params) {
   const trackedChange = ref(params.trackedChange);
   const trackedChangeType = ref(params.trackedChangeType || null);
   const trackedChangeText = ref(params.trackedChangeText || null);
-  console.debug('trackedChange', trackedChangeText.value);
   const deletedText = ref(params.deletedText || null);
 
   const resolvedTime = ref(params.resolvedTime || null);
