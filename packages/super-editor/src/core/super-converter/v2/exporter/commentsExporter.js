@@ -20,8 +20,8 @@ export function translateCommentNode(params, type) {
   const originalComment = params.comments.find((comment) => {
     return comment.commentId == nodeId || comment.importedId == nodeId;
   });
-  const commentIndex = params.comments.findIndex((comment) => comment === originalComment);
 
+  const commentIndex = params.comments?.findIndex((comment) => comment === originalComment);
   const parentId = originalComment.parentCommentId;
   let parentComment;
   if (parentId) {
@@ -97,7 +97,7 @@ export const getCommentDefinition = (comment, commentId, allComments) => {
   };
 
   // Add the w15:paraIdParent attribute if the comment has a parent
-  if (comment.parentCommentId) {
+  if (comment?.parentCommentId) {
     const parentComment = allComments.find((c) => c.commentId === comment.parentCommentId);
     attributes['w15:paraIdParent'] = parentComment.commentParaId;
   }
