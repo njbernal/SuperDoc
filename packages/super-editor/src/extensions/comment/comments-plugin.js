@@ -264,10 +264,14 @@ const trackCommentNodes = ({
 
     const params = {
       type: 'trackedChange',
+      documentId: editor.options.documentId,
       changeId: id,
       trackedChangeType: isDeletionInsertion ? 'both' : trackedChangeType,
       trackedChangeText: isDeletionInsertion ? nextNode.text : node.text,
       deletedText: trackedChangeType === TrackDeleteMarkName ? node?.text : null,
+      author,
+      authorEmail,
+      date,
     }
     editor.emit('commentsUpdate', params)
   }

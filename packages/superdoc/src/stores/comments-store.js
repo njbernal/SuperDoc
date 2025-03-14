@@ -98,17 +98,29 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {void}
    */
   const handleTrackedChangeUpdate = ({ superdoc, params }) => {
-    const { changeId, trackedChangeText, trackedChangeType, deletedText } = params;
+    const {
+      changeId,
+      trackedChangeText,
+      trackedChangeType,
+      deletedText,
+      authorEmail,
+      date,
+      author: authorName,
+      documentId,
+    } = params;
 
     const existingTrackedChange = commentsList.value.find((comment) => comment.commentId === changeId);
     if (!existingTrackedChange) {
       const comment = getPendingComment({
-        documentId: 'test',
+        documentId,
         commentId: changeId,
         trackedChange: true,
         trackedChangeText,
         trackedChangeType,
         deletedText,
+        createdTime: date,
+        creatorNamne: authorName,
+        creatorEmail: authorEmail,
       });
 
       addComment({ superdoc, comment });
@@ -285,7 +297,6 @@ export const useCommentsStore = defineStore('comments', () => {
     if (!activeDocument) activeDocument = superdocStore.documents[0];
 
     return useComment({
-      ...options,
       fileId: activeDocument.id,
       fileType: activeDocument.type,
       parentCommentId,
@@ -293,6 +304,7 @@ export const useCommentsStore = defineStore('comments', () => {
       creatorName: superdocStore.user.name,
       commentText: currentCommentText.value,
       selection,
+      ...options,
    });
   };
 

@@ -53,6 +53,7 @@ const generallyAllowed = computed(() => {
 
 const allowResolve = computed(() => {
   if (!generallyAllowed.value) return false;
+
   if (isOwnComment) return isAllowed(PERMISSIONS.RESOLVE_OWN, role, isInternal);
   else return isAllowed(PERMISSIONS.RESOLVE_OTHER, role, isInternal);
 });
@@ -60,6 +61,7 @@ const allowResolve = computed(() => {
 const allowReject = computed(() => {
   if (!generallyAllowed.value) return false;
   if (!props.comment.trackedChange) return false;
+
   if (isOwnComment) return isAllowed(PERMISSIONS.REJECT_OWN, role, isInternal);
   else return isAllowed(PERMISSIONS.REJECT_OTHER, role, isInternal);
 });
