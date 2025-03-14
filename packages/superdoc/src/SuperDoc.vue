@@ -294,6 +294,7 @@ const showCommentsSidebar = computed(() => {
     pendingComment.value ||
     (
       getFloatingComments.value?.length > 0
+        && isReady.value
         && layers.value
         && isCommentsEnabled.value
         && !isCommentsListVisible.value

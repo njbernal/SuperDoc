@@ -2,9 +2,13 @@
 import { formatDate } from './helpers';
 import { superdocIcons } from '@superdoc/icons.js';
 import { NDropdown } from 'naive-ui';
+import { computed, getCurrentInstance } from 'vue';
+import { isAllowed, PERMISSIONS } from '@superdoc/core/collaboration/permissions.js';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
 import Avatar from '@superdoc/components/general/Avatar.vue';
 
 const emit = defineEmits(['resolve', 'reject', 'overflow-select']);
+const commentsStore = useCommentsStore();
 const props = defineProps({
   user: {
     type: Object,
@@ -23,20 +27,40 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  allowResolve: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  allowReject: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
   overflowOptions: {
     type: Array,
     required: false,
   },
+  comment: {
+    type: Object,
+    required: false,
+  }
+});
+
+const { proxy } = getCurrentInstance();
+const role = proxy.$superdoc.config.role;
+const isInternal = proxy.$superdoc.config.isInternal;
+const isOwnComment = props.comment.creatorEmail === proxy.$superdoc.config.user.email;
+
+const allowResolve = computed(() => {
+  if (!props.comment || !!commentsStore.pendingComment) return false;
+  if (props.comment.resolvedTime) return false;
+
+  if (isOwnComment) return isAllowed(PERMISSIONS.RESOLVE_OWN, role, isInternal);
+  else return isAllowed(PERMISSIONS.RESOLVE_OTHER, role, isInternal);
+});
+
+const allowReject = computed(() => {
+  if (!props.comment || !!commentsStore.pendingComment) return false;
+  if (props.comment.resolvedTime) return false;
+
+  if (isOwnComment) return isAllowed(PERMISSIONS.REJECT_OWN, role, isInternal);
+  else return isAllowed(PERMISSIONS.REJECT_OTHER, role, isInternal);
+});
+
+const allowOverflow = computed(() => {
+  if (!props.overflowOptions || !props.overflowOptions.length) return false;
+  if (!!commentsStore.pendingComment) return false;
 });
 
 const handleResolve = () => emit('resolve');
@@ -72,7 +96,7 @@ const handleSelect = (value) => emit('overflow-select', value);
       </div>
 
       <n-dropdown
-        v-if="overflowOptions?.length"
+        v-if="allowOverflow"
         trigger="click"
         :options="overflowOptions"
         @select="handleSelect"

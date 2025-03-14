@@ -6,6 +6,7 @@ import { useCommentsStore } from '@superdoc/stores/comments-store';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { SuperInput } from '@harbour-enterprises/super-editor';
 import { superdocIcons } from '@superdoc/icons.js';
+import { isAllowed, PERMISSIONS } from '@superdoc/core/collaboration/permissions.js';
 import useSelection from '@superdoc/helpers/use-selection';
 import useComment from '@superdoc/components/CommentsLayer/use-comment';
 import Avatar from '@superdoc/components/general/Avatar.vue';
@@ -30,6 +31,9 @@ const props = defineProps({
 });
 
 const { proxy } = getCurrentInstance();
+const role = proxy.$superdoc.config.role;
+const commentCreator = props.comment.email;
+
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
 
@@ -92,34 +96,6 @@ const getCommentUser = computed(() => (comment) => {
   };
 });
 
-const allowReject = computed(() => (comment) => {
-  if (!comment.trackedChange) return false;
-
-  const isResolved = comment.resolvedTime;
-  const isParentComment = !comment.parentCommentId;
-  const isParentCommentUser = comment.creatorEmail === superdocStore.user.email;
-  return (isParentCommentUser || comment.trackedChange)
-    && isParentComment
-    && !isResolved;
-});
-
-const allowResolve = computed(() => (comment) => {
-  const isAllowOverride = getConfig.value.allowResolveOverride;
-  if (isAllowOverride) return true;
-
-  const allowResolveAll = getConfig.value.allowResolveAll;
-  if (allowResolveAll) return true;
-
-  const allowedInConfig = getConfig.value.allowResolve;
-  const isParentCommentUser = comment.creatorEmail === superdocStore.user.email;
-  const isResolved = comment.resolvedTime;
-  const isParentComment = !comment.parentCommentId;
-  return allowedInConfig
-    && (isParentCommentUser || !comment.creatorEmail || comment.trackedChange)
-    && isParentComment
-    && !isResolved;
-});
-
 const isInternalDropdownDisabled = computed(() => {
   if (props.comment.resolvedTime) return true;
   return getConfig.value.readOnly;
@@ -136,14 +112,16 @@ const showOverflow = computed(() => (comment) => {
   if (!getConfig.value.overflow) return [];
   if (comment.trackedChange) return [];
 
-  // If this comment belongs to the current user, allow edit, delete
-  if (comment.creatorEmail === superdocStore.user.email) {
-    return overflowOptions;
-  };
-
-  // Allow no overflow if the comment does not belong to the current user
-  return [];
+  const isOwnComment = comment.creatorEmail === superdocStore.user.email;
+  if (isOwnComment) return isAllowed(PERMISSIONS.COMMENTS_OVERFLOW_OWN, role, isInternal);
+  return isAllowed(PERMISSIONS.COMMENTS_OVERFLOW_OTHER, role, isInternal);
 });
+
+const getOverflowOptions = computed(() => (comment) => {
+  const isOwnComment = comment.creatorEmail === superdocStore.user.email;
+  if (isOwnComment) return overflowOptions.filter((o) => o.key === 'delete');
+  return overflowOptions;
+}); 
 
 const isEditingThisComment = computed(() => (comment) => {
   return isEditing.value === comment.commentId;
@@ -192,8 +170,16 @@ const handleAddComment = () => {
 };
 
 const handleReject = () => {
+  if (props.comment.trackedChange) {
+    proxy.$superdoc.activeEditor.commands.rejectTrackedChangeById(props.comment.commentId);
+  };
+
   commentsStore.deleteComment({ superdoc: proxy.$superdoc, commentId: props.comment.commentId });
-  proxy.$superdoc.activeEditor.commands.rejectTrackedChangeById(props.comment.commentId);
+
+  nextTick(() => {
+    commentsStore.lastUpdate = new Date();
+    activeComment.value = null;
+  });
 }
 
 const handleResolve = () => {
@@ -307,12 +293,12 @@ onMounted(() => {
     <!-- Comments and their threaded (sub) comments are rendered here -->
     <div v-for="(comment, index) in comments" :key="index" class="conversation-item">
       <CommentHeader
+        v-if="showOverflow(comment)"
         :user="getCommentUser(comment)"
         :config="getConfig"
         :timestamp="comment.createdTime"
-        :allow-resolve="allowResolve(comment)"
-        :allow-reject="allowReject(comment)"
-        :overflow-options="showOverflow(comment)"
+        :comment="comment"
+        :overflow-options="getOverflowOptions(comment)"
         @resolve="handleResolve"
         @reject="handleReject"
         @overflow-select="handleOverflowSelect($event, comment)"
@@ -343,6 +329,7 @@ onMounted(() => {
             :users="proxy.$superdoc.users"
             :config="getConfig"
             :include-header="false"
+            :comment="comment"
           />
           <div class="comment-footer">
             <button class="sd-button" @click.stop.prevent="cancelComment(proxy.$superdoc)">Cancel</button>
@@ -365,6 +352,7 @@ onMounted(() => {
         :user="superdocStore.user"
         :users="proxy.$superdoc.users"
         :config="getConfig"
+        :comment="props.comment"
       />
 
       <div class="comment-footer" v-if="showButtons && !getConfig.readOnly">
