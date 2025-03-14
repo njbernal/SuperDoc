@@ -307,7 +307,7 @@ onMounted(() => {
         v-if="showOverflow(comment)"
         :user="getCommentUser(comment)"
         :config="getConfig"
-        :timestamp="comment.createdTime"
+        :timestamp="comment.createdTime === String ? new Date(dateStr).getTime() : comment.createdTime"
         :comment="comment"
         :overflow-options="getOverflowOptions(comment)"
         @resolve="handleResolve"
