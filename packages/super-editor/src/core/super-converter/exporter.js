@@ -499,7 +499,7 @@ function addNewLinkRelationship(params, link) {
  */
 function addNewImageRelationship(params, imagePath) {
   const newId = 'rId' + generateDocxRandomId();
-  params.relationships.push({
+  const newRel = {
     type: 'element',
     name: 'Relationship',
     attributes: {
@@ -507,7 +507,8 @@ function addNewImageRelationship(params, imagePath) {
       Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
       Target: imagePath,
     },
-  });
+  };
+  params.relationships.push(newRel);
   return newId;
 }
 
