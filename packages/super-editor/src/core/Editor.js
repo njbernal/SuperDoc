@@ -691,17 +691,19 @@ export class Editor extends EventEmitter {
     // Initial scale
     updateScale();
 
-    // Update scale on window orientation change
-    screen.orientation.addEventListener('change', () => {
-    setTimeout(() => {
-        updateScale();
-      }, 150);
-    });
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
       setTimeout(() => {
         updateScale();
       }, 150);
-    });
+    };
+
+    if ('orientation' in screen && 'addEventListener' in screen.orientation) {
+      screen.orientation.addEventListener("change", handleResize);
+    } else {
+      window.matchMedia("(orientation: portrait)").addEventListener("change", handleResize);
+    }
+
+    window.addEventListener('resize', () => handleResize);
   };
 
   #onCollaborationReady({ editor, ydoc }) {
