@@ -1,7 +1,6 @@
 <script setup>
-import { computed, ref, getCurrentInstance } from 'vue';
+import { computed, ref } from 'vue';
 
-const { proxy } = getCurrentInstance();
 const props = defineProps({
   users: {
     type: Array,
@@ -23,12 +22,12 @@ const activeUserIndex = ref(null);
 const getFilteredUsers = computed(() => {
   // Remove the '@' symbol from the mention
   const mention = props.mention.slice(1)?.toLowerCase();
-  const filtered = proxy.$superdoc.users.filter((user) => {
+  const filtered = props.users.filter((user) => {
     const isViewer = user.role === 'viewer';
     const userMatch = user.name?.toLowerCase().startsWith(mention);
     const emailMatch = user.email?.toLowerCase().startsWith(mention);
     return !isViewer && (userMatch || emailMatch);
-  });
+  }) || [];
   return filtered;
 });
 
@@ -77,8 +76,11 @@ const handleFocus = () => {
       class="user-row"
       :class="{ selected: activeUserIndex === index }"
     >
-      <span v-if="user.name">{{ user.name }} ({{ user.email }})</span>
-      <span v-else>{{ user.email }}</span>
+      <div v-if="user.name">
+        <span v-if="user.name">{{ user.name }}</span>
+        <span v-if="user.name && user.email"> ({{ user.email }})</span>
+        <span v-if="!user.name">{{ user.email }}</span>
+      </div>
     </div>
   </div>
 </template>
