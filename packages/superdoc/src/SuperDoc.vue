@@ -114,7 +114,7 @@ const onCommentsLoaded = ({ editor, comments }) => {
 };
 
 const onEditorBeforeCreate = ({ editor }) => {
-  proxy.$superdoc.broadcastEditorBeforeCreate(editor);
+  proxy.$superdoc?.broadcastEditorBeforeCreate(editor);
 };
 
 const onEditorCreate = ({ editor }) => {
