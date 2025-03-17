@@ -345,6 +345,9 @@ export class SuperToolbar extends EventEmitter {
 
   onToolbarResize = () => {
     this.#makeToolbarItems(this, this.config.icons, this.isDev);
+    if (this.role === 'viewer') {
+      this.#deactivateAll();
+    };
   };
 
   #deactivateAll() {
