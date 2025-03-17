@@ -26,6 +26,8 @@ export const addMarkStep = ({ state, tr, step, newTr, map, doc, user, date }) =>
       return false;
     }
 
+    const existingChangeMark = node.marks.find((mark) => [TrackDeleteMarkName, TrackFormatMarkName].includes(mark.type.name));
+    const wid = existingChangeMark ? existingChangeMark.attrs.id : uuidv4();
     newTr.addMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), step.mark);
 
     const allowedMarks = ['bold', 'italic', 'strike', 'underline', 'textStyle'];
@@ -78,7 +80,7 @@ export const addMarkStep = ({ state, tr, step, newTr, map, doc, user, date }) =>
           step.from, // Math.max(step.from, pos)
           step.to, // Math.min(step.to, pos + node.nodeSize),
           state.schema.marks[TrackFormatMarkName].create({
-            id: uuidv4(),
+            id: wid,
             author: user.name,
             authorEmail: user.email,
             date,

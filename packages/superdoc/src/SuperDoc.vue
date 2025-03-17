@@ -58,6 +58,7 @@ const {
   isFloatingCommentsReady,
   generalCommentIds,
   getFloatingComments,
+  hasSyncedCollaborationComments,
 } = storeToRefs(commentsStore);
 const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
@@ -249,24 +250,26 @@ const editorOptions = (doc) => {
  * 
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = (commentPositions = []) => {
+const onEditorCommentLocationsUpdate = (commentIds = []) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
 
   // If we have not yet synced the collaboration comments, wait for the sync event
   const provider = proxy.$superdoc.provider;
-  const hasSyncedCollaborationComments = proxy.$superdoc.commentsStore.hasSyncedCollaborationComments;
-  if (provider && !hasSyncedCollaborationComments) {
+  if (provider && !hasSyncedCollaborationComments.value) {
     const syncPositions = () => {
-      handleEditorLocationsUpdate(layers.value, commentPositions);
+      handleEditorLocationsUpdate(layers.value, commentIds);
       provider.off('synced', syncPositions);
     };
 
     provider.on('synced', syncPositions);
+    setTimeout(() => {
+      if (!hasSyncedCollaborationComments.value) hasSyncedCollaborationComments.value = true;
+    }, 1000);
   }
 
   // Otherwise, update the comment locations right away
   else {
-    handleEditorLocationsUpdate(layers.value, commentPositions);
+    handleEditorLocationsUpdate(layers.value, commentIds);
   };
 };
 
