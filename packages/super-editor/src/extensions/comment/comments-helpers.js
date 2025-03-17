@@ -194,3 +194,72 @@ export const prepareCommentsForImport = (doc, tr, schema) => {
       tr.delete(start, end);
     });
 };
+
+/**
+ * Translate a list of before/after marks into a human-readable format we can
+ * display in tracked change comments. This tells us what formatting changes
+ * a suggester made
+ * 
+ * @param {Object} attrs The tracked change node attributes. Contains before/after lists
+ * @returns {String} The human-readable format of the changes
+ */
+export const translateFormatChangesToEnglish = (attrs = {}) => {
+  const { before = [], after = [] } = attrs;
+
+  const beforeTypes = new Set(before.map(mark => mark.type));
+  const afterTypes = new Set(after.map(mark => mark.type));
+
+  const added = [...afterTypes].filter(type => !beforeTypes.has(type));
+  const removed = [...beforeTypes].filter(type => !afterTypes.has(type));
+
+  const messages = [];
+
+  // Detect added formatting (excluding textStyle, handled separately)
+  const nonTextStyleAdded = added.filter(type => type !== "textStyle");
+  if (nonTextStyleAdded.length) {
+    messages.push(`Added formatting: ${nonTextStyleAdded.join(', ')}`);
+  }
+
+  // Detect removed formatting (excluding textStyle, handled separately)
+  const nonTextStyleRemoved = removed.filter(type => type !== "textStyle");
+  if (nonTextStyleRemoved.length) {
+    messages.push(`Removed formatting: ${nonTextStyleRemoved.join(', ')}`);
+  }
+
+  // Handling textStyle changes separately
+  const beforeTextStyle = before.find(mark => mark.type === "textStyle")?.attrs || {};
+  const afterTextStyle = after.find(mark => mark.type === "textStyle")?.attrs || {};
+
+  const textStyleChanges = [];
+
+  // Function to convert camelCase to human-readable format
+  const formatAttrName = (attr) => attr.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+
+  Object.keys({ ...beforeTextStyle, ...afterTextStyle }).forEach(attr => {
+    const beforeValue = beforeTextStyle[attr];
+    const afterValue = afterTextStyle[attr];
+
+    if (beforeValue !== afterValue) {
+      if (afterValue === null) {
+        // Ignore attributes that are now null
+        return;
+      } else if (attr === "color") {
+        // Special case: Simplify color change message
+        textStyleChanges.push(`Changed color`);
+      } else {
+        const label = formatAttrName(attr); // Convert camelCase to lowercase words
+        if (beforeValue === undefined || beforeValue === null) {
+          textStyleChanges.push(`Set ${label} to ${afterValue}`);
+        } else {
+          textStyleChanges.push(`Changed ${label} from ${beforeValue} to ${afterValue}`);
+        }
+      }
+    }
+  });
+
+  if (textStyleChanges.length) {
+    messages.push(`Modified text style: ${textStyleChanges.join(', ')}`);
+  }
+
+  return messages.length ? messages.join('. ') : 'No formatting changes.';
+};

@@ -1,9 +1,9 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
-import { TrackInsertMarkName, TrackDeleteMarkName } from '../track-changes/constants.js';
+import { TrackInsertMarkName, TrackDeleteMarkName, TrackFormatMarkName } from '../track-changes/constants.js';
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { comments_module_events } from '@harbour-enterprises/common';
-import { removeCommentsById } from './comments-helpers.js';
+import { removeCommentsById, translateFormatChangesToEnglish } from './comments-helpers.js';
 import { CommentMarkName } from './comments-constants.js';
 
 export const CommentsPluginKey = new PluginKey('comments');
@@ -182,7 +182,8 @@ const getTrackedChangeNode = (node) => {
   const nodeMarks = node.marks;
   const trackedChangeMark = nodeMarks?.find((mark) => mark.type.name === TrackInsertMarkName);
   const trackedDeleteMark = nodeMarks?.find((mark) => mark.type.name === TrackDeleteMarkName);
-  return trackedChangeMark || trackedDeleteMark;
+  const trackedFormatMark = nodeMarks?.find((mark) => mark.type.name === TrackFormatMarkName);
+  return trackedChangeMark || trackedDeleteMark || trackedFormatMark;
 };
 
 
@@ -262,12 +263,18 @@ const trackCommentNodes = ({
       end: pos + node.nodeSize,
     };
   
+    let trackedChangeText = isDeletionInsertion ? nextNode.text : node.text;
+  
+    // If this is a format change, let's get the string of what changes were made
+    const isFormatChange = trackedChangeType === TrackFormatMarkName;
+    if (isFormatChange) trackedChangeText = translateFormatChangesToEnglish(trackChangeNode.attrs)
+
     const params = {
       type: 'trackedChange',
       documentId: editor.options.documentId,
       changeId: id,
       trackedChangeType: isDeletionInsertion ? 'both' : trackedChangeType,
-      trackedChangeText: isDeletionInsertion ? nextNode.text : node.text,
+      trackedChangeText,
       deletedText: trackedChangeType === TrackDeleteMarkName ? node?.text : null,
       author,
       authorEmail,
