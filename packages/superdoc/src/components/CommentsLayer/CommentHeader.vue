@@ -75,6 +75,15 @@ const allowOverflow = computed(() => {
   return true;
 });
 
+const getOverflowOptions = computed(() => {
+  if (!generallyAllowed.value) return false;
+
+  if (!props.comment.creatorEmail !== proxy.$superdoc.config.user.email) {
+    return props.overflowOptions.filter((option) => option.key !== 'edit');
+  }
+  return props.overflowOptions;
+});
+
 const handleResolve = () => emit('resolve');
 const handleReject = () => emit('reject');
 const handleSelect = (value) => emit('overflow-select', value);
@@ -110,7 +119,7 @@ const handleSelect = (value) => emit('overflow-select', value);
       <n-dropdown
         v-if="allowOverflow"
         trigger="click"
-        :options="overflowOptions"
+        :options="getOverflowOptions"
         @select="handleSelect"
       >
         <div class="overflow-menu__icon" @click.stop.prevent>
