@@ -146,9 +146,8 @@ export const CommentsPlugin = Extension.create({
           }
 
           // Generate decorations for comment highlights
-          const { decorations, allCommentIds } = processDocumentComments(editor, doc, activeThreadId) || {};
+          const { decorations, allCommentIds } = processDocumentComments(editor, doc, activeThreadId, oldState) || {};
           const decorationSet = DecorationSet.create(doc, decorations);
-          const previousDecorations = oldState.decorations;
 
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
@@ -206,7 +205,8 @@ const trackCommentNodes = ({
   pos,
   editor,
   doc,
-  activeThreadId
+  activeThreadId,
+  pluginState,
 }) => {
   // Check if it contains the commentMarkName
   const { marks = [] } = node;
@@ -261,7 +261,7 @@ const trackCommentNodes = ({
       start: pos,
       end: pos + node.nodeSize,
     };
-
+  
     const params = {
       type: 'trackedChange',
       documentId: editor.options.documentId,
@@ -272,7 +272,15 @@ const trackCommentNodes = ({
       author,
       authorEmail,
       date,
+    };
+
+    // Check if this is a new tracked change, or if it's already been seen
+    if (!pluginState.allCommentIds.includes(id)) {
+      params.event = comments_module_events.ADD;
+    } else {
+      params.event = comments_module_events.UPDATE;
     }
+
     editor.emit('commentsUpdate', params)
   }
 };
@@ -301,14 +309,14 @@ const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => 
  * @param {*} doc The current document
  * @returns {Object} The positions of all tracked nodes where keys are the thread IDs
  */
-const processDocumentComments = (editor, doc, activeThreadId) => {
+const processDocumentComments = (editor, doc, activeThreadId, pluginState) => {
   const allCommentPositions = {};
   const decorations = [];
   const linkedNodes = {};
 
   doc.descendants((node, pos) => {
     trackCommentNodes({
-      allCommentPositions, linkedNodes, decorations, node, pos, editor, doc, activeThreadId,
+      allCommentPositions, linkedNodes, decorations, node, pos, editor, doc, activeThreadId, pluginState,
     });
   });
 

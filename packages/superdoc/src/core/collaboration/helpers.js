@@ -11,17 +11,18 @@ export const initCollaborationComments = (superdoc) => {
   if (!superdoc.config.modules.comments) return;
 
   // Get the comments map from the Y.Doc
-  const commentsMap = superdoc.ydoc.getMap('comments');
+  const commentsArray = superdoc.ydoc.getArray('comments');
 
   // Observe changes to the comments map
-  commentsMap.observe((event) => {
+  commentsArray.observe((event) => {
     // Ignore events if triggered by the current user
     const currentUser = superdoc.config.user;
     const { user = {} } = event.transaction.origin;
+
     if (currentUser.name === user.name && currentUser.email === user.email) return;
 
     // Update conversations
-    const comments = commentsMap.get('comments');
+    const comments = commentsArray.toJSON();
     superdoc.commentsStore.commentsList = comments.map((c) => useComment(c));
   });
 };
@@ -103,15 +104,26 @@ export const makeDocumentsCollaborative = (superdoc) => {
  * Sync local comments with ydoc and other clients if in collaboration mode and comments module is enabled
  * 
  * @param {Object} superdoc 
+ * @param {Object} event
  * @returns {void}
  */
-export const syncCommentsToClients = (superdoc) => {
-  if (superdoc.isCollaborative && superdoc.config.modules.comments) {
+export const syncCommentsToClients = (superdoc, event) => {
+  if (!superdoc.isCollaborative || !superdoc.config.modules.comments) return;
 
-    const list = superdoc.commentsStore.commentsList;
-    const yComments = superdoc.ydoc.getMap('comments');
-    superdoc.ydoc.transact(() => {
-      yComments.set('comments', list);
-    }, { user: superdoc.user });
-  };
+  const yArray = superdoc.ydoc.getArray('comments');
+
+  switch(event.type) {
+    case 'add':
+      addYComment(yArray, superdoc.ydoc, event);
+      break;
+    case 'update':
+      updateYComment(yArray, superdoc.ydoc, event);
+      break;
+    case 'resolved':
+      updateYComment(yArray, superdoc.ydoc, event);
+      break;
+    case 'deleted':
+      deleteYComment(yArray, superdoc.ydoc, event);
+      break;
+  }
 };

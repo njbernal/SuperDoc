@@ -128,8 +128,6 @@ export const useCommentsStore = defineStore('comments', () => {
       existingTrackedChange.trackedChangeText = trackedChangeText;
       existingTrackedChange.trackedChangeType = trackedChangeType;
     }
-
-    syncCommentsToClients(superdoc);
   };
 
   const showAddComment = (superdoc) => {    
@@ -359,12 +357,14 @@ export const useCommentsStore = defineStore('comments', () => {
       superdoc.activeEditor.commands.insertComment(newComment.getValues());
     };
 
+    const event =  { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() };
+  
     // If collaboration is enabled, sync the comments to all clients
-    syncCommentsToClients(superdoc);
+    syncCommentsToClients(superdoc, event);
 
     // Emit event for end users
     if (!comment.trackedChange) {
-      superdoc.emit('comments-update', { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() });
+      superdoc.emit('comments-update', event);
     };
 
   };
@@ -386,13 +386,13 @@ export const useCommentsStore = defineStore('comments', () => {
       .map((c) => c.commentId || c.importedId);
     commentsList.value = commentsList.value.filter((c) => !childCommentIds.includes(c.commentId));
 
-    const emitData = {
+    const event = {
       type: COMMENT_EVENTS.DELETED,
       comment: comment.getValues(),
       changes: [{ key: 'deleted', commentId, fileId }],
     };
-    superdoc.emit('comments-update', emitData);
-    syncCommentsToClients(superdoc);
+    superdoc.emit('comments-update', event);
+    syncCommentsToClients(superdoc, event);
   }
 
   /**

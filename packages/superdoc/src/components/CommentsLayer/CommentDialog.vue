@@ -266,13 +266,17 @@ const getSidebarCommentStyle = computed(() => {
   return style;
 });
 
+const getProcessedDate = (timestamp) => {
+  const isString = typeof timestamp === 'string';
+  return isString ? new Date(timestamp).getTime() : timestamp;
+};
+
 const handleCancel = (comment) => {
   isEditing.value = null;
   cancelComment(proxy.$superdoc);
 };
 
 onMounted(() => {
-  console.debug('-- CommentDialog mounted', props.comment.commentId);
   if (props.autoFocus) {
     nextTick(() => setFocus());
   };
@@ -307,7 +311,7 @@ onMounted(() => {
         v-if="showOverflow(comment)"
         :user="getCommentUser(comment)"
         :config="getConfig"
-        :timestamp="comment.createdTime === String ? new Date(dateStr).getTime() : comment.createdTime"
+        :timestamp="getProcessedDate(comment.createdTime)"
         :comment="comment"
         :overflow-options="getOverflowOptions(comment)"
         @resolve="handleResolve"

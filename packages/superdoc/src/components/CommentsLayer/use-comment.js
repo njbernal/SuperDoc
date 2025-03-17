@@ -68,14 +68,9 @@ export default function useComment(params) {
     resolvedByName.value = name;
 
     if (trackedChange.value) {
-      const changeEmitData = { type: comments_module_events.ADD, comment: getValues() };
-      propagateUpdate(superdoc, changeEmitData);
-      
-      setTimeout(() => {
-        const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
-        propagateUpdate(superdoc, emitData);
-        superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
-      }, 1500);
+      const emitData = { type: comments_module_events.RESOLVED, comment: getValues() };
+      propagateUpdate(superdoc, emitData);
+      superdoc.activeEditor?.commands?.resolveComment({ commentId, importedId });
       return;
     };
 
@@ -201,12 +196,12 @@ export default function useComment(params) {
    * Emit updates to the end client, and sync with collaboration if necessary
    * 
    * @param {Object} superdoc The SuperDoc instance
-   * @param {Object} emitData The data to emit to the client
+   * @param {Object} event The data to emit to the client
    * @returns {void}
    */
-  const propagateUpdate = (superdoc, emitData) => {
-    superdoc.emit('comments-update', emitData);
-    syncCommentsToClients(superdoc);
+  const propagateUpdate = (superdoc, event) => {
+    superdoc.emit('comments-update', event);
+    syncCommentsToClients(superdoc, event);
   };
 
   /**
