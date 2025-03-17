@@ -322,10 +322,13 @@ onMounted(() => {
       <div class="card-section comment-body" v-if="comment.trackedChange">
         <div class="tracked-change">
           <div class="tracked-change">
-            <div v-if="comment.trackedChangeText">
+            <div v-if="comment.trackedChangeType === 'trackFormat'">
+              <span class="change-type">Format: </span><span class="tracked-change-text">{{ comment.trackedChangeText }}</span>
+            </div>
+            <div v-if="comment.trackedChangeText && comment.trackedChangeType !== 'trackFormat'">
               <span class="change-type">Added: </span><span class="tracked-change-text">{{ comment.trackedChangeText }}</span>
             </div>
-            <div v-if="comment.deletedText">
+            <div v-if="comment.deletedText && comment.trackedChangeType !== 'trackFormat'">
               <span class="change-type">Deleted: </span><span class="tracked-change-text">{{ comment.deletedText }}</span>
             </div>
           </div>
