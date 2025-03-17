@@ -20,6 +20,7 @@ export const CommentsPlugin = Extension.create({
           const { $from, $to } = selection;
           const { commentId, isInternal } = conversation;
 
+          tr.setMeta(CommentsPluginKey, { event: 'add' });
           tr.addMark(
             $from.pos,
             $to.pos,
@@ -34,6 +35,7 @@ export const CommentsPlugin = Extension.create({
         },
 
       removeComment: ({ commentId, importedId }) => ({ tr, dispatch, state }) => {
+        tr.setMeta(CommentsPluginKey, { event: 'deleted' });
         removeCommentsById({ commentId, importedId, state, tr, dispatch });
       },
 
@@ -50,6 +52,7 @@ export const CommentsPlugin = Extension.create({
         let foundPos;
 
         // Find the commentRangeStart node that matches the comment ID
+        tr.setMeta(CommentsPluginKey, { event: 'update' });
         doc.descendants((node, pos) => { 
           if (foundStartNode) return;
 
@@ -86,6 +89,7 @@ export const CommentsPlugin = Extension.create({
       },
 
       resolveComment: ({ commentId, importedId }) => ({ tr, dispatch, state }) => {
+        tr.setMeta(CommentsPluginKey, { event: 'update' });
         removeCommentsById({ commentId, importedId, state, tr, dispatch });
       },
 

@@ -279,6 +279,7 @@ const onEditorCommentsUpdate = (params = {}) => {
   }
   
   nextTick(() => {
+    if (pendingComment.value) return;
     commentsStore.setActiveComment(activeCommentId);
   });
 
