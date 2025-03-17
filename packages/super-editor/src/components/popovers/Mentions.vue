@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, getCurrentInstance } from 'vue';
 
+const { proxy } = getCurrentInstance();
 const props = defineProps({
   users: {
     type: Array,
@@ -22,10 +23,11 @@ const activeUserIndex = ref(null);
 const getFilteredUsers = computed(() => {
   // Remove the '@' symbol from the mention
   const mention = props.mention.slice(1)?.toLowerCase();
-  const filtered = props.users.filter((user) => {
+  const filtered = proxy.$superdoc.users.filter((user) => {
+    const isViewer = user.role === 'viewer';
     const userMatch = user.name?.toLowerCase().startsWith(mention);
     const emailMatch = user.email?.toLowerCase().startsWith(mention);
-    return userMatch || emailMatch;
+    return !isViewer && (userMatch || emailMatch);
   });
   return filtered;
 });
