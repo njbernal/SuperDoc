@@ -1,6 +1,12 @@
 import { createAwarenessHandler, createProvider } from '../collaboration/collaboration';
 import useComment from '../../components/CommentsLayer/use-comment';
 
+import {
+  addYComment,
+  updateYComment,
+  deleteYComment
+} from './collaboration-comments';
+
 /**
  * Initialize sync for comments if the module is enabled
  * 
