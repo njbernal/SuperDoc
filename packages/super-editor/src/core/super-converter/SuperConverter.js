@@ -348,16 +348,22 @@ class SuperConverter {
     });
 
     // Update content types and comments files as needed
-    const { documentXml: updatedXml, relationships } = this.#prepareCommentsXmlFilesForExport({
-      defs: params.exportedCommentDefs,
-      exportType: commentsExportType,
-      commentsWithParaIds,
-    });
-    
+    let updatedXml = { ...this.convertedXml };
+    let commentsRels = [];
+    if (comments.length) {
+      const { documentXml, relationships } = this.#prepareCommentsXmlFilesForExport({
+        defs: params.exportedCommentDefs,
+        exportType: commentsExportType,
+        commentsWithParaIds,
+      });
+      updatedXml = { ...documentXml };
+      commentsRels = relationships;
+    };
+
     this.convertedXml = { ...this.convertedXml, ...updatedXml };
-  
+    
     // Update the rels table
-    this.#exportProcessNewRelationships([...params.relationships, ...relationships]);
+    this.#exportProcessNewRelationships([...params.relationships, ...commentsRels]);
 
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
@@ -376,6 +382,7 @@ class SuperConverter {
       commentsWithParaIds,
       converter: this,
     });
+
     return { documentXml, relationships };
   }
 

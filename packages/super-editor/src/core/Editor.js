@@ -960,7 +960,6 @@ export class Editor extends EventEmitter {
     const rels = this.converter.schemaToXml(this.converter.convertedXml['word/_rels/document.xml.rels'].elements[0]);
     const media = this.converter.addedMedia;
 
-    const contentTypes = this.converter.schemaToXml(this.converter.convertedXml['[Content_Types].xml'].elements[0]);
     const updatedDocs = {
       'word/document.xml': String(documentXml),
       'docProps/custom.xml': String(customXml),
@@ -969,8 +968,6 @@ export class Editor extends EventEmitter {
 
       // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
       'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
-      '[Content_Types].xml': String(contentTypes),
-      
     };
 
     if (comments.length) {
