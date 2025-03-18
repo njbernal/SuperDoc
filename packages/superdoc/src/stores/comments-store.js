@@ -139,6 +139,7 @@ export const useCommentsStore = defineStore('comments', () => {
         type: COMMENT_EVENTS.UPDATE,
         comment: existingTrackedChange.getValues(),
       };
+
       syncCommentsToClients(superdoc, emitData);
       debounceEmit(changeId, emitData, superdoc);
     }
@@ -422,7 +423,6 @@ export const useCommentsStore = defineStore('comments', () => {
     };
     
     if (__IS_DEBUG__) console.debug('[deleteComment] emitting...', event);
-    superdoc.emit('comments-update', event);
     syncCommentsToClients(superdoc, event);
   }
 
@@ -446,7 +446,7 @@ export const useCommentsStore = defineStore('comments', () => {
    * @param {String} param0.documentId The document ID
    * @returns {void}
    */
-  const processLoadedDocxComments = ({ comments, documentId }) => {
+  const processLoadedDocxComments = ({ superdoc, comments, documentId }) => {
     const document = superdocStore.getDocument(documentId);
 
     comments.forEach((comment) => {
@@ -464,7 +464,7 @@ export const useCommentsStore = defineStore('comments', () => {
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
         resolvedByName: comment.isDone ? importedName : null,
       });
-      commentsList.value.push(newComment);
+      addComment({ superdoc, comment: newComment });
     });
 
     updateLastChange();

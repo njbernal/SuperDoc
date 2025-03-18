@@ -341,14 +341,11 @@ const getTrackedChangeNode = (node) => {
  */
 const trackCommentNodes = ({
   allCommentPositions,
-  linkedNodes,
   decorations,
   node,
   pos,
   editor,
-  doc,
   activeThreadId,
-  pluginState,
 }) => {
   // Check if it contains the commentMarkName
   const { marks = [] } = node;
@@ -370,6 +367,8 @@ const trackCommentNodes = ({
       }
     );
     decorations.push(deco);
+
+    if (threadId === 'pending' || allCommentPositions[threadId]) return;
 
     allCommentPositions[threadId] = {
       threadId,
@@ -407,20 +406,20 @@ const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => 
 const processDocumentComments = (editor, doc, activeThreadId, pluginState) => {
   const allCommentPositions = {};
   const decorations = [];
-  const linkedNodes = {};
 
   doc.descendants((node, pos) => {
     trackCommentNodes({
-      allCommentPositions, linkedNodes, decorations, node, pos, editor, doc, activeThreadId, pluginState,
+      allCommentPositions, decorations, node, pos, editor, doc, activeThreadId, pluginState,
     });
   });
 
   // Get all current thread IDs in the document
-  const allCommentIds = Object.keys(allCommentPositions).map((threadId) => threadId);
+  const allCommentIds = Object.keys(allCommentPositions)
+    .map((threadId) => threadId)
+    .filter((threadId) => threadId !== 'pending');
 
   return {
     decorations,
-    linkedNodes,
     allCommentIds, 
   };
 };
