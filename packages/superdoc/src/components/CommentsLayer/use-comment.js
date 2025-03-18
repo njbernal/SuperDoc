@@ -217,7 +217,9 @@ export default function useComment(params) {
       parentCommentId,
       fileId,
       fileType,
-      mentions: mentions.value,
+      mentions: mentions.value.map((u) => {
+        return { ...u, name: u.name ? u.name : u.email };
+      }),
       createdAtVersionNumber,
       creatorEmail,
       creatorName,

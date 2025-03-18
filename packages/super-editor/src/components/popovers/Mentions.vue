@@ -79,7 +79,9 @@ const handleFocus = () => {
       <div v-if="user.name">
         <span v-if="user.name">{{ user.name }}</span>
         <span v-if="user.name && user.email"> ({{ user.email }})</span>
-        <span v-if="!user.name">{{ user.email }}</span>
+      </div>
+      <div v-else>
+        <span>{{ user.email }}</span>
       </div>
     </div>
   </div>
