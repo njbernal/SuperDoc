@@ -139,7 +139,7 @@ export const useCommentsStore = defineStore('comments', () => {
         type: COMMENT_EVENTS.UPDATE,
         comment: existingTrackedChange.getValues(),
       };
-  
+      syncCommentsToClients(superdoc, emitData);
       debounceEmit(changeId, emitData, superdoc);
     }
   };

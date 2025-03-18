@@ -226,13 +226,13 @@ export const translateFormatChangesToEnglish = (attrs = {}) => {
   const messages = [];
 
   // Detect added formatting (excluding textStyle, handled separately)
-  const nonTextStyleAdded = added.filter(type => type !== "textStyle");
+  const nonTextStyleAdded = added.filter(type => !["textStyle", "commentMark"].includes(type));
   if (nonTextStyleAdded.length) {
     messages.push(`Added formatting: ${nonTextStyleAdded.join(', ')}`);
   }
 
   // Detect removed formatting (excluding textStyle, handled separately)
-  const nonTextStyleRemoved = removed.filter(type => type !== "textStyle");
+  const nonTextStyleRemoved = removed.filter(type => !["textStyle", "commentMark"].includes(type));
   if (nonTextStyleRemoved.length) {
     messages.push(`Removed formatting: ${nonTextStyleRemoved.join(', ')}`);
   }

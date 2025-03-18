@@ -237,7 +237,8 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
     nodes: nodes,
     newEditorState,
   });
-  editor.emit('commentsUpdate', emitParams);
+
+  if (emitParams) editor.emit('commentsUpdate', emitParams);
 
   return newTrackedChanges;
 };
@@ -291,6 +292,8 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
     isDeletionInsertion,
     deletionNodes
   });
+
+  if (!deletionText && !trackedChangeText) return;
 
   const params = {
     event: comments_module_events.ADD,
