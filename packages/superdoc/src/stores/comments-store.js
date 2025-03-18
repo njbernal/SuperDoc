@@ -439,7 +439,7 @@ export const useCommentsStore = defineStore('comments', () => {
     updateLastChange();
   }
 
-  const prepareCommentsForExport = () => {
+  const translateCommentsForExport = () => {
     const processedComments = []
     commentsList.value.forEach((comment) => {
       const values = comment.getValues();
@@ -594,7 +594,7 @@ export const useCommentsStore = defineStore('comments', () => {
     deleteComment,
     removePendingComment,
     processLoadedDocxComments,
-    prepareCommentsForExport,
+    translateCommentsForExport,
     handleEditorLocationsUpdate,
     handleTrackedChangeUpdate,
     updateLastChange,
