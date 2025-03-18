@@ -21,7 +21,9 @@ export function translateCommentNode(params, type) {
     return comment.commentId == nodeId || comment.importedId == nodeId;
   });
 
-  const commentIndex = params.comments?.findIndex((comment) => comment === originalComment);
+  if (!originalComment) return;
+
+  const commentIndex = params.comments?.findIndex((comment) => comment.commentId === originalComment.commentId);
   const parentId = originalComment.parentCommentId;
   let parentComment;
   if (parentId) {

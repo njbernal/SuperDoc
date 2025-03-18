@@ -504,7 +504,7 @@ export class SuperDoc extends EventEmitter {
   async exportEditorsToDOCX({ commentsType } = {}) {    
     const comments = [];
     if (commentsType !== 'clean') {
-      comments.push(...this.commentsStore?.prepareCommentsForExport());
+      comments.push(...this.commentsStore?.translateCommentsForExport());
     };
 
     const docxPromises = [];

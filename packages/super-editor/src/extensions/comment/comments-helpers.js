@@ -63,46 +63,56 @@ export const prepareCommentsForExport = (doc, tr, schema, comments = []) => {
   // Collect all pending insertions in an array
   const startNodes = [];
   const endNodes = [];
+  const seen = new Set();
 
   doc.descendants((node, pos) => {
-    const commentMark = node.marks?.find(mark => mark.type.name === CommentMarkName);
-    if (commentMark) {
-      const commentStartNodeAttrs = getPreparedComment(commentMark.attrs);
-      const startNode = schema.nodes.commentRangeStart.create(commentStartNodeAttrs);
-      startNodes.push({
-        pos,
-        node: startNode,
-      });
+    const commentMarks = node.marks?.filter(mark => mark.type.name === CommentMarkName);
+    commentMarks.forEach((commentMark) => {
+      if (commentMark) {
 
-      const endNode = schema.nodes.commentRangeEnd.create(commentStartNodeAttrs);
-      endNodes.push({
-        pos: pos + node.nodeSize,
-        node: endNode,
-      });
+        const { attrs = {} } = commentMark;
+        const { commentId, importedId } = attrs;
 
-      const { commentId, importedId } = commentMark.attrs;
-      const parentId = commentId || importedId;
-      if (parentId) {
-        const childComments = comments
-          .filter((c) => c.parentCommentId == parentId || c.parentCommentId == parentId)
-          .sort((a, b) => a.createdTime - b.createdTime);
+        if (commentId === 'pending') return;
+        if (seen.has(commentId || importedId)) return;
+        seen.add(commentId || importedId);
 
-        childComments.forEach((c) => {
-          const childMark =  getPreparedComment(c);
-          const childStartNode = schema.nodes.commentRangeStart.create(childMark);
-          startNodes.push({
-            pos: pos,
-            node: childStartNode,
-          });
-
-          const childEndNode = schema.nodes.commentRangeEnd.create(childMark);
-          endNodes.push({
-            pos: pos + node.nodeSize,
-            node: childEndNode,
-          });
+        const commentStartNodeAttrs = getPreparedComment(commentMark.attrs);
+        const startNode = schema.nodes.commentRangeStart.create(commentStartNodeAttrs);
+        startNodes.push({
+          pos,
+          node: startNode,
         });
+
+        const endNode = schema.nodes.commentRangeEnd.create(commentStartNodeAttrs);
+        endNodes.push({
+          pos: pos + node.nodeSize,
+          node: endNode,
+        });
+
+        const parentId = commentId || importedId;
+        if (parentId) {
+          const childComments = comments
+            .filter((c) => c.parentCommentId == parentId || c.parentCommentId == parentId)
+            .sort((a, b) => a.createdTime - b.createdTime);
+
+          childComments.forEach((c) => {
+            const childMark =  getPreparedComment(c);
+            const childStartNode = schema.nodes.commentRangeStart.create(childMark);
+            startNodes.push({
+              pos: pos,
+              node: childStartNode,
+            });
+
+            const childEndNode = schema.nodes.commentRangeEnd.create(childMark);
+            endNodes.push({
+              pos: pos + node.nodeSize,
+              node: childEndNode,
+            });
+          });
+        }
       }
-    }
+    });
   });
 
   startNodes.forEach((n) => {
@@ -131,8 +141,9 @@ export const prepareCommentsForExport = (doc, tr, schema, comments = []) => {
  */
 export const getPreparedComment = (attrs) => {
   const { commentId, importedId, internal } = attrs;
+  const wid = commentId ? commentId : importedId;
   return {
-    'w:id': commentId || importedId,
+    'w:id': wid,
     internal: internal,
   };
 }
