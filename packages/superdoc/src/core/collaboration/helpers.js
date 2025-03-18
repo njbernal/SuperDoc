@@ -115,6 +115,7 @@ export const makeDocumentsCollaborative = (superdoc) => {
  */
 export const syncCommentsToClients = (superdoc, event) => {
   if (!superdoc.isCollaborative || !superdoc.config.modules.comments) return;
+  if (__IS_DEBUG__) console.debug('[comments] syncCommentsToClients', event);
 
   const yArray = superdoc.ydoc.getArray('comments');
 

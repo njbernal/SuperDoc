@@ -17,6 +17,7 @@ export const useCommentsStore = defineStore('comments', () => {
   });
 
   const isDebugging = false;
+  const debounceTimers = {};
 
   const COMMENT_EVENTS = comments_module_events;
   const hasInitializedComments = ref(false);
@@ -99,6 +100,7 @@ export const useCommentsStore = defineStore('comments', () => {
    */
   const handleTrackedChangeUpdate = ({ superdoc, params }) => {
     const {
+      event,
       changeId,
       trackedChangeText,
       trackedChangeType,
@@ -109,29 +111,57 @@ export const useCommentsStore = defineStore('comments', () => {
       documentId,
     } = params;
 
-    const existingTrackedChange = commentsList.value.find((comment) => comment.commentId === changeId);
-    if (!existingTrackedChange) {
-      const comment = getPendingComment({
-        documentId,
-        commentId: changeId,
-        trackedChange: true,
-        trackedChangeText,
-        trackedChangeType,
-        deletedText,
-        createdTime: date,
-        creatorNamne: authorName,
-        creatorEmail: authorEmail,
-      });
+    const comment = getPendingComment({
+      documentId,
+      commentId: changeId,
+      trackedChange: true,
+      trackedChangeText,
+      trackedChangeType,
+      deletedText,
+      createdTime: date,
+      creatorNamne: authorName,
+      creatorEmail: authorEmail,
+    });
 
+    // If this is a new tracked change, add it to our comments
+    if (event === 'add') {
       addComment({ superdoc, comment });
-    } else {
+    }
+    
+    // If we have an update event, simply update the composable comment
+    else if (event === 'update') {
+      const existingTrackedChange = commentsList.value.find(
+        (comment) => comment.commentId === changeId
+      );
+      if (!existingTrackedChange) return;
       existingTrackedChange.trackedChangeText = trackedChangeText;
-      existingTrackedChange.trackedChangeType = trackedChangeType;
+      const emitData = {
+        type: COMMENT_EVENTS.UPDATE,
+        comment: existingTrackedChange.getValues(),
+      };
+      syncCommentsToClients(superdoc, emitData);
+      debounceEmit(changeId, emitData, superdoc);
     }
   };
 
+  const debounceEmit = (commentId, event, superdoc, delay = 1000) => {
+    if (debounceTimers[commentId]) {
+      clearTimeout(debounceTimers[commentId]);
+    }
+
+    debounceTimers[commentId] = setTimeout(() => {
+      if (superdoc) {
+        if (__IS_DEBUG__) console.debug('[debounceEmit] tracked change update emitting...', event);
+        superdoc.emit("comments-update", event);
+      }
+      delete debounceTimers[commentId];
+    }, delay);
+  };
+
   const showAddComment = (superdoc) => {    
-    superdoc.emit('comments-update', { type: COMMENT_EVENTS.PENDING });
+    const event = { type: COMMENT_EVENTS.PENDING };
+    if (__IS_DEBUG__) console.debug('[showAddComment] emitting...', event);
+    superdoc.emit('comments-update', event);
 
     const selection = { ...superdocStore.activeSelection };
     selection.selectionBounds = { ...selection.selectionBounds };
@@ -363,9 +393,8 @@ export const useCommentsStore = defineStore('comments', () => {
     syncCommentsToClients(superdoc, event);
 
     // Emit event for end users
-    if (!comment.trackedChange) {
-      superdoc.emit('comments-update', event);
-    };
+    if (__IS_DEBUG__) console.debug('[addComment] emitting...', event);
+    superdoc.emit('comments-update', event);
 
   };
 
@@ -391,6 +420,8 @@ export const useCommentsStore = defineStore('comments', () => {
       comment: comment.getValues(),
       changes: [{ key: 'deleted', commentId, fileId }],
     };
+    
+    if (__IS_DEBUG__) console.debug('[deleteComment] emitting...', event);
     superdoc.emit('comments-update', event);
     syncCommentsToClients(superdoc, event);
   }
