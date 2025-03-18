@@ -1,12 +1,15 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import { TrackInsertMarkName, TrackDeleteMarkName, TrackFormatMarkName } from '../track-changes/constants.js';
+import { TrackChangesBasePluginKey } from '../track-changes/plugins/index.js';
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { comments_module_events } from '@harbour-enterprises/common';
 import { removeCommentsById, translateFormatChangesToEnglish } from './comments-helpers.js';
 import { CommentMarkName } from './comments-constants.js';
 
 export const CommentsPluginKey = new PluginKey('comments');
+
+const TRACK_CHANGE_MARKS = [TrackInsertMarkName, TrackDeleteMarkName, TrackFormatMarkName];
 
 export const CommentsPlugin = Extension.create({
   name: 'comments',
@@ -109,6 +112,7 @@ export const CommentsPlugin = Extension.create({
             allCommentIds: [],
             externalColor: '#B1124B',
             internalColor: '#078383',
+            trackedChanges: {},
           };
         },
         apply(tr, oldState, _, newEditorState) {
@@ -122,6 +126,18 @@ export const CommentsPlugin = Extension.create({
 
           // If we have plugin meta, we will force update
           if (meta?.type === 'force') isForcingUpdate = true;
+
+          // If this is a tracked change transaction, handle separately
+          const trackedChangeMeta = tr.getMeta(TrackChangesBasePluginKey);
+          let currentTrackedChanges = oldState.trackedChanges;
+          if (trackedChangeMeta) {
+            currentTrackedChanges = handleTrackedChangeTransaction(
+              trackedChangeMeta,
+              currentTrackedChanges,
+              newEditorState,
+              editor,
+            );
+          };
 
           // If we have a new active comment ID, we will update it
           if (meta?.type === 'setActiveComment') {
@@ -147,7 +163,7 @@ export const CommentsPlugin = Extension.create({
             };
 
             editor.emit('commentsUpdate', update);
-          }
+          };
 
           // Generate decorations for comment highlights
           const { decorations, allCommentIds } = processDocumentComments(editor, doc, activeThreadId, oldState) || {};
@@ -163,6 +179,7 @@ export const CommentsPlugin = Extension.create({
             activeThreadId,
             allCommentIds,
             decorations: decorationSet,
+            trackedChanges: currentTrackedChanges,
           };
         },
       },
@@ -175,6 +192,123 @@ export const CommentsPlugin = Extension.create({
     return [commentsPlugin];
   },
 });
+
+const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEditorState, editor) => {
+  const { deletionMark, insertedMark, formatMark, deletionNodes } = trackedChangeMeta;
+  if (!deletionMark && !insertedMark && !formatMark) return;
+
+  const newTrackedChanges = { ...trackedChanges };
+  let id = insertedMark?.attrs?.id || deletionMark?.attrs?.id || formatMark?.attrs?.id;
+  if (!id) return trackedChanges;
+
+  // Maintain a map of tracked changes with their inserted/deleted ids
+  let isNewChange = false;
+  if (!newTrackedChanges[id]) {
+    newTrackedChanges[id] = {};
+    isNewChange = true;
+  };
+
+  if (insertedMark) newTrackedChanges[id].insertion = id;
+  if (deletionMark) newTrackedChanges[id].deletion = deletionMark.attrs?.id;
+  if (formatMark) newTrackedChanges[id].format = formatMark.attrs?.id;
+
+  const { step } = trackedChangeMeta;
+  let nodes = step?.slice?.content?.content || [];
+
+  // Track format has no nodes, we need to find the node
+  if (!nodes.length) {
+    newEditorState.doc.descendants((node, pos) => {
+      const hasFormatMark = node.marks.find((mark) => mark.type.name === TrackFormatMarkName);
+      if (hasFormatMark) {
+        nodes = [node];
+        return false;
+      };
+    });
+  }
+  const emitParams = createOrUpdateTrackedChangeComment({
+    documentId: editor.options.documentId,
+    event: isNewChange ? 'add' : 'update',
+    marks: {
+      insertedMark,
+      deletionMark,
+      formatMark,
+    },
+    deletionNodes,
+    nodes: nodes,
+    newEditorState,
+  });
+  editor.emit('commentsUpdate', emitParams);
+
+  return newTrackedChanges;
+};
+
+const getTrackedChangeText = ({ node, mark, trackedChangeType, isDeletionInsertion, deletionNodes = [] }) => {
+  const deletionText = deletionNodes.length ? deletionNodes[0].text : null;  
+
+  let trackedChangeText = isDeletionInsertion ? nextNode.text : node.text;
+
+  // If this is a format change, let's get the string of what changes were made
+  const isFormatChange = trackedChangeType === TrackFormatMarkName;
+  if (isFormatChange) trackedChangeText = translateFormatChangesToEnglish(mark.attrs)
+
+  return {
+    deletionText,
+    trackedChangeText,
+  }
+};
+
+const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes, newEditorState, documentId }) => {
+  const trackedMark = marks.insertedMark || marks.deletionMark || marks.formatMark;
+  const { type, attrs } = trackedMark;
+  
+  const { name: trackedChangeType } = type;
+  const { author, authorEmail, date } = attrs;
+
+  let id = attrs.id;
+
+  if (!nodes.length) return;
+
+  const node = nodes[0];
+  const isDeletionInsertion = (
+    trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
+  );
+
+  let existingNode;
+  newEditorState.doc.descendants((node, pos) => {
+    const { marks = [] } = node;
+    const changeMarks = marks.filter((mark) => TRACK_CHANGE_MARKS.includes(mark.type.name));
+    if (!changeMarks.length) return;
+
+    const hasMatchingId = changeMarks.find((mark) => mark.attrs.id === id);
+    if (hasMatchingId) existingNode = node;
+    if (!existingNode) return false;
+  });
+
+  const { deletionText, trackedChangeText } = getTrackedChangeText({
+    node: existingNode || node,
+    mark: trackedMark,
+    trackedChangeType,
+    isDeletionInsertion,
+    deletionNodes
+  });
+
+  const params = {
+    event: comments_module_events.ADD,
+    type: 'trackedChange',
+    documentId,
+    changeId: id,
+    trackedChangeType: isDeletionInsertion ? 'both' : trackedChangeType,
+    trackedChangeText,
+    deletedText: marks.deletionMark ? deletionText : null,
+    author,
+    authorEmail,
+    date,
+  };
+  
+  if (event === 'add') params.event = comments_module_events.ADD;
+  else if (event === 'update') params.event = comments_module_events.UPDATE;
+  return params;
+};
 
 /**
  * Check if this node is a tracked changes node
@@ -241,59 +375,6 @@ const trackCommentNodes = ({
       internal: isInternal,
     };
   });
-
-  const trackChangeNode = getTrackedChangeNode(node);
-  if (trackChangeNode) {
-    const nextNode = doc.nodeAt(pos + node.nodeSize);
-    const nextTrackedNode = getTrackedChangeNode(nextNode);
-
-    const { attrs, type } = trackChangeNode;
-    const { name: trackedChangeType } = type;
-    const { author, authorEmail, date } = attrs;
-
-    let id = attrs.id;
-
-    const isDeletionInsertion = (
-      trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
-    );
-    if (isDeletionInsertion) linkedNodes[nextTrackedNode.attrs.id] = id;
-
-    // If we've already seen this linked item, we can skip it
-    if (linkedNodes[id]) return;
-
-    allCommentPositions[id] = {
-      threadId: id,
-      start: pos,
-      end: pos + node.nodeSize,
-    };
-  
-    let trackedChangeText = isDeletionInsertion ? nextNode.text : node.text;
-  
-    // If this is a format change, let's get the string of what changes were made
-    const isFormatChange = trackedChangeType === TrackFormatMarkName;
-    if (isFormatChange) trackedChangeText = translateFormatChangesToEnglish(trackChangeNode.attrs)
-
-    const params = {
-      type: 'trackedChange',
-      documentId: editor.options.documentId,
-      changeId: id,
-      trackedChangeType: isDeletionInsertion ? 'both' : trackedChangeType,
-      trackedChangeText,
-      deletedText: trackedChangeType === TrackDeleteMarkName ? node?.text : null,
-      author,
-      authorEmail,
-      date,
-    };
-
-    // Check if this is a new tracked change, or if it's already been seen
-    if (!pluginState.allCommentIds.includes(id)) {
-      params.event = comments_module_events.ADD;
-    } else {
-      params.event = comments_module_events.UPDATE;
-    }
-
-    editor.emit('commentsUpdate', params)
-  }
 };
 
 /**

@@ -78,10 +78,10 @@ const init = async () => {
       // 'hrbr-fields': {},
 
       // To test this dev env with collaboration you must run a local collaboration server here.
-      // collaboration: {
-      //   url: 'ws://localhost:3050/docs/superdoc-id',
-      //   token: 'token',
-      // }
+      collaboration: {
+        url: 'ws://localhost:3050/docs/superdoc-id',
+        token: 'token',
+      }
     },
     onEditorCreate,
     onContentError,
