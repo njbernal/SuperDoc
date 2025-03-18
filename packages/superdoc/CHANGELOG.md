@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.78](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.76...v0.6.78) (2025-03-18)
+
+
+### Bug Fixes
+
+* improve selection bounds calculation for floating comments ([7d9306d](https://github.com/Harbour-Enterprises/SuperDoc/commit/7d9306d8b6c1505ffaf906db6298e07810ff01c1))
+
 ## [0.6.76](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.75...v0.6.76) (2025-03-18)
 
 ## [0.6.75](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.74...v0.6.75) (2025-03-17)
