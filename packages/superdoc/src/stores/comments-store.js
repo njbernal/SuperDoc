@@ -464,10 +464,7 @@ export const useCommentsStore = defineStore('comments', () => {
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
         resolvedByName: comment.isDone ? importedName : null,
       });
-      commentsList.value.push(newComment);
-
-      const event =  { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() };
-      syncCommentsToClients(superdoc, event);
+      addComment({ superdoc, comment: newComment });
     });
 
     updateLastChange();
