@@ -159,13 +159,15 @@ const onEditorSelectionChange = ({ editor, transaction }) => {
   const { pageMargins } = editor.getPageStyles();
 
   const layerBounds = layers.value.getBoundingClientRect();
-  let top = fromCoords.top - layerBounds.top;
-  top = Math.max(96, (top - 100));
+  const HEADER_HEIGHT = 96;
+  // Ensure the selection is not placed at the top of the page
+  const top = Math.max(HEADER_HEIGHT, fromCoords.top - layerBounds.top);
+  const bottom = toCoords.bottom - layerBounds.top;
   const selectionBounds = {
     top,
     left: fromCoords.left,
     right: toCoords.left,
-    bottom: toCoords.bottom - layerBounds.top,
+    bottom,
   };
 
   const selection = useSelection({
