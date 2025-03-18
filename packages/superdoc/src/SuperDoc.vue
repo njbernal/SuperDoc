@@ -111,7 +111,7 @@ const cancelPendingComment = (e) => {
 };
 
 const onCommentsLoaded = ({ editor, comments }) => {
-  commentsStore.processLoadedDocxComments({ comments, documentId: editor.options.documentId });
+  commentsStore.processLoadedDocxComments({ superdoc: proxy.$superdoc, comments, documentId: editor.options.documentId });
 };
 
 const onEditorBeforeCreate = ({ editor }) => {
