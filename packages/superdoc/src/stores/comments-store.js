@@ -364,7 +364,8 @@ export const useCommentsStore = defineStore('comments', () => {
     if (!parentComment) parentComment = comment;
 
     const newComment = useComment(comment.getValues());
-    newComment.setText({ text: currentCommentText.value, suppressUpdate: true });
+
+    if (pendingComment.value) newComment.setText({ text: currentCommentText.value, suppressUpdate: true });
     newComment.selection.source = pendingComment.value?.selection?.source;
 
     // Set isInternal flag
@@ -468,6 +469,7 @@ export const useCommentsStore = defineStore('comments', () => {
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
         resolvedByName: comment.isDone ? importedName : null,
       });
+
       addComment({ superdoc, comment: newComment });
     });
 
