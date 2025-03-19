@@ -58,8 +58,6 @@ const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
 
   if (!activeComment.value) {
     floatingCommentsOffset.value = 0;
-  } else if (dialogId === activeComment.value) {
-    floatingCommentsOffset.value = (dialog.floatingPosition.top - dialog.selection?.selectionBounds?.top) * -1;
   }
 
   nextTick(() => {
