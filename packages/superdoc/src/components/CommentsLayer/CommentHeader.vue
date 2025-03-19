@@ -22,10 +22,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  overflowOptions: {
-    type: Array,
-    required: false,
-  },
   comment: {
     type: Object,
     required: false,
@@ -42,11 +38,15 @@ const role = proxy.$superdoc.config.role;
 const isInternal = proxy.$superdoc.config.isInternal;
 const isOwnComment = props.comment.creatorEmail === proxy.$superdoc.config.user.email;
 
+const OVERFLOW_OPTIONS = Object.freeze({
+  edit: { label: 'Edit', key: 'edit' },
+  delete: { label: 'Delete', key: 'delete' },
+});
+
 const generallyAllowed = computed(() => {
   if (!props.comment) return false;
   if (props.comment.resolvedTime) return false;
   if (commentsStore.pendingComment) return false;
-  if (props.comment.parentCommentId) return false;
   if (props.isPendingInput) return false;
   return true;
 });
@@ -69,8 +69,8 @@ const allowReject = computed(() => {
 const allowOverflow = computed(() => {
   if (!generallyAllowed.value) return false;
   if (props.comment.trackedChange) return false;
-  if (!props.overflowOptions || !props.overflowOptions.length) return false;
   if (props.isPendingInput) return false;
+  if (getOverflowOptions.value.length === 0) return false;
 
   return true;
 });
@@ -78,10 +78,24 @@ const allowOverflow = computed(() => {
 const getOverflowOptions = computed(() => {
   if (!generallyAllowed.value) return false;
 
-  if (!props.comment.creatorEmail !== proxy.$superdoc.config.user.email) {
-    return props.overflowOptions.filter((option) => option.key !== 'edit');
-  }
-  return props.overflowOptions;
+  const allowedOptions = [];
+  const options = new Set();
+
+  // Only the comment creator can edit
+  if (props.comment.creatorEmail === proxy.$superdoc.config.user.email) {
+    options.add('edit');
+  };
+
+  const isOwnComment = props.comment.creatorEmail === proxy.$superdoc.config.user.email;
+
+  if (isOwnComment && isAllowed(PERMISSIONS.COMMENTS_DELETE_OWN, role, isInternal)) {
+    options.add('delete');
+  } else if (!isOwnComment && isAllowed(PERMISSIONS.COMMENTS_DELETE_OTHER, role, isInternal)) {
+    options.add('delete');
+  };
+
+  options.forEach((option) => allowedOptions.push(OVERFLOW_OPTIONS[option]));
+  return allowedOptions;
 });
 
 const handleResolve = () => emit('resolve');

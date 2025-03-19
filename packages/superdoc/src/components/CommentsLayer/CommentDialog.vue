@@ -101,28 +101,6 @@ const isInternalDropdownDisabled = computed(() => {
   return getConfig.value.readOnly;
 });
 
-const overflowOptions = [
-  { label: 'Edit', key: 'edit' },
-  { label: 'Delete', key: 'delete' },
-];
-
-const showOverflow = computed(() => (comment) => {
-  if (!!props.comment.resolvedTime) return [];
-  if (getConfig.value.readOnly) return [];
-  if (!getConfig.value.overflow) return [];
-  if (comment.trackedChange) return [];
-
-  const isOwnComment = comment.creatorEmail === superdocStore.user.email;
-  if (isOwnComment) return isAllowed(PERMISSIONS.COMMENTS_OVERFLOW_OWN, role, isInternal);
-  return isAllowed(PERMISSIONS.COMMENTS_OVERFLOW_OTHER, role, isInternal);
-});
-
-const getOverflowOptions = (comment) => {
-  const isOwnComment = comment.creatorEmail === superdocStore.user.email;
-  if (!isOwnComment) return overflowOptions.filter((o) => o.key !== 'delete');
-  return overflowOptions;
-};
-
 const isEditingThisComment = computed(() => (comment) => {
   return isEditing.value === comment.commentId;
 });
@@ -308,12 +286,10 @@ onMounted(() => {
     <!-- Comments and their threaded (sub) comments are rendered here -->
     <div v-for="(comment, index) in comments" :key="index" class="conversation-item">
       <CommentHeader
-        v-if="showOverflow(comment)"
         :user="getCommentUser(comment)"
         :config="getConfig"
         :timestamp="getProcessedDate(comment.createdTime)"
         :comment="comment"
-        :overflow-options="getOverflowOptions(comment)"
         @resolve="handleResolve"
         @reject="handleReject"
         @overflow-select="handleOverflowSelect($event, comment)"
