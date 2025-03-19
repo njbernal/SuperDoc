@@ -24,6 +24,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const hasSyncedCollaborationComments = ref(false);
   const commentsParentElement = ref(null);
   const activeComment = ref(null);
+  const editingCommentId = ref(null);
   const commentDialogs = ref([]);
   const overlappingComments = ref([]);
   const overlappedIds = new Set([]);
@@ -586,6 +587,7 @@ export const useCommentsStore = defineStore('comments', () => {
     isDebugging,
     hasInitializedComments,
     hasSyncedCollaborationComments,
+    editingCommentId,
     activeComment,
     commentDialogs,
     overlappingComments,

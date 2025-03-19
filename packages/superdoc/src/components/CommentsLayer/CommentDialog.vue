@@ -47,12 +47,12 @@ const {
   pendingComment,
   currentCommentText,
   isDebugging,
+  editingCommentId,
 } = storeToRefs(commentsStore);
 
 const { activeZoom } = storeToRefs(superdocStore);
 
 const isInternal = ref(true);
-const isEditing = ref(false);
 const isFocused = ref(false);
 const commentInput = ref(null);
 const commentDialogElement = ref(null);
@@ -62,7 +62,7 @@ const showButtons = computed(() => {
   return !getConfig.readOnly
     && isActiveComment.value
     && !props.comment.resolvedTime
-    && !isEditing.value;
+    && editingCommentId.value !== props.comment.commentId;
 });
 
 const showSeparator = computed(() => (index) => {
@@ -75,7 +75,7 @@ const showInputSection = computed(() => {
   return !getConfig.readOnly
     && isActiveComment.value
     && !props.comment.resolvedTime
-    && !isEditing.value;
+    && editingCommentId.value !== props.comment.commentId;
 });
 
 const comments = computed(() => {
@@ -102,7 +102,7 @@ const isInternalDropdownDisabled = computed(() => {
 });
 
 const isEditingThisComment = computed(() => (comment) => {
-  return isEditing.value === comment.commentId;
+  return editingCommentId.value === comment.commentId;
 });
 
 const shouldShowInternalExternal = computed(() => {
@@ -186,8 +186,8 @@ const handleOverflowSelect = (value, comment) => {
   switch (value) {
     case 'edit':
       currentCommentText.value = comment.commentText;
-      isEditing.value = comment.commentId;
       activeComment.value = comment.commentId;
+      editingCommentId.value = comment.commentId;
       break;
     case 'delete':
       deleteComment({ superdoc: proxy.$superdoc, commentId: comment.commentId });
@@ -196,7 +196,7 @@ const handleOverflowSelect = (value, comment) => {
 };
 
 const handleCommentUpdate = (comment) => {
-  isEditing.value = null;
+  editingCommentId.value = null;
   comment.setText({ text: currentCommentText.value, superdoc: proxy.$superdoc });
   removePendingComment(proxy.$superdoc);
 }
@@ -250,7 +250,7 @@ const getProcessedDate = (timestamp) => {
 };
 
 const handleCancel = (comment) => {
-  isEditing.value = null;
+  editingCommentId.value = null;
   cancelComment(proxy.$superdoc);
 };
 
