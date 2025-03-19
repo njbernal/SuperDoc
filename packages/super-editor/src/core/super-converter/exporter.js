@@ -343,7 +343,7 @@ function createTrackStyleMark(marks) {
         'w:authorEmail': trackStyleMark.attrs.authorEmail,
         'w:date': trackStyleMark.attrs.date,
       },
-      elements: trackStyleMark.attrs.before.map((mark) => processOutputMarks(mark)).filter((r) => r !== undefined),
+      elements: trackStyleMark.attrs.before.map((mark) => processOutputMarks([mark])).filter((r) => r !== undefined),
     };
     return markElement;
   }
