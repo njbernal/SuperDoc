@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.83](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.80...v0.6.83) (2025-03-19)
+
+
+### Bug Fixes
+
+* do not reposition floating comments when selected ([5edfff8](https://github.com/Harbour-Enterprises/SuperDoc/commit/5edfff8a1b02f499a9f9219e1e1d1bd7b1c49b75))
+* improve floating comments offset calculation and scrolling behavior ([2ae0b62](https://github.com/Harbour-Enterprises/SuperDoc/commit/2ae0b62def80c0acf52ad84389914a6324250bb9))
+
 ## [0.6.80](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.79...v0.6.80) (2025-03-19)
 
 ## [0.6.79](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.78...v0.6.79) (2025-03-18)
