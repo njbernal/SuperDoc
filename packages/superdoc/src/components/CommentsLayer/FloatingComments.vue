@@ -58,6 +58,15 @@ const handleDialogReady = ({ commentId: dialogId, elementRef }) => {
 
   if (!activeComment.value) {
     floatingCommentsOffset.value = 0;
+  } else if (dialogId === activeComment.value) {
+    // First calculate and set the offset
+    floatingCommentsOffset.value = (dialog.floatingPosition.top - dialog.selection?.selectionBounds?.top) * -1;
+    setTimeout(() => {
+      elementRef.value?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100); // 100ms delay to ensure the offset is set before scrolling
   }
 
   nextTick(() => {
@@ -119,7 +128,7 @@ const getCommentPosition = (floatingComment) => {
 const getFloatingSidebarStyle = computed(() => {
   return {
     transform: `translateY(${floatingCommentsOffset.value}px)`,
-    transition: 'all 0.3s ease',
+    transition: 'all 0.1s ease',
   };
 });
 
