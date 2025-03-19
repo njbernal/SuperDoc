@@ -27,9 +27,20 @@ export const initCollaborationComments = (superdoc) => {
 
     if (currentUser.name === user.name && currentUser.email === user.email) return;
 
+    if (__IS_DEBUG__) console.debug('[initCollaborationComments] commentsArray.observe', commentsArray.toJSON());
+
     // Update conversations
     const comments = commentsArray.toJSON();
-    superdoc.commentsStore.commentsList = comments.map((c) => useComment(c));
+
+    const seen = new Set();
+    const filtered = [];
+    comments.forEach((c) =>{
+      if (!seen.has(c.commentId)) {
+        seen.add(c.commentId);
+        filtered.push(c);
+      };
+    });
+    superdoc.commentsStore.commentsList = filtered.map((c) => useComment(c));
   });
 };
 

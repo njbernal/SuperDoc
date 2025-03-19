@@ -5,6 +5,8 @@ export const PERMISSIONS = Object.freeze({
   REJECT_OTHER: 'REJECT_OTHER',
   COMMENTS_OVERFLOW_OWN: 'COMMENTS_OVERFLOW',
   COMMENTS_OVERFLOW_OTHER: 'COMMENTS_OVERFLOW_OTHER',
+  COMMENTS_DELETE_OWN: 'COMMENTS_DELETE_OWN',
+  COMMENTS_DELETE_OTHER: 'COMMENTS_DELETE_OTHER',
   UPLOAD_VERSION: 'UPLOAD_VERSION',
   VERSION_HISTORY: 'VERSION_HISTORY',
 });
@@ -17,8 +19,8 @@ const ROLES = Object.freeze({
 
 const permissions = Object.freeze({
   [PERMISSIONS.RESOLVE_OWN]: {
-    internal: [ROLES.EDITOR, ROLES.SUGGESTER],
-    external: [ROLES.EDITOR, ROLES.SUGGESTER],
+    internal: [ROLES.EDITOR],
+    external: [ROLES.EDITOR],
   },
   [PERMISSIONS.RESOLVE_OTHER]: {
     internal: [ROLES.EDITOR],
@@ -37,6 +39,14 @@ const permissions = Object.freeze({
     external: [ROLES.EDITOR, ROLES.SUGGESTER],
   },
   [PERMISSIONS.COMMENTS_OVERFLOW_OTHER]: {
+    internal: [ROLES.EDITOR],
+    external: [],
+  },
+  [PERMISSIONS.COMMENTS_DELETE_OWN]: {
+    internal: [ROLES.EDITOR, ROLES.SUGGESTER],
+    external: [ROLES.EDITOR, ROLES.SUGGESTER],
+  },
+  [PERMISSIONS.COMMENTS_DELETE_OTHER]: {
     internal: [ROLES.EDITOR],
     external: [],
   },

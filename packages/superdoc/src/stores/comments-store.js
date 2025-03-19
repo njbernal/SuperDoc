@@ -423,6 +423,7 @@ export const useCommentsStore = defineStore('comments', () => {
     };
     
     if (__IS_DEBUG__) console.debug('[deleteComment] emitting...', event);
+    superdoc.emit('comments-update', event);
     syncCommentsToClients(superdoc, event);
   }
 
@@ -448,6 +449,8 @@ export const useCommentsStore = defineStore('comments', () => {
    */
   const processLoadedDocxComments = ({ superdoc, comments, documentId }) => {
     const document = superdocStore.getDocument(documentId);
+
+    if (__IS_DEBUG__) console.debug('[processLoadedDocxComments] processing comments...', comments);
 
     comments.forEach((comment) => {
       const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
