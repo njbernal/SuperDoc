@@ -29,6 +29,7 @@ export default function useComment(params) {
   const creatorEmail = params.creatorEmail;
   const creatorName = params.creatorName;
   const createdTime = params.createdTime || Date.now();
+  const importedAuthor = ref(params.importedAuthor || null);
 
   const commentText = ref(params.commentText || '');
 
@@ -192,6 +193,14 @@ export default function useComment(params) {
     selection.selectionBounds = newCoords;
   };
 
+  const getCommentUser = () => {
+    const user = importedAuthor.value
+      ? { name: importedAuthor.value.name || "(Imported)", email: importedAuthor.value.email }
+      : { name: creatorName, email: creatorEmail };
+  
+    return user;
+  };
+
   /**
    * Emit updates to the end client, and sync with collaboration if necessary
    * 
@@ -224,6 +233,7 @@ export default function useComment(params) {
       creatorEmail,
       creatorName,
       createdTime,
+      importedAuthor: importedAuthor.value,
       isInternal: isInternal.value,
       commentText: commentText.value,
       selection: selection ? selection.getValues() : null,
@@ -261,6 +271,7 @@ export default function useComment(params) {
     resolvedTime,
     resolvedByEmail,
     resolvedByName,
+    importedAuthor,
 
     // Actions
     setText,
@@ -269,5 +280,6 @@ export default function useComment(params) {
     setIsInternal,
     setActive,
     updatePosition,
+    getCommentUser,
   });
 };

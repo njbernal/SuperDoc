@@ -10,10 +10,6 @@ import Avatar from '@superdoc/components/general/Avatar.vue';
 const emit = defineEmits(['resolve', 'reject', 'overflow-select']);
 const commentsStore = useCommentsStore();
 const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
   timestamp: {
     type: Number,
     required: false,
@@ -107,9 +103,9 @@ const handleSelect = (value) => emit('overflow-select', value);
 <template>
   <div class="card-section comment-header">
     <div class="comment-header-left">
-      <Avatar :user="props.user" class="avatar" />
+      <Avatar :user="props.comment.getCommentUser()" class="avatar" />
       <div class="user-info">
-        <div class="user-name">{{ props.user.name }}</div>
+        <div class="user-name">{{ props.comment.getCommentUser().name }}</div>
         <div class="user-timestamp" v-if="props.comment.createdTime">{{ formatDate(props.comment.createdTime) }}</div>
       </div>
     </div>
