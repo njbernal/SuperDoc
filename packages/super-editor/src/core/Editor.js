@@ -726,7 +726,7 @@ export class Editor extends EventEmitter {
    */
   #initComments(replacedFile = false) {
     if (!this.options.isCommentsEnabled) return;
-    if (this.options.isHeadless || !this.options.isInternal) return;
+    if (this.options.isHeadless) return;
     this.emit('commentsLoaded', { editor: this, replacedFile, comments: this.converter.comments || [] });
 
     setTimeout(() => {
