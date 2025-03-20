@@ -110,8 +110,8 @@ const cancelPendingComment = (e) => {
   commentsStore.removePendingComment(proxy.$superdoc);
 };
 
-const onCommentsLoaded = ({ editor, comments }) => {
-  if (editor.options.isNewFile) {
+const onCommentsLoaded = ({ editor, comments, replacedFile }) => {
+  if (editor.options.isNewFile || replacedFile) {
     commentsStore.processLoadedDocxComments({
       superdoc: proxy.$superdoc,
       comments,
