@@ -393,20 +393,25 @@ class SuperConverter {
 
     let largestId = Math.max(...relationships.elements.map((el) => Number(el.attributes.Id.replace('rId', ''))));
     rels.forEach((rel) => {
-
+      const existingId = rel.attributes.Id;
       const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
-      if (existingTarget) return;
+      const isNewMedia = rel.attributes.Target?.startsWith('media/') && existingId.length > 6;
+      
+      if (existingTarget && !isNewMedia) {
+        return;
+      }
 
       // Update the target to escape ampersands
       rel.attributes.Target = rel.attributes?.Target?.replace(/&/g, '&amp;');
 
       // Update the ID. If we've assigned a long ID (ie: images) we leave it alone
-      const existingId = rel.attributes.Id;
       rel.attributes.Id = existingId.length > 6 ? existingId : `rId${++largestId}`;
+
       newRels.push(rel);
     });
 
     relationships.elements = [...relationships.elements, ...newRels];
+
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   }
 
