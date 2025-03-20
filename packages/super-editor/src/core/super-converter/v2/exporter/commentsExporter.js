@@ -185,6 +185,7 @@ export const updateCommentsExtendedXml = (comments = [], commentsExtendedXml) =>
     const attributes = {
       'w15:paraId': comment.commentParaId,
       'w15:done': comment.resolvedTime ? '1' : '0',
+      'w:rsid': comment.commentId || comment.importedId,
     };
 
     const parentId = comment.parentCommentId;

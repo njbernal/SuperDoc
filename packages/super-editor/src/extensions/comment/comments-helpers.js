@@ -157,7 +157,7 @@ export const getPreparedComment = (attrs) => {
  * @param {import('prosemirror-model').Schema} schema The editor schema
  * @returns {void}
  */
-export const prepareCommentsForImport = (doc, tr, schema) => {
+export const prepareCommentsForImport = (doc, tr, schema, converter) => {
   const toMark = [];
   const toDelete = [];
 
@@ -168,10 +168,10 @@ export const prepareCommentsForImport = (doc, tr, schema) => {
     if (type.name === 'commentRangeStart') {
       toMark.push({
         'w:id': node.attrs['w:id'],
-        internal: node.attrs.internal,
+        internal: false,
         start: pos,
       });
-``
+    
       // We'll remove this node from the final doc
       toDelete.push({ start: pos, end: pos + 1 });
     }

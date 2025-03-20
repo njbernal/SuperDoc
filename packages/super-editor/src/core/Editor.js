@@ -315,16 +315,16 @@ export class Editor extends EventEmitter {
    * If we are replacing data and have a valid provider, listen for synced event
    * so that we can initialize the data
    */
-  initializeCollaborationData() {
+  initializeCollaborationData(replacedFile = false) {
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
     const postSyncInit = () => {
       provider.off('synced', postSyncInit);
-      this.#insertNewFileData();
+      this.#insertNewFileData(replacedFile);
     };
 
-    if (provider.synced) this.#insertNewFileData();
+    if (provider.synced) this.#insertNewFileData(replacedFile);
     // If we are not sync'd yet, wait for the event then insert the data
     else provider.on('synced', postSyncInit);
   }
@@ -333,12 +333,17 @@ export class Editor extends EventEmitter {
    * Replace the current document with new data. Necessary for initializing a new collaboration file,
    * since we need to insert the data only after the provider has synced.
    */
-  #insertNewFileData() {
+  #insertNewFileData(replacedFile = false) {
     if (!this.options.isNewFile) return;
     this.options.isNewFile = false;
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     this.view.dispatch(tr);
+
+    if (this.options.collaborationIsReady) {
+      this.#initPagination();
+      this.#initComments(replacedFile);
+    }
   }
 
   #registerPluginByNameIfNotExists(name) {
@@ -719,10 +724,10 @@ export class Editor extends EventEmitter {
   /**
    * Initialize comments plugin
    */
-  #initComments() {
+  #initComments(replacedFile = false) {
     if (!this.options.isCommentsEnabled) return;
     if (this.options.isHeadless || !this.options.isInternal) return;
-    this.emit('commentsLoaded', { editor: this, comments: this.converter.comments || [] });
+    this.emit('commentsLoaded', { editor: this, replacedFile, comments: this.converter.comments || [] });
 
     setTimeout(() => {
       const { state, dispatch } = this.view;
@@ -910,7 +915,7 @@ export class Editor extends EventEmitter {
     const { tr, doc: newDoc } = newState;
 
     // Perform comments processing (replaces comment nodes with marks)
-    prepareCommentsForImport(newDoc, tr, this.schema);
+    prepareCommentsForImport(newDoc, tr, this.schema, this.converter);
 
     const updatedState = newState.apply(tr);
     return updatedState.doc;
@@ -1079,9 +1084,12 @@ export class Editor extends EventEmitter {
     this.#initMedia();
     this.initDefaultStyles();
     
-    this.initializeCollaborationData();
+    this.initializeCollaborationData(true);
     
-    if (!this.options.ydoc) this.#initPagination();
+    if (!this.options.ydoc) {
+      this.#initPagination();
+      this.#initComments(true);
+    };
     
   }
 }
