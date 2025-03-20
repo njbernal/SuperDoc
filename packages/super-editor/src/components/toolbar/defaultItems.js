@@ -362,7 +362,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
       icon: toolbarIcons.deleteTable,
     },
     { 
-      label: 'Delete borders',
+      label: 'Transparent borders',
       command: 'deleteCellAndTableBorders',
       icon: toolbarIcons.deleteBorders,
       bottomBorder: true,
