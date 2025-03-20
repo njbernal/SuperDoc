@@ -106,26 +106,26 @@ class DocxZipper {
       typesString += newContentType;
       seenTypes.add(type);
     }
-
+  
     // Update for comments
     if (docx.files['word/comments.xml']) {
       const commentsDef = `<Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" />`;
-      typesString += commentsDef;
+      if (!contentTypesXml.includes(commentsDef)) typesString += commentsDef;
     };
 
     if (docx.files['word/commentsExtended.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml" />`;
-      typesString += commentsExtendedDef;
+      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
     };
 
     if (docx.files['word/commentsIds.xml']) {
       const commentsIdsDef = `<Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml" />`;
-      typesString += commentsIdsDef;
+      if (!contentTypesXml.includes(commentsIdsDef)) typesString += commentsIdsDef;
     };
 
     if (docx.files['word/commentsExtensible.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtensible.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml" />`;
-      typesString += commentsExtendedDef;
+      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
     };
   
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
