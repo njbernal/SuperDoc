@@ -444,12 +444,20 @@ function storeSuperdocVersion(docx) {
   if (!properties.elements) properties.elements = [];
   const elements = properties.elements;
 
+  const cleanProperties = elements
+    .filter((prop) => (typeof prop === 'object' && prop !== null))
+    .filter((prop) => {
+      const { attributes } = prop;
+      return attributes.name !== 'SuperdocVersion';
+    });
+
   let pid = 2;
   try {
-    pid = elements.length ? Math.max(...elements.map(el => el.attributes.pid)) + 1 : 2;
+    pid = cleanProperties.length ? Math.max(...elements.map(el => el.attributes.pid)) + 1 : 2;
   } catch (error) {};
 
-  elements.push(pid, generateSuperdocVersion());
+  cleanProperties.push(pid, generateSuperdocVersion());
+  properties.elements = cleanProperties;
   return docx;
 };
 
