@@ -122,6 +122,7 @@ export const useCommentsStore = defineStore('comments', () => {
       createdTime: date,
       creatorNamne: authorName,
       creatorEmail: authorEmail,
+      isInternal: false,
     });
 
     // If this is a new tracked change, add it to our comments
