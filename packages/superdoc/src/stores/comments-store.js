@@ -462,6 +462,7 @@ export const useCommentsStore = defineStore('comments', () => {
         fileType: document.type,
         importedId: comment.importedId ? Number(comment.importedId): null,
         commentId: comment.id,
+        isInternal: false,
         parentCommentId: comment.parentCommentId,
         creatorEmail: comment.creatorEmail,
         creatorName: importedName,
