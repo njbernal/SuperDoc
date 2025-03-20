@@ -254,6 +254,19 @@ const handleCancel = (comment) => {
   cancelComment(proxy.$superdoc);
 };
 
+const usersFiltered = computed(() => {
+  const users = proxy.$superdoc.users;
+
+  if (props.comment.isInternal === true) {
+    return users.filter((user) => user.access?.role === 'internal');
+  }
+  if (props.comment.isInternal === false) {
+    return users.filter((user) => user.access?.role === 'external');
+  }
+  
+  return users;
+});
+
 onMounted(() => {
   if (props.autoFocus) {
     nextTick(() => setFocus());
@@ -320,7 +333,7 @@ onMounted(() => {
         <div v-else class="comment-editing">
           <CommentInput
             :user="superdocStore.user"
-            :users="proxy.$superdoc.users"
+            :users="usersFiltered"
             :config="getConfig"
             :include-header="false"
             :comment="comment"
@@ -344,7 +357,7 @@ onMounted(() => {
       <CommentInput
         ref="commentInput"
         :user="superdocStore.user"
-        :users="proxy.$superdoc.users"
+        :users="usersFiltered"
         :config="getConfig"
         :comment="props.comment"
       />

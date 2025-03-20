@@ -39,6 +39,7 @@ const onTransaction = ({ editor, transaction }) => {
 
 const onFocus = ({ editor, transaction }) => {
   isFocused.value = true;
+  updateUsersState();
   emit('focus', { editor, transaction });
 };
 
@@ -66,6 +67,10 @@ const initEditor = async () => {
 const handleFocus = () => {
   isFocused.value = true;
   editor.value?.view?.focus();
+};
+
+const updateUsersState = () => {
+  editor.value?.setOptions({ users: props.users });
 };
 
 onMounted(() => {
