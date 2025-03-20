@@ -34,7 +34,7 @@ const handleRunNode = (params) => {
 };
 
 const getMarksFromStyles = (docx, styleId) => {
-  const styles = docx['word/styles.xml'];
+  const styles = docx?.['word/styles.xml'];
   if (!styles) {
     return {};
   }
