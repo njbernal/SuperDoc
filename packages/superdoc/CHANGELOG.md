@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.88](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.87...v0.6.88) (2025-03-20)
+
+
+### Bug Fixes
+
+* comments not repositioning after you add comment to existing dialog ([ffa51ae](https://github.com/Harbour-Enterprises/SuperDoc/commit/ffa51ae37913c6674431b94f56081b9d7adb36f2))
+
 ## [0.6.87](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.86...v0.6.87) (2025-03-20)
 
 ## [0.6.86](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.6.84...v0.6.86) (2025-03-20)
