@@ -1,7 +1,7 @@
 import { translateParagraphNode } from '../../exporter.js';
 import { carbonCopy } from '../../../utilities/carbonCopy.js';
 import { COMMENT_REF, COMMENTS_XML_DEFINITIONS } from '../../exporter-docx-defs.js';
-
+import { generateRandom32BitHex } from '../../../helpers/generateDocxRandomId.js';
 
 /**
  * Generate the end node for a comment
@@ -71,7 +71,7 @@ const getCommentSchema = (type, commentId) => {
 export const prepareCommentParaIds = (comment) => {
   const newComment = {
     ...comment,
-    commentParaId: generateCommentId(),
+    commentParaId: generateRandom32BitHex(),
   };
   return newComment;
 };
@@ -223,7 +223,7 @@ export const updateCommentsIdsAndExtensible = (comments = [], commentsIds, exten
   extensibleUpdated.elements[0].elements = [];
   comments.forEach((comment) => {
 
-    const newDurableId = generateCommentId();
+    const newDurableId = generateRandom32BitHex();
     const newCommentIdDef = {
       "type": "element",
       "name": "w16cid:commentId",
@@ -259,24 +259,6 @@ export const updateCommentsIdsAndExtensible = (comments = [], commentsIds, exten
  */
 export const updateDocumentRels = () => {
   return COMMENTS_XML_DEFINITIONS.DOCUMENT_RELS_XML_DEF;
-};
-
-
-/**
- * Generate a random comment paragraph ID
- * 
- * @returns {string} The generated ID
- */
-export const generateCommentId = () => {
-  const digits = "0123456789";
-  const alphaNum = "ABCDEF0123456789";
-
-  let id = digits[Math.floor(Math.random() * digits.length)];
-  for (let i = 0; i < 7; i++) {
-    id += alphaNum[Math.floor(Math.random() * alphaNum.length)];
-  }
-  
-  return id;
 };
 
 
