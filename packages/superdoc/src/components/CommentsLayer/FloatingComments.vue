@@ -156,7 +156,9 @@ watch(activeComment, (newVal) => {
 watch(activeZoom, () => {
   initialize();
 });
-
+watch(commentsList, (newVal, oldVal) => {
+  initialize();
+});
 onMounted(() => {
   initialize();
 });
@@ -168,6 +170,7 @@ onMounted(() => {
     <div :style="getFloatingSidebarStyle" class="sidebar-container" :key="lastChange">
       <div v-for="floatingComment in visibleConversations">
         <CommentDialog
+          :key="floatingComment.commentId"
           class="floating-comment"
           @ready="handleDialogReady"
           :parent="parent"
