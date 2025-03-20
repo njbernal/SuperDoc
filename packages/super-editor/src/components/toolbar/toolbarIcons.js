@@ -41,6 +41,7 @@ import arrowsToDotIconSvg from '@harbour-enterprises/common/icons/arrows-to-dot-
 import plusIconSvg from '@harbour-enterprises/common/icons/plus-solid.svg?raw';
 import trashIconSvg from '@harbour-enterprises/common/icons/trash-can-solid.svg?raw';
 import wrenchIconSvg from '@harbour-enterprises/common/icons/wrench-solid.svg?raw';
+import borderNoneIconSvg from '@harbour-enterprises/common/icons/border-none-solid.svg?raw';
 
 export const toolbarIcons = {
   undo: rotateLeftIconSvg,
@@ -93,6 +94,6 @@ export const toolbarIcons = {
   deleteRow: trashIconSvg,
   deleteColumn: trashIconSvg,
   deleteTable: trashIconSvg,
-  deleteBorders: trashIconSvg,
+  deleteBorders: borderNoneIconSvg,
   fixTables: wrenchIconSvg,
 }
