@@ -89,13 +89,6 @@ const comments = computed(() => {
     .sort((a, b) => a.commentId === props.comment.commentId && a.createdTime - b.createdTime);
 });
 
-const getCommentUser = (comment) => {
-  return {
-    name: comment.creatorName,
-    email: comment.creatorEmail,
-  };
-};
-
 const isInternalDropdownDisabled = computed(() => {
   if (props.comment.resolvedTime) return true;
   return getConfig.value.readOnly;
@@ -260,10 +253,7 @@ const usersFiltered = computed(() => {
   if (props.comment.isInternal === true) {
     return users.filter((user) => user.access?.role === 'internal');
   }
-  if (props.comment.isInternal === false) {
-    return users.filter((user) => user.access?.role === 'external');
-  }
-  
+
   return users;
 });
 
@@ -299,7 +289,6 @@ onMounted(() => {
     <!-- Comments and their threaded (sub) comments are rendered here -->
     <div v-for="(comment, index) in comments" :key="index" class="conversation-item">
       <CommentHeader
-        :user="getCommentUser(comment)"
         :config="getConfig"
         :timestamp="getProcessedDate(comment.createdTime)"
         :comment="comment"
@@ -332,7 +321,6 @@ onMounted(() => {
         </div>
         <div v-else class="comment-editing">
           <CommentInput
-            :user="superdocStore.user"
             :users="usersFiltered"
             :config="getConfig"
             :include-header="false"
@@ -356,7 +344,6 @@ onMounted(() => {
     <div v-if="showInputSection && !getConfig.readOnly">
       <CommentInput
         ref="commentInput"
-        :user="superdocStore.user"
         :users="usersFiltered"
         :config="getConfig"
         :comment="props.comment"

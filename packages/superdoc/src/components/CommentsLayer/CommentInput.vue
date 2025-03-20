@@ -7,10 +7,6 @@ import CommentHeader from './CommentHeader.vue';
 
 const emit = defineEmits(['focus']);
 const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
   users: {
     type: Array,
     required: false,
@@ -43,7 +39,7 @@ const handleFocusChange = (focused) => emit('focus', focused);
 
 <template>
   <div class="input-section">
-    <CommentHeader v-if="includeHeader" :user="user" :config="config" :comment="comment" :is-pending-input="true" />
+    <CommentHeader v-if="includeHeader" :config="config" :comment="comment" :is-pending-input="true" />
 
     <div class="comment-entry" :class="{ 'input-active': isFocused }">
       <SuperInput

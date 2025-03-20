@@ -464,8 +464,10 @@ export const useCommentsStore = defineStore('comments', () => {
         commentId: comment.id,
         isInternal: false,
         parentCommentId: comment.parentCommentId,
-        creatorEmail: comment.creatorEmail,
-        creatorName: importedName,
+        importedAuthor: {
+          name: importedName,
+          email: comment.creatorEmail,
+        },
         commentText: getHTmlFromComment(comment.textJson),
         resolvedTime: comment.isDone ? Date.now() : null,
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
