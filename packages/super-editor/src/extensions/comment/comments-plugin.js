@@ -166,12 +166,16 @@ export const CommentsPlugin = Extension.create({
           };
 
           // Generate decorations for comment highlights
-          const { decorations, allCommentIds } = processDocumentComments(editor, doc, activeThreadId, oldState) || {};
+          const {
+            decorations,
+            allCommentIds,
+            allCommentPositions
+          } = processDocumentComments(editor, doc, activeThreadId, oldState) || {};
           const decorationSet = DecorationSet.create(doc, decorations);
 
           // Emit the comment-positions event which signals that comments might have changed
           // SuperDoc will use this to update floating comments as necessary
-          editor.emit('comment-positions', allCommentIds);
+          editor.emit('comment-positions', { allCommentIds, allCommentPositions });
 
           hasInitialized = true;
           return {
@@ -225,6 +229,8 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
       };
     });
   }
+
+  const coords = editor.view.coordsAtPos(step.to);
   const emitParams = createOrUpdateTrackedChangeComment({
     documentId: editor.options.documentId,
     event: isNewChange ? 'add' : 'update',
@@ -236,6 +242,7 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
     deletionNodes,
     nodes: nodes,
     newEditorState,
+    coords,
   });
 
   if (emitParams) editor.emit('commentsUpdate', emitParams);
@@ -258,7 +265,15 @@ const getTrackedChangeText = ({ node, mark, trackedChangeType, isDeletionInserti
   }
 };
 
-const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes, newEditorState, documentId }) => {
+const createOrUpdateTrackedChangeComment = ({
+  event,
+  marks,
+  deletionNodes,
+  nodes,
+  newEditorState,
+  documentId,
+  coords,
+}) => {
   const trackedMark = marks.insertedMark || marks.deletionMark || marks.formatMark;
   const { type, attrs } = trackedMark;
   
@@ -306,6 +321,7 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
     author,
     authorEmail,
     date,
+    coords,
   };
   
   if (event === 'add') params.event = comments_module_events.ADD;
@@ -357,6 +373,8 @@ const trackCommentNodes = ({
     const threadId = attrs.commentId || attrs.importedId;
     const isInternal = attrs.internal;
     const color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
+
+    const bounds = editor.view.coordsAtPos(pos);
     const deco = Decoration.inline(
       pos,
       pos + node.nodeSize,
@@ -375,8 +393,23 @@ const trackCommentNodes = ({
       start: pos,
       end: pos + node.nodeSize,
       internal: isInternal,
+      bounds,
     };
   });
+
+  const trackedChangeNode = getTrackedChangeNode(node);
+  if (trackedChangeNode) {
+    const threadId = trackedChangeNode.attrs.id;
+    const bounds = editor.view.coordsAtPos(pos);
+
+    allCommentPositions[threadId] = {
+      threadId,
+      start: pos,
+      end: pos + node.nodeSize,
+      internal: false,
+      bounds,
+    };
+  }
 };
 
 /**
@@ -421,6 +454,7 @@ const processDocumentComments = (editor, doc, activeThreadId, pluginState) => {
   return {
     decorations,
     allCommentIds, 
+    allCommentPositions,
   };
 };
 
