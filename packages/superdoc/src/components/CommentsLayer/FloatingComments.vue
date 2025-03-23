@@ -1,6 +1,6 @@
 <script setup>
 import { storeToRefs } from 'pinia';
-import { ref, computed, watchEffect, nextTick, watch } from 'vue';
+import { ref, computed, watchEffect, nextTick, watch, onMounted } from 'vue';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
@@ -19,7 +19,14 @@ const props = defineProps({
 const superdocStore = useSuperdocStore();
 const commentsStore = useCommentsStore();
 
-const { getFloatingComments, hasInitializedLocations, activeComment } = storeToRefs(commentsStore);
+const {
+  getFloatingComments,
+  hasInitializedLocations,
+  activeComment,
+  commentsList,
+  editorCommentPositions
+} = storeToRefs(commentsStore);
+
 const floatingCommentsContainer = ref(null);
 const renderedSizes = ref([]);
 const firstGroupRendered = ref(false);
@@ -37,24 +44,43 @@ const getCommentPosition = computed(() => (comment) => {
   return { top: `${comment.top}px` };
 });
 
+const findScrollParent = (element) => {
+  if (!element) return window;
+  
+  let parent = element.parentNode;
+  while (parent && parent !== document) {
+    const style = getComputedStyle(parent);
+    if (/(auto|scroll|overlay)/.test(style.overflow + style.overflowY + style.overflowX)) {
+      return parent;
+    }
+    parent = parent.parentNode;
+  }
+  return window;
+};
+
 const handleDialog = (dialog) => {
   if (!dialog) return;
-
   const { elementRef, commentId } = dialog;
   if (!elementRef) return;
 
-  const el = elementRef.value;
   nextTick(() => {
-    const id = commentId;
-    if (renderedSizes.value.some((item) => item.id === id)) return;
-    const comment = getFloatingComments.value.find((c) => c.commentId === id || c.importedId === id);
 
-    const editorBounds = floatingCommentsContainer.value.getBoundingClientRect();
-    const bounds = el.getBoundingClientRect();
+    const id = commentId;
+    if (renderedSizes.value.some((item) => item.id == id)) return;
+
+    const comment = getFloatingComments.value.find((c) => c.commentId === id || c.importedId == id);
+    const position = editorCommentPositions.value[id]?.bounds;
+    if (!position) return;
+
+    const scrollParent = findScrollParent(props.parent);
+    const scrollY = scrollParent === window ? window.scrollY : scrollParent.scrollTop;
+
+    const editorBounds = props.parent.getBoundingClientRect();
+    const bounds = elementRef.value?.getBoundingClientRect();
+
     const placement = {
       id,
-      top: comment.selection.selectionBounds.top - editorBounds.top - window.scrollY,
-      bottom: bounds.bottom - editorBounds.top - window.scrollY,
+      top: position.top - editorBounds.top - scrollY,
       height: bounds.height,
       commentRef: comment,
       elementRef,
@@ -89,11 +115,7 @@ const resetLayout = async () => {
   firstGroupRendered.value = false;
   renderedSizes.value = [];
   commentsRenderKey.value++;
-
-  await nextTick();
-
   verticalOffset.value = 0;
-  processLocations();
 };
 
 watch(activeComment, () => {
@@ -128,7 +150,7 @@ watch(activeComment, () => {
   <div class="section-wrapper" ref="floatingCommentsContainer">
 
     <!-- First group: Detecting heights -->
-    <div class="sidebar-container calculation-container" v-if="hasInitializedLocations">
+    <div class="sidebar-container calculation-container">
       <div v-for="comment in getFloatingComments" :key="comment.commentId || comment.importedId">
         <div :id="comment.commentId || comment.importedId" class="measure-comment">
           <CommentDialog
@@ -165,12 +187,7 @@ watch(activeComment, () => {
 }
 .floating-comment {
   position: absolute;
-}
-.calculation-container {
-  visibility: hidden;
-  position: fixed;
-  left: -9999px;
-  top: -9999px;
+  display: block;
 }
 .sidebar-container {
   position: absolute;
@@ -188,5 +205,11 @@ watch(activeComment, () => {
 .floating-comment {
   position: absolute;
   min-width: 300px;
+}
+.calculation-container {
+  visibility: hidden;
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
 }
 </style>

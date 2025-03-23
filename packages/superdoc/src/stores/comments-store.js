@@ -34,6 +34,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const commentsList = ref([]);
   const isCommentsListVisible = ref(false);
   const editorCommentIds = ref([]);
+  const editorCommentPositions = ref({});
 
   // Floating comments
   const floatingCommentsOffset = ref(0);
@@ -502,23 +503,18 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {void}
    */
   const handleEditorLocationsUpdate = (allCommentPositions, commentIds) => {
-    Object.entries(allCommentPositions).forEach(([commentId, entry]) => {
-      const comment = getComment(commentId);
-      if (!comment) return;
-
-      comment.selection.selectionBounds = entry.bounds;
-    });
-
-    const generalComments = commentsList.value.filter((c) => !commentIds.includes(c.commentId || c.importedId));
-    generalCommentIds.value = generalComments.map((c) => c.commentId || c.importedId);
-    hasInitializedLocations.value = true;
+    hasInitializedLocations.value = false;
+    editorCommentPositions.value = allCommentPositions;
+  
+    setTimeout(() => {
+      hasInitializedLocations.value = true;
+    }, 50);
   };
 
   const getFloatingComments = computed(() => {
     const comments = getGroupedComments.value?.parentComments
       .filter((c) => !c.resolvedTime)
-      .filter((c) => !generalCommentIds.value.includes(c.commentId || c.importedId))
-
+      .filter((c) => Object.keys(editorCommentPositions.value).includes(c.commentId || c.importedId))
     return comments;
   });
 
@@ -558,6 +554,7 @@ export const useCommentsStore = defineStore('comments', () => {
     editorCommentIds,
     commentsParentElement,
     hasInitializedLocations,
+    editorCommentPositions,
 
     // Floating comments
     floatingCommentsOffset,

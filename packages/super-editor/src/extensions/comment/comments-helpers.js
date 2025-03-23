@@ -1,6 +1,6 @@
 import { CommentMarkName } from './comments-constants.js';
 import { COMMENTS_XML_DEFINITIONS } from '@converter/exporter-docx-defs.js';
-
+import { CommentsPluginKey } from './comments-plugin.js';
 
 /**
  * Remove comment by id
@@ -274,3 +274,21 @@ export const translateFormatChangesToEnglish = (attrs = {}) => {
 
   return messages.length ? messages.join('. ') : 'No formatting changes.';
 };
+
+/**
+ * Get the highlight color for a comment or tracked changes node
+ * 
+ * @param {Object} param0 
+ * @param {String} param0.activeThreadId The active comment ID
+ * @param {String} param0.threadId The current thread ID
+ * @param {Boolean} param0.isInternal Whether the comment is internal or external
+ * @param {EditorView} param0.editor The current editor view
+ * @returns {String} The color to use for the highlight
+ */
+export const getHighlightColor = ({ activeThreadId, threadId, isInternal, editor }) => {
+  if (!editor.options.isInternal && isInternal) return 'transparent';
+  const pluginState = CommentsPluginKey.getState(editor.state);
+  const color = isInternal ? pluginState.internalColor : pluginState.externalColor;
+  const alpha = activeThreadId == threadId ? '44' : '22';
+  return `${color}${alpha}`;
+}

@@ -59,6 +59,7 @@ const {
   generalCommentIds,
   getFloatingComments,
   hasSyncedCollaborationComments,
+  hasInitializedLocations,
 } = storeToRefs(commentsStore);
 const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
@@ -111,11 +112,13 @@ const cancelPendingComment = (e) => {
 };
 
 const onCommentsLoaded = ({ editor, comments, replacedFile }) => {
-  if (editor.options.isNewFile || replacedFile) {
-    commentsStore.processLoadedDocxComments({
-      superdoc: proxy.$superdoc,
-      comments,
-      documentId: editor.options.documentId
+  if (editor.options.shouldLoadComments || replacedFile) {
+    nextTick(() => {
+      commentsStore.processLoadedDocxComments({
+        superdoc: proxy.$superdoc,
+        comments,
+        documentId: editor.options.documentId
+      });
     });
   }
 };
@@ -569,7 +572,7 @@ const handlePdfClick = (e) => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
+    <div class="superdoc__right-sidebar right-sidebar" v-if="true">
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"
@@ -579,8 +582,8 @@ const handlePdfClick = (e) => {
       />
 
       <FloatingComments
+        v-if="hasInitializedLocations && getFloatingComments.length > 0"
         class="floating-comments"
-        v-if="getFloatingComments.length && !isCommentsListVisible"
         v-for="doc in documentsWithConverations"
         :parent="layers"
         :current-document="doc"
