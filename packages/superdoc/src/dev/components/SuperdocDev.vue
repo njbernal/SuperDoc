@@ -20,11 +20,12 @@ const showCommentsPanel = ref(true);
 
 const urlParams = new URLSearchParams(window.location.search);
 const isInternal = urlParams.has('internal');
-const testUserEmail = urlParams.get('userEmail') || 'user@superdoc.com';
+const testUserEmail = urlParams.get('email') || 'user@superdoc.com';
+const testUserName = urlParams.get('name') || `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`;
 const userRole = urlParams.get('role') || 'editor';
 
 const user = {
-  name: `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`,
+  name: testUserName,
   email: testUserEmail,
 };
 
@@ -51,7 +52,7 @@ const init = async () => {
     documentMode: 'editing',
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
-    rulers: true,
+    rulers: false,
     annotations: false,
     isInternal,
     telemetry: false,
@@ -59,8 +60,8 @@ const init = async () => {
     user,
     title: 'Test document',
     users: [
-      { name: 'Nick Bernal', email: 'nick@harbourshare.com' },
-      { name: 'Eric Doversberger', email: 'eric@harbourshare.com' },
+      { name: 'Nick Bernal', email: 'nick@harbourshare.com', access: 'internal' },
+      { name: 'Eric Doversberger', email: 'eric@harbourshare.com', access: 'external' },
     ],
     documents: [
       {
@@ -262,6 +263,7 @@ onMounted(async () => {
 .dev-app__main {
   display: flex;
   justify-content: center;
+  overflow: auto;
 }
 
 .dev-app__view {

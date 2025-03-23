@@ -363,7 +363,11 @@ export class Editor extends EventEmitter {
       ...options,
     };
 
-    if (!this.view || !this.state || this.isDestroyed) {
+    if (this.options.isNewFile && this.options.isCommentsEnabled) {
+      this.options.shouldLoadComments = true;
+    }
+  
+    if (!this.view || !this.state || this.ifsDestroyed) {
       return;
     }
 
@@ -727,6 +731,7 @@ export class Editor extends EventEmitter {
   #initComments(replacedFile = false) {
     if (!this.options.isCommentsEnabled) return;
     if (this.options.isHeadless) return;
+    if (!this.options.shouldLoadComments) return;
     this.emit('commentsLoaded', { editor: this, replacedFile, comments: this.converter.comments || [] });
 
     setTimeout(() => {
@@ -1077,7 +1082,8 @@ export class Editor extends EventEmitter {
       media,
       mediaFiles,
       fonts,
-      isNewFile: true
+      isNewFile: true,
+      shouldLoadComments: true,
     });
 
     this.#createConverter();
