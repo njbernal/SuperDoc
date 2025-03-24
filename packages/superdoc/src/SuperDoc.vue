@@ -262,9 +262,9 @@ const editorOptions = (doc) => {
  * 
  * @returns {void}
  */
-const onEditorCommentLocationsUpdate = ({ allCommentIds: commentIds, allCommentPositions }) => {
+const onEditorCommentLocationsUpdate = ({ allCommentIds: activeThreadId, allCommentPositions }) => {
   if (!proxy.$superdoc.config.modules?.comments) return;
-  handleEditorLocationsUpdate(allCommentPositions, commentIds);
+  handleEditorLocationsUpdate(allCommentPositions, activeThreadId);
 };
 
 const onEditorCommentsUpdate = (params = {}) => {
@@ -580,7 +580,8 @@ watch(getFloatingComments, () => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
+    <div class="superdoc__right-sidebar right-sidebar" v-if="true">
+
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"

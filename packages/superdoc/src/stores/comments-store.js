@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, reactive, computed, unref } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { comments_module_events } from '@harbour-enterprises/common';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { syncCommentsToClients } from '../core/collaboration/helpers.js';
@@ -501,7 +501,7 @@ export const useCommentsStore = defineStore('comments', () => {
    * @param {DOMElement} parentElement The parent element of the editor
    * @returns {void}
    */
-  const handleEditorLocationsUpdate = (allCommentPositions, commentIds) => {
+  const handleEditorLocationsUpdate = (allCommentPositions, activeThreadId) => {
     editorCommentPositions.value = allCommentPositions;
   };
 

@@ -80,7 +80,7 @@ const handleDialog = (dialog) => {
 
     const placement = {
       id,
-      top: position.top - editorBounds.top - scrollY,
+      top: position.top - editorBounds.top,
       height: bounds.height,
       commentRef: comment,
       elementRef,

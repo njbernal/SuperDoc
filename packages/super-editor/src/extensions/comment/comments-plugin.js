@@ -170,8 +170,8 @@ export const CommentsPlugin = Extension.create({
           const trChangedActiveComment = meta?.type === 'setActiveComment';
         if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
             const { selection } = tr;
-            const currentActiveThread = getActiveCommentId(newEditorState.doc, selection);
-            if (trChangedActiveComment) activeThreadId = meta.activeThreadId;
+            let currentActiveThread = getActiveCommentId(newEditorState.doc, selection);
+            if (trChangedActiveComment) currentActiveThread = meta.activeThreadId;
 
             const previousSelectionId = activeThreadId;
             if (previousSelectionId !== currentActiveThread) {
@@ -186,8 +186,8 @@ export const CommentsPlugin = Extension.create({
             };
           };
 
-          const { allCommentIds, allCommentPositions } = pluginState;
-          editor.emit('comment-positions', { allCommentIds, allCommentPositions });
+          const { allCommentPositions } = pluginState;
+          editor.emit('comment-positions', { activeThreadId, allCommentPositions });
 
           return pluginState
         },
