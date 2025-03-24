@@ -315,16 +315,16 @@ export class Editor extends EventEmitter {
    * If we are replacing data and have a valid provider, listen for synced event
    * so that we can initialize the data
    */
-  initializeCollaborationData(replacedFile = false) {
+  initializeCollaborationData() {
     if (!this.options.isNewFile || !this.options.collaborationProvider) return;
     const { collaborationProvider: provider } = this.options;
 
     const postSyncInit = () => {
       provider.off('synced', postSyncInit);
-      this.#insertNewFileData(replacedFile);
+      this.#insertNewFileData();
     };
 
-    if (provider.synced) this.#insertNewFileData(replacedFile);
+    if (provider.synced) this.#insertNewFileData();
     // If we are not sync'd yet, wait for the event then insert the data
     else provider.on('synced', postSyncInit);
   }
@@ -333,17 +333,17 @@ export class Editor extends EventEmitter {
    * Replace the current document with new data. Necessary for initializing a new collaboration file,
    * since we need to insert the data only after the provider has synced.
    */
-  #insertNewFileData(replacedFile = false) {
+  #insertNewFileData() {
     if (!this.options.isNewFile) return;
     this.options.isNewFile = false;
-    const doc = this.#generatePmData();
+    const doc = this.#generatePmData(true);
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     this.view.dispatch(tr);
 
-    if (this.options.collaborationIsReady) {
+    setTimeout(() => {
       this.#initPagination();
-      this.#initComments(replacedFile);
-    }
+      this.#initComments();
+    }, 50);
   }
 
   #registerPluginByNameIfNotExists(name) {
@@ -522,7 +522,7 @@ export class Editor extends EventEmitter {
   /**
    * Generate data from file
    */
-  #generatePmData() {
+  #generatePmData(includeComments) {
     let doc;
   
     try {
@@ -532,7 +532,7 @@ export class Editor extends EventEmitter {
         doc = createDocument(this.converter, this.schema, this);
 
         // Perform any additional document processing prior to finalizing the doc here
-        doc = this.#prepareDocumentForImport(doc);
+        if (includeComments) doc = this.#prepareDocumentForImport(doc);
 
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
@@ -721,20 +721,25 @@ export class Editor extends EventEmitter {
 
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
-    this.#initPagination();
-    this.#initComments();
+
+    if (!this.options.isNewFile) {
+      this.#initPagination();
+      this.#initComments();
+    }
   };
 
   /**
    * Initialize comments plugin
    */
-  #initComments(replacedFile = false) {
+  #initComments() {
     if (!this.options.isCommentsEnabled) return;
     if (this.options.isHeadless) return;
     if (!this.options.shouldLoadComments) return;
+    const replacedFile = this.options.replacedFile;
     this.emit('commentsLoaded', { editor: this, replacedFile, comments: this.converter.comments || [] });
 
     setTimeout(() => {
+      this.options.replacedFile = false;
       const { state, dispatch } = this.view;
       const tr = state.tr.setMeta(CommentsPluginKey, { type: 'force' });
       dispatch(tr);
@@ -1084,6 +1089,7 @@ export class Editor extends EventEmitter {
       fonts,
       isNewFile: true,
       shouldLoadComments: true,
+      replacedFile: true,
     });
 
     this.#createConverter();
@@ -1094,7 +1100,7 @@ export class Editor extends EventEmitter {
     
     if (!this.options.ydoc) {
       this.#initPagination();
-      this.#initComments(true);
+      this.#initComments();
     };
     
   }

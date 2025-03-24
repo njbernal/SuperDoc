@@ -142,7 +142,11 @@ export const CommentsPlugin = Extension.create({
           if (isPaginationInit) shouldUpdate = true;
 
           const meta = tr.getMeta(CommentsPluginKey);
-          if (!isPaginationInit && meta && meta.decorations) {
+          const { type } = meta || {};
+
+          if (type === 'force') shouldUpdate = true;
+
+          if (!isPaginationInit && !shouldUpdate && meta && meta.decorations) {
             return {
               ...pluginState,
               decorations: meta.decorations,
@@ -164,7 +168,7 @@ export const CommentsPlugin = Extension.create({
 
           // Check for changes in the actively selected comment
           const trChangedActiveComment = meta?.type === 'setActiveComment';
-          if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
+        if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
             const { selection } = tr;
             const currentActiveThread = getActiveCommentId(newEditorState.doc, selection);
             if (trChangedActiveComment) activeThreadId = meta.activeThreadId;
@@ -206,6 +210,7 @@ export const CommentsPlugin = Extension.create({
   
             if (prevDoc && prevDoc.eq(doc) && !shouldUpdate) return;
             prevDoc = doc;
+            shouldUpdate = false;
 
             const decorations = []
             const allCommentPositions = {}
@@ -275,7 +280,6 @@ export const CommentsPlugin = Extension.create({
 
             // Remember the new decorations for next time
             prevDecorations = decorationSet
-            shouldUpdate = false;
           },
         }
       },
