@@ -505,7 +505,7 @@ export class SuperDoc extends EventEmitter {
     const comments = [];
     if (commentsType !== 'clean') {
       comments.push(...this.commentsStore?.translateCommentsForExport());
-    };
+    }
 
     const docxPromises = [];
     this.superdocStore.documents.forEach((doc) => {

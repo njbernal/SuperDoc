@@ -1604,11 +1604,14 @@ function translateFieldAnnotation(params) {
 
 export function translateHardBreak() {
   return {
-    name: 'w:br',
-    type: 'element',
-    attributes: { 'w:type': 'page' }
+    name: 'w:r',
+    elements: [{
+      name: 'w:br',
+      type: 'element',
+      attributes: { 'w:type': 'page' }
+    }]
   };
-};
+}
 
 export class DocxExporter {
   constructor(converter) {
