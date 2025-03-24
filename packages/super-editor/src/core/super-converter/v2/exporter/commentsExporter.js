@@ -38,11 +38,14 @@ export function translateCommentNode(params, type) {
 
   let commentSchema = getCommentSchema(type, commentIndex);
   if (type === 'End') {
-    const commentReference = { name: 'w:commentReference', attributes: { 'w:id': String(commentIndex) } };
+    const commentReference = {
+      name: 'w:r',
+      elements: [{ name: 'w:commentReference', attributes: { 'w:id': String(commentIndex) } }]
+    };
     commentSchema = [commentSchema, commentReference];
-  };
+  }
   return commentSchema;
-};
+}
 
 
 /**
@@ -185,7 +188,6 @@ export const updateCommentsExtendedXml = (comments = [], commentsExtendedXml) =>
     const attributes = {
       'w15:paraId': comment.commentParaId,
       'w15:done': comment.resolvedTime ? '1' : '0',
-      'w:rsid': comment.commentId || comment.importedId,
     };
 
     const parentId = comment.parentCommentId;
@@ -193,7 +195,7 @@ export const updateCommentsExtendedXml = (comments = [], commentsExtendedXml) =>
       const parentComment = comments.find((c) => c.commentId === parentId);
       const parentParaId = parentComment.commentParaId;
       attributes['w15:paraIdParent'] = parentParaId;
-    };
+    }
 
     return {
       type: 'element',
@@ -240,7 +242,7 @@ export const updateCommentsIdsAndExtensible = (comments = [], commentsIds, exten
       "name": "w16cex:commentExtensible",
       "attributes": {
           "w16cex:durableId": newDurableId,
-          "w16cex:dateUtc": "2025-03-06T23:32:00Z"
+          "w16cex:dateUtc": toIsoNoFractional()
       }
     };
     extensibleUpdated.elements[0].elements.push(newExtensible);
@@ -353,8 +355,8 @@ export const prepareCommentsXmlFilesForExport = ({
   if (exportType === 'clean') {
     const documentXml = removeCommentsFilesFromConvertedXml(convertedXml);
     return { documentXml, relationships };
-  };
-
+  }
+  
   // Initialize comments files with empty content
   const updatedXml = generateConvertedXmlWithCommentFiles(convertedXml);
 
