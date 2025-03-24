@@ -445,14 +445,13 @@ export const useCommentsStore = defineStore('comments', () => {
     const document = superdocStore.getDocument(documentId);
 
     if (__IS_DEBUG__) console.debug('[processLoadedDocxComments] processing comments...', comments);
-  
+
     comments.forEach((comment) => {
       const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
       const newComment = useComment({
         fileId: documentId,
         fileType: document.type,
-        importedId: comment.importedId ? Number(comment.importedId): null,
-        commentId: comment.id,
+        commentId: comment.commentId,
         isInternal: false,
         parentCommentId: comment.parentCommentId,
         importedAuthor: {
