@@ -580,7 +580,7 @@ watch(getFloatingComments, () => {
       </div>
     </div>
 
-    <div class="superdoc__right-sidebar right-sidebar" v-if="true">
+    <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
 
       <CommentDialog
         v-if="pendingComment"
