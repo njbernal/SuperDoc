@@ -336,7 +336,7 @@ export class Editor extends EventEmitter {
   #insertNewFileData() {
     if (!this.options.isNewFile) return;
     this.options.isNewFile = false;
-    const doc = this.#generatePmData(true);
+    const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     this.view.dispatch(tr);
 
@@ -522,7 +522,7 @@ export class Editor extends EventEmitter {
   /**
    * Generate data from file
    */
-  #generatePmData(includeComments) {
+  #generatePmData() {
     let doc;
   
     try {
@@ -532,7 +532,7 @@ export class Editor extends EventEmitter {
         doc = createDocument(this.converter, this.schema, this);
 
         // Perform any additional document processing prior to finalizing the doc here
-        if (includeComments) doc = this.#prepareDocumentForImport(doc);
+        doc = this.#prepareDocumentForImport(doc);
 
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
