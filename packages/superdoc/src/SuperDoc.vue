@@ -59,6 +59,7 @@ const {
   generalCommentIds,
   getFloatingComments,
   hasSyncedCollaborationComments,
+  editorCommentPositions,
   hasInitializedLocations,
 } = storeToRefs(commentsStore);
 const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
@@ -491,6 +492,13 @@ const handlePdfClick = (e) => {
   isDragging.value = true;
   handleSelectionStart(e);
 };
+
+watch(getFloatingComments, () => {
+  hasInitializedLocations.value = false;
+  nextTick(() => {
+    hasInitializedLocations.value = true;
+  });
+});
 </script>
 
 <template>

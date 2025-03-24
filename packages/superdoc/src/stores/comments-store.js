@@ -383,7 +383,7 @@ export const useCommentsStore = defineStore('comments', () => {
     };
 
     const event =  { type: COMMENT_EVENTS.ADD, comment: newComment.getValues() };
-  
+
     // If collaboration is enabled, sync the comments to all clients
     syncCommentsToClients(superdoc, event);
 
@@ -502,18 +502,16 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {void}
    */
   const handleEditorLocationsUpdate = (allCommentPositions, commentIds) => {
-    hasInitializedLocations.value = false;
     editorCommentPositions.value = allCommentPositions;
-  
-    setTimeout(() => {
-      hasInitializedLocations.value = true;
-    }, 50);
   };
 
   const getFloatingComments = computed(() => {
     const comments = getGroupedComments.value?.parentComments
       .filter((c) => !c.resolvedTime)
-      .filter((c) => Object.keys(editorCommentPositions.value).includes(c.commentId || c.importedId))
+      .filter((c) => {
+        const keys = Object.keys(editorCommentPositions.value);
+        return keys.includes(c.commentId);
+      });
     return comments;
   });
 
