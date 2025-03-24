@@ -589,7 +589,7 @@ watch(getFloatingComments, () => {
         v-click-outside="cancelPendingComment"
       />
 
-      <div class="floating-comments" v-if="!isCommentsListVisible">
+      <div class="floating-comments">
         <FloatingComments
           v-if="hasInitializedLocations && getFloatingComments.length > 0"
           v-for="doc in documentsWithConverations"
@@ -606,8 +606,13 @@ watch(getFloatingComments, () => {
   display: flex;
 }
 
+.right-sidebar {
+  min-width: 320px;
+}
+
 .floating-comments {
   min-width: 300px;
+  width: 300px;
 }
 
 .superdoc--with-sidebar { /*  */ }
