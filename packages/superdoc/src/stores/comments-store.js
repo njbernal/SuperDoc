@@ -358,6 +358,7 @@ export const useCommentsStore = defineStore('comments', () => {
     const newComment = useComment(comment.getValues());
 
     if (pendingComment.value) newComment.setText({ text: currentCommentText.value, suppressUpdate: true });
+    else newComment.setText({ text: comment.commentText, suppressUpdate: true });
     newComment.selection.source = pendingComment.value?.selection?.source;
 
     // Set isInternal flag
@@ -390,7 +391,6 @@ export const useCommentsStore = defineStore('comments', () => {
     // Emit event for end users
     if (__IS_DEBUG__) console.debug('[addComment] emitting...', event);
     superdoc.emit('comments-update', event);
-
   };
 
   const deleteComment = ({ commentId: commentIdToDelete, superdoc }) => {
@@ -550,8 +550,8 @@ export const useCommentsStore = defineStore('comments', () => {
     generalCommentIds,
     editorCommentIds,
     commentsParentElement,
-    hasInitializedLocations,
     editorCommentPositions,
+    hasInitializedLocations,
 
     // Floating comments
     floatingCommentsOffset,
