@@ -18,7 +18,7 @@ export function translateCommentNode(params, type) {
 
   // Check if the comment is resolved
   const originalComment = params.comments.find((comment) => {
-    return comment.commentId == nodeId || comment.importedId == nodeId;
+    return comment.commentId == nodeId;
   });
 
   if (!originalComment) return;
@@ -90,8 +90,8 @@ export const getCommentDefinition = (comment, commentId, allComments) => {
 
   const attributes = {
     'w:id': String(commentId),
-    'w:author': comment.creatorName,
-    'w:email': comment.creatorEmail,
+    'w:author': comment.creatorName || comment.importedAuthor?.name,
+    'w:email': comment.creatorEmail || comment.importedAuthor?.email,
     'w:date': toIsoNoFractional(comment.createdTime),
     'w:initials': getInitials(comment.creatorName),
     'w:done': comment.resolvedTime ? '1' : '0',
