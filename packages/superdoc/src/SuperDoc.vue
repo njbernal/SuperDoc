@@ -131,7 +131,7 @@ const onEditorCreate = ({ editor }) => {
   const { documentId } = editor.options;
   const doc = getDocument(documentId);
   doc.setEditor(editor);
-  proxy.$superdoc.activeEditor = editor;
+  proxy.$superdoc.setActiveEditor(editor);
   proxy.$superdoc.broadcastEditorCreate(editor);
   proxy.$superdoc.log('[SuperDoc] Editor created', proxy.$superdoc.activeEditor);
   proxy.$superdoc.log('[SuperDoc] Page styles (pixels)', editor.getPageStyles());

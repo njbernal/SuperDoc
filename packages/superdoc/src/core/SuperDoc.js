@@ -187,7 +187,6 @@ export class SuperDoc extends EventEmitter {
 
     // If a toolbar element is provided, render a toolbar
     this.addToolbar(this);
-  
   }
 
   get requiredNumberOfEditors() {
@@ -354,11 +353,13 @@ export class SuperDoc extends EventEmitter {
       role: this.config.role,
       pagination: this.config.pagination,
       icons: this.config.toolbarIcons,
+      documentMode: this.config.documentMode,
       superdoc: this,
     };
 
     this.toolbar = new SuperToolbar(config);
     this.toolbar.on('superdoc-command', this.onToolbarCommand.bind(this));
+    this.once('editorCreate', () => this.toolbar.updateToolbarState()); 
   }
 
   addCommentsList(element) {
@@ -402,10 +403,7 @@ export class SuperDoc extends EventEmitter {
     if (this.config.role !== 'editor') return this.#setModeSuggesting();
     if (this.superdocStore.documents.length > 0) {
       const firstEditor = this.superdocStore.documents[0]?.getEditor();
-      if (firstEditor) {
-        this.setActiveEditor(firstEditor);
-        this.toolbar.activeEditor = firstEditor;
-      }
+      if (firstEditor) this.setActiveEditor(firstEditor);
     }
 
     this.superdocStore.documents.forEach((doc) => {
@@ -413,15 +411,30 @@ export class SuperDoc extends EventEmitter {
       const editor = doc.getEditor();
       if (editor) editor.setDocumentMode('editing');
     });
+
+    if (this.toolbar) {
+      this.toolbar.documentMode = 'editing';
+      this.toolbar.updateToolbarState();
+    }   
   }
 
   #setModeSuggesting() {
     if (!['editor', 'suggester'].includes(this.config.role)) return this.#setModeViewing();
+    if (this.superdocStore.documents.length > 0) {
+      const firstEditor = this.superdocStore.documents[0]?.getEditor();
+      if (firstEditor) this.setActiveEditor(firstEditor);
+    }
+
     this.superdocStore.documents.forEach((doc) => {
       doc.restoreComments();
       const editor = doc.getEditor();
       if (editor) editor.setDocumentMode('suggesting');
     });
+
+    if (this.toolbar) {
+      this.toolbar.documentMode = 'suggesting';
+      this.toolbar.updateToolbarState();
+    }
   }
 
   #setModeViewing() {
@@ -431,6 +444,11 @@ export class SuperDoc extends EventEmitter {
       const editor = doc.getEditor();
       if (editor) editor.setDocumentMode('viewing');
     });
+    
+    if (this.toolbar) {
+      this.toolbar.documentMode = 'viewing';
+      this.toolbar.updateToolbarState();
+    }
   }
 
   /**
