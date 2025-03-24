@@ -581,7 +581,6 @@ watch(getFloatingComments, () => {
     </div>
 
     <div class="superdoc__right-sidebar right-sidebar" v-if="showCommentsSidebar">
-
       <CommentDialog
         v-if="pendingComment"
         :comment="pendingComment"
@@ -590,13 +589,14 @@ watch(getFloatingComments, () => {
         v-click-outside="cancelPendingComment"
       />
 
-      <FloatingComments
-        v-if="hasInitializedLocations && getFloatingComments.length > 0"
-        class="floating-comments"
-        v-for="doc in documentsWithConverations"
-        :parent="layers"
-        :current-document="doc"
-      />
+      <div class="floating-comments" v-if="!isCommentsListVisible">
+        <FloatingComments
+          v-if="hasInitializedLocations && getFloatingComments.length > 0"
+          v-for="doc in documentsWithConverations"
+          :parent="layers"
+          :current-document="doc"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -604,6 +604,10 @@ watch(getFloatingComments, () => {
 <style scoped>
 .superdoc {
   display: flex;
+}
+
+.floating-comments {
+  min-width: 300px;
 }
 
 .superdoc--with-sidebar { /*  */ }
@@ -645,6 +649,7 @@ watch(getFloatingComments, () => {
 
 .superdoc__right-sidebar {
   width: 320px;
+  min-width: 320px;
   padding: 0 10px;
   min-height: 100%;
   position: relative;
