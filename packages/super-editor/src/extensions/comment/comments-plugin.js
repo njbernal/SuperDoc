@@ -43,48 +43,45 @@ export const CommentsPlugin = Extension.create({
           )
 
           dispatch(tr)
-          return true
+          return true;
         },
 
       removeComment:
         ({ commentId, importedId }) =>
         ({ tr, dispatch, state }) => {
-          tr.setMeta(CommentsPluginKey, { event: 'deleted' })
-          removeCommentsById({ commentId, importedId, state, tr, dispatch })
+          tr.setMeta(CommentsPluginKey, { event: 'deleted' });
+          removeCommentsById({ commentId, importedId, state, tr, dispatch });
         },
 
       setActiveComment:
-        ({ commentId, importedId }) =>
+        ({ commentId }) =>
         ({ tr, dispatch }) => {
-          let activeThreadId = importedId
-          if (importedId === undefined || importedId === null) {
-            activeThreadId = commentId
-          }
-          tr.setMeta(CommentsPluginKey, { type: 'setActiveComment', activeThreadId })
-          return true
+          let activeThreadId = commentId;
+          tr.setMeta(CommentsPluginKey, { type: 'setActiveComment', activeThreadId });
+          return true;
         },
 
       setCommentInternal:
-        ({ commentId, importedId, isInternal }) =>
+        ({ commentId, isInternal }) =>
         ({ tr, dispatch, state }) => {
-          const { doc } = state
-          let foundStartNode
-          let foundPos
+          const { doc } = state;
+          let foundStartNode;
+          let foundPos;
 
           // Find the commentRangeStart node that matches the comment ID
           tr.setMeta(CommentsPluginKey, { event: 'update' })
           doc.descendants((node, pos) => {
-            if (foundStartNode) return
+            if (foundStartNode) return;
 
-            const { marks = [] } = node
-            const commentMark = marks.find((mark) => mark.type.name === CommentMarkName)
+            const { marks = [] } = node;
+            const commentMark = marks.find((mark) => mark.type.name === CommentMarkName);
 
             if (commentMark) {
-              const { attrs } = commentMark
-              const wid = attrs.commentId || attrs.importedId
-              if (wid == commentId || wid == importedId) {
-                foundStartNode = node
-                foundPos = pos
+              const { attrs } = commentMark;
+              const wid = attrs.commentId;
+              if (wid === commentId) {
+                foundStartNode = node;
+                foundPos = pos;
               }
             }
           })
@@ -108,10 +105,10 @@ export const CommentsPlugin = Extension.create({
         },
 
       resolveComment:
-        ({ commentId, importedId }) =>
+        ({ commentId }) =>
         ({ tr, dispatch, state }) => {
           tr.setMeta(CommentsPluginKey, { event: 'update' })
-          removeCommentsById({ commentId, importedId, state, tr, dispatch })
+          removeCommentsById({ commentId, state, tr, dispatch })
         },
     }
   },
@@ -119,6 +116,7 @@ export const CommentsPlugin = Extension.create({
   addPmPlugins() {
     const editor = this.editor
     let shouldUpdate;
+    let activeThreadId;
 
     const commentsPlugin = new Plugin({
       key: CommentsPluginKey,
@@ -164,26 +162,24 @@ export const CommentsPlugin = Extension.create({
             );
           };          
 
+          // Check for changes in the actively selected comment
           const trChangedActiveComment = meta?.type === 'setActiveComment';
           if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
-
             const { selection } = tr;
-            let activeThreadId = getActiveCommentId(newEditorState.doc, selection);
+            const currentActiveThread = getActiveCommentId(newEditorState.doc, selection);
             if (trChangedActiveComment) activeThreadId = meta.activeThreadId;
 
-            const previousSelectionId = pluginState.activeThreadId;
-            if (previousSelectionId !== activeThreadId || trChangedActiveComment) {
-              pluginState.activeThreadId = activeThreadId;
+            const previousSelectionId = activeThreadId;
+            if (previousSelectionId !== currentActiveThread) {
+              activeThreadId = currentActiveThread;
               const update = {
                 type: comments_module_events.SELECTED,
                 activeCommentId: activeThreadId ? activeThreadId : null
               };
 
+              shouldUpdate = true;
               editor.emit('commentsUpdate', update);
-              pluginState.changedActiveThread = true;
-            } else {
-              pluginState.changedActiveThread = false;
-            }
+            };
           };
 
           const { allCommentIds, allCommentPositions } = pluginState;
@@ -207,11 +203,8 @@ export const CommentsPlugin = Extension.create({
           update(view, prevState) {
             const { state } = view
             const { doc, tr } = state
-      
-            const pluginState = CommentsPluginKey.getState(state)
-            const { activeThreadId} = pluginState;
   
-            if (prevDoc && prevDoc.eq(doc) || !shouldUpdate) return;
+            if (prevDoc && prevDoc.eq(doc) && !shouldUpdate) return;
             prevDoc = doc;
 
             const decorations = []
@@ -237,6 +230,7 @@ export const CommentsPlugin = Extension.create({
                 });
 
                 const isInternal = attrs.internal;
+
                 const color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
                 const deco = Decoration.inline(pos, pos + node.nodeSize, {
                   style: `background-color: ${color}`,
@@ -263,6 +257,7 @@ export const CommentsPlugin = Extension.create({
             const decorationSet = DecorationSet.create(doc, decorations)
 
             // Compare new decorations with the old state to avoid infinite loop
+            const pluginState = CommentsPluginKey.getState(state)
             const oldDecorations = pluginState.decorations
 
             // We only dispatch if something actually changed
@@ -280,6 +275,7 @@ export const CommentsPlugin = Extension.create({
 
             // Remember the new decorations for next time
             prevDecorations = decorationSet
+            shouldUpdate = false;
           },
         }
       },

@@ -24,7 +24,7 @@ export function importCommentData({ docx }) {
   const extractedComments = allComments.map((el) => {
 
     const { attributes } = el;
-    const commentId = attributes['w:id'];
+    const importedId = attributes['w:id'];
     const authorName = attributes['w:author'];
     const authorEmail = attributes['w:email'];
     const initials = attributes['w:initials'];
@@ -44,8 +44,8 @@ export function importCommentData({ docx }) {
     const paraId = attrs['w14:paraId'];
 
     return {
-      id: uuidv4(),
-      importedId: commentId,
+      commentId: uuidv4(),
+      importedId,
       creatorName: authorName,
       creatorEmail: authorEmail,
       createdTime: unixTimestampMs,
@@ -88,7 +88,7 @@ const generateCommentsWithExtendedData = ({ docx, comments }) => {
 
     const newComment = {
       ...comment,
-      commentId: superdocCommentId,
+      commentId: superdocCommentId || uuidv4(),
       isDone,
       parentCommentId: parentComment?.id,
     };
