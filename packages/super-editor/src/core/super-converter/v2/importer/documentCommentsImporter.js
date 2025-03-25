@@ -13,8 +13,8 @@ import { defaultNodeListHandler } from "./docxImporter";
  * @returns {Array} The parsed comments
  */
 export function importCommentData({ docx }) {
-  const nodeListHandler = defaultNodeListHandler()
-  const comments =  docx['word/comments.xml'];
+  const nodeListHandler = defaultNodeListHandler();
+  const comments = docx['word/comments.xml'];
   if (!comments) return;
 
   const { elements } = comments;
@@ -29,6 +29,7 @@ export function importCommentData({ docx }) {
     const authorEmail = attributes['w:email'];
     const initials = attributes['w:initials'];
     const createdDate = attributes['w:date'];
+    const internalId = attributes['custom:internalId'];
     const date = new Date(createdDate);
     const unixTimestampMs = date.getTime();
 
@@ -44,7 +45,7 @@ export function importCommentData({ docx }) {
     const paraId = attrs['w14:paraId'];
 
     return {
-      commentId: uuidv4(),
+      commentId: internalId || uuidv4(),
       importedId,
       creatorName: authorName,
       creatorEmail: authorEmail,
@@ -57,7 +58,7 @@ export function importCommentData({ docx }) {
 
   const extendedComments = generateCommentsWithExtendedData({ docx, comments: extractedComments });
   return extendedComments;
-};
+}
 
 /**
  * Import the commentsExtended.xml file to get the extended comment details
@@ -88,9 +89,8 @@ const generateCommentsWithExtendedData = ({ docx, comments }) => {
 
     const newComment = {
       ...comment,
-      commentId: superdocCommentId || uuidv4(),
       isDone,
-      parentCommentId: parentComment?.id,
+      parentCommentId: parentComment?.commentId,
     };
     return newComment;
   });
@@ -107,6 +107,5 @@ const getExtendedDetails = (commentEx) => {
   const paraId = attributes['w15:paraId'];
   const isDone = attributes['w15:done'] === '1' ? true : false;
   const paraIdParent = attributes['w15:paraIdParent'];
-  const superdocCommentId = attributes['w:rsid'];
-  return { paraId, isDone, paraIdParent, superdocCommentId };
+  return { paraId, isDone, paraIdParent };
 };
