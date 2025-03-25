@@ -513,6 +513,8 @@ export const useCommentsStore = defineStore('comments', () => {
       .filter((c) => !c.resolvedTime)
       .filter((c) => {
         const keys = Object.keys(editorCommentPositions.value);
+        console.debug('[getFloatingComments] editorCommentPositions', keys)
+
         return keys.includes(c.commentId);
       });
     return comments;
