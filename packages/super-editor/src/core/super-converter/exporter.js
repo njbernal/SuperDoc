@@ -10,6 +10,7 @@ import {
   pixelsToEightPoints,
   pixelsToEmu,
   pixelsToTwips,
+  rgbToHex
 } from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
@@ -1117,6 +1118,9 @@ function translateMark(mark) {
 
     case 'color':
       let processedColor = attrs.color.replace(/^#/, '').replace(/;$/, ''); // Remove `#` and `;` if present
+      if (processedColor.startsWith('rgb')) {
+        processedColor = rgbToHex(processedColor);
+      }
       markElement.attributes['w:val'] = processedColor;
       break;
 

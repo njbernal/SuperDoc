@@ -99,6 +99,7 @@ export const getCommentDefinition = (comment, commentId, allComments) => {
     'w:initials': getInitials(comment.creatorName),
     'w:done': comment.resolvedTime ? '1' : '0',
     'w15:paraId': comment.commentParaId,
+    'custom:internalId': comment.commentId || comment.internalId,
   };
 
   // Add the w15:paraIdParent attribute if the comment has a parent
@@ -165,6 +166,8 @@ export const updateCommentsXml = (commentDefs = [], commentsXml) => {
       'w:author': commentDef.attributes['w:author'],
       'w:date': commentDef.attributes['w:date'],
       'w:initials': commentDef.attributes['w:initials'],
+      'custom:internalId': commentDef.attributes['custom:internalId'],
+      'xmlns:custom': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
     };
   });
 
@@ -193,8 +196,7 @@ export const updateCommentsExtendedXml = (comments = [], commentsExtendedXml) =>
     const parentId = comment.parentCommentId;
     if (parentId) {
       const parentComment = comments.find((c) => c.commentId === parentId);
-      const parentParaId = parentComment.commentParaId;
-      attributes['w15:paraIdParent'] = parentParaId;
+      attributes['w15:paraIdParent'] = parentComment.commentParaId;
     }
 
     return {

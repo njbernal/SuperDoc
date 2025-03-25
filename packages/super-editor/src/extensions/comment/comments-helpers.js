@@ -90,12 +90,13 @@ export const prepareCommentsForExport = (doc, tr, schema, comments = []) => {
         const parentId = commentId;
         if (parentId) {
           const childComments = comments
-            .filter((c) => c.parentCommentId == parentId || c.parentCommentId == parentId)
+            .filter((c) => c.parentCommentId === parentId)
             .sort((a, b) => a.createdTime - b.createdTime);
 
           childComments.forEach((c) => {
             const childMark =  getPreparedComment(c);
             const childStartNode = schema.nodes.commentRangeStart.create(childMark);
+            seen.add(c.commentId);
             startNodes.push({
               pos: pos,
               node: childStartNode,
