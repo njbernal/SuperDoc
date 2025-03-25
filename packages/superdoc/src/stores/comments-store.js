@@ -447,6 +447,9 @@ export const useCommentsStore = defineStore('comments', () => {
     if (__IS_DEBUG__) console.debug('[processLoadedDocxComments] processing comments...', comments);
 
     comments.forEach((comment) => {
+      const htmlContent = getHTmlFromComment(comment.textJson);
+      if (!htmlContent) return;
+
       const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
       const newComment = useComment({
         fileId: documentId,
@@ -522,14 +525,22 @@ export const useCommentsStore = defineStore('comments', () => {
    * @returns {string} The HTML content
    */
   const getHTmlFromComment = (commentTextJson) => {
-    const editor = new Editor({
-      mode: 'text',
-      isHeadless: true,
-      content: commentTextJson,
-      loadFromSchema: true,
-      extensions: getRichTextExtensions(),
-    });
-    return editor.getHTML();
+    // If no content, we can't convert and its not a valid comment
+    if (!commentTextJson.content?.length) return;
+
+    try {
+      const editor = new Editor({
+        mode: 'text',
+        isHeadless: true,
+        content: commentTextJson,
+        loadFromSchema: true,
+        extensions: getRichTextExtensions(),
+      });
+      return editor.getHTML();
+    } catch (error) {
+      console.warn('Failed to convert comment', error);
+      return;
+    };
   };
 
   return {
