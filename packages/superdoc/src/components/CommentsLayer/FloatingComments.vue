@@ -118,7 +118,7 @@ const resetLayout = async () => {
   verticalOffset.value = 0;
 };
 
-watch(activeComment, () => {
+watch(activeComment, (newVal, oldVal) => {
   nextTick(() => {
     if (!activeComment.value) return verticalOffset.value = 0;
 
@@ -130,10 +130,9 @@ watch(activeComment, () => {
 
     const selectionTop = comment.selection.selectionBounds.top;
     const renderedTop = renderedItem.top;
-    const scrollY = window.scrollY;
 
     const editorBounds = floatingCommentsContainer.value.getBoundingClientRect();
-    verticalOffset.value = selectionTop - renderedTop - editorBounds.top + scrollY;
+    verticalOffset.value = selectionTop - renderedTop;
 
     setTimeout(() => {
       renderedItem.elementRef.value?.scrollIntoView({

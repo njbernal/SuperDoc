@@ -183,11 +183,13 @@ export const CommentsPlugin = Extension.create({
 
               shouldUpdate = true;
               editor.emit('commentsUpdate', update);
+
+              const { tr: newTr } = editor.view.state;
+              const { dispatch } = editor.view;
+              newTr.setMeta(CommentsPluginKey, { type: 'force' });
+              dispatch(newTr);
             };
           };
-
-          const { allCommentPositions } = pluginState;
-          editor.emit('comment-positions', { activeThreadId, allCommentPositions });
 
           return pluginState
         },
@@ -207,7 +209,7 @@ export const CommentsPlugin = Extension.create({
           update(view, prevState) {
             const { state } = view
             const { doc, tr } = state
-  
+
             if (prevDoc && prevDoc.eq(doc) && !shouldUpdate) return;
             prevDoc = doc;
             shouldUpdate = false;
@@ -280,6 +282,7 @@ export const CommentsPlugin = Extension.create({
 
             // Remember the new decorations for next time
             prevDecorations = decorationSet
+
           },
         }
       },
