@@ -127,6 +127,7 @@ export class SuperDoc extends EventEmitter {
     onPdfDocumentReady: () => null,
     onSidebarToggle: () => null,
     onCollaborationReady: () => null,
+    onCommentsListChange: () => null,
     onException: () => null,
 
     // Image upload handler
@@ -367,12 +368,14 @@ export class SuperDoc extends EventEmitter {
     console.debug('🦋 [superdoc] Adding comments list to:', element);
     if (element) this.config.modules.comments.element = element;
     this.commentsList = new SuperComments(this.config.modules?.comments, this);
+    if (this.config.onCommentsListChange) this.config.onCommentsListChange({ isRendered: true })
   }
 
   removeCommentsList() {
     if (this.commentsList) {
       this.commentsList.close();
       this.commentsList = null;
+      if (this.config.onCommentsListChange) this.config.onCommentsListChange({ isRendered: false })
     }
   }
 
