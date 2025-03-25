@@ -68,7 +68,7 @@ describe('threaded comment import [threaded-comment.docx]', () => {
     expect(parentComment.parentCommentId).toBeUndefined();
 
     const childComment = comments[1];
-    expect(childComment.parentCommentId).toBe(parentComment.id);
+    expect(childComment.parentCommentId).toBe(parentComment.commentId);
     expect(childComment.isDone).toBe(false);
   });
 });
