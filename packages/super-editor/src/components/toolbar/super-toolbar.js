@@ -37,12 +37,11 @@ export class SuperToolbar extends EventEmitter {
       // 768px breakpoint doesn't consider iPad in portrait orientation
       const isSmallScreen = window.matchMedia('(max-width: 834px)').matches;
       
-      // Zoom property doesn't work correctly when testing on mobile devices
       if (isMobileDevice && isSmallScreen) {
-        layers.style.transformOrigin = '0 0';
+        layers.style.transformOrigin = 'top left';
         layers.style.transform = `scale(${parseInt(argument) / 100})`;
       } else {
-        layers.style.zoom = parseInt(argument) / 100;
+        layers.style.zoom = argument;
       }
 
       this.superdoc.superdocStore.activeZoom = parseInt(argument);
@@ -202,6 +201,7 @@ export class SuperToolbar extends EventEmitter {
     this.isDev = config.isDev || false;
     this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
+    this.aiApiKey = config.aiApiKey;
     
     this.config.icons = {
       ...toolbarIcons,
@@ -232,9 +232,10 @@ export class SuperToolbar extends EventEmitter {
   }
 
   setZoom(percent_int) {
+    const percent = percent_int / 100;
     const allItems = [...this.toolbarItems, ...this.overflowItems];
     const item = allItems.find((item) => item.name.value === 'zoom');
-    this.#interceptedCommands.setZoom({ item, argument: percent_int });
+    this.#interceptedCommands.setZoom({ item, argument: percent });
   }
 
   /**
