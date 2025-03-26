@@ -110,7 +110,7 @@ function handleListNodes(
     // Spacers in the XML and need to be appended to the last item.
     if (item.elements && !hasTextNode(item.elements)) {
       const n = handleStandardNode({ ...params, nodes: [item] }).nodes[0];
-      parsedListItems[parsedListItems.length - 1]?.content.push(n);
+      if (n) parsedListItems[parsedListItems.length - 1]?.content.push(n); 
       item.seen = true;
       continue;
     }

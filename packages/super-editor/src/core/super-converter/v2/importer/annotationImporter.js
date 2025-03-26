@@ -35,6 +35,10 @@ export const handleAnnotationNode = (params) => {
     fieldColor,
     multipleImage: isMultipleImage === 'true',
   };
+
+  if (!attrs.fieldId || !attrs.displayLabel) {
+    return { nodes: [], consumed: 0 };
+  }
   
   let result = {
     type: 'text',

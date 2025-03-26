@@ -5,11 +5,19 @@
  * @param editor Editor
  * @returns Document.
  */
-export function createDocument(converter, schema, editor) {
+
+export function createDocument(converter, schema, editor, { check = false } = {}) {
   const documentData = converter.getSchema(editor);
 
   if (documentData) {
-    return schema.nodeFromJSON(documentData);
+    const documentNode = schema.nodeFromJSON(documentData);
+
+    // for testing
+    if (check) {
+      documentNode.check();
+    }
+    
+    return documentNode;
   }
 
   return schema.topNodeType.createAndFill();

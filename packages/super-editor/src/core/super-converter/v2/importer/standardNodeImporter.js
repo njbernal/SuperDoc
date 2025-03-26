@@ -13,6 +13,10 @@ export const handleStandardNode = (params) => {
   const node = nodes[0];
   const { name } = node;
   const { attributes, elements, marks = [] } = parseProperties(node, docx);
+
+  if (name === 'w:sdt') {
+    return { nodes: [], consumed: 0 };
+  }
   
   // Formatting only nodes
   if (isPropertiesElement(node)) {
