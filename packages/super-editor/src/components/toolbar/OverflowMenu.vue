@@ -1,5 +1,5 @@
 <script setup>
-import { getCurrentInstance, ref } from 'vue';
+import { getCurrentInstance, ref, computed } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
 import ButtonGroup from './ButtonGroup.vue';
 
@@ -18,6 +18,11 @@ const props = defineProps({
 
 const isDropdownOpened = ref(false);
 
+const overflowToolbarItem = computed(() => ({
+  ...props.toolbarItem,
+  active: isDropdownOpened,
+}));
+
 const toggleOverflowMenu = () => {
   isDropdownOpened.value = !isDropdownOpened.value;
 };
@@ -30,7 +35,10 @@ const handleCommand = ({ item, argument }) => {
 <template>
   <div class="overflow-menu">
     <div class="overflow-menu-trigger">
-      <ToolbarButton :toolbar-item="toolbarItem" @buttonClick="toggleOverflowMenu" />
+      <ToolbarButton 
+        :toolbar-item="overflowToolbarItem"
+        @buttonClick="toggleOverflowMenu" 
+      />
     </div>
     <div v-if="isDropdownOpened" class="overflow-menu_items">
       <ButtonGroup :toolbar-items="overflowItems" @command="handleCommand" class="superdoc-toolbar-overflow" />
