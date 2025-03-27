@@ -5,6 +5,7 @@ import usersIconSvg from '@harbour-enterprises/common/icons/users-solid.svg?raw'
 import checkIconSvg from '@harbour-enterprises/common/icons/check-solid.svg?raw';
 import xmarkIconSvg from '@harbour-enterprises/common/icons/xmark-solid.svg?raw';
 import ellipsisVerticalSvg from '@harbour-enterprises/common/icons/ellipsis-vertical-solid.svg?raw';
+import magicWandIconSvg from '@harbour-enterprises/common/icons/magic-wand-solid.svg?raw';
 
 export const superdocIcons = {
   comment: commentIconSvg,
@@ -15,4 +16,5 @@ export const superdocIcons = {
   acceptChange: checkIconSvg,
   rejectChange: xmarkIconSvg,
   overflow: ellipsisVerticalSvg,
+  ai: magicWandIconSvg,
 };
