@@ -25,7 +25,7 @@ import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
-import { SuperEditor } from '@harbour-enterprises/super-editor';
+import { SuperEditor, AIWriter } from '@harbour-enterprises/super-editor';
 import HtmlViewer from './components/HtmlViewer/HtmlViewer.vue';
 import useComment from './components/CommentsLayer/use-comment';
 import AiLayer from './components/AiLayer/AiLayer.vue';
@@ -78,6 +78,10 @@ const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 101 });
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
 
+// Add new state variables
+const showAiWriter = ref(false);
+const aiWriterPosition = reactive({ top: 0, left: 0 });
+
 const handleDocumentReady = (documentId, container) => {
   const doc = getDocument(documentId);
   doc.isReady = true;
@@ -92,6 +96,7 @@ const handleDocumentReady = (documentId, container) => {
 const handleToolClick = (tool) => {
   const toolOptions = {
     comments: () => showAddComment(proxy.$superdoc),
+    ai: () => showAiWriterAtCursor(),
   };
 
   if (tool in toolOptions) {
@@ -498,6 +503,14 @@ const handlePdfClick = (e) => {
   handleSelectionStart(e);
 };
 
+watch(getFloatingComments, () => {
+  hasInitializedLocations.value = false;
+  nextTick(() => {
+    hasInitializedLocations.value = true;
+  });
+});
+
+// AI Layer and Writer controls
 const aiLayer = ref(null);
 
 const handleAiHighlightAdd = () => {
@@ -516,12 +529,59 @@ const handleAiHighlightRemove = () => {
   aiLayer.value.removeAiHighlight();
 };
 
-watch(getFloatingComments, () => {
-  hasInitializedLocations.value = false;
-  nextTick(() => {
-    hasInitializedLocations.value = true;
-  });
-});
+
+// Add a new function to show the AIWriter at cursor position
+const showAiWriterAtCursor = () => {
+  if (!proxy.$superdoc.activeEditor || proxy.$superdoc.activeEditor.isDestroyed) {
+    console.error('[SuperDoc] Editor not available');
+    return;
+  }
+
+  try {
+    // Get the current cursor position
+    const editor = proxy.$superdoc.activeEditor;
+    const { view } = editor;
+    const { selection } = view.state;
+    
+    let coords;
+    try {
+      // Try to get coordinates from the selection head
+      coords = view.coordsAtPos(selection.$head.pos);
+    } catch (e) {
+      // Fallback to using the DOM selection if ProseMirror position is invalid
+      const domSelection = window.getSelection();
+      if (domSelection.rangeCount > 0) {
+        const range = domSelection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        coords = { top: rect.top, left: rect.left };
+      } else {
+        // If no selection, use editor position
+        const editorRect = view.dom.getBoundingClientRect();
+        coords = { top: editorRect.top + 50, left: editorRect.left + 50 };
+      }
+    }
+    
+    // Position the AIWriter at the cursor position
+    // Move down 30px to render under the cursor
+    aiWriterPosition.top = coords.top + 30 + 'px';
+    aiWriterPosition.left = coords.left + 'px';
+
+    // Show the AIWriter
+    showAiWriter.value = true;
+  } catch (error) {
+    console.error('[SuperDoc] Error displaying AIWriter:', error);
+    // Fallback position in center of editor
+    const editorDom = proxy.$superdoc.activeEditor.view.dom;
+    const rect = editorDom.getBoundingClientRect();
+    aiWriterPosition.top = rect.top + 100 + 'px';
+    aiWriterPosition.left = rect.left + 100 + 'px';
+    showAiWriter.value = true;
+  }
+};
+
+const handleAiWriterClose = () => {
+  showAiWriter.value = false;
+};
 </script>
 
 <template>
@@ -532,6 +592,10 @@ watch(getFloatingComments, () => {
       <div v-if="showToolsFloatingMenu" class="superdoc__tools tools" :style="toolsMenuPosition">
         <div class="tools-item" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')">
           <div class="superdoc__tools-icon" v-html="superdocIcons.comment"></div>
+        </div>
+        <!-- AI tool button -->
+        <div class="tools-item ai-tool" data-id="is-tool" @click.stop.prevent="handleToolClick('ai')">
+          <div class="superdoc__tools-icon" v-html="superdocIcons.ai"></div>
         </div>
       </div>
 
@@ -616,13 +680,30 @@ watch(getFloatingComments, () => {
       />
 
       <div class="floating-comments">
-        <FloatingComments
-          v-if="hasInitializedLocations && getFloatingComments.length > 0"
-          v-for="doc in documentsWithConverations"
-          :parent="layers"
-          :current-document="doc"
-        />
+        <template v-if="hasInitializedLocations && getFloatingComments.length > 0">
+          <FloatingComments
+            v-for="doc in documentsWithConverations"
+            :key="doc.id"
+            :parent="layers"
+            :current-document="doc"
+          />
+        </template>
       </div>
+    </div>
+
+    <!-- AI Writer at cursor position -->
+    <div class="ai-writer-container" v-if="showAiWriter" :style="aiWriterPosition">
+      <AIWriter 
+        :selected-text="proxy.$superdoc.activeEditor && proxy.$superdoc.activeEditor.state ? 
+          proxy.$superdoc.activeEditor.state.doc.textBetween(
+            proxy.$superdoc.activeEditor.state.selection.from, 
+            proxy.$superdoc.activeEditor.state.selection.to, 
+            ' '
+          ) : ''"
+        :handle-close="handleAiWriterClose"
+        :editor="proxy.$superdoc.activeEditor"
+        :key="proxy.$superdoc.config.modules?.comments?.aiApiKey"
+      />
     </div>
   </div>
 </template>
@@ -692,6 +773,7 @@ watch(getFloatingComments, () => {
   position: absolute;
   z-index: 3;
   display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
@@ -749,4 +831,61 @@ watch(getFloatingComments, () => {
     position: relative;
   }
 }
+
+/* AI Writer styles */
+.ai-writer-container {
+  position: fixed;
+  z-index: 1000;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove the AI Sidebar styles */
+/* .ai-sidebar-container {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+} */
+
+/* Tools styles */
+.tools {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.tools .tool-icon {
+  font-size: 20px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background-color: #dbdbdb;
+  cursor: pointer;
+}
+
+.tools-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(219, 219, 219, 0.6);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tools-item i {
+  cursor: pointer;
+}
+
+.superdoc__tools-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+/* Tools styles - end */
 </style>
