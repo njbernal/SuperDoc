@@ -121,7 +121,8 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
               h(AIWriter, {
                 handleClose,
                 selectedText,
-                superToolbar,
+                editor: superToolbar.activeEditor,
+                key: superToolbar.config.aiApiKey,
               }),
             ],
           );

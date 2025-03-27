@@ -11,10 +11,13 @@ const props = defineProps({
     type: Function,
     required: true,
   },
-  superToolbar: {
+  editor: {
     type: Object,
     required: true,
   },
+  key: {
+    type: String,
+  }
 });
 
 // Store the selection state
@@ -35,12 +38,12 @@ const editableRef = ref(null);
 // Save selection when component is mounted
 onMounted(() => {
   if (props.selectedText) {
-    selectionState.value = props.superToolbar.activeEditor.state.selection;
+    selectionState.value = props.editor.state.selection;
     // Store the selection in the editor's state
-    props.superToolbar.activeEditor.commands.setMeta('storedSelection', selectionState.value);
+    props.editor.commands.setMeta('storedSelection', selectionState.value);
 
     // Emit ai highlight when the writer mounts
-    props.superToolbar.emit('ai-highlight-add');
+    props.editor.emit('ai-highlight-add');
   }
 
   // Focus the textarea on mount
@@ -60,7 +63,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   // emit the ai highlight remove event
-  props.superToolbar.emit('ai-highlight-remove');
+  props.editor.emit('ai-highlight-remove');
 
   // Remove all event listeners
   document.removeEventListener('mousedown', handleClickOutside);
@@ -89,7 +92,7 @@ const promptText = ref('');
 
 // Computed property to check if editor is in suggesting mode
 const isInSuggestingMode = computed(() => {
-  return props.superToolbar.activeEditor.isInSuggestingMode?.() || false;
+  return props.editor.isInSuggestingMode?.() || false;
 });
 
 // Helper to get document XML from the editor if needed
@@ -97,7 +100,7 @@ const getDocumentXml = () => {
   try {
     // Get document content as XML if available
     // This is a placeholder, implement according to your editor's capability
-    return props.superToolbar.activeEditor.state.doc.textContent || '';
+    return props.editor.state.doc.textContent || '';
   } catch (error) {
     console.error('Error getting document XML:', error);
     return '';
@@ -109,9 +112,9 @@ const handleTextChunk = (text) => {
   try {
     // If this is the first chunk and we're rewriting, remove the selected text
     if (props.selectedText && !textProcessingStarted.value) {
-      props.superToolbar.activeEditor.commands.deleteSelection();
+      props.editor.commands.deleteSelection();
       // Remove the ai highlight
-      props.superToolbar.emit('ai-highlight-remove');
+      props.editor.emit('ai-highlight-remove');
       textProcessingStarted.value = true;
     }
 
@@ -143,7 +146,7 @@ const handleTextChunk = (text) => {
 
     // Update the document with only the new content
     if (newContent) {
-      props.superToolbar.activeEditor.commands.insertContent(newContent);
+      props.editor.commands.insertContent(newContent);
       previousText.value = textStr;
     }
   } catch (error) {
@@ -166,7 +169,7 @@ const handleSubmit = async () => {
   try {
     // Enable track changes if in suggesting mode
     if (isInSuggestingMode.value) {
-      props.superToolbar.activeEditor.commands.enableTrackChanges();
+      props.editor.commands.enableTrackChanges();
     }
 
     // Get document content for context
@@ -178,8 +181,8 @@ const handleSubmit = async () => {
       docText: '',
       documentXml: documentXml,
       config: {
-        // Pass the aiApiKey from superToolbar to the AI helper functions
-        apiKey: props.superToolbar.aiApiKey,
+        // Pass the aiApiKey to the AI helper functions
+        apiKey: props.key,
       },
     };
 
@@ -205,9 +208,9 @@ const handleSubmit = async () => {
         generatedText = await rewrite(props.selectedText, promptText.value, options);
 
         // Remove the selected text
-        props.superToolbar.activeEditor.commands.deleteSelection();
+        props.editor.commands.deleteSelection();
         // Remove the ai highlight
-        props.superToolbar.emit('ai-highlight-remove');
+        props.editor.emit('ai-highlight-remove');
       } else {
         // Get generated text
         generatedText = await write(promptText.value, options);
@@ -215,7 +218,7 @@ const handleSubmit = async () => {
 
       // Insert the generated text
       if (generatedText) {
-        props.superToolbar.activeEditor.commands.insertContent(generatedText);
+        props.editor.commands.insertContent(generatedText);
       }
     }
 
@@ -228,7 +231,7 @@ const handleSubmit = async () => {
     promptText.value = ''; // Clear the input after submission
     // Only disable track changes if we enabled it (in suggesting mode)
     if (isInSuggestingMode.value) {
-      props.superToolbar.activeEditor.commands.disableTrackChanges();
+      props.editor.commands.disableTrackChanges();
     }
     isLoading.value = false;
   }
