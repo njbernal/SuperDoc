@@ -93,6 +93,8 @@ export class SuperDoc extends EventEmitter {
     documentMode: 'editing',
     role: 'editor',
     documents: [],
+    format: null,
+    editorExtensions: [],
 
     colors: [],
     user: { name: null, email: null },

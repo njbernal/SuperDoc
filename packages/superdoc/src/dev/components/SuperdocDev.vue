@@ -56,6 +56,7 @@ const init = async () => {
     annotations: false,
     isInternal,
     telemetry: false,
+    format: 'docx',
     // isDev: true,
     user,
     title: 'Test document',
@@ -63,13 +64,13 @@ const init = async () => {
       { name: 'Nick Bernal', email: 'nick@harbourshare.com', access: 'internal' },
       { name: 'Eric Doversberger', email: 'eric@harbourshare.com', access: 'external' },
     ],
-    documents: [
-      {
-        data: currentFile.value,
-        id: testId,
-        isNewFile: true,
-      },
-    ],
+    // documents: [
+    //   {
+    //     data: currentFile.value,
+    //     id: testId,
+    //     isNewFile: true,
+    //   },
+    // ],
     modules: {
       comments: {
         // comments: sampleComments,
@@ -91,7 +92,6 @@ const init = async () => {
     toolbarIcons: {},
     onCommentsUpdate,
     onCommentsListChange: ({ isRendered }) => {
-      console.debug('Comments list change', isRendered);
       isCommentsListOpen.value = isRendered;
     }
   };

@@ -4,6 +4,7 @@ import { useCommentsStore } from './comments-store';
 import { getFileObject } from '@harbour-enterprises/common';
 import { DOCX, PDF } from '@harbour-enterprises/common';
 import useDocument from '@superdoc/composables/use-document';
+import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
 export const useSuperdocStore = defineStore('superdoc', () => {
   const currentConfig = ref(null);
@@ -61,8 +62,17 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     Object.assign(modules, configModules);
 
     // Initialize documents
-    await initializeDocuments(configDocs);
+    if (!configDocs?.length && config.format === 'docx' && !config.modules.collaboration) {
+      const newDoc = await getFileObject(BlankDOCX, 'blank.docx', DOCX);
+      configDocs.push({
+        type: DOCX,
+        data: newDoc,
+        name: 'blank.docx',
+        isNewFile: true,
+      });
+    };
 
+    await initializeDocuments(configDocs);
     isReady.value = true;
   };
 
@@ -71,7 +81,7 @@ export const useSuperdocStore = defineStore('superdoc', () => {
    * @param {Array[Object]} docsToProcess The documents to process from the config
    * @returns {Promise<void>}
    */
-  const initializeDocuments = async (docsToProcess) => {
+  const initializeDocuments = async (docsToProcess = []) => {
     if (!docsToProcess) return [];
 
     for (let doc of docsToProcess) {
