@@ -268,7 +268,7 @@ const handleInput = (event) => {
         @keydown="handleKeyDown"
         @input="handleInput"
         v-model="promptText"
-        rows="2"
+        rows="4"
       ></textarea>
     </div>
     <div class="ai-loader">
@@ -277,7 +277,7 @@ const handleInput = (event) => {
           <i class="gradient-svg sun"></i>
         </span>
       </span>
-      <span v-else-if="true" class="ai-textarea-icon error"
+      <span v-else-if="isError" class="ai-textarea-icon error"
         ><i class="gradient-svg times-circle" :title="isError"></i
       ></span>
       <span v-else-if="promptText" class="ai-textarea-icon ai-submit-button">
@@ -346,11 +346,16 @@ const handleInput = (event) => {
   display: flex;
   flex-direction: column;
   width: 300px;
+  border-radius: 5px;
   overflow-y: scroll;
   /* Firefox */
   scrollbar-width: none;
   /* Internet Explorer and Edge */
   -ms-overflow-style: none;
+
+  padding: 0.75rem;
+  box-shadow: 0 0 2px 2px #7715b366;
+  border: 1px solid #7715b3;
 }
 
 /* Chrome, Safari, and Opera */
@@ -384,8 +389,6 @@ const handleInput = (event) => {
   display: flex;
   flex-direction: row;
   min-height: 50px;
-  height: 50px;
-  padding: 10px;
   resize: none;
   border: none;
   border-radius: 8px;
@@ -454,7 +457,5 @@ const handleInput = (event) => {
   height: 14px;
   justify-content: flex-end;
   align-items: center;
-  padding-right: 5px;
-  padding-left: 5px;
 }
 </style>

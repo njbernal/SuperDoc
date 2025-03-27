@@ -87,8 +87,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
   const aiButton = useToolbarItem({
     type: 'dropdown',
     dropdownStyles: {
-      boxShadow: '0 0 2px 2px #7715b366',
-      border: '1px solid #7715b3',
+      padding: 0,
       outline: 'none',
     },
     name: 'ai',
@@ -117,11 +116,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
 
           return h(
             'div',
-            {
-              style: {
-                padding: '5px',
-              },
-            },
+            {},
             [
               h(AIWriter, {
                 handleClose,
