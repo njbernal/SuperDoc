@@ -117,6 +117,7 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
     element: editorElem.value,
     fileSource: props.fileSource,
     extensions: getExtensions(),
+    externalExtensions: props.options.externalExtensions,
     documentId: props.documentId,
     content,
     media,

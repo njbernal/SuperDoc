@@ -68,6 +68,7 @@ export class Editor extends EventEmitter {
     scale: 1,
     annotations: false,
     isInternal: false,
+    externalExtensions: [],
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -429,12 +430,13 @@ export class Editor extends EventEmitter {
     const allowedExtensions = ['extension', 'node', 'mark'];
 
     const coreExtensions = [Editable, Commands, EditorFocus, Keymap];
+    const externalExtensions = this.options.externalExtensions || [];
 
     const allExtensions = [...coreExtensions, ...this.options.extensions].filter((e) =>
       allowedExtensions.includes(e?.type),
     );
 
-    this.extensionService = ExtensionService.create(allExtensions, this);
+    this.extensionService = ExtensionService.create(allExtensions, externalExtensions, this);
   }
 
   /**
@@ -524,7 +526,6 @@ export class Editor extends EventEmitter {
    */
   #generatePmData() {
     let doc;
-  
     try {
       const { mode, fragment, isHeadless, content, loadFromSchema } = this.options;
       
@@ -881,7 +882,7 @@ export class Editor extends EventEmitter {
    * Get page styles
    */
   getPageStyles() {
-    return this.converter?.pageStyles;
+    return this.converter?.pageStyles || {};
   }
 
   /**
