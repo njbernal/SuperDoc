@@ -251,6 +251,7 @@ const editorOptions = (doc) => {
     isNewFile: doc.isNewFile || false,
     handleImageUpload: proxy.$superdoc.config.handleImageUpload,
     telemetry: proxy.$superdoc.telemetry,
+    externalExtensions: proxy.$superdoc.config.editorExtensions || [],
   };
 
   return options;

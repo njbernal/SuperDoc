@@ -16,11 +16,15 @@ export class ExtensionService {
 
   extensions;
 
+  externalExtensions = [];
+
   splittableMarks = [];
 
-  constructor(extensions, editor) {
+  constructor(extensions, userExtensions, editor) {
     this.editor = editor;
-    this.extensions = ExtensionService.getResolvedExtensions(extensions);
+
+    this.externalExtensions = userExtensions || [];
+    this.extensions = ExtensionService.getResolvedExtensions([...extensions, ...this.externalExtensions]);
     this.schema = Schema.createSchemaByExtensions(this.extensions, editor);
     this.#setupExtensions();
   }
