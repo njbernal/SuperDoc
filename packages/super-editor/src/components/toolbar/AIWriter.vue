@@ -52,7 +52,7 @@ onMounted(() => {
 
   // Add click outside listener
   document.addEventListener('mousedown', handleClickOutside);
-  
+
   // Add a capture phase event listener directly to the document
   // We have to intercept the arrow keys to prevent them from being intercepted by ProseMirror
   document.addEventListener('keydown', handleCaptureKeyDown, true);
@@ -69,8 +69,11 @@ onUnmounted(() => {
 
 // Capture phase handler to stop arrow key events from being intercepted in our ai textarea
 const handleCaptureKeyDown = (event) => {
-  if (editableRef.value && (event.target === editableRef.value) && 
-      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+  if (
+    editableRef.value &&
+    event.target === editableRef.value &&
+    ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)
+  ) {
     event.stopPropagation(); // This prevents ProseMirror from seeing the event
   }
 };
@@ -111,19 +114,19 @@ const handleTextChunk = (text) => {
       props.superToolbar.emit('ai-highlight-remove');
       textProcessingStarted.value = true;
     }
-    
+
     // If the text is null, undefined or empty, don't process it
     if (text === null || text === undefined) {
       return;
     }
-    
+
     // Convert to string in case it's not already a string
     const textStr = String(text || '');
-    
+
     // Handle incremental updates with plaintext
     // Only insert content that hasn't been inserted yet
     let newContent = '';
-    
+
     if (previousText.value.length === 0) {
       // First chunk - insert everything
       newContent = textStr;
@@ -137,7 +140,7 @@ const handleTextChunk = (text) => {
         newContent = textStr;
       }
     }
-    
+
     // Update the document with only the new content
     if (newContent) {
       props.superToolbar.activeEditor.commands.insertContent(newContent);
@@ -177,7 +180,7 @@ const handleSubmit = async () => {
       config: {
         // Pass the aiApiKey from superToolbar to the AI helper functions
         apiKey: props.superToolbar.aiApiKey,
-      }
+      },
     };
 
     // @DEBUG - Use non-streaming for now
@@ -196,11 +199,11 @@ const handleSubmit = async () => {
     } else {
       // NON-STREAMING APPROACH
       let generatedText;
-      
+
       if (props.selectedText) {
         // Get rewritten text
         generatedText = await rewrite(props.selectedText, promptText.value, options);
-        
+
         // Remove the selected text
         props.superToolbar.activeEditor.commands.deleteSelection();
         // Remove the ai highlight
@@ -209,7 +212,7 @@ const handleSubmit = async () => {
         // Get generated text
         generatedText = await write(promptText.value, options);
       }
-      
+
       // Insert the generated text
       if (generatedText) {
         props.superToolbar.activeEditor.commands.insertContent(generatedText);
@@ -253,8 +256,8 @@ const handleInput = (event) => {
 <template>
   <div class="ai-writer prosemirror-isolated" ref="aiWriterRef" @mousedown.stop>
     <div class="ai-user-input-field">
-      <span class="">
-        <i class="far fa-edit fa-gradient"></i>
+      <span class="ai-textarea-icon">
+        <i class="gradient-svg edit"></i>
       </span>
 
       <!-- Replace contenteditable div with textarea -->
@@ -271,13 +274,15 @@ const handleInput = (event) => {
     <div class="ai-loader">
       <span v-if="isLoading" class="ai-textarea-icon loading">
         <span class="spinner-wrapper">
-          <i class="far fa-sun"></i>
+          <i class="gradient-svg sun"></i>
         </span>
       </span>
-      <span v-else-if="isError" class="ai-textarea-icon error"><i class="far fa-times-circle" :title="isError"></i></span>
-      <span v-else-if="promptText" class="ai-textarea-icon ai-submit-button"
-        ><i class="far fa-paper-plane fa-gradient" @click.stop="handleSubmit"></i
+      <span v-else-if="true" class="ai-textarea-icon error"
+        ><i class="gradient-svg times-circle" :title="isError"></i
       ></span>
+      <span v-else-if="promptText" class="ai-textarea-icon ai-submit-button">
+        <i class="gradient-svg paper-plane" @click.stop="handleSubmit"></i>
+      </span>
     </div>
   </div>
 </template>
@@ -290,17 +295,51 @@ const handleInput = (event) => {
   position: relative;
 }
 
-.fa-gradient {
-	background: linear-gradient(
+.paper-plane {
+  --webkit-mask-image: url('@harbour-enterprises/common/icons/paper-plane-regular.svg');
+  --mask-image: url('@harbour-enterprises/common/icons/paper-plane-regular.svg');
+}
+
+.edit {
+  --webkit-mask-image: url('@harbour-enterprises/common/icons/edit-regular.svg');
+  --mask-image: url('@harbour-enterprises/common/icons/edit-regular.svg');
+}
+
+.times-circle {
+  --webkit-mask-image: url('@harbour-enterprises/common/icons/times-circle-regular.svg');
+  --mask-image: url('@harbour-enterprises/common/icons/times-circle-regular.svg');
+  background: #ed4337 !important;
+}
+
+.sun {
+  --webkit-mask-image: url('@harbour-enterprises/common/icons/sun-regular.svg');
+  --mask-image: url('@harbour-enterprises/common/icons/sun-regular.svg');
+}
+
+.gradient-svg {
+  /* Give your container some size */
+  width: 16px;
+  height: 16px;
+
+  /* Apply a gradient background */
+  background: linear-gradient(
     270deg,
     rgba(218, 215, 118, 0.5) -20%,
     rgba(191, 100, 100, 1) 30%,
     rgba(77, 82, 217, 1) 60%,
     rgb(255, 219, 102) 150%
   );
-  background-clip: text;
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
+
+  /* Use the SVG as a mask */
+  -webkit-mask-image: var(--webkit-mask-image);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+
+  mask-image: var(--mask-image);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
 }
 
 .ai-writer {
