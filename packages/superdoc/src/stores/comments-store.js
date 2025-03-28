@@ -122,7 +122,7 @@ export const useCommentsStore = defineStore('comments', () => {
       trackedChangeType,
       deletedText,
       createdTime: date,
-      creatorNamne: authorName,
+      creatorName: authorName,
       creatorEmail: authorEmail,
       isInternal: false,
       selection: {
@@ -448,15 +448,21 @@ export const useCommentsStore = defineStore('comments', () => {
 
     comments.forEach((comment) => {
       const htmlContent = getHTmlFromComment(comment.textJson);
-      if (!htmlContent) return;
 
-      const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
+      if (!htmlContent && !comment.trackedChange) {
+        return;
+      }
+      
+      const creatorName = comment.creatorName.replace('(imported)', '');
+      const importedName = `${creatorName} (imported)`;
       const newComment = useComment({
         fileId: documentId,
         fileType: document.type,
         commentId: comment.commentId,
         isInternal: false,
         parentCommentId: comment.parentCommentId,
+        creatorName,
+        creatorEmail: comment.creatorEmail,
         importedAuthor: {
           name: importedName,
           email: comment.creatorEmail,
@@ -465,6 +471,9 @@ export const useCommentsStore = defineStore('comments', () => {
         resolvedTime: comment.isDone ? Date.now() : null,
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
         resolvedByName: comment.isDone ? importedName : null,
+        trackedChange: comment.trackedChange || false,
+        trackedChangeText: comment.trackedChangeText,
+        trackedChangeType: comment.trackedChangeType,
       });
 
       addComment({ superdoc, comment: newComment });
