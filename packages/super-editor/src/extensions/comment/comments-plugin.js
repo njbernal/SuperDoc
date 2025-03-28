@@ -212,7 +212,8 @@ export const CommentsPlugin = Extension.create({
             const { state } = view
             const { doc, tr } = state
 
-            if (prevDoc && prevDoc.eq(doc) && !shouldUpdate) return;
+            if (prevDoc && prevDoc.eq(doc)) shouldUpdate = true;
+            if (!shouldUpdate) return;
             prevDoc = doc;
             shouldUpdate = false;
 
@@ -224,6 +225,7 @@ export const CommentsPlugin = Extension.create({
                 (mark) => mark.type.name === CommentMarkName
               )
 
+              let hasActive = false;
               commentMarks.forEach((commentMark) => {
                 const { attrs } = commentMark
                 const threadId = attrs.commentId || attrs.importedId
@@ -239,13 +241,16 @@ export const CommentsPlugin = Extension.create({
                 });
 
                 const isInternal = attrs.internal;
-
-                const color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
+                if (!hasActive) hasActive = activeThreadId === threadId;
+                let color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
                 const deco = Decoration.inline(pos, pos + node.nodeSize, {
-                  style: `background-color: ${color}`,
-                  class: 'comment-highlight',
+                  style: `background-color: ${color};`,
                   'data-thread-id': threadId,
+                  class: 'comment-highlight',
                 })
+
+                // Ignore inner marks if we need to show an outer active one
+                if (hasActive && activeThreadId !== threadId) return;
                 decorations.push(deco)
               });
 
