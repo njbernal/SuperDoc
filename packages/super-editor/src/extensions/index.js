@@ -82,6 +82,7 @@ const getRichTextExtensions = () => {
     TextStyle,
     Underline,
     FormatCommands,
+    CommentsPlugin,
     Gapcursor,
     Table,
     TableRow,
