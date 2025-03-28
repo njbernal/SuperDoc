@@ -59,7 +59,6 @@ export const getExportedResult = async (name, comments = []) => {
     extensions: getStarterExtensions(),
     documentId: 'test-doc',
     content: docx,
-    mode: 'docx',
     media,
     mediaFiles,
     fonts,
