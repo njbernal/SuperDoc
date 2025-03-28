@@ -821,8 +821,8 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
 
     // Dev - tracked changes
     // toggleTrackChanges,
-    // acceptTrackedChangeBySelection,
-    // rejectTrackedChangeOnSelection,
+    acceptTrackedChangeBySelection,
+    rejectTrackedChangeOnSelection,
     // toggleTrackChangesOriginal,
     // toggleTrackChangesFinal,
 
