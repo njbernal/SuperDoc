@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue';
 import { comments_module_events } from '@harbour-enterprises/common';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { syncCommentsToClients } from '../core/collaboration/helpers.js';
-import { Editor, } from '@harbour-enterprises/super-editor';
+import { Editor, trackChangesHelpers, TrackChangesBasePluginKey, CommentsPluginKey } from '@harbour-enterprises/super-editor';
 import { getRichTextExtensions } from '@harbour-enterprises/super-editor';
 import useComment from '@superdoc/components/CommentsLayer/use-comment';
 
@@ -441,7 +441,7 @@ export const useCommentsStore = defineStore('comments', () => {
    * @param {String} param0.documentId The document ID
    * @returns {void}
    */
-  const processLoadedDocxComments = async ({ superdoc, comments, documentId }) => {
+  const processLoadedDocxComments = async ({ superdoc, editor, comments, documentId }) => {
     const document = superdocStore.getDocument(documentId);
 
     if (__IS_DEBUG__) console.debug('[processLoadedDocxComments] processing comments...', comments);
@@ -477,6 +477,34 @@ export const useCommentsStore = defineStore('comments', () => {
       });
 
       addComment({ superdoc, comment: newComment });
+    });
+
+    const trackedChanges = trackChangesHelpers.getTrackChanges(editor.state);
+
+    // Create comments for tracked changes 
+    // that do not have a corresponding comment (created in Word).
+    trackedChanges.forEach(({ mark }) => {
+      const foundComment = commentsList.value.find((i) => i.commentId === mark.attrs.id);
+
+      if (foundComment) {
+        return;
+      }
+
+      const { dispatch } = editor.view;
+      const { tr } = editor.view.state;
+
+      const markMetaKeys = {
+        trackInsert: 'insertedMark',
+        trackDelete: 'deletionMark',
+        trackFormat: 'formatMark',
+      };
+
+      const markKeyName = markMetaKeys[mark.type.name];
+      if (markKeyName) {
+        tr.setMeta(CommentsPluginKey, { type: 'force' });
+        tr.setMeta(TrackChangesBasePluginKey, { [markKeyName]: mark });
+        dispatch(tr);
+      }
     });
   }
 
