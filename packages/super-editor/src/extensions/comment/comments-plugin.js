@@ -462,7 +462,9 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
 const getTrackedChangeText = ({ node, mark, trackedChangeType, isDeletionInsertion, deletionNodes = [] }) => {
   const deletionText = deletionNodes.length ? deletionNodes[0].text : null;  
 
-  let trackedChangeText = isDeletionInsertion ? nextNode.text : node.text;
+  let nextNode = null; //
+  let trackedChangeText = isDeletionInsertion ? nextNode?.text : node?.text;
+  if (!trackedChangeText) trackedChangeText = '';
 
   // If this is a format change, let's get the string of what changes were made
   const isFormatChange = trackedChangeType === TrackFormatMarkName;
@@ -483,9 +485,12 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
 
   let id = attrs.id;
 
-  if (!nodes.length) return;
+  // if (!nodes.length) {
+  //   return;
+  // }
 
   const node = nodes[0];
+  const nextTrackedNode = null; //
   const isDeletionInsertion = (
     trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
   );

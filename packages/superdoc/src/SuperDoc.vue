@@ -117,6 +117,7 @@ const onCommentsLoaded = ({ editor, comments, replacedFile }) => {
     nextTick(() => {
       commentsStore.processLoadedDocxComments({
         superdoc: proxy.$superdoc,
+        editor,
         comments,
         documentId: editor.options.documentId
       });

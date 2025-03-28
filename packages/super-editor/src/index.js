@@ -18,6 +18,8 @@ import Toolbar from './components/toolbar/Toolbar.vue';
 import SuperInput from './components/SuperInput.vue';
 import * as fieldAnnotationHelpers from './extensions/field-annotation/fieldAnnotationHelpers/index.js';
 import * as trackChangesHelpers from './extensions/track-changes/trackChangesHelpers/index.js';
+import { TrackChangesBasePluginKey } from './extensions/track-changes/plugins/index.js';
+import { CommentsPluginKey } from './extensions/comment/comments-plugin.js';
 
 const Extensions = {
   Node,
@@ -60,4 +62,7 @@ export {
 
   // External extensions classes
   Extensions,
+
+  TrackChangesBasePluginKey,
+  CommentsPluginKey,
 };
