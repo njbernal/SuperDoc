@@ -49,17 +49,6 @@ export const Paragraph = Node.create({
       },
       filename: { rendered: false },
       rsidRDefault: { rendered: false },
-
-      // Experimental
-      isEditable: {
-        renderDOM: ({ isEditable }) => {
-          let style = '';
-          if (isEditable === false) {
-            style = 'opacity: 0.5; cursor: default; pointer-events: none; user-select: none;';
-          }
-          return { style, contenteditable: isEditable === false ? false : true };
-        },
-      }
     };
   },
 
