@@ -90,7 +90,6 @@ export const prepareCommentParaIds = (comment) => {
  */
 export const getCommentDefinition = (comment, commentId, allComments) => {
   const translatedText = translateParagraphNode({ node: comment.commentJSON });
-
   const attributes = {
     'w:id': String(commentId),
     'w:author': comment.creatorName || comment.importedAuthor?.name,
@@ -100,6 +99,9 @@ export const getCommentDefinition = (comment, commentId, allComments) => {
     'w:done': comment.resolvedTime ? '1' : '0',
     'w15:paraId': comment.commentParaId,
     'custom:internalId': comment.commentId || comment.internalId,
+    'custom:trackedChange': comment.trackedChange,
+    'custom:trackedChangeText': comment.trackedChangeText,
+    'custom:trackedChangeType': comment.trackedChangeType,
   };
 
   // Add the w15:paraIdParent attribute if the comment has a parent
@@ -164,9 +166,13 @@ export const updateCommentsXml = (commentDefs = [], commentsXml) => {
     commentDef.attributes = {
       'w:id': commentDef.attributes['w:id'],
       'w:author': commentDef.attributes['w:author'],
+      'w:email': commentDef.attributes['w:email'],
       'w:date': commentDef.attributes['w:date'],
       'w:initials': commentDef.attributes['w:initials'],
       'custom:internalId': commentDef.attributes['custom:internalId'],
+      'custom:trackedChange': commentDef.attributes['custom:trackedChange'],
+      'custom:trackedChangeText': commentDef.attributes['custom:trackedChangeText'],
+      'custom:trackedChangeType': commentDef.attributes['custom:trackedChangeType'],
       'xmlns:custom': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
     };
   });
