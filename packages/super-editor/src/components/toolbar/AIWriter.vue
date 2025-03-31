@@ -148,6 +148,8 @@ const handleTextChunk = (text) => {
     if (newContent) {
       props.editor.commands.insertContent(newContent);
       previousText.value = textStr;
+      // Hide the AI Writer after the first chunk is received
+      props.handleClose();
     }
   } catch (error) {
     console.error('Error handling text chunk:', error);
@@ -186,40 +188,13 @@ const handleSubmit = async () => {
       },
     };
 
-    // @DEBUG - Use non-streaming for now
-    // Determine if we should use streaming or non-streaming
-    const useStreaming = true; // Set to true to use streaming
-
-    if (useStreaming) {
-      // STREAMING APPROACH
-      if (props.selectedText) {
-        // Use rewriteStreaming for selected text
-        await rewriteStreaming(props.selectedText, promptText.value, options, handleTextChunk);
-      } else {
-        // Use writeStreaming for generating new text
-        await writeStreaming(promptText.value, options, handleTextChunk);
-      }
+    // Always use streaming approach
+    if (props.selectedText) {
+      // Use rewriteStreaming for selected text
+      await rewriteStreaming(props.selectedText, promptText.value, options, handleTextChunk);
     } else {
-      // NON-STREAMING APPROACH
-      let generatedText;
-
-      if (props.selectedText) {
-        // Get rewritten text
-        generatedText = await rewrite(props.selectedText, promptText.value, options);
-
-        // Remove the selected text
-        props.editor.commands.deleteSelection();
-        // Remove the ai highlight
-        props.editor.emit('ai-highlight-remove');
-      } else {
-        // Get generated text
-        generatedText = await write(promptText.value, options);
-      }
-
-      // Insert the generated text
-      if (generatedText) {
-        props.editor.commands.insertContent(generatedText);
-      }
+      // Use writeStreaming for generating new text
+      await writeStreaming(promptText.value, options, handleTextChunk);
     }
 
     // If all is good, close the AI Writer
