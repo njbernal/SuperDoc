@@ -344,7 +344,7 @@ const getActiveCommentId = (doc, selection) => {
   // If we have a tracked change, we can return it right away
   const trackedChangeNode = getTrackedChangeNode(nodeAtPos);
   if (trackedChangeNode) {
-    return trackedChangeNode.attrs.wid;
+    return trackedChangeNode.attrs.id;
   }
 
   // Otherwise, we need to check for comment nodes
@@ -408,19 +408,30 @@ const getActiveCommentId = (doc, selection) => {
 const getTrackedChangeNode = (node) => {
   if (!node) return;
   const nodeMarks = node.marks;
-  const trackedChangeMark = nodeMarks?.find((mark) => mark.type.name === TrackInsertMarkName);
+  const trackedInsertMark = nodeMarks?.find((mark) => mark.type.name === TrackInsertMarkName);
   const trackedDeleteMark = nodeMarks?.find((mark) => mark.type.name === TrackDeleteMarkName);
   const trackedFormatMark = nodeMarks?.find((mark) => mark.type.name === TrackFormatMarkName);
-  return trackedChangeMark || trackedDeleteMark || trackedFormatMark;
+  return trackedInsertMark || trackedDeleteMark || trackedFormatMark;
 };
 
 const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEditorState, editor) => {
-  const { deletionMark, insertedMark, formatMark, deletionNodes } = trackedChangeMeta;
-  if (!deletionMark && !insertedMark && !formatMark) return;
+  const { 
+    insertedMark,
+    deletionMark, 
+    formatMark, 
+    deletionNodes, 
+  } = trackedChangeMeta;
+
+  if (!insertedMark && !deletionMark && !formatMark) {
+    return;
+  }
 
   const newTrackedChanges = { ...trackedChanges };
   let id = insertedMark?.attrs?.id || deletionMark?.attrs?.id || formatMark?.attrs?.id;
-  if (!id) return trackedChanges;
+
+  if (!id) {
+    return trackedChanges;
+  }
 
   // Maintain a map of tracked changes with their inserted/deleted ids
   let isNewChange = false;
@@ -446,6 +457,7 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
       };
     });
   }
+
   const emitParams = createOrUpdateTrackedChangeComment({
     documentId: editor.options.documentId,
     event: isNewChange ? 'add' : 'update',
@@ -455,7 +467,7 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
       formatMark,
     },
     deletionNodes,
-    nodes: nodes,
+    nodes,
     newEditorState,
   });
 
@@ -464,21 +476,47 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
   return newTrackedChanges;
 };
 
-const getTrackedChangeText = ({ node, mark, trackedChangeType, isDeletionInsertion, deletionNodes = [] }) => {
-  const deletionText = deletionNodes.length ? deletionNodes[0].text : null;  
+const getTrackedChangeText = ({
+  state,
+  node, 
+  mark, 
+  marks, 
+  trackedChangeType, 
+  isDeletionInsertion, 
+  deletionNodes = [], 
+}) => {
+  let trackedChangeText = '';
+  let deletionText = '';
 
-  let nextNode = null; //
-  let trackedChangeText = isDeletionInsertion ? nextNode?.text : node?.text;
-  if (!trackedChangeText) trackedChangeText = '';
+  if (trackedChangeType === TrackInsertMarkName) {
+    trackedChangeText = node?.text ?? '';
+  }
 
   // If this is a format change, let's get the string of what changes were made
-  const isFormatChange = trackedChangeType === TrackFormatMarkName;
-  if (isFormatChange) trackedChangeText = translateFormatChangesToEnglish(mark.attrs)
+  if (trackedChangeType === TrackFormatMarkName) {
+    trackedChangeText = translateFormatChangesToEnglish(mark.attrs);
+  }
+
+  if (trackedChangeType === TrackDeleteMarkName || isDeletionInsertion) {
+    deletionText = node?.text ?? '';
+
+    if (isDeletionInsertion) {
+      let { id } = marks.deletionMark.attrs;
+      let deletionNode = findNode(state.doc, (node) => {
+        const { marks = [] } = node;
+        const changeMarks = marks.filter((mark) => TRACK_CHANGE_MARKS.includes(mark.type.name));
+        if (!changeMarks.length) return false;
+        const hasMatchingId = changeMarks.find((mark) => mark.attrs.id === id);
+        if (hasMatchingId) return true;
+      });
+      deletionText = deletionNode?.node.text ?? '';
+    }
+  }
 
   return {
     deletionText,
     trackedChangeText,
-  }
+  };
 };
 
 const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes, newEditorState, documentId }) => {
@@ -487,39 +525,34 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
   
   const { name: trackedChangeType } = type;
   const { author, authorEmail, date } = attrs;
-
-  let id = attrs.id;
-
-  // if (!nodes.length) {
-  //   return;
-  // }
+  const id = attrs.id;
 
   const node = nodes[0];
-  const nextTrackedNode = null; //
-  const isDeletionInsertion = (
-    trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
-  );
+  const isDeletionInsertion = !!(marks.insertedMark && marks.deletionMark);
 
   let existingNode;
   newEditorState.doc.descendants((node, pos) => {
     const { marks = [] } = node;
     const changeMarks = marks.filter((mark) => TRACK_CHANGE_MARKS.includes(mark.type.name));
     if (!changeMarks.length) return;
-
     const hasMatchingId = changeMarks.find((mark) => mark.attrs.id === id);
     if (hasMatchingId) existingNode = node;
-    if (!existingNode) return false;
+    if (existingNode) return false;
   });
 
   const { deletionText, trackedChangeText } = getTrackedChangeText({
+    state: newEditorState,
     node: existingNode || node,
     mark: trackedMark,
+    marks,
     trackedChangeType,
     isDeletionInsertion,
-    deletionNodes
+    deletionNodes,
   });
 
-  if (!deletionText && !trackedChangeText) return;
+  if (!deletionText && !trackedChangeText) {
+    return;
+  }
 
   const params = {
     event: comments_module_events.ADD,
@@ -536,5 +569,15 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
   
   if (event === 'add') params.event = comments_module_events.ADD;
   else if (event === 'update') params.event = comments_module_events.UPDATE;
+
   return params;
 };
+
+function findNode(node, predicate) {
+  let found = null;
+  node.descendants((node, pos) => {
+    if (predicate(node)) found = { node, pos };
+    if (found) return false;
+  });
+  return found;
+}

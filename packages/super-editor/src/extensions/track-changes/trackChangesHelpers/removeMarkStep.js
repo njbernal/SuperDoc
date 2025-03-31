@@ -3,6 +3,7 @@ import { Mapping, RemoveMarkStep } from 'prosemirror-transform';
 import { Node } from 'prosemirror-model';
 import { v4 as uuidv4 } from 'uuid';
 import { TrackDeleteMarkName, TrackFormatMarkName } from '../constants.js';
+import { TrackChangesBasePluginKey } from '../plugins/trackChangesBasePlugin.js';
 
 /**
  * Remove mark step.
@@ -16,6 +17,8 @@ import { TrackDeleteMarkName, TrackFormatMarkName } from '../constants.js';
  * @param {string} options.date Date.
  */
 export const removeMarkStep = ({ state, tr, step, newTr, map, doc, user, date }) => {
+  const meta = {};
+
   doc.nodesBetween(step.from, step.to, (node, pos) => {
     if (!node.isInline) {
       return true;
@@ -62,18 +65,25 @@ export const removeMarkStep = ({ state, tr, step, newTr, map, doc, user, date })
       }
 
       if (after.length || before.length) {
+        const newFormatMark = state.schema.marks[TrackFormatMarkName].create({
+          id: uuidv4(),
+          author: user.name,
+          authorEmail: user.email,
+          date,
+          before,
+          after,
+        });
+
         newTr.addMark(
           Math.max(step.from, pos),
           Math.min(step.to, pos + node.nodeSize),
-          state.schema.marks[TrackFormatMarkName].create({
-            id: uuidv4(),
-            author: user.name,
-            authorEmail: user.email,
-            date,
-            before,
-            after,
-          }),
+          newFormatMark,
         );
+
+        meta.formatMark = newFormatMark;
+        meta.step = step;
+
+        newTr.setMeta(TrackChangesBasePluginKey, meta);
       } else if (formatChangeMark) {
         newTr.removeMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), formatChangeMark);
       }

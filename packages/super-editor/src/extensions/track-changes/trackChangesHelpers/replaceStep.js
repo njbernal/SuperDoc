@@ -61,9 +61,10 @@ export const replaceStep = ({ state, tr, step, newTr, map, doc, user, date, orig
     const mirrorIndex = map.maps.length - 1;
     map.appendMap(condensedStep.getMap(), mirrorIndex);
 
-    // Prepare meta for the transaction
-    meta.insertedMark = insertedMark;
-    meta.step = condensedStep;
+    if (newStep.from !== mappedNewStepTo) {
+      meta.insertedMark = insertedMark;
+      meta.step = condensedStep;
+    }
 
     if (!newTr.selection.eq(trTemp.selection)) {
       newTr.setSelection(trTemp.selection);
@@ -78,8 +79,10 @@ export const replaceStep = ({ state, tr, step, newTr, map, doc, user, date, orig
       user,
       date,
     });
+
     meta.deletionNodes = deletionNodes;
     meta.deletionMark = deletionMark;
+
     map.appendMapping(deletionMap);
   }
 
