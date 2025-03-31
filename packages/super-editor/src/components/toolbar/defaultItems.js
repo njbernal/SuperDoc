@@ -123,6 +123,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
                 selectedText,
                 editor: superToolbar.activeEditor,
                 key: superToolbar.config.aiApiKey,
+                superToolbar: superToolbar,
               }),
             ],
           );

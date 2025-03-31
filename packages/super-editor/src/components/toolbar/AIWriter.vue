@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
-import { write, writeStreaming, rewrite, rewriteStreaming } from './ai-helpers';
+import { writeStreaming, rewriteStreaming } from './ai-helpers';
 
 const props = defineProps({
   selectedText: {
@@ -17,7 +17,16 @@ const props = defineProps({
   },
   key: {
     type: String,
-  }
+  },
+/**
+   * AIWriter component is used both in the superToolbar and SuperDoc directly
+   * When we are rending in the toolbar menu, our events are emitted through toolbar to Superdoc
+   * When we are rendering directly in SuperDoc, we need to emit the events through Superdoc and do not need to 
+   * emit any events through 
+   */
+  superToolbar: {
+    type: Object,
+  },
 });
 
 // Store the selection state
@@ -42,8 +51,10 @@ onMounted(() => {
     // Store the selection in the editor's state
     props.editor.commands.setMeta('storedSelection', selectionState.value);
 
-    // Emit ai highlight when the writer mounts
-    props.editor.emit('ai-highlight-add');
+    // Emit ai highlight when the writer mounts through the toolbar
+    if (props.superToolbar) {
+      props.superToolbar.emit('ai-highlight-add');
+    }
   }
 
   // Focus the textarea on mount
@@ -62,8 +73,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  // emit the ai highlight remove event
-  props.editor.emit('ai-highlight-remove');
+  // emit the ai highlight remove event through the toolbar
+  if (props.superToolbar) {
+    props.superToolbar.emit('ai-highlight-remove');
+  }
 
   // Remove all event listeners
   document.removeEventListener('mousedown', handleClickOutside);
@@ -113,8 +126,6 @@ const handleTextChunk = (text) => {
     // If this is the first chunk and we're rewriting, remove the selected text
     if (props.selectedText && !textProcessingStarted.value) {
       props.editor.commands.deleteSelection();
-      // Remove the ai highlight
-      props.editor.emit('ai-highlight-remove');
       textProcessingStarted.value = true;
     }
 
