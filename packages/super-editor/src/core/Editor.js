@@ -15,6 +15,7 @@ import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/ind
 import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
 import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
+import { getRichTextExtensions } from '../extensions/index.js';
 import {
   prepareCommentsForExport,
   prepareCommentsForImport,
@@ -168,6 +169,10 @@ export class Editor extends EventEmitter {
   }
 
   #initRichText(options) {
+    if (!options.extensions || !options.extensions.length) {
+      this.options.extensions = getRichTextExtensions();
+    };
+
     this.#createExtensionService();
     this.#createCommandService();
     this.#createSchema();
@@ -526,9 +531,10 @@ export class Editor extends EventEmitter {
    */
   #generatePmData() {
     let doc;
+
     try {
       const { mode, fragment, isHeadless, content, loadFromSchema } = this.options;
-      
+
       if (mode === 'docx') {
         doc = createDocument(this.converter, this.schema, this);
 

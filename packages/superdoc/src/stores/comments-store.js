@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue';
 import { comments_module_events } from '@harbour-enterprises/common';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { syncCommentsToClients } from '../core/collaboration/helpers.js';
-import { Editor, } from '@harbour-enterprises/super-editor';
+import { Editor, trackChangesHelpers, TrackChangesBasePluginKey, CommentsPluginKey } from '@harbour-enterprises/super-editor';
 import { getRichTextExtensions } from '@harbour-enterprises/super-editor';
 import useComment from '@superdoc/components/CommentsLayer/use-comment';
 
@@ -122,7 +122,7 @@ export const useCommentsStore = defineStore('comments', () => {
       trackedChangeType,
       deletedText,
       createdTime: date,
-      creatorNamne: authorName,
+      creatorName: authorName,
       creatorEmail: authorEmail,
       isInternal: false,
       selection: {
@@ -441,22 +441,28 @@ export const useCommentsStore = defineStore('comments', () => {
    * @param {String} param0.documentId The document ID
    * @returns {void}
    */
-  const processLoadedDocxComments = async ({ superdoc, comments, documentId }) => {
+  const processLoadedDocxComments = async ({ superdoc, editor, comments, documentId }) => {
     const document = superdocStore.getDocument(documentId);
 
     if (__IS_DEBUG__) console.debug('[processLoadedDocxComments] processing comments...', comments);
 
     comments.forEach((comment) => {
       const htmlContent = getHTmlFromComment(comment.textJson);
-      if (!htmlContent) return;
 
-      const importedName = `${comment.creatorName.replace('(imported)', '')} (imported)`
+      if (!htmlContent && !comment.trackedChange) {
+        return;
+      }
+      
+      const creatorName = comment.creatorName.replace('(imported)', '');
+      const importedName = `${creatorName} (imported)`;
       const newComment = useComment({
         fileId: documentId,
         fileType: document.type,
         commentId: comment.commentId,
         isInternal: false,
         parentCommentId: comment.parentCommentId,
+        creatorName,
+        creatorEmail: comment.creatorEmail,
         importedAuthor: {
           name: importedName,
           email: comment.creatorEmail,
@@ -465,9 +471,40 @@ export const useCommentsStore = defineStore('comments', () => {
         resolvedTime: comment.isDone ? Date.now() : null,
         resolvedByEmail: comment.isDone ? comment.creatorEmail : null,
         resolvedByName: comment.isDone ? importedName : null,
+        trackedChange: comment.trackedChange || false,
+        trackedChangeText: comment.trackedChangeText,
+        trackedChangeType: comment.trackedChangeType,
       });
 
       addComment({ superdoc, comment: newComment });
+    });
+
+    const trackedChanges = trackChangesHelpers.getTrackChanges(editor.state);
+
+    // Create comments for tracked changes 
+    // that do not have a corresponding comment (created in Word).
+    trackedChanges.forEach(({ mark }) => {
+      const foundComment = commentsList.value.find((i) => i.commentId === mark.attrs.id);
+
+      if (foundComment) {
+        return;
+      }
+
+      const { dispatch } = editor.view;
+      const { tr } = editor.view.state;
+
+      const markMetaKeys = {
+        trackInsert: 'insertedMark',
+        trackDelete: 'deletionMark',
+        trackFormat: 'formatMark',
+      };
+
+      const markKeyName = markMetaKeys[mark.type.name];
+      if (markKeyName) {
+        tr.setMeta(CommentsPluginKey, { type: 'force' });
+        tr.setMeta(TrackChangesBasePluginKey, { [markKeyName]: mark });
+        dispatch(tr);
+      }
     });
   }
 
@@ -513,7 +550,6 @@ export const useCommentsStore = defineStore('comments', () => {
       .filter((c) => !c.resolvedTime)
       .filter((c) => {
         const keys = Object.keys(editorCommentPositions.value);
-        console.debug('[getFloatingComments] editorCommentPositions', keys)
 
         return keys.includes(c.commentId);
       });

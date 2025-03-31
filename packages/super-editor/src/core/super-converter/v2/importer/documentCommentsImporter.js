@@ -22,7 +22,6 @@ export function importCommentData({ docx }) {
 
   const { elements: allComments = [] } = elements[0];
   const extractedComments = allComments.map((el) => {
-
     const { attributes } = el;
     const importedId = attributes['w:id'];
     const authorName = attributes['w:author'];
@@ -30,6 +29,10 @@ export function importCommentData({ docx }) {
     const initials = attributes['w:initials'];
     const createdDate = attributes['w:date'];
     const internalId = attributes['custom:internalId'];
+    const trackedChange = attributes['custom:trackedChange'] === 'true';
+    const trackedChangeText = attributes['custom:trackedChangeText'];
+    const trackedChangeType = attributes['custom:trackedChangeType'];
+
     const date = new Date(createdDate);
     const unixTimestampMs = date.getTime();
 
@@ -53,6 +56,9 @@ export function importCommentData({ docx }) {
       textJson: parsedComment[0],
       initials,
       paraId,
+      trackedChange,
+      trackedChangeText,
+      trackedChangeType,
     };
   });
 

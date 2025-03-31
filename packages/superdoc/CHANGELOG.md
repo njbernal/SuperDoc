@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.8.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.4...v0.8.5) (2025-03-28)
+
+## [0.8.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.3...v0.8.4) (2025-03-28)
+
+## [0.8.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.2...v0.8.3) (2025-03-28)
+
+## [0.8.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.1...v0.8.2) (2025-03-28)
+
+## [0.8.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.10...v0.8.1) (2025-03-28)
+
+## [0.7.10](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.9...v0.7.10) (2025-03-28)
+
+## [0.7.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.8...v0.7.9) (2025-03-28)
+
+
+### Reverts
+
+* Revert "Update rich text extensions list, adds isEditable to paragraph as an experimental attr" ([2ffe859](https://github.com/Harbour-Enterprises/SuperDoc/commit/2ffe859d5ac82cc9f5222a791d86aecb744874f8))
+* Revert "Remove comments plugin from rich text extensions" ([d9fafb7](https://github.com/Harbour-Enterprises/SuperDoc/commit/d9fafb7506ef93d9fa15086177dec36f30efb36d))
+* Revert "Update locks" ([b6c5c42](https://github.com/Harbour-Enterprises/SuperDoc/commit/b6c5c42a87941f7154f76ba9158664b76e989a6e))
+
+## [0.7.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.7...v0.7.8) (2025-03-28)
+
+## [0.7.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.6...v0.7.7) (2025-03-28)
+
+## [0.7.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.5...v0.7.6) (2025-03-27)
+
+## [0.7.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.4...v0.7.5) (2025-03-27)
+
 ## [0.7.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.3...v0.7.4) (2025-03-27)
 
 ## [0.7.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.7.2...v0.7.3) (2025-03-27)

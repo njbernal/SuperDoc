@@ -118,6 +118,8 @@ export const CommentsPlugin = Extension.create({
     let shouldUpdate;
     let activeThreadId;
 
+    if (editor.options.isHeadless) return [];
+
     const commentsPlugin = new Plugin({
       key: CommentsPluginKey,
 
@@ -210,7 +212,8 @@ export const CommentsPlugin = Extension.create({
             const { state } = view
             const { doc, tr } = state
 
-            if (prevDoc && prevDoc.eq(doc) && !shouldUpdate) return;
+            if (prevDoc && prevDoc.eq(doc)) shouldUpdate = true;
+            if (!shouldUpdate) return;
             prevDoc = doc;
             shouldUpdate = false;
 
@@ -222,6 +225,7 @@ export const CommentsPlugin = Extension.create({
                 (mark) => mark.type.name === CommentMarkName
               )
 
+              let hasActive = false;
               commentMarks.forEach((commentMark) => {
                 const { attrs } = commentMark
                 const threadId = attrs.commentId || attrs.importedId
@@ -237,13 +241,16 @@ export const CommentsPlugin = Extension.create({
                 });
 
                 const isInternal = attrs.internal;
-
-                const color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
+                if (!hasActive) hasActive = activeThreadId === threadId;
+                let color = getHighlightColor({ activeThreadId, threadId, isInternal, editor });
                 const deco = Decoration.inline(pos, pos + node.nodeSize, {
-                  style: `background-color: ${color}`,
-                  class: 'comment-highlight',
+                  style: `background-color: ${color};`,
                   'data-thread-id': threadId,
+                  class: 'comment-highlight',
                 })
+
+                // Ignore inner marks if we need to show an outer active one
+                if (hasActive && activeThreadId !== threadId) return;
                 decorations.push(deco)
               });
 
@@ -460,7 +467,9 @@ const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEd
 const getTrackedChangeText = ({ node, mark, trackedChangeType, isDeletionInsertion, deletionNodes = [] }) => {
   const deletionText = deletionNodes.length ? deletionNodes[0].text : null;  
 
-  let trackedChangeText = isDeletionInsertion ? nextNode.text : node.text;
+  let nextNode = null; //
+  let trackedChangeText = isDeletionInsertion ? nextNode?.text : node?.text;
+  if (!trackedChangeText) trackedChangeText = '';
 
   // If this is a format change, let's get the string of what changes were made
   const isFormatChange = trackedChangeType === TrackFormatMarkName;
@@ -481,9 +490,12 @@ const createOrUpdateTrackedChangeComment = ({ event, marks, deletionNodes, nodes
 
   let id = attrs.id;
 
-  if (!nodes.length) return;
+  // if (!nodes.length) {
+  //   return;
+  // }
 
   const node = nodes[0];
+  const nextTrackedNode = null; //
   const isDeletionInsertion = (
     trackedChangeType === TrackDeleteMarkName && nextTrackedNode?.type?.name === TrackInsertMarkName
   );
