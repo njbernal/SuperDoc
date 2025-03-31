@@ -604,7 +604,7 @@ const handleAiWriterClose = () => {
         </div>
         <!-- AI tool button -->
         <div class="tools-item" data-id="is-tool" @click.stop.prevent="handleToolClick('ai')">
-          <div class="superdoc__tools-icon ai-tool" v-html="superdocIcons.ai"></div>
+          <div class="superdoc__tools-icon ai-tool"></div>
         </div>
       </div>
 
