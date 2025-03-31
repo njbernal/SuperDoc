@@ -69,6 +69,7 @@ import {
  * @property {() => void} [onPdfDocumentReady] Callback when the PDF document is ready
  * @property {(isOpened: boolean) => void} [onSidebarToggle] Callback when the sidebar is toggled
  * @property {(params: { editor: Editor }) => void} [onCollaborationReady] Callback when collaboration is ready
+ * @property {(params: { editor: Editor }) => void} [onEditorUpdate] Callback when document is updated
  * @property {(params: { error: Exception }) => void} [onException] Callback when an exception is thrown
  */
 
@@ -129,6 +130,7 @@ export class SuperDoc extends EventEmitter {
     onPdfDocumentReady: () => null,
     onSidebarToggle: () => null,
     onCollaborationReady: () => null,
+    onEditorUpdate: () => null,
     onCommentsListChange: () => null,
     onException: () => null,
 
@@ -229,6 +231,7 @@ export class SuperDoc extends EventEmitter {
     this.on('pdf-document-ready', this.config.onPdfDocumentReady);
     this.on('sidebar-toggle', this.config.onSidebarToggle);
     this.on('collaboration-ready', this.config.onCollaborationReady);
+    this.on('editor-update', this.config.onEditorUpdate);
     this.on('content-error', this.onContentError);
     this.on('exception', this.config.onException);
   }
