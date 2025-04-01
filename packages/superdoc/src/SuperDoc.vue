@@ -75,6 +75,9 @@ const isCollaborationReady = ref(false);
 const commentsLayer = ref(null);
 const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 101 });
 
+// Ai Layer
+const showAiLayer = ref(false);
+
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
 
@@ -142,6 +145,8 @@ const onEditorCreate = ({ editor }) => {
   proxy.$superdoc.broadcastEditorCreate(editor);
   proxy.$superdoc.log('[SuperDoc] Editor created', proxy.$superdoc.activeEditor);
   proxy.$superdoc.log('[SuperDoc] Page styles (pixels)', editor.getPageStyles());
+  // Initialize the ai layer
+  showAiLayer.value = true;
 };
 
 const onEditorDestroy = () => {
@@ -644,7 +649,7 @@ const handleAiWriterClose = () => {
         />
 
         <!-- AI Layer for temporary highlights -->
-        <AiLayer class="ai-layer" style="z-index: 4" ref="aiLayer" :editor="proxy.$superdoc.activeEditor" />
+        <AiLayer v-if="showAiLayer" class="ai-layer" style="z-index: 4" ref="aiLayer" :editor="proxy.$superdoc.activeEditor" />
 
         <div class="superdoc__sub-document sub-document" v-for="doc in documents" :key="doc.id">
           <!-- PDF renderer -->
