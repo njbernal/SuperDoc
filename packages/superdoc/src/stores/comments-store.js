@@ -130,18 +130,22 @@ export const useCommentsStore = defineStore('comments', () => {
       }
     });
     
-    // If this is a new tracked change, add it to our comments
     if (event === 'add') {
+      // If this is a new tracked change, add it to our comments
       addComment({ superdoc, comment });
-    }
-    
-    // If we have an update event, simply update the composable comment
-    else if (event === 'update') {
+    } else if (event === 'update') {
+      // If we have an update event, simply update the composable comment
       const existingTrackedChange = commentsList.value.find(
         (comment) => comment.commentId === changeId
       );
       if (!existingTrackedChange) return;
+
       existingTrackedChange.trackedChangeText = trackedChangeText;
+
+      if (deletedText) {
+        existingTrackedChange.deletedText = deletedText;
+      }
+
       const emitData = {
         type: COMMENT_EVENTS.UPDATE,
         comment: existingTrackedChange.getValues(),
@@ -474,6 +478,7 @@ export const useCommentsStore = defineStore('comments', () => {
         trackedChange: comment.trackedChange || false,
         trackedChangeText: comment.trackedChangeText,
         trackedChangeType: comment.trackedChangeType,
+        deletedText: comment.trackedDeletedText,
       });
 
       addComment({ superdoc, comment: newComment });
