@@ -157,7 +157,15 @@ const handleTextChunk = (text) => {
 
     // Update the document with only the new content
     if (newContent) {
-      props.editor.commands.insertContent(newContent);
+      // Wrap the content in a span with our animation class
+      const wrappedContent = {
+        type: 'text',
+        marks: [{
+          type: 'aiAnimationMark',
+        }],
+        text: newContent
+      };
+      props.editor.commands.insertContent(wrappedContent);
       previousText.value = textStr;
       // Hide the AI Writer after the first chunk is received
       props.handleClose();
@@ -165,6 +173,15 @@ const handleTextChunk = (text) => {
   } catch (error) {
     console.error('Error handling text chunk:', error);
   }
+};
+
+// Handler for when the stream is done
+const handleDone = () => {
+  // If we are done we can remove the animation mark
+  // We need to wait for the animation to finish before removing the mark
+  setTimeout(() => {
+    props.editor.commands.removeAiMark('aiAnimationMark');
+  }, 1000);
 };
 
 // Track text processing state
@@ -202,10 +219,10 @@ const handleSubmit = async () => {
     // Always use streaming approach
     if (props.selectedText) {
       // Use rewriteStreaming for selected text
-      await rewriteStreaming(props.selectedText, promptText.value, options, handleTextChunk);
+      await rewriteStreaming(props.selectedText, promptText.value, options, handleTextChunk, handleDone);
     } else {
       // Use writeStreaming for generating new text
-      await writeStreaming(promptText.value, options, handleTextChunk);
+      await writeStreaming(promptText.value, options, handleTextChunk, handleDone);
     }
 
     // If all is good, close the AI Writer

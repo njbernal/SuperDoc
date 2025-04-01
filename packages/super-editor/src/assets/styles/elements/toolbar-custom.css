@@ -34,3 +34,20 @@
 .toolbar-icon__icon--ai:hover::before {
   filter: brightness(1.3);
 } 
+
+
+
+@keyframes aiTextAppear {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-text-appear {
+  animation: aiTextAppear .4s ease-out forwards;
+}

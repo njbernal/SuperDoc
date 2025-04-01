@@ -1,5 +1,5 @@
 import { Mark, Attribute } from '@core/index.js';
-import { AiMarkName } from './ai-constants.js';
+import { AiMarkName, AiAnimationMarkName } from './ai-constants.js';
 
 export const AiMark = Mark.create({
   name: AiMarkName,
@@ -29,5 +29,37 @@ export const AiMark = Mark.create({
 
   renderDOM({ htmlAttributes }) {
     return [AiMarkName, Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
+  },
+}); 
+
+export const AiAnimationMark = Mark.create({
+  name: AiAnimationMarkName,
+
+  group: 'ai',
+
+  inclusive: false,
+
+
+  addOptions() {
+    return {
+      htmlAttributes: { class: 'ai-text-appear' },
+    };
+  },
+
+  addAttributes() {
+    return {
+      id: {
+        default: null,
+        rendered: false,
+      }
+    };
+  },
+
+  parseDOM() {
+    return [{ tag: AiAnimationMarkName }];
+  },
+
+  renderDOM({ htmlAttributes }) {
+    return [AiAnimationMarkName, Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 }); 

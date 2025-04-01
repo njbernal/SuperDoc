@@ -29,18 +29,24 @@ export const AiPlugin = Extension.create({
         return true;
       },
 
-      removeAiMark: () => ({ tr, dispatch, state }) => {
+      /**
+       * Remove all AI marks from the document
+       * @param {String} markName - The name of the mark to remove - defaults to AiMarkName
+       * Can also be used to remove the ai animation mark after streams are complete
+       * @returns {Boolean} - True if the mark was removed, false otherwise
+       */
+      removeAiMark: (markName = AiMarkName) => ({ tr, dispatch, state }) => {
         // Loop through the document to find and remove all AI marks
         const { doc } = state;
         let markFound = false;
 
         doc.descendants((node, pos) => {
           const { marks = [] } = node;
-          const aiMark = marks.find((mark) => mark.type.name === AiMarkName);
+          const aiMark = marks.find((mark) => mark.type.name === markName);
 
           if (aiMark) {
             markFound = true;
-            tr.removeMark(pos, pos + node.nodeSize, state.schema.marks[AiMarkName]);
+            tr.removeMark(pos, pos + node.nodeSize, state.schema.marks[markName]);
           }
         });
 

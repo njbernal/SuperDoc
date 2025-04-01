@@ -73,7 +73,7 @@ async function baseInsightsFetch(payload, options = {}) {
  * @param {function} onChunk - Callback for each text chunk
  * @returns {Promise<string>} - The complete generated text
  */
-async function processStream(stream, onChunk) {
+async function processStream(stream, onChunk, onDone) {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let result = '';
@@ -83,7 +83,12 @@ async function processStream(stream, onChunk) {
     while (true) {
       const { done, value } = await reader.read();
 
-      if (done) break;
+      if (done) {
+        if (typeof onDone === 'function') {
+          onDone();
+        }
+        break;
+      }
 
       // Decode the chunk
       const chunk = decoder.decode(value, { stream: true });
@@ -165,7 +170,7 @@ async function returnNonStreamingJson(response) {
  * @param {function} onChunk - Callback for each text chunk
  * @returns {Promise<string>} - The complete generated text
  */
-export async function writeStreaming(prompt, options = {}, onChunk) {
+export async function writeStreaming(prompt, options = {}, onChunk, onDone) {
   if (!prompt) {
     throw new Error('Prompt is required for text generation');
   }
@@ -191,7 +196,7 @@ export async function writeStreaming(prompt, options = {}, onChunk) {
   const response = await baseInsightsFetch(payload, options.config || {});
 
   if (!response.body) return '';
-  return await processStream(response.body, onChunk);
+  return await processStream(response.body, onChunk, onDone);
 }
 
 /**
@@ -238,7 +243,7 @@ export async function write(prompt, options = {}) {
  * @param {function} onChunk - Callback for each text chunk
  * @returns {Promise<string>} - The complete rewritten text
  */
-export async function rewriteStreaming(text, prompt = '', options = {}, onChunk) {
+export async function rewriteStreaming(text, prompt = '', options = {}, onChunk, onDone) {
   if (!text) {
     throw new Error('Text is required for rewriting');
   }
@@ -263,7 +268,7 @@ export async function rewriteStreaming(text, prompt = '', options = {}, onChunk)
 
   if (!response.body) return '';
 
-  return await processStream(response.body, onChunk);
+  return await processStream(response.body, onChunk, onDone);
 }
 
 /**
