@@ -39,7 +39,7 @@ export function wrappingInputRule(config) {
       }
       if (config.keepAttributes) {
         /** If the nodeType is `bulletList` or `orderedList` set the `nodeType` as `listItem` */
-        const nodeType = config.type.name === 'bulletList' || config.type.name === 'orderedList' ? 'listItem' : 'taskList';
+        const nodeType = config.type.name === 'bulletList' || config.type.name === 'orderedList' ? 'listItem' : config.type.name;
         
         chain().updateAttributes(nodeType, attributes).run();
       }
