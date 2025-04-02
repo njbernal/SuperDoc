@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { readFile } from 'fs/promises';
 import { Editor } from '@core/Editor.js';
-import { getRichTextExtensions } from '@harbour-enterprises/super-editor';
+import { getRichTextExtensions } from '../../../index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import { exportSchemaToJson } from '@converter/exporter';
 import { annotationsBodyNode, annotationsNodeContent } from '../../data/annotations_doc_content.js';
