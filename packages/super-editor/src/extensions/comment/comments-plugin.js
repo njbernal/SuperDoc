@@ -306,12 +306,25 @@ const updatePosition = ({
   currentBounds,
   node,
 }) => {
+  let bounds = {};
+  
+  if (currentBounds instanceof DOMRect) {
+    bounds = {
+      top: currentBounds.top,
+      bottom: currentBounds.bottom,
+      left: currentBounds.left,
+      right: currentBounds.right,
+    };
+  } else {
+    bounds =  { ...currentBounds };
+  }
+
   if (!allCommentPositions[threadId]) {
     allCommentPositions[threadId] = {
       threadId,
       start: pos,
       end: pos + node.nodeSize,
-      bounds: { ...currentBounds },
+      bounds,
     }
   } else {
     // Adjust the positional indices
