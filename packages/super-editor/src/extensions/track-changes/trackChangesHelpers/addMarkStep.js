@@ -5,6 +5,7 @@ import { TrackDeleteMarkName, TrackFormatMarkName } from '../constants.js';
 import { v4 as uuidv4 } from 'uuid';
 import { objectIncludes } from '@core/utilities/objectIncludes.js';
 import { TrackChangesBasePluginKey } from '../plugins/trackChangesBasePlugin.js';
+import { CommentsPluginKey } from '../../comment/comments-plugin.js';
 
 /**
  * Add mark step.
@@ -97,6 +98,7 @@ export const addMarkStep = ({ state, tr, step, newTr, map, doc, user, date }) =>
         meta.step = step;
 
         newTr.setMeta(TrackChangesBasePluginKey, meta);
+        newTr.setMeta(CommentsPluginKey, { type: 'force' });
       } else if (formatChangeMark) {
         newTr.removeMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), formatChangeMark);
       }

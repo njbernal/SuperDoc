@@ -4,6 +4,7 @@ import { Node } from 'prosemirror-model';
 import { v4 as uuidv4 } from 'uuid';
 import { TrackDeleteMarkName, TrackFormatMarkName } from '../constants.js';
 import { TrackChangesBasePluginKey } from '../plugins/trackChangesBasePlugin.js';
+import { CommentsPluginKey } from '../../comment/comments-plugin.js';
 
 /**
  * Remove mark step.
@@ -84,6 +85,7 @@ export const removeMarkStep = ({ state, tr, step, newTr, map, doc, user, date })
         meta.step = step;
 
         newTr.setMeta(TrackChangesBasePluginKey, meta);
+        newTr.setMeta(CommentsPluginKey, { type: 'force' });
       } else if (formatChangeMark) {
         newTr.removeMark(Math.max(step.from, pos), Math.min(step.to, pos + node.nodeSize), formatChangeMark);
       }
