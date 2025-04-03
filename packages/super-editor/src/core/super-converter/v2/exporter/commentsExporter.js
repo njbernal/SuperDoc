@@ -100,8 +100,9 @@ export const getCommentDefinition = (comment, commentId, allComments) => {
     'w15:paraId': comment.commentParaId,
     'custom:internalId': comment.commentId || comment.internalId,
     'custom:trackedChange': comment.trackedChange,
-    'custom:trackedChangeText': comment.trackedChangeText,
+    'custom:trackedChangeText': comment.trackedChangeText || null,
     'custom:trackedChangeType': comment.trackedChangeType,
+    'custom:trackedDeletedText': comment.deletedText || null,
   };
 
   // Add the w15:paraIdParent attribute if the comment has a parent
@@ -173,6 +174,7 @@ export const updateCommentsXml = (commentDefs = [], commentsXml) => {
       'custom:trackedChange': commentDef.attributes['custom:trackedChange'],
       'custom:trackedChangeText': commentDef.attributes['custom:trackedChangeText'],
       'custom:trackedChangeType': commentDef.attributes['custom:trackedChangeType'],
+      'custom:trackedDeletedText': commentDef.attributes['custom:trackedDeletedText'],
       'xmlns:custom': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
     };
   });

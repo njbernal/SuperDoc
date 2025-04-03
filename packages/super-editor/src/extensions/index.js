@@ -59,6 +59,7 @@ import { trackChangesHelpers } from './track-changes/index.js';
 const getRichTextExtensions = () => {
   return [
     Bold,
+    BulletList,
     Color,
     Document,
     FontFamily,
@@ -66,8 +67,10 @@ const getRichTextExtensions = () => {
     History,
     Heading,
     Italic,
+    ListItem,
     LineHeight,
     Link,
+    OrderedList,
     Paragraph,
     LineBreak,
     HardBreak,

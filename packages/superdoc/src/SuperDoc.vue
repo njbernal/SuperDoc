@@ -161,6 +161,10 @@ const onEditorDocumentLocked = ({ editor, isLocked, lockedBy }) => {
   proxy.$superdoc.lockSuperdoc(isLocked, lockedBy);
 };
 
+const onEditorUpdate = ({editor}) => {
+  proxy.$superdoc.emit('editor-update', { editor })
+}
+
 const onEditorSelectionChange = ({ editor, transaction }) => {
   if (skipSelectionUpdate.value) {
     // When comment is added selection will be equal to comment text
@@ -250,6 +254,7 @@ const editorOptions = (doc) => {
     onDestroy: onEditorDestroy,
     onFocus: onEditorFocus,
     onDocumentLocked: onEditorDocumentLocked,
+    onUpdate: onEditorUpdate,
     onSelectionUpdate: onEditorSelectionChange,
     onCollaborationReady: onEditorCollaborationReady,
     onContentError: onEditorContentError,
