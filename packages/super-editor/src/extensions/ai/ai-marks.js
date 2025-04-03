@@ -62,4 +62,4 @@ export const AiAnimationMark = Mark.create({
   renderDOM({ htmlAttributes }) {
     return [AiAnimationMarkName, Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
-}); 
+});

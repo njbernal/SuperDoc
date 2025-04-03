@@ -124,4 +124,4 @@ const processAiHighlights = (editor, doc, highlightColor) => {
   });
 
   return { decorations };
-}; 
+};

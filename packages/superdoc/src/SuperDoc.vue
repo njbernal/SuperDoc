@@ -69,7 +69,6 @@ commentsStore.proxy = proxy;
 
 // Refs
 const layers = ref(null);
-const isCollaborationReady = ref(false);
 
 // Comments layer
 const commentsLayer = ref(null);
@@ -699,14 +698,12 @@ const handleAiWriterClose = () => {
       />
 
       <div class="floating-comments">
-        <template v-if="hasInitializedLocations && getFloatingComments.length > 0">
-          <FloatingComments
-            v-for="doc in documentsWithConverations"
-            :key="doc.id"
-            :parent="layers"
-            :current-document="doc"
-          />
-        </template>
+        <FloatingComments
+          v-if="hasInitializedLocations && getFloatingComments.length > 0"
+          v-for="doc in documentsWithConverations"
+          :parent="layers"
+          :current-document="doc"
+        />
       </div>
     </div>
 
