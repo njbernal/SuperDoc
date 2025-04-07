@@ -62,7 +62,7 @@ const {
   editorCommentPositions,
   hasInitializedLocations,
 } = storeToRefs(commentsStore);
-const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
+const { showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -82,7 +82,6 @@ const handleDocumentReady = (documentId, container) => {
   doc.container = container;
   if (areDocumentsReady.value) {
     if (!proxy.$superdoc.config.collaboration) isReady.value = true;
-    nextTick(() => initialCheck());
   }
 
   isFloatingCommentsReady.value = true;
