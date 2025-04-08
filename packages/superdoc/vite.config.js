@@ -74,9 +74,7 @@ export default defineConfig(({ mode, command}) => {
       cssCodeSplit: false,
       lib: {
         entry: "src/index.js",
-        formats: ['es', 'cjs'],
         name: "SuperDoc",
-        fileName: (format) => `superdoc.${format}.js`
       },
       minify: false,
       sourcemap: true,
