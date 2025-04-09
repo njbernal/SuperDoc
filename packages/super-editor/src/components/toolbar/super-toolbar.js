@@ -15,13 +15,60 @@ import { isInTable } from '@helpers/isInTable.js';
 
 export class SuperToolbar extends EventEmitter {
   config = {
-    element: null,
+    selector: null,
     toolbarGroups: ['left', 'center', 'right'],
     role: 'editor',
     pagination: false,
     icons: { ...toolbarIcons },
     mode: 'docx',
+    excludeItems: [],
   };
+
+  constructor(config) {
+    super();
+
+    this.config = { ...this.config, ...config };
+    this.toolbarItems = [];
+    this.overflowItems = [];
+    this.documentMode = config.documentMode || 'editing';
+    this.isDev = config.isDev || false;
+    this.superdoc = config.superdoc;
+    this.role = config.role || 'editor';
+    
+    this.config.icons = {
+      ...toolbarIcons,
+      ...config.icons,
+    };
+
+    // Move legacy 'element' to 'selector'
+    if (!this.config.selector && this.config.element) this.config.selector = this.config.element;
+    this.#initToolbarGroups();
+
+    this.#makeToolbarItems(this, this.config.icons, config.isDev);
+
+    let el = null;
+    if (this.config.selector) {
+      el = document.getElementById(this.config.selector);
+      if (!el) {
+        console.warn(`[super-toolbar 🎨] Element not found: ${this.config.selector}`);
+        return;
+      }
+    }
+
+    this.app = createApp(Toolbar);
+    this.app.directive('click-outside', vClickOutside);
+    this.app.config.globalProperties.$toolbar = this;
+    if (el) this.toolbar = this.app.mount(el);
+    this.activeEditor = config.editor || null;
+    this.updateToolbarState();
+  }
+
+  #initToolbarGroups() {
+    // If groups is configured, override toolbarGroups
+    if (this.config.groups && !Array.isArray(this.config.groups) && Object.keys(this.config.groups).length) {
+      this.config.toolbarGroups = Object.keys(this.config.groups);
+    }
+  }
 
   #interceptedCommands = {
     setZoom: ({ item, argument }) => {
@@ -192,41 +239,6 @@ export class SuperToolbar extends EventEmitter {
     },
   };
 
-  constructor(config) {
-    super();
-
-    this.config = { ...this.config, ...config };
-    this.toolbarItems = [];
-    this.overflowItems = [];
-    this.documentMode = config.documentMode || 'editing';
-    this.isDev = config.isDev || false;
-    this.superdoc = config.superdoc;
-    this.role = config.role || 'editor';
-    
-    this.config.icons = {
-      ...toolbarIcons,
-      ...config.icons,
-    };
-
-    this.#makeToolbarItems(this, this.config.icons, config.isDev);
-
-    let el = null;
-    if (this.config.element) {
-      el = document.getElementById(this.config.element);
-      if (!el) {
-        console.warn(`[super-toolbar 🎨] Element not found: ${this.config.element}`);
-        return;
-      }
-    }
-
-    this.app = createApp(Toolbar);
-    this.app.directive('click-outside', vClickOutside);
-    this.app.config.globalProperties.$toolbar = this;
-    if (el) this.toolbar = this.app.mount(el);
-    this.activeEditor = config.editor || null;
-    this.updateToolbarState();
-  }
-
   log(...args) {
     console.debug('[🎨 super-toolbar]', ...args);
   }
@@ -253,8 +265,16 @@ export class SuperToolbar extends EventEmitter {
   #makeToolbarItems(superToolbar, icons, isDev = false) {
     const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar
     const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, documentWidth, this.role, icons);
-    this.toolbarItems = defaultItems;
-    this.overflowItems = overflowItems;
+
+    let allConfigItems = defaultItems.map((item) => item.name.value);
+    if (this.config.groups) allConfigItems = Object.values(this.config.groups).flatMap((item) => item);
+    
+    const filteredItems = defaultItems
+      .filter((item) => allConfigItems.includes(item.name.value))
+      .filter((item) => !this.config.excludeItems.includes(item.name.value))
+  
+    this.toolbarItems = filteredItems;
+    this.overflowItems = overflowItems.filter((item) => allConfigItems.includes(item.name.value));
   }
 
   #initDefaultFonts() {
