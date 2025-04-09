@@ -208,3 +208,37 @@ You can get a list of currently available commands from ```editor.commands```
 - See [Integration](/integration/) for framework-specific integration guides
 - Check out [Resources](/resources/) for examples, FAQ, and community resources
 - Learn more about [Getting Started](/) for basic concepts and setup
+
+## SuperDoc Toolbar {#superdoc-toolbar}
+
+The **SuperDoc** will render into a DOM element of your choosing, allowing for full control of placement and styling over the toolbar.
+By default, we render a toolbar with all available buttons. You can customize this further by adding a `toolbar` object to the `modules` config in the **SuperDoc configuration** object.
+
+## Customization
+
+You can customize the toolbar configuration via the **SuperDoc config** object.
+
+```
+const config = {
+  // ... your SuperDoc config
+  modules: {
+    toolbar: {
+      selector: 'superdoc-toolbar', // The ID of the DOM element you want to render the toolbar into
+
+      toolbarGroups: ['left', 'center', 'right'],
+
+      // Optional: Specify what toolbar buttons to render. Overrides toolbarGroups.
+      groups: {
+        center: ['bold', 'italic'],
+      },
+
+      // Optional: Instead of specifying all the buttons you want, specify which ones to exclude
+      excludeItems: ['bold', italic'], // Will exclude these from the standard toolbar
+
+    }
+  }
+}
+```
+
+### Default toolbar buttons
+See all buttons in defaultItems.js
