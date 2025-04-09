@@ -181,6 +181,9 @@ export class SuperDoc extends EventEmitter {
     this.activeEditor = null;
     this.comments = [];
 
+    // If a toolbar element is provided, render a toolbar
+    this.#addToolbar(this);
+
     this.app.mount(this.config.selector);
 
     // Required editors
@@ -188,9 +191,6 @@ export class SuperDoc extends EventEmitter {
 
     this.isLocked = this.config.isLocked || false;
     this.lockedBy = this.config.lockedBy || null;
-
-    // If a toolbar element is provided, render a toolbar
-    this.#addToolbar(this);
   }
 
   get requiredNumberOfEditors() {
