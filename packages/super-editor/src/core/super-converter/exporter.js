@@ -627,8 +627,8 @@ function flattenContent(content) {
   function recursiveFlatten(items, level = 0) {
     if (!items || !items.length) return;
     items.forEach((item) => {
-      const subList = item.content.filter((c) => c.type === 'bulletList' || c.type === 'orderedList');
-      const notLists = item.content.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList');
+      const subList = item.content?.filter((c) => c.type === 'bulletList' || c.type === 'orderedList') || [];
+      const notLists = item.content?.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList') || [];
 
       const newItem = { ...item, content: notLists };
       newItem.level = level;
