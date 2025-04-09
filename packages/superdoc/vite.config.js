@@ -74,9 +74,7 @@ export default defineConfig(({ mode, command}) => {
       cssCodeSplit: false,
       lib: {
         entry: "src/index.js",
-        formats: ['es'],
         name: "SuperDoc",
-        fileName: (format) => `superdoc.${format}.js`
       },
       minify: false,
       sourcemap: true,
@@ -91,18 +89,34 @@ export default defineConfig(({ mode, command}) => {
           'pdfjs-dist',
           'vite-plugin-node-polyfills',
         ],
-        output: {
-          manualChunks: {
-            'vue': ['vue'],
-            'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
-            'jszip': ['jszip'],
-            'eventemitter3': ['eventemitter3'],
-            'uuid': ['uuid'],
-            'xml-js': ['xml-js'],
+        output: [
+          {
+            format: 'es',
+            entryFileNames: '[name].es.js',
+            chunkFileNames: 'chunks/[name]-[hash].es.js',
+            manualChunks: {
+              'vue': ['vue'],
+              'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
+              'jszip': ['jszip'],
+              'eventemitter3': ['eventemitter3'],
+              'uuid': ['uuid'],
+              'xml-js': ['xml-js'],
+            }
           },
-          entryFileNames: '[name].es.js',
-          chunkFileNames: 'chunks/[name]-[hash].js'
-        },
+          {
+            format: 'cjs',
+            entryFileNames: '[name].cjs',
+            chunkFileNames: 'chunks/[name]-[hash].cjs',
+            manualChunks: {
+              'vue': ['vue'],
+              'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
+              'jszip': ['jszip'],
+              'eventemitter3': ['eventemitter3'],
+              'uuid': ['uuid'],
+              'xml-js': ['xml-js'],
+            }
+          }
+        ],        
       }
     },
     optimizeDeps: {

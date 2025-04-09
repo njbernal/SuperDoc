@@ -170,7 +170,7 @@ export const CommentsPlugin = Extension.create({
 
           // Check for changes in the actively selected comment
           const trChangedActiveComment = meta?.type === 'setActiveComment';
-        if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
+          if ((!tr.docChanged && tr.selectionSet) || trChangedActiveComment) {
             const { selection } = tr;
             let currentActiveThread = getActiveCommentId(newEditorState.doc, selection);
             if (trChangedActiveComment) currentActiveThread = meta.activeThreadId;
@@ -212,7 +212,7 @@ export const CommentsPlugin = Extension.create({
             const { state } = view
             const { doc, tr } = state
 
-            if (prevDoc && prevDoc.eq(doc)) shouldUpdate = true;
+            if (prevDoc && !prevDoc.eq(doc)) shouldUpdate = true;
             if (!shouldUpdate) return;
             prevDoc = doc;
             shouldUpdate = false;
@@ -254,10 +254,15 @@ export const CommentsPlugin = Extension.create({
                 decorations.push(deco)
               });
 
-              const trackedChangeNode = getTrackedChangeNode(node);
-              if (trackedChangeNode) {
+              const trackedChangeMark = findTrackedMark({ 
+                doc,
+                from: pos,
+                to: pos + node.nodeSize,
+              });
+
+              if (trackedChangeMark) {
                 const currentBounds = view.coordsAtPos(pos);
-                const { id } = trackedChangeNode.attrs;
+                const { id } = trackedChangeMark.mark.attrs;
                 updatePosition({
                   allCommentPositions,
                   threadId: id,
@@ -355,9 +360,14 @@ const getActiveCommentId = (doc, selection) => {
   if (!nodeAtPos) return;
 
   // If we have a tracked change, we can return it right away
-  const trackedChangeNode = getTrackedChangeNode(nodeAtPos);
-  if (trackedChangeNode) {
-    return trackedChangeNode.attrs.id;
+  const trackedChangeMark = findTrackedMark({
+    doc,
+    from: $from.pos,
+    to: $to.pos,
+  });
+
+  if (trackedChangeMark) {
+    return trackedChangeMark.mark.attrs.id;
   }
 
   // Otherwise, we need to check for comment nodes
@@ -412,19 +422,34 @@ const getActiveCommentId = (doc, selection) => {
   return closestCommentMark?.attrs?.commentId || closestCommentMark?.attrs?.importedId;
 };
 
+const findTrackedMark = ({ 
+  doc,
+  from, 
+  to,
+  offset = 1, // To get non-inclusive marks. 
+}) => {
+  const startPos = Math.max(from - offset, 0);
+  const endPos = Math.min(to + offset, doc.content.size);
 
-/**
- * Check if this node is a tracked changes node
- * @param {Node} node The node to check
- * @returns {Node | null} Either a tracked change node (insert, delete) or null
- */
-const getTrackedChangeNode = (node) => {
-  if (!node) return;
-  const nodeMarks = node.marks;
-  const trackedInsertMark = nodeMarks?.find((mark) => mark.type.name === TrackInsertMarkName);
-  const trackedDeleteMark = nodeMarks?.find((mark) => mark.type.name === TrackDeleteMarkName);
-  const trackedFormatMark = nodeMarks?.find((mark) => mark.type.name === TrackFormatMarkName);
-  return trackedInsertMark || trackedDeleteMark || trackedFormatMark;
+  let markFound;
+
+  doc.nodesBetween(startPos, endPos, (node, pos) => {
+    if (!node || node?.nodeSize === undefined) {
+      return;
+    }
+
+    const mark = node.marks.find((mark) => TRACK_CHANGE_MARKS.includes(mark.type.name));
+
+    if (mark && !markFound) {
+      markFound = {
+        from: pos,
+        to: pos + node.nodeSize,
+        mark,
+      };
+    }
+  });
+
+  return markFound;
 };
 
 const handleTrackedChangeTransaction = (trackedChangeMeta, trackedChanges, newEditorState, editor) => {

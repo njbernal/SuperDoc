@@ -50,6 +50,9 @@ const generallyAllowed = computed(() => {
 const allowResolve = computed(() => {
   if (!generallyAllowed.value) return false;
 
+  // Do not allow child comments to resolve
+  if (props.comment.parentCommentId) return false;
+
   if (isOwnComment) return isAllowed(PERMISSIONS.RESOLVE_OWN, role, isInternal);
   else return isAllowed(PERMISSIONS.RESOLVE_OTHER, role, isInternal);
 });

@@ -118,6 +118,8 @@ export class SuperDoc extends EventEmitter {
     // telemetry config
     telemetry: null,
 
+    pdfViewer: {},
+
     // Events
     onEditorBeforeCreate: () => null,
     onEditorCreate: () => null,
@@ -587,12 +589,16 @@ export class SuperDoc extends EventEmitter {
   }
 
   destroy() {
-    if (!this.app) return; 
+    if (!this.app) {
+      return;
+    }
+
     this.log('[superdoc] Unmounting app');
 
-    this.config.socket.cancelWebsocketRetry();
-    this.config.socket.disconnect();
-    this.config.socket.destroy();
+    this.config.socket?.cancelWebsocketRetry();
+    this.config.socket?.disconnect();
+    this.config.socket?.destroy();
+
     this.ydoc?.destroy();
     this.provider?.disconnect();
     this.provider?.destroy();
@@ -604,7 +610,7 @@ export class SuperDoc extends EventEmitter {
       };
 
       // Destroy the ydoc
-      doc.ydoc.destroy();
+      doc.ydoc?.destroy();
     });
 
     this.superdocStore.reset();

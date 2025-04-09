@@ -63,7 +63,7 @@ const {
   editorCommentPositions,
   hasInitializedLocations,
 } = storeToRefs(commentsStore);
-const { initialCheck, showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
+const { showAddComment, handleEditorLocationsUpdate, handleTrackedChangeUpdate } = commentsStore;
 const { proxy } = getCurrentInstance();
 commentsStore.proxy = proxy;
 
@@ -90,7 +90,6 @@ const handleDocumentReady = (documentId, container) => {
   doc.container = container;
   if (areDocumentsReady.value) {
     if (!proxy.$superdoc.config.collaboration) isReady.value = true;
-    nextTick(() => initialCheck());
   }
   proxy.$superdoc.broadcastPdfDocumentReady();
 };
@@ -723,6 +722,14 @@ const handleAiWriterClose = () => {
     </div>
   </div>
 </template>
+
+<style>
+.superdoc .super-editor {
+  border-radius: 8px;
+  border: 1px solid #d3d3d3;
+  box-shadow:0 0 5px hsla( 0,0%,0%,.05);
+}
+</style>
 
 <style scoped>
 .superdoc {

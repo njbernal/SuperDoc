@@ -6,6 +6,7 @@ import { markDeletion } from './markDeletion.js';
 import { findMark } from '@core/helpers/index.js';
 import { TrackDeleteMarkName } from '../constants.js';
 import { TrackChangesBasePluginKey } from '../plugins/index.js';
+import { CommentsPluginKey } from '../../comment/comments-plugin.js';
 
 /**
  * Replace step.
@@ -88,4 +89,5 @@ export const replaceStep = ({ state, tr, step, newTr, map, doc, user, date, orig
 
   // Add meta to the new transaction.
   newTr.setMeta(TrackChangesBasePluginKey, meta);
+  newTr.setMeta(CommentsPluginKey, { type: 'force' });
 };
