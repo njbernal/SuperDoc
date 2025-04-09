@@ -351,9 +351,6 @@ export class SuperDoc extends EventEmitter {
   }
 
   #addToolbar() {
-    // Only init if configured
-    if (!this.config.toolbar && !this.config.modules?.toolbar) return;
-
     const moduleConfig = this.config.modules?.toolbar || {};
     this.toolbarElement = this.config.modules?.toolbar?.selector || this.config.toolbar;
     this.toolbar = null;
