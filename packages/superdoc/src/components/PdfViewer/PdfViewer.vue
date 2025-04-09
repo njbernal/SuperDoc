@@ -3,6 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
 import workerSrc from './worker.js?raw';
 import { range } from './helpers/range.js';
+import { NSpin } from 'naive-ui';
 
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, ref, getCurrentInstance } from 'vue';
@@ -18,6 +19,7 @@ const { proxy } = getCurrentInstance();
 const { activeZoom } = storeToRefs(superdocStore);
 const totalPages = ref(null);
 const viewer = ref(null);
+const isReady = ref(false);
 
 const pdfViewerConfig = proxy.$superdoc.config.pdfViewer;
 const textLayerMode = pdfViewerConfig.textLayerMode ?? 0;
@@ -79,15 +81,16 @@ async function _renderPages(pdfDocument) {
     const firstPage = 1;
     const pdfjsPages = await getPdfjsPages(pdfDocument, firstPage, numPages);
 
+    const pageContainers = [];
     for (const [index, page] of pdfjsPages.entries()) {
       const container = document.createElement('div');
       container.className = 'pdf-page';
       container.dataset.pageNumber = index + 1;
       container.id = `${id}-page-${index + 1}`;
-      viewer.value.appendChild(container);
+
+      pageContainers.push(container);
 
       const { width, height } = getOriginalPageSize(page);
-      
       const scale = 1;
       const eventBus = new pdfjsViewer.EventBus();
       const pdfPageView = new pdfjsViewer.PDFPageView({
@@ -111,6 +114,9 @@ async function _renderPages(pdfDocument) {
       emit('page-loaded', id, index, containerBounds);
     }
 
+    viewer.value.append(...pageContainers);
+
+    isReady.value = true;
     emit('ready', id, viewer);
   } catch (error) {
     console.error('Error loading PDF:', error);
@@ -208,9 +214,12 @@ onUnmounted(() => {
 <template>
   <div class="superdoc-pdf-viewer-container" @mousedown="handlePdfClick" @mouseup="handleMouseUp">
     <div class="superdoc-pdf-viewer" ref="viewer" id="viewerId"></div>
+
+    <div v-if="!isReady" class="superdoc-pdf-viewer__loader">
+      <n-spin class="superdoc-pdf-viewer__spin" size="large" />
+    </div>
   </div>
 </template>
-
 
 <style lang="postcss" scoped>
 .superdoc-pdf-viewer-container {
@@ -222,6 +231,20 @@ onUnmounted(() => {
   flex-direction: column;
   width: 100%;
   position: relative;
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 150px;
+    min-height: 150px;
+    
+    :deep(.n-spin) {
+      --n-color: #1354ff !important;
+      --n-text-color: #1354ff !important;
+    }
+  }
 
   :deep(.pdf-page) {
     border-top: 1px solid #dfdfdf;
