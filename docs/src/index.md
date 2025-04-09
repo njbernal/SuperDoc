@@ -124,6 +124,11 @@ const config = {
       url: 'wss://your-collaboration-server.com', // Required: Path to your collaboration backend
       token: 'your-auth-token', // Required: Your auth token
     },
+    
+    // Toolbar config, overrides the 'toolbar' key, if provided, above
+    toolbar: {
+      selector: 'superdoc-toolbar',
+    },
 
     // More coming soon
   },
