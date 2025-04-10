@@ -2,6 +2,7 @@
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
 import * as pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs';
+
 import { range } from './helpers/range.js';
 import { NSpin } from 'naive-ui';
 
