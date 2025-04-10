@@ -199,6 +199,8 @@ const destroy = () => {
   pdfPageViews = [];
   pdfjsDocument = null;
   pdfjsLoadingTask = null;
+
+  URL.revokeObjectURL(workerUrl);
 };
 
 onMounted(async () => {
