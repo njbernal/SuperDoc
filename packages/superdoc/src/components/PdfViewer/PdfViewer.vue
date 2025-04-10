@@ -1,8 +1,7 @@
 <script setup>
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
-import * as pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs';
-
+import workerSrc from './worker.js?raw';
 import { range } from './helpers/range.js';
 import { NSpin } from 'naive-ui';
 
@@ -10,6 +9,9 @@ import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, ref, getCurrentInstance } from 'vue';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import useSelection from '@superdoc/helpers/use-selection';
+
+const workerUrl = URL.createObjectURL(new Blob([workerSrc], { type: 'text/javascript' }));
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const emit = defineEmits(['page-loaded', 'ready', 'selection-change', 'bypass-selection']);
 const superdocStore = useSuperdocStore();
@@ -43,13 +45,7 @@ const getOriginalPageSize = (page) => {
   return { width, height };
 };
 
-async function initPdfWorker() {
-  const workerUrl = URL.createObjectURL(new Blob([pdfWorkerSrc], { type: 'text/javascript' }));
-  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-}
-
 async function initPdfLayer(arrayBuffer) {
-  await initPdfWorker();
   const loadingTask = pdfjsLib.getDocument(arrayBuffer);
   const document = await loadingTask.promise;
   return { loadingTask, document };
