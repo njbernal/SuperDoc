@@ -67,6 +67,8 @@ export class SuperToolbar extends EventEmitter {
     // If groups is configured, override toolbarGroups
     if (this.config.groups && !Array.isArray(this.config.groups) && Object.keys(this.config.groups).length) {
       this.config.toolbarGroups = Object.keys(this.config.groups);
+    } else {
+      this.config.toolbarGroups = ['left', 'center', 'right'];
     }
   }
 
@@ -266,13 +268,16 @@ export class SuperToolbar extends EventEmitter {
     const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar
     const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, documentWidth, this.role, icons);
 
-    let allConfigItems = defaultItems.map((item) => item.name.value);
+    let allConfigItems = [
+      ...defaultItems.map((item) => item.name.value),
+      ...overflowItems.map((item) => item.name.value),
+    ];
     if (this.config.groups) allConfigItems = Object.values(this.config.groups).flatMap((item) => item);
     
     const filteredItems = defaultItems
       .filter((item) => allConfigItems.includes(item.name.value))
       .filter((item) => !this.config.excludeItems.includes(item.name.value))
-  
+
     this.toolbarItems = filteredItems;
     this.overflowItems = overflowItems.filter((item) => allConfigItems.includes(item.name.value));
   }
