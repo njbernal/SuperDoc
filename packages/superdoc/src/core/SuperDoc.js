@@ -101,6 +101,9 @@ export class SuperDoc extends EventEmitter {
     user: { name: null, email: null },
     users: [],
 
+    // If using for PDF, user needs to pass in their worker URL
+    pdfjsWorkerSrcUrl: null,
+
     modules: {}, // Optional: Modules to load
     title: 'SuperDoc',
     conversations: [],
