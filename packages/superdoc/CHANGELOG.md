@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.29...v0.8.30) (2025-04-10)
+
+
+### Reverts
+
+* Revert "Remove pdfjs from SuperDoc lib - expect as peer dependency only" ([2b4457a](https://github.com/Harbour-Enterprises/SuperDoc/commit/2b4457a4240df04220ae545257bc48444aeb5627))
+* Revert "Update locks" ([b413e93](https://github.com/Harbour-Enterprises/SuperDoc/commit/b413e93f49efd440e54a8c72c9c297c3ef626303))
+* Revert "Bump version" ([cb11b8e](https://github.com/Harbour-Enterprises/SuperDoc/commit/cb11b8e5c8df714857d158db362e5365c13ad98d))
+* Revert "Allow passing in pdfjs worker url from user" ([958b09d](https://github.com/Harbour-Enterprises/SuperDoc/commit/958b09d7b79fb94a3d0ae2ced4376e7a50117cce))
+* Revert "fix pdf viewer destroy" ([f52a153](https://github.com/Harbour-Enterprises/SuperDoc/commit/f52a153710f12735670a8f496c39b949785b63ea))
+
 ## [0.8.29](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.28...v0.8.29) (2025-04-10)
 
 ## [0.8.28](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.27...v0.8.28) (2025-04-10)
