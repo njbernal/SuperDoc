@@ -51,10 +51,6 @@ export default defineConfig(({ mode, command}) => {
           src: path.resolve(__dirname, '../super-editor/dist/*'),
           dest: 'dist/super-editor',
         },
-        { 
-          src: path.resolve(__dirname, '../../node_modules/pdfjs-dist/web/images/*'), 
-          dest: 'dist/images',
-        },
       ],
       hook: 'writeBundle'
     }),
@@ -86,8 +82,10 @@ export default defineConfig(({ mode, command}) => {
         external: [
           'yjs',
           '@hocuspocus/provider',
-          'pdfjs-dist',
           'vite-plugin-node-polyfills',
+          'pdfjs-dist/legacy/build/pdf.mjs',
+          'pdfjs-dist/web/pdf_viewer',
+          'pdfjs-dist/build/pdf.worker.min.mjs',
         ],
         output: [
           {
@@ -101,6 +99,7 @@ export default defineConfig(({ mode, command}) => {
               'eventemitter3': ['eventemitter3'],
               'uuid': ['uuid'],
               'xml-js': ['xml-js'],
+              '@harbour-enterprises/super-editor': ['@harbour-enterprises/super-editor'],
             }
           },
           {
@@ -120,7 +119,7 @@ export default defineConfig(({ mode, command}) => {
       }
     },
     optimizeDeps: {
-      include: ['pdfjs-dist', 'yjs', '@hocuspocus/provider'],
+      include: ['@hocuspocus/provider'],
       esbuildOptions: {
         target: 'es2020',
       },
