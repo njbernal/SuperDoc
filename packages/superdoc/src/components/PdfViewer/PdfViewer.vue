@@ -1,6 +1,7 @@
 <script setup>
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
+import * as pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import { range } from './helpers/range.js';
 import { NSpin } from 'naive-ui';
 
@@ -42,8 +43,8 @@ const getOriginalPageSize = (page) => {
 };
 
 async function initPdfWorker() {
-  if (!proxy?.$superdoc?.config?.pdfjsWorkerSrcUrl) return;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = proxy.$superdoc.config.pdfjsWorkerSrcUrl
+  const workerUrl = URL.createObjectURL(new Blob([pdfWorkerSrc], { type: 'text/javascript' }));
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 }
 
 async function initPdfLayer(arrayBuffer) {
