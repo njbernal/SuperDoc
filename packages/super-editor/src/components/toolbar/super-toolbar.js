@@ -349,7 +349,7 @@ export class SuperToolbar extends EventEmitter {
         } else {
           return item.activate();
         }
-      };
+      }
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
 
