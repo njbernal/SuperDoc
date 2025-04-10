@@ -72,8 +72,8 @@ export default defineConfig(({ mode, command}) => {
         entry: "src/index.js",
         name: "SuperDoc",
       },
-      minify: false,
-      sourcemap: true,
+      minify: true,
+      sourcemap: false,
       rollupOptions: {
         input: {
           'superdoc': 'src/index.js',

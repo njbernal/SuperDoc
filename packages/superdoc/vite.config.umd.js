@@ -35,6 +35,9 @@ export default defineConfig(({ mode, command}) => {
           '@hocuspocus/provider',
           'pdfjs-dist',
           'vite-plugin-node-polyfills',
+          'pdfjs-dist/legacy/build/pdf.mjs',
+          'pdfjs-dist/web/pdf_viewer',
+          'pdfjs-dist/build/pdf.worker.min.mjs',
         ],
         output: {
           globals: {
