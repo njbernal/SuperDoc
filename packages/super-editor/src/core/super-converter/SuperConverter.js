@@ -432,14 +432,11 @@ class SuperConverter {
     this.media = this.convertedXml.media;
     this.addedMedia = processedData;
   }
-
 }
 
 function storeSuperdocVersion(docx) {
   const customLocation = 'docProps/custom.xml';
-  if (!docx[customLocation]) {
-    docx[customLocation] = generateCustomXml();
-  };
+  if (!docx[customLocation]) docx[customLocation] = generateCustomXml();
 
   const customXml = docx[customLocation];
   const properties = customXml.elements.find((el) => el.name === 'Properties');
@@ -458,7 +455,7 @@ function storeSuperdocVersion(docx) {
     pid = cleanProperties.length ? Math.max(...elements.map(el => el.attributes.pid)) + 1 : 2;
   } catch (error) {};
 
-  cleanProperties.push(pid, generateSuperdocVersion());
+  cleanProperties.push(generateSuperdocVersion(pid));
   properties.elements = cleanProperties;
   return docx;
 };
