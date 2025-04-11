@@ -30,6 +30,14 @@ export const Paragraph = Node.create({
           return {};
         },
       },
+      id: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('id'),
+        renderDOM: (attributes) => {
+          if (!attributes.id) return {};
+          return { id: attributes.id };
+        },
+      },  
       indent: {
         renderDOM: ({ indent }) => {
           if (!indent) return {};
