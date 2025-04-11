@@ -66,10 +66,18 @@ const hooks = {
 
     // Let's insert our custom node into the document after the editor is ready
     editor.value?.activeEditor.commands.insertContent(`
-      <div data-node-type='customNode' data-id='some-id-123'>Custom Node Content</div>
+      <div data-node-type='customNode' id='some-id-123'>Custom Node Content</div>
     `);
 
+    // Now instead of using the generic insertContent, we can use our custom node command
+    editor.value.activeEditor.commands.insertCustomNode({
+      id: 'second-node-id',
+      content: 'Display this text!',
+    })
+
+    // Let's check our current HTML
     const html = editor.value?.activeEditor.getHTML();
+    console.debug('Editor HTML:', html);
   },
   onError: (error) => {
     emit('editor-error', error);
@@ -162,6 +170,7 @@ onUnmounted(() => {
   color: white;
   display: inline-block;
   padding: 2px 8px;
+  font-size: 12px;
 }
 .my-custom-node-default-class:hover {
   background-color: #0a3dff;

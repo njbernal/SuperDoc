@@ -31,16 +31,16 @@ export const myCustomNode = Extensions.Node.create({
     // Add custom node attributes here
     addAttributes() {
       return {
-        'data-id': {
+        id: {
           default: null,
 
           // The DOM attribute to be used for this node attribute
-          parseDOM: (elem) => elem.getAttribute('data-id'),
+          parseDOM: (elem) => elem.getAttribute('id'),
 
           // Tell the node how to render this attribute in the DOM
-          renderDOM: ({ 'data-id': id }) => {
+          renderDOM: ({ id }) => {
             if (!id) return {};
-            return { 'data-id': id };
+            return { id };
           },
         }
       };
@@ -57,4 +57,21 @@ export const myCustomNode = Extensions.Node.create({
     renderDOM({ htmlAttributes }) {
       return ['div', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
     },
+
+    // Add custom commands here
+    addCommands() {
+      return {
+        insertCustomNode: ({ content, id }) => ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { id },
+
+            // Our custom node only renders placeholder text, but in theory it can render any other editor node
+            content: [
+              { type: 'text', text: content || 'Default Content' },
+            ]
+          });
+        },
+      };
+    }
   });
