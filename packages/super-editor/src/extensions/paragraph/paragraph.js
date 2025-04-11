@@ -33,13 +33,9 @@ export const Paragraph = Node.create({
       extraAttrs: {
         default: {},
         parseHTML: (element) => {
-          const knownAttributes = ['spacing', 'indent', 'class'];
           const extra = {};
-          console.debug('--ELEMENT--', element);
           Array.from(element.attributes).forEach((attr) => {
-            if (!knownAttributes.includes(attr.name)) {
-              extra[attr.name] = attr.value;
-            }
+            extra[attr.name] = attr.value;
           });
           return extra;
         },
@@ -73,12 +69,9 @@ export const Paragraph = Node.create({
     return [{
       tag: 'p',
       getAttrs: (node) => {
-        const knownAttributes = ['spacing', 'indent', 'class'];
         let extra = {};
         Array.from(node.attributes).forEach((attr) => {
-          if (!knownAttributes.includes(attr.name)) {
-            extra[attr.name] = attr.value;
-          }
+          extra[attr.name] = attr.value;
         });
         return { extraAttrs: extra };
       },
