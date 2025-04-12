@@ -30,6 +30,19 @@ export const Paragraph = Node.create({
           return {};
         },
       },
+      extraAttrs: {
+        default: {},
+        parseHTML: (element) => {
+          const extra = {};
+          Array.from(element.attributes).forEach((attr) => {
+            extra[attr.name] = attr.value;
+          });
+          return extra;
+        },
+        renderDOM: (attributes) => {
+          return attributes.extraAttrs || {};
+        },
+      },
       indent: {
         renderDOM: ({ indent }) => {
           if (!indent) return {};
@@ -53,7 +66,16 @@ export const Paragraph = Node.create({
   },
 
   parseDOM() {
-    return [{ tag: 'p' }];
+    return [{
+      tag: 'p',
+      getAttrs: (node) => {
+        let extra = {};
+        Array.from(node.attributes).forEach((attr) => {
+          extra[attr.name] = attr.value;
+        });
+        return { extraAttrs: extra };
+      },
+    }];
   },
 
   renderDOM({ htmlAttributes }) {

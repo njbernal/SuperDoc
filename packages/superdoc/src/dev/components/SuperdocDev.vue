@@ -47,7 +47,7 @@ const init = async () => {
     superdocId: 'superdoc-dev',
     selector: '#superdoc',
     toolbar: 'toolbar',
-    // toolbarGroups: ['center'],
+    toolbarGroups: ['center'],
     role: userRole,
     documentMode: 'editing',
     toolbarGroups: ['left', 'center', 'right'],
@@ -77,6 +77,15 @@ const init = async () => {
         overflow: true,
         selector: 'comments-panel',
       },
+      toolbar: {
+        selector: 'toolbar',
+        toolbarGroups: ['left', 'center', 'right'],
+        // groups: {
+        //   center: ['bold'],
+        //   right: ['documentMode']
+        // },
+        excludeItems: [], // ['italic', 'bold'],
+      }
       // 'hrbr-fields': {},
 
       // To test this dev env with collaboration you must run a local collaboration server here.

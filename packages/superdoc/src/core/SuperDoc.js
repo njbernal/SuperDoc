@@ -176,9 +176,6 @@ export class SuperDoc extends EventEmitter {
     this.users = this.config.users || []; // All users who have access to this superdoc
     this.socket = null;
 
-    // Toolbar
-    this.toolbarElement = this.config.toolbar;
-    this.toolbar = null;
     this.isDev = this.config.isDev || false;
 
     this.activeEditor = null;
@@ -193,7 +190,7 @@ export class SuperDoc extends EventEmitter {
     this.lockedBy = this.config.lockedBy || null;
 
     // If a toolbar element is provided, render a toolbar
-    this.addToolbar(this);
+    this.#addToolbar(this);
   }
 
   get requiredNumberOfEditors() {
@@ -353,17 +350,22 @@ export class SuperDoc extends EventEmitter {
     });
   }
 
-  addToolbar() {
+  #addToolbar() {
+    const moduleConfig = this.config.modules?.toolbar || {};
+    this.toolbarElement = this.config.modules?.toolbar?.selector || this.config.toolbar;
+    this.toolbar = null;
+
     const config = {
-      element: this.toolbarElement || null,
+      selector: this.toolbarElement || null,
       isDev: this.isDev || false,
-      toolbarGroups: this.config.toolbarGroups,
+      toolbarGroups:  this.config.modules?.toolbar?.groups || this.config.toolbarGroups,
       role: this.config.role,
       pagination: this.config.pagination,
       icons: this.config.toolbarIcons,
       documentMode: this.config.documentMode,
       superdoc: this,
       aiApiKey: this.config.modules?.ai?.apiKey,
+      ...moduleConfig,
     };
 
     this.toolbar = new SuperToolbar(config);

@@ -1,6 +1,6 @@
 <template>
   <div class="document-editor">
-    <div :key="documentKey">
+    <div :key="documentKey" class="editor-container">
       <div id="superdoc-toolbar" class="toolbar"></div>
       <div id="superdoc" class="editor"></div>
     </div>
@@ -97,6 +97,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .document-editor {
   display: flex;
   flex-direction: column;
@@ -113,6 +118,7 @@ onUnmounted(() => {
 .editor {
   flex: 1 1 auto;
   overflow: auto;
+  margin-top: 10px;
   min-height: 400px; /* Ensure editor has minimum height */
 }
 </style>

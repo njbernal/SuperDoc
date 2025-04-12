@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.9.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.8...v0.9.9) (2025-04-11)
+
+## [0.9.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.7...v0.9.8) (2025-04-11)
+
+## [0.9.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.6...v0.9.7) (2025-04-11)
+
+## [0.9.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.5...v0.9.6) (2025-04-11)
+
+## [0.9.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.4...v0.9.5) (2025-04-11)
+
+## [0.9.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.9.1...v0.9.4) (2025-04-11)
+
+## [0.9.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.30...v0.9.1) (2025-04-10)
+
+## [0.8.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.29...v0.8.30) (2025-04-10)
+
+
+### Reverts
+
+* Revert "Remove pdfjs from SuperDoc lib - expect as peer dependency only" ([2b4457a](https://github.com/Harbour-Enterprises/SuperDoc/commit/2b4457a4240df04220ae545257bc48444aeb5627))
+* Revert "Update locks" ([b413e93](https://github.com/Harbour-Enterprises/SuperDoc/commit/b413e93f49efd440e54a8c72c9c297c3ef626303))
+* Revert "Bump version" ([cb11b8e](https://github.com/Harbour-Enterprises/SuperDoc/commit/cb11b8e5c8df714857d158db362e5365c13ad98d))
+* Revert "Allow passing in pdfjs worker url from user" ([958b09d](https://github.com/Harbour-Enterprises/SuperDoc/commit/958b09d7b79fb94a3d0ae2ced4376e7a50117cce))
+* Revert "fix pdf viewer destroy" ([f52a153](https://github.com/Harbour-Enterprises/SuperDoc/commit/f52a153710f12735670a8f496c39b949785b63ea))
+
+## [0.8.29](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.28...v0.8.29) (2025-04-10)
+
+## [0.8.28](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.27...v0.8.28) (2025-04-10)
+
+## [0.8.27](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.26...v0.8.27) (2025-04-10)
+
+## [0.8.26](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.25...v0.8.26) (2025-04-10)
+
+## [0.8.25](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.24...v0.8.25) (2025-04-10)
+
+## [0.8.24](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.23...v0.8.24) (2025-04-10)
+
+## [0.8.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.22...v0.8.23) (2025-04-09)
+
+## [0.8.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.21...v0.8.22) (2025-04-09)
+
+## [0.8.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.20...v0.8.21) (2025-04-09)
+
+## [0.8.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.19...v0.8.20) (2025-04-09)
+
+## [0.8.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.18...v0.8.19) (2025-04-09)
+
 ## [0.8.18](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.17...v0.8.18) (2025-04-08)
 
 ## [0.8.17](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.8.16...v0.8.17) (2025-04-08)

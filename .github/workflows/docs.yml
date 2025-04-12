@@ -31,6 +31,9 @@ jobs:
         working-directory: docs/
         run: npm run build
 
+      - name: Copy CNAME for custom domain
+        run: cp docs/CNAME docs/.vitepress/dist/CNAME
+
       - name: Deploy to GitHub Pages
         uses: crazy-max/ghaction-github-pages@v4
         with:
