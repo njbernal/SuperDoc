@@ -92,16 +92,9 @@ async function processStream(stream, onChunk, onDone) {
 
       // Decode the chunk
       const chunk = decoder.decode(value, { stream: true });
-      buffer += chunk;
 
-      // Try to extract content between ```json and ```
-      let extractedValue = getJsonBetweenFencesFromResponse(buffer);
-
-      if (extractedValue !== null) {
-        result = extractedValue;
-        if (typeof onChunk === 'function') {
-          onChunk(result);
-        }
+      if (typeof onChunk === 'function') {
+        onChunk(chunk);
       }
     }
 

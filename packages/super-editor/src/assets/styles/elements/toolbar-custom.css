@@ -49,5 +49,11 @@
 }
 
 .ai-text-appear {
-  animation: aiTextAppear .4s ease-out forwards;
+  display: inline;
+  opacity: 0;
+  animation: aiTextAppear .7s ease-out forwards;
+  animation-fill-mode: both;
+  will-change: opacity, transform;
+  /* Ensure each mark is treated as a separate animation context */
+  contain: content;
 }

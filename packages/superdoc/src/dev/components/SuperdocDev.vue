@@ -85,7 +85,7 @@ const init = async () => {
         //   right: ['documentMode']
         // },
         excludeItems: [], // ['italic', 'bold'],
-      }
+      },
       // 'hrbr-fields': {},
 
       // To test this dev env with collaboration you must run a local collaboration server here.

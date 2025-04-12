@@ -38,11 +38,12 @@ export const AiAnimationMark = Mark.create({
   group: 'ai',
 
   inclusive: false,
-
+  spanning: false,
+  excludes: AiAnimationMarkName,
 
   addOptions() {
     return {
-      htmlAttributes: { class: 'ai-text-appear' },
+      htmlAttributes: {},
     };
   },
 
@@ -51,6 +52,14 @@ export const AiAnimationMark = Mark.create({
       id: {
         default: null,
         rendered: false,
+      },
+      class: {
+        default: null,
+        rendered: true,
+      },
+      'data-mark-id': {
+        default: null,
+        rendered: true,
       }
     };
   },

@@ -130,46 +130,32 @@ const handleTextChunk = (text) => {
     }
 
     // If the text is null, undefined or empty, don't process it
-    if (text === null || text === undefined) {
+    if (text === null || text === undefined || text === '') {
       return;
     }
 
     // Convert to string in case it's not already a string
-    const textStr = String(text || '');
+    const textStr = String(text);
 
-    // Handle incremental updates with plaintext
-    // Only insert content that hasn't been inserted yet
-    let newContent = '';
+    // Wrap the content in a span with our animation class and unique ID
+    const wrappedContent = {
+      type: 'text',
+      marks: [{
+        type: 'aiAnimationMark',
+        attrs: { 
+          class: 'ai-text-appear',
+          'data-mark-id': `ai-animation-${Date.now()}`
+        }
+      }],
+      text: textStr
+    };
 
-    if (previousText.value.length === 0) {
-      // First chunk - insert everything
-      newContent = textStr;
-    } else {
-      // Subsequent chunks - only insert what's new
-      if (textStr.startsWith(previousText.value)) {
-        // If text is an extension of previous text
-        newContent = textStr.slice(previousText.value.length);
-      } else {
-        // If it's completely different (unlikely with streaming)
-        newContent = textStr;
-      }
-    }
+    // Insert the new content
+    props.editor.commands.insertContent(wrappedContent);
+    
+    // Hide the AI Writer after content is received
+    props.handleClose();
 
-    // Update the document with only the new content
-    if (newContent) {
-      // Wrap the content in a span with our animation class
-      const wrappedContent = {
-        type: 'text',
-        marks: [{
-          type: 'aiAnimationMark',
-        }],
-        text: newContent
-      };
-      props.editor.commands.insertContent(wrappedContent);
-      previousText.value = textStr;
-      // Hide the AI Writer after the first chunk is received
-      props.handleClose();
-    }
   } catch (error) {
     console.error('Error handling text chunk:', error);
   }
@@ -464,4 +450,5 @@ const handleInput = (event) => {
   justify-content: flex-end;
   align-items: center;
 }
+
 </style>
