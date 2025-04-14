@@ -167,7 +167,7 @@ function generateParagraphProperties(node) {
   const { styleId } = attrs;
   if (styleId) pPrElements.push({ name: 'w:pStyle', attributes: { 'w:val': styleId } });
 
-  const { spacing, indent, textAlign } = attrs;
+  const { spacing, indent, textAlign, textIndent } = attrs;
   if (spacing) {
     const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
 
@@ -185,7 +185,7 @@ function generateParagraphProperties(node) {
     };
     pPrElements.push(spacingElement);
   }
-
+  
   if (indent) {
     const { left, right, firstLine } = indent;
     const attributes = {};
@@ -193,9 +193,21 @@ function generateParagraphProperties(node) {
     if (right || right === 0) attributes['w:right'] = pixelsToTwips(right);
     if (firstLine || firstLine === 0) attributes['w:firstLine'] = pixelsToTwips(firstLine);
 
+    if (textIndent && !attributes['w:left']) {
+      attributes['w:left'] = inchesToTwips(textIndent);
+    }
+    
     const indentElement = {
       name: 'w:ind',
       attributes,
+    };
+    pPrElements.push(indentElement);
+  } else if (textIndent) {
+    const indentElement = {
+      name: 'w:ind',
+      attributes: { 
+        'w:left': inchesToTwips(textIndent), 
+      },
     };
     pPrElements.push(indentElement);
   }

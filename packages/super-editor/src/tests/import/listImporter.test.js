@@ -351,6 +351,7 @@ describe('custom nested list tests', () => {
                         'w:rsidR': '00F20DE4',
                         'w:rsidRDefault': '00F20DE4',
                         'w:rsidP': '00F20DE4',
+                        textAlign: 'both',
                         paragraphProperties: {
                           type: 'element',
                           name: 'w:pPr',
@@ -411,8 +412,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                       marks: [],
                     },
@@ -428,7 +428,6 @@ describe('custom nested list tests', () => {
                     textStyle: {
                       type: 'textStyle',
                       attrs: {
-                        textIndent: 'undefinedin',
                         textAlign: 'both',
                       },
                     },
@@ -450,6 +449,7 @@ describe('custom nested list tests', () => {
                         'w:rsidR': '00F20DE4',
                         'w:rsidRDefault': '007B64C8',
                         'w:rsidP': '00F20DE4',
+                        textAlign: 'both',
                         paragraphProperties: {
                           type: 'element',
                           name: 'w:pPr',
@@ -489,8 +489,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                     },
                     numId: '2',
@@ -507,6 +506,7 @@ describe('custom nested list tests', () => {
                     'w:rsidR': '00F20DE4',
                     'w:rsidRDefault': '007B64C8',
                     'w:rsidP': '00F20DE4',
+                    textAlign: 'both',
                     paragraphProperties: {
                       type: 'element',
                       name: 'w:pPr',
@@ -546,8 +546,7 @@ describe('custom nested list tests', () => {
                           },
                         },
                       ],
-                    },
-                    textIndent: 'undefinedin',
+                    }
                   },
                 },
               },
@@ -564,7 +563,6 @@ describe('custom nested list tests', () => {
             textStyle: {
               type: 'textStyle',
               attrs: {
-                textIndent: 'undefinedin',
                 textAlign: 'both',
               },
             },
@@ -586,6 +584,7 @@ describe('custom nested list tests', () => {
                 'w:rsidR': '00F20DE4',
                 'w:rsidRDefault': '007B64C8',
                 'w:rsidP': '00F20DE4',
+                textAlign: 'both',
                 paragraphProperties: {
                   type: 'element',
                   name: 'w:pPr',
@@ -625,8 +624,7 @@ describe('custom nested list tests', () => {
                       },
                     },
                   ],
-                },
-                textIndent: 'undefinedin',
+                }
               },
             },
             numId: '1',
@@ -689,9 +687,7 @@ describe('custom nested list tests', () => {
                     },
                     textStyle: {
                       type: 'textStyle',
-                      attrs: {
-                        textIndent: 'undefinedin',
-                      },
+                      attrs: {},
                     },
                     order: '1',
                     lvlText: '○',
@@ -761,8 +757,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                     },
                     numId: '2',
@@ -829,8 +824,7 @@ describe('custom nested list tests', () => {
                           },
                         },
                       ],
-                    },
-                    textIndent: 'undefinedin',
+                    }
                   },
                 },
               },
@@ -847,7 +841,6 @@ describe('custom nested list tests', () => {
             textStyle: {
               type: 'textStyle',
               attrs: {
-                textIndent: 'undefinedin',
                 textAlign: 'both',
               },
             },
@@ -869,6 +862,7 @@ describe('custom nested list tests', () => {
                 'w:rsidR': '00F20DE4',
                 'w:rsidRDefault': '007B64C8',
                 'w:rsidP': '00F20DE4',
+                textAlign: 'both',
                 paragraphProperties: {
                   type: 'element',
                   name: 'w:pPr',
@@ -908,8 +902,7 @@ describe('custom nested list tests', () => {
                       },
                     },
                   ],
-                },
-                textIndent: 'undefinedin',
+                }
               },
             },
             numId: '1',
@@ -926,6 +919,7 @@ describe('custom nested list tests', () => {
             'w:rsidR': '00F20DE4',
             'w:rsidRDefault': '007B64C8',
             'w:rsidP': '00F20DE4',
+            textAlign: 'both',
             paragraphProperties: {
               type: 'element',
               name: 'w:pPr',
@@ -965,8 +959,7 @@ describe('custom nested list tests', () => {
                   },
                 },
               ],
-            },
-            textIndent: 'undefinedin',
+            }
           },
         },
       },

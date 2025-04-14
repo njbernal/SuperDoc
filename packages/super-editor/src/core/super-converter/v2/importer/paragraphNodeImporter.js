@@ -64,8 +64,11 @@ export const handleParagraphNode = (params) => {
       if (firstLine) schemaNode.attrs['indent'].firstLine = twipsToPixels(firstLine);
     }
 
-    const textIndentVal = left || firstLine || 0;
-    schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentVal)}in`;
+    const textIndentValue = left || 0;
+
+    if (textIndentValue) {
+      schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentValue)}in`;
+    }    
   }
 
   const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
