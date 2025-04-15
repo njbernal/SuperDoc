@@ -167,7 +167,7 @@ function getFontFamilyValue(attributes, docx) {
 
 function getIndentValue(attributes) {
   let value = attributes['w:left'];
-  if (!value) value = attributes['w:firstLine'];
+  if (!value) return null;
   return `${twipsToInches(value)}in`;
 }
 
