@@ -15,6 +15,8 @@ import {
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
+import { carbonCopy } from '../utilities/carbonCopy.js';
+import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 
 /**
@@ -136,7 +138,7 @@ export function translateParagraphNode(params) {
   if (elements.length === 1 && htmlAnnotationChild) {
     return htmlAnnotationChild.elements;
   }
-
+  
   // Insert paragraph properties at the beginning of the elements array
   const pPr = generateParagraphProperties(params.node);
   if (pPr) elements.unshift(pPr);
@@ -553,13 +555,19 @@ function addNewImageRelationship(params, imagePath) {
  * @returns {XmlReadyNode} The translated list node
  */
 function translateList(params) {
-  const { content, type } = params.node;
-  const flatContent = flattenContent(content);
+  const { type } = params.node;
+  const flatContent = flattenContent(params);
 
   const listNodes = [];
   flatContent.forEach((listNode) => {
-    const { content, level } = listNode;
-    content.forEach((contentNode) => {
+    const { level, listType, pPrs: additionalPprs, content, attrs = {} } = listNode;
+    const attrsNumId = listNode.attrs.numId;
+
+    const actualNumId = attrsNumId || listNode.listId;
+    const listId = actualNumId ?? generateNewListDefinition(params, listType);  
+    const pPr = getListParagraphProperties(level, listId, additionalPprs);
+
+    content.forEach((contentNode, index) => {
       // Get paragraph attributes which were attached to list item node
       const paragraphNode = Object.assign({}, contentNode);
       paragraphNode.attrs = {
@@ -572,10 +580,7 @@ function translateList(params) {
         outputNode.elements = [];
       }
       const propsElementIndex = outputNode.elements.findIndex((e) => e.name === 'w:pPr');
-
-      const listProps = getListParagraphProperties(listNode, level, type, propsElementIndex > -1);
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
-
       if (!content.length) {
         // Some empty nodes could have spacing defined
         const spacingProp = outputNode.elements[propsElementIndex]?.elements.find((e) => e.name === 'w:spacing');
@@ -592,13 +597,23 @@ function translateList(params) {
         };
         return listNodes.push(spacer);
       }
+  
+      // pPr processing
+      const { attributes: generalAttributes } = attrs;
+      const { originalInlineRunProps } = generalAttributes || {};
+      if (originalInlineRunProps) pPr.elements.push(originalInlineRunProps);
+
       if (propsElementIndex === -1) {
-        outputNode.elements.unshift(listProps);
+        outputNode.elements.unshift(carbonCopy(pPr));
       } else {
-        outputNode.elements[propsElementIndex].elements = [
-          ...outputNode.elements[propsElementIndex].elements,
-          ...listProps
-        ];
+        outputNode.elements[propsElementIndex] = carbonCopy(pPr);
+      }
+
+      // Remove the numPr properties from content nodes
+      if (index !== 0) {
+        const currentpPr = outputNode.elements.find((e) => e.name === 'w:pPr');
+        const numPrIndex = currentpPr.elements.findIndex((e) => e.name === 'w:numPr');
+        if (numPrIndex !== -1) currentpPr.elements.splice(numPrIndex, 1);
       }
       listNodes.push(outputNode);
     });
@@ -606,6 +621,45 @@ function translateList(params) {
   
   return listNodes;
 }
+
+/**
+ * Generate a new list definition to be inserted into numbering.xml
+ * @param {Obect} param The parameters object
+ * @param {Number} param.abstractId The abstract number id
+ * @param {Number} param.listId The list id
+ * @returns {Object} The new abstract and num definitions
+ */
+function generateNewListDefinition({ abstractId, listId }) {
+  // Generate a new numId to add to numbering.xml
+
+  // Generate the new abstractNum definition
+  const newAbstractDef = {
+    ...definition,
+    attributes: {
+      ...definition.attributes,
+      'w:abstractNumId': abstractId,
+    }
+  };
+
+  // Generate the new numId definition
+  const newNumDef = {
+    type: 'element',
+    name: 'w:num',
+    attributes: {
+      'w:numId': String(abstractId),
+      'w16cid:durableId': '485517411'
+    },
+    elements: [
+      { name: 'w:abstractNumId', attributes: { 'w:val': String(listId) } },
+    ]
+  };
+
+  return {
+    newAbstractDef,
+    newNumDef,
+  };
+};
+
 
 /**
  * Get the paragraph properties for a list
@@ -616,66 +670,101 @@ function translateList(params) {
  * @param {boolean} hasParentProps Does output node already have pPr
  * @returns {XmlReadyNode} The list paragraph properties node
  */
-function getListParagraphProperties(node, level, type, hasParentProps) {
-  let listType = type === 'bulletList' ? 1 : 2;
-
-  // numbering.xml reference
-  if (node.attrs.numId) listType = node.attrs.numId;
-  
-  const numPr = {
-    name: 'w:numPr',
-    type: 'element',
-    elements: [
-      {
-        name: 'w:ilvl',
-        type: 'element',
-        attributes: { 'w:val': level },
-      },
-      {
-        name: 'w:numId',
-        type: 'element',
-        attributes: { 'w:val': listType },
-      },
-    ],
-  };
-  const resultElements = [numPr];
-  
-  let indent;
-  if (node.attrs.attributes?.parentAttributes) {
-    // Keep original list indent
-    indent = node.attrs.attributes.parentAttributes.paragraphProperties.elements.find(e => e.name === 'w:ind');
-  }
-  
-  indent && resultElements.push(indent);
-  
-  if (hasParentProps) {
-    return resultElements;
-  }
-  
+function getListParagraphProperties(level, numId, additionalPprs = []) {
   return {
     name: 'w:pPr',
     type: 'element',
-    elements: resultElements
+    elements: [
+      {
+        name: 'w:numPr',
+        type: 'element',
+        elements: [
+          {
+            name: 'w:ilvl',
+            type: 'element',
+            attributes: { 'w:val': level },
+          },
+          {
+            name: 'w:numId',
+            type: 'element',
+            attributes: { 'w:val': numId },
+          },
+        ],
+      },
+      ...additionalPprs,
+    ],
   };
 }
 
+
+/**
+ * Get list definition details from the list plugin
+ * @param {Number} listId The current list id
+ * @param {*} editor The current editor instance
+ * @returns {Object} An object containing list details
+ */
+function getUserListDetails(listId, editor) {
+  const pluginState = listPluginKey.getState(editor.state);
+  const activeLists = pluginState?.lists;
+  const definitions = pluginState?.definitions;
+
+  const currentList = activeLists.find((list) => list.listId === Number(listId));
+  if (!currentList) {
+    //TODO: Investigate why this is happening
+    return {};
+  }
+  const { abstractId, source } = activeLists.find((list) => list.listId === Number(listId));
+
+  const isGenerated = source === 'generated';
+  const listType = activeLists[listId]?.listType;
+  const definition = definitions[listType];
+
+  return {
+    isGenerated,
+    listType,
+    definition,
+    abstractId,
+  };
+};
+
 /**
  * Flatten list nodes for processing.
- *
- * @param {SchemaNode[]} content List of list nodes
- * @returns {SchemaNode[]} The flattened list nodes
  */
-function flattenContent(content) {
+function flattenContent({ node }) {
+  const { content, attrs = {} } = node;
+  const { listId, syncId } = node.attrs || {};
+  const listType = node.attrs['list-style-type'];
+
+  const { attributes = {} } = attrs;
+  const pPrs = attributes?.parentAttributes?.paragraphProperties?.elements?.filter((el) => el.name !== 'w:numPr') || [];
   const flatContent = [];
 
   function recursiveFlatten(items, level = 0) {
     if (!items || !items.length) return;
     items.forEach((item) => {
+      const indent = item.attrs?.indent;
+      if (indent) {
+        const { left, right, firstLine } = indent;
+        const indentAttrs = {};
+        if (left !== undefined) indentAttrs['w:left'] = pixelsToTwips(left);
+        if (right!== undefined) indentAttrs['w:right'] = pixelsToTwips(right);
+        if (firstLine !== undefined) indentAttrs['w:firstLine'] = pixelsToTwips(firstLine);
+
+        const indentElement = {
+          type: 'element',
+          name: 'w:ind',
+          indentAttrs,
+        };
+
+        const existingIndentIndex = pPrs.findIndex((el) => el.name === 'w:ind');
+        if (existingIndentIndex !== -1) {
+          pPrs[existingIndentIndex] = indentElement;
+        };
+      };
+
       const subList = item.content?.filter((c) => c.type === 'bulletList' || c.type === 'orderedList') || [];
       const notLists = item.content?.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList') || [];
-
-      const newItem = { ...item, content: notLists };
-      newItem.level = level;
+      const newItem = { ...item, content: notLists, listId, level, listType, syncId, pPrs };
       flatContent.push(newItem);
 
       if (subList.length) {
@@ -1667,7 +1756,6 @@ export class DocxExporter {
   }
 
   schemaToXml(data, debug = false) {
-    console.debug('[SuperConverter] schemaToXml:', data);
     const result = this.#generate_xml_as_list(data, debug);
     return result.join('');
   }

@@ -90,7 +90,6 @@ export const ListItem = Node.create({
         rendered: false,
       },
 
-      // numbering.xml reference id
       numId: {
         default: null,
         rendered: false,
@@ -101,6 +100,11 @@ export const ListItem = Node.create({
       },
       
       spacing: {
+        default: null,
+        rendered: false,
+      },
+
+      indent: {
         default: null,
         rendered: false,
       }
