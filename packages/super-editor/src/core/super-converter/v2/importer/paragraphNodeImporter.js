@@ -58,23 +58,29 @@ export const handleParagraphNode = (params) => {
   if (styleTag) {
     schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
   }
+  
+  if (docx) {
+    const indent = getParagraphIndent(node, docx, schemaNode.attrs['styleId']);
 
-  const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
-  if (indent && indent.attributes) {
-    const { 'w:left': left, 'w:right': right, 'w:firstLine': firstLine, 'w:hanging': hanging } = indent?.attributes;
-
-    if (schemaNode.attrs) {
-      if (!schemaNode.attrs.indent) schemaNode.attrs.indent = {};
-      if (left) schemaNode.attrs['indent'].left = twipsToPixels(left);
-      if (right) schemaNode.attrs['indent'].right = twipsToPixels(right);
-      if (firstLine) schemaNode.attrs['indent'].firstLine = twipsToPixels(firstLine);
-      if (hanging) schemaNode.attrs['indent'].hanging = twipsToPixels(hanging);
+    if (!schemaNode.attrs.indent) {
+      schemaNode.attrs.indent = {};
     }
 
-    const textIndentValue = left - parseInt(hanging || 0) || 0;
-    if (textIndentValue) {
-      schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentValue)}in`;
-    }    
+    if (indent.left) {
+      schemaNode.attrs.indent.left = indent.left;
+    }
+    if (indent.right) {
+      schemaNode.attrs.indent.right = indent.right;
+    }
+    if (indent.firstLine) {
+      schemaNode.attrs.indent.firstLine = indent.firstLine;
+    }
+    if (indent.hanging) {
+      schemaNode.attrs.indent.hanging = indent.hanging;
+    }
+    if (indent.textIndent) {
+      schemaNode.attrs.textIndent = `${indent.textIndent}in`;
+    }
   }
 
   const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
@@ -109,6 +115,48 @@ export const handleParagraphNode = (params) => {
   }
 
   return { nodes: schemaNode ? [schemaNode] : [], consumed: 1 };
+};
+
+export const getParagraphIndent = (node, docx, styleId = '') => {
+  const indent = {
+    left: 0,
+    right: 0,
+    firstLine: 0,
+    hanging: 0,
+    textIndent: 0,
+  };
+
+  const { indent: pDefaultIndent = {} } = getDefaultParagraphStyle(docx, styleId);
+
+  const pPr = node.elements?.find((el) => el.name === 'w:pPr');
+  const inLineIndentTag = pPr?.elements?.find((el) => el.name === 'w:ind');
+  const inLineIndent = inLineIndentTag?.attributes || {};
+
+  const leftIndent = inLineIndent?.['w:left'] || pDefaultIndent?.['w:left'];
+  const rightIndent = inLineIndent?.['w:right'] || pDefaultIndent?.['w:right'];
+  const firstLine = inLineIndent?.['w:firstLine'] || pDefaultIndent?.['w:firstLine'];
+  const hanging = inLineIndent?.['w:hanging'] || pDefaultIndent?.['w:hanging'];
+
+  if (leftIndent) {
+    indent.left = twipsToPixels(leftIndent);
+  }
+  if (rightIndent) {
+    indent.right = twipsToPixels(rightIndent);
+  }
+  if (firstLine) {
+    indent.firstLine = twipsToPixels(firstLine);
+  }
+  if (hanging) {
+    indent.hanging = twipsToPixels(hanging);
+  }
+
+  const textIndentValue = leftIndent - parseInt(hanging || 0) || 0;
+
+  if (textIndentValue) {
+    indent.textIndent = twipsToInches(textIndentValue);
+  }
+
+  return indent;
 };
 
 export const getParagraphSpacing = (node, docx, styleId = '', marks = []) => {
@@ -168,27 +216,36 @@ const getDefaultParagraphStyle = (docx, styleId = '') => {
   const pDefault = defaults.elements.find((el) => el.name === 'w:pPrDefault');
   const pPrDefault = pDefault?.elements?.find((el) => el.name === 'w:pPr');
   const pPrDefaultSpacingTag = pPrDefault?.elements?.find((el) => el.name === 'w:spacing') || {};
+  const pPrDefaultIndentTag = pPrDefault?.elements?.find((el) => el.name === 'w:ind') || {};
   
   // Paragraph 'Normal' styles
   const stylesNormal = styles.elements[0].elements?.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal');
   const pPrNormal = stylesNormal?.elements?.find((el) => el.name === 'w:pPr');
   const pPrNormalSpacingTag = pPrNormal?.elements?.find((el) => el.name === 'w:spacing') || {};
+  const pPrNormalIndentTag = pPrNormal?.elements?.find((el) => el.name === 'w:ind') || {};
   
   // Styles based on styleId
   let pPrStyleIdSpacingTag = {};
+  let pPrStyleIdIndentTag = {};
   if (styleId) {
     const stylesById = styles.elements[0].elements?.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === styleId);
     const pPrById = stylesById?.elements?.find((el) => el.name === 'w:pPr');
     pPrStyleIdSpacingTag = pPrById?.elements?.find((el) => el.name === 'w:spacing') || {};
+    pPrStyleIdIndentTag = pPrById?.elements?.find((el) => el.name === 'w:ind') || {};
   }
   
   const { attributes: pPrDefaultSpacingAttr } = pPrDefaultSpacingTag;
   const { attributes: pPrNormalSpacingAttr } = pPrNormalSpacingTag;
   const { attributes: pPrByIdSpacingAttr } = pPrStyleIdSpacingTag;
 
+  const { attributes: pPrDefaultIndentAttr } = pPrDefaultIndentTag;
+  const { attributes: pPrNormalIndentAttr } = pPrNormalIndentTag;
+  const { attributes: pPrByIdIndentAttr } = pPrStyleIdIndentTag;
+
   return {
     spacing: pPrByIdSpacingAttr || pPrDefaultSpacingAttr || pPrNormalSpacingAttr,
-  }
+    indent: pPrByIdIndentAttr || pPrDefaultIndentAttr || pPrNormalIndentAttr,
+  };
 };
 
 /**

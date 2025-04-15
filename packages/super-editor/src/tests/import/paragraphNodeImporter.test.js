@@ -251,3 +251,26 @@ describe('paragraph tests to check spacing', () => {
     expect(node.attrs.textIndent).toBe('1.81in');
   });
 });
+
+describe('paragraph tests to check indentation', () => {
+  
+  it('correctly gets indents from paragraph Normal styles', async () => {
+    const dataName = 'paragraph_indent_normal_styles.docx';
+    const docx = await getTestDataByFileName(dataName);
+    const documentXml = docx['word/document.xml'];
+
+    const doc = documentXml.elements[0];
+    const body = doc.elements[0];
+    const content = body.elements;
+
+    const { nodes } = handleParagraphNode({ nodes: [content[0]], docx, nodeListHandler: defaultNodeListHandler() });
+
+    const node = nodes[0];
+    expect(node.type).toBe('paragraph');
+
+    const { attrs } = node;
+    const { indent } = attrs;
+
+    expect(indent.firstLine).toBe(29);
+  });
+});
