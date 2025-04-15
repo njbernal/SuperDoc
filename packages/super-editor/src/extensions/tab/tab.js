@@ -55,7 +55,6 @@ export const TabNode = Node.create({
         },
 
         apply(tr, oldDecorationSet, oldState, newState) {
-          if (!tr.docChanged) return oldDecorationSet;
           const decorations = getTabDecorations(newState, view);
           return DecorationSet.create(newState.doc, decorations);
         },
@@ -82,7 +81,7 @@ const getTabDecorations = (state, view) => {
       let textWidth = 0;
 
       try {
-        view.state.doc.nodesBetween(pos - prevNodeSize - 1, pos - 1, (node, nodePos) => {
+        state.doc.nodesBetween(pos - prevNodeSize - 1, pos - 1, (node, nodePos) => {
           if (node.isText && node.textContent !== ' ') {
             const textWidthForNode = calcTextWidth(view, nodePos);
             textWidth += textWidthForNode;
