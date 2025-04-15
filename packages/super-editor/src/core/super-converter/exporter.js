@@ -744,11 +744,12 @@ function flattenContent({ node }) {
     items.forEach((item) => {
       const indent = item.attrs?.indent;
       if (indent) {
-        const { left, right, firstLine } = indent;
+        const { left, right, firstLine, hanging } = indent;
         const indentAttrs = {};
         if (left !== undefined) indentAttrs['w:left'] = pixelsToTwips(left);
         if (right!== undefined) indentAttrs['w:right'] = pixelsToTwips(right);
         if (firstLine !== undefined) indentAttrs['w:firstLine'] = pixelsToTwips(firstLine);
+        if (hanging !== undefined) indentAttrs['w:hanging'] = pixelsToTwips(hanging);
 
         const indentElement = {
           type: 'element',
