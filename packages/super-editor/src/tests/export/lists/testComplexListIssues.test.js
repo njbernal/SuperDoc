@@ -129,8 +129,4 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
     expect(indent.hanging).toBeUndefined();
   });
 
-  it('correctly exports the list', () => {
-    // TODO
-  });
-
 });

@@ -77,7 +77,6 @@ export const toggleList =
       if (parentList.node.type === listType) {
         const { listId } = parentList.node.attrs;
         editor.converter.numbering = removeListDefinitions(listId, numbering);
-        console.debug('NUMBERING', editor.converter.numbering.definitions);
         return commands.liftListItem(itemType);
       }
 

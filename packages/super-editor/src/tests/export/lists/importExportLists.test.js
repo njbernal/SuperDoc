@@ -182,32 +182,6 @@ describe('[blank-doc.docx] import, add node, export', () => {
     const lvlText2 = lvl2.attributes['w:val'];
     expect(lvlText2).toBe(0);
   });
-  
-  // it('can add a new list in between separated (synced) list items', async () => {
-  //   // Set the selection in between the two lists after the '--- break' text
-  //   let tr = getNewTransaction(editor);
-  //   tr.setSelection(TextSelection.create(editor.state.doc, 27));
-  //   dispatch(tr);
-
-  //   // Simulate enter key to add a blank line
-  //   handleEnter(editor);
-  //   handleEnter(editor);
-
-  //   // Move the selection to the end of the new list
-  //   tr = getNewTransaction(editor);
-  //   tr.setSelection(TextSelection.create(editor.state.doc, 29));
-  //   dispatch(tr);
-
-  //   // Toggle a new ordered list in the blank line
-  //   editor.commands.toggleOrderedList();
-
-  //   editor.state.doc.descendants((node, pos) => {
-  //     console.debug(pos, node.type.name);
-  //   });
-
-  //   const content = editor.getJSON();
-  //   await save(editor);
-  // });
 
 });
 
