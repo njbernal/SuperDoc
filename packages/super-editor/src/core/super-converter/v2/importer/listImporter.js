@@ -122,8 +122,9 @@ function handleListNodes({
     const { attributes, elements, marks = [] } = parseProperties(item, docx);
     const textStyle = marks.find((mark) => mark.type === 'textStyle');
     
-    const { listType, listOrderingType, ilvl, listrPrs, listpPrs, start, lvlText, lvlJc, numId } =
+    const {listType, listOrderingType, ilvl, listrPrs, listpPrs, start, lvlText, lvlJc, numId } =
       getNodeNumberingDefinition(attributes, listLevel, docx);
+    
     listStyleType = listOrderingType;
     const intLevel = parseInt(ilvl);
     const isRoot = actualListLevel === intLevel && numId === currentListNumId;
@@ -135,8 +136,10 @@ function handleListNodes({
       docx,
     });
     const isDifferentList = numId !== currentListNumId && !isSameListLevelDef;
-    const isNested =
-      listLevel < intLevel || (listLevel === intLevel && isDifferentList && lastNestedListLevel === listLevel);
+    const isNested = (
+      listLevel < intLevel
+      || listLevel === intLevel && isDifferentList && lastNestedListLevel === listLevel
+    );
 
     // We keep track of all indices for all lists here with an object
     // This allows us to detect disconnected lists and handle them correctly
@@ -145,7 +148,7 @@ function handleListNodes({
 
     // If this node belongs on this list level, add it to the list
     const nodeAttributes = {};
-    if (isRoot) {
+    if (isRoot && !isNested) {
       lists[currentListNumId][actualListLevel]++;  
       overallListType = listType;
       item.seen = true;
@@ -215,7 +218,7 @@ function handleListNodes({
         originalInlineRunProps: originalPpr?.elements?.find((el) => el.name === 'w:rPr'),
       };
       nodeAttributes['numId'] = numId;
-      
+
       if (docx) {
         nodeAttributes['spacing'] = getParagraphSpacing(item, docx);
       }
@@ -247,7 +250,7 @@ function handleListNodes({
         lastItem.content.push(sublist);
       }
     }
-    
+
     else if (!numId) {
       item.seen = true;
       const n = handleStandardNode({ ...params, nodes: [item] }).nodes[0];
