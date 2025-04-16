@@ -266,7 +266,7 @@ function handleListNodes({
       }
 
       break;
-    }  
+    }
   }
 
   const resultingList = {
@@ -275,11 +275,10 @@ function handleListNodes({
     attrs: {
       'list-style-type': listStyleType,
       listId: currentListNumId,
-      syncId: currentListNumId,
       attributes: {
         parentAttributes: listItems[0]?.attributes || null,
       },
-    },
+    }
   };
 
   if (isNested) resultingList.lastNestedListLevel = lastNestedListLevel;
