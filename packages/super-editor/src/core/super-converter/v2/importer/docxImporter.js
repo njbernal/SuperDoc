@@ -451,10 +451,9 @@ function getHeaderFooter(el, elementType, docx, converter, editor) {
  */
 function getNumberingDefinitions(docx) {
   let numbering = docx['word/numbering.xml'];
-  if (!numbering) numbering = baseNumbering;
+  if (!numbering || !numbering.elements?.length || !numbering.elements[0].elements?.length) numbering = baseNumbering;
 
   const elements = numbering.elements[0].elements;
-
   const abstractDefs = elements.filter((el) => el.name === 'w:abstractNum');
   const definitions = elements.filter((el) => el.name === 'w:num');
 
