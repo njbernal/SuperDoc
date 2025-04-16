@@ -215,8 +215,13 @@ function handleListNodes({
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
         parentAttributes: item?.attributes || null,
-        originalInlineRunProps: originalPpr?.elements?.find((el) => el.name === 'w:rPr'),
       };
+
+      const originalRunProps = originalPpr?.elements?.find((el) => el.name === 'w:rPr');
+      if (originalRunProps) {
+        nodeAttributes.attributes["originalInlineRunProps"] = originalRunProps;
+      };
+
       nodeAttributes['numId'] = numId;
 
       if (docx) {

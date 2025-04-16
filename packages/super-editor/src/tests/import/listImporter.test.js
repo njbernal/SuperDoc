@@ -295,7 +295,7 @@ describe('custom nested list tests', () => {
 
     expect(result.nodes.length).toBe(1);
     const expectedResult = {
-      type: 'bulletList',
+      type: 'orderedList',
       content: [
         {
           type: 'listItem',
@@ -501,7 +501,6 @@ describe('custom nested list tests', () => {
               attrs: {
                 'list-style-type': 'lowerLetter',
                 listId: '2',
-                syncId: "2",
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '057544FE',
@@ -1848,7 +1847,6 @@ describe('custom nested list tests', () => {
               attrs: {
                 'list-style-type': 'lowerLetter',
                 listId: '1',
-                syncId: "1",
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '4F17D13D',
@@ -1964,7 +1962,6 @@ describe('custom nested list tests', () => {
       attrs: {
         'list-style-type': 'decimal',
         listId: '1',
-        syncId: '1',
         attributes: {
           parentAttributes: {
             'w14:paraId': '2D072E4D',
@@ -2334,7 +2331,6 @@ describe('custom nested list tests', () => {
       attrs: {
         'list-style-type': 'decimal',
         listId: '2',
-        syncId: '2',
         attributes: {
           parentAttributes: {
             'w14:paraId': '2BEDC1A3',

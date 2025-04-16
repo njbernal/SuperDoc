@@ -123,7 +123,7 @@ function getOrderedListItemsByList(state) {
       let $pos = doc.resolve(pos);
       let list = $pos.parent;
 
-      const key = `${list.attrs.listId}, ${node.attrs.listLevel.length}`;
+      const key = `${list.attrs.listId}, ${node.attrs.listLevel.slice(0, -1)}`;
       if (!map.get(key)) map.set(key, []);
       let items = map.get(key);
       items.push({ node, pos });
