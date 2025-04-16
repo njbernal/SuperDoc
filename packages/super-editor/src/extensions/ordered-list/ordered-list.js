@@ -1,6 +1,6 @@
 import { Node, Attribute } from '@core/index.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { generateDocxListAttributes, findParentNode } from '@helpers/index.js';
+import { findParentNode } from '@helpers/index.js';
 import { orderedListSync as orderedListSyncPlugin, randomId } from './helpers/orderedListSyncPlugin.js';
 import { orderedListMarker as orderedListMarkerPlugin } from './helpers/orderedListMarkerPlugin.js';
 import { wrappingInputRule } from '../../core/inputRules/wrappingInputRule.js';
@@ -225,7 +225,7 @@ export const OrderedList = Node.create({
   },
 
   addPmPlugins() {
-    return [orderedListMarkerPlugin(), orderedListSyncPlugin()];
+    return [orderedListMarkerPlugin(this.editor), orderedListSyncPlugin()];
   },
 
   addInputRules() {

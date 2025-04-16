@@ -215,8 +215,13 @@ function handleListNodes({
       nodeAttributes['listNumberingType'] = listOrderingType;
       nodeAttributes['attributes'] = {
         parentAttributes: item?.attributes || null,
-        originalInlineRunProps: originalPpr?.elements?.find((el) => el.name === 'w:rPr'),
       };
+
+      const originalRunProps = originalPpr?.elements?.find((el) => el.name === 'w:rPr');
+      if (originalRunProps) {
+        nodeAttributes.attributes["originalInlineRunProps"] = originalRunProps;
+      };
+
       nodeAttributes['numId'] = numId;
 
       if (docx) {
@@ -266,7 +271,7 @@ function handleListNodes({
       }
 
       break;
-    }  
+    }
   }
 
   const resultingList = {
@@ -275,11 +280,10 @@ function handleListNodes({
     attrs: {
       'list-style-type': listStyleType,
       listId: currentListNumId,
-      syncId: currentListNumId,
       attributes: {
         parentAttributes: listItems[0]?.attributes || null,
       },
-    },
+    }
   };
 
   if (isNested) resultingList.lastNestedListLevel = lastNestedListLevel;
