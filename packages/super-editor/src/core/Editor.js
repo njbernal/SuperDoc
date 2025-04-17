@@ -548,9 +548,16 @@ export class Editor extends EventEmitter {
         }
       } else if (mode === 'text') {
         if (content) {
+          let parsedContent = content;
+          if (typeof content === 'string') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            parsedContent = tempDiv;
+            tempDiv.remove();
+          };
           doc = loadFromSchema
-            ? this.schema.nodeFromJSON(content)
-            : DOMParser.fromSchema(this.schema).parse(content);
+            ? this.schema.nodeFromJSON(parsedContent)
+            : DOMParser.fromSchema(this.schema).parse(parsedContent);
         } else {
           doc = this.schema.topNodeType.createAndFill();
         }

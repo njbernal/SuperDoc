@@ -93,6 +93,7 @@ const getRichTextExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
+    Image,
   ];
 };
 

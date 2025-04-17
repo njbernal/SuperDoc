@@ -13,7 +13,9 @@ export const Image = Node.create({
   addOptions() {
     return {
       allowBase64: true,
-      htmlAttributes: {},
+      htmlAttributes: {
+        style: 'display: inline-block;',
+      },
     };
   },
 
@@ -29,7 +31,7 @@ export const Image = Node.create({
         default: null,
         renderDOM: ({ src }) => {
           return {
-            src: this.storage.media[src],
+            src: this.storage.media[src] ?? src,
           };
         },
       },
@@ -55,7 +57,7 @@ export const Image = Node.create({
       size: {
         default: {},
         renderDOM: ({ size }) => {
-          let style = 'display: inline-block;';
+          let style = '';
           let { width, height } = size ?? {};
           if (width) style += `width: ${width}px;`;
           if (height) style += `height: auto;`;
@@ -70,6 +72,14 @@ export const Image = Node.create({
           let style = '';
           if (left) style += `margin-left: ${left}px;`;
           if (top) style += `margin-top: ${top}px;`;
+          return { style };
+        },
+      },
+
+      style: {
+        default: {},
+        rendered: true,
+        renderDOM: ({ style }) => {
           return { style };
         },
       },
