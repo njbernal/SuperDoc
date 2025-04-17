@@ -386,8 +386,8 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   // Add blank padding to the last page to make a full page height
   let finalPos = doc.content.size;
   const lastNodeCoords = view.coordsAtPos(finalPos);
-  const headerId = (currentPageNumber % 2 === 0 ? headerIds.even : headerIds.odd) || headerIds.default;
-  const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
+  const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
+  const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
   header = createHeader(pageMargins, pageSize, sectionData, headerId);
   footer = createFooter(pageMargins, pageSize, sectionData, footerId, currentPageNumber);
   const bufferHeight = pageHeightThreshold - lastNodeCoords.bottom;
