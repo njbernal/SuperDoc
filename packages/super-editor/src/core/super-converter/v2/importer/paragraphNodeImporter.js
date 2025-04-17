@@ -406,7 +406,7 @@ export function preProcessNodesForFldChar(nodes) {
       const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
       const instrText = instrTextNode.elements[0].text;
 
-      if (!hasPageMarker) hasPageMarker = instrText?.startsWith('PAGE');
+      if (!hasPageMarker) hasPageMarker = instrText?.includes('PAGE');
       const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
 
       // If we have a page marker, we need to replace the last node with a page number node.
