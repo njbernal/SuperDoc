@@ -2,7 +2,6 @@
  * Basic ProseMirror styles.
  * https://github.com/ProseMirror/prosemirror-view/blob/master/style/prosemirror.css
  */
-
 .ProseMirror {
   position: relative;
 }
@@ -118,8 +117,15 @@ https://github.com/ProseMirror/prosemirror-tables/blob/master/demo/index.html
 }
 
 .ProseMirror .tableWrapper {
+  --table-border-width: 1px;
+  --offset: 1px;
+
   overflow-x: auto;
   scrollbar-width: thin;
+  /* 
+  The border width does not need to be multiplied by two, 
+  for tables it works differently. */
+  width: calc(100% + (var(--table-border-width) + var(--offset)));
 }
 
 .ProseMirror table {
@@ -142,7 +148,6 @@ https://github.com/ProseMirror/prosemirror-tables/blob/master/demo/index.html
   position: relative;
   vertical-align: top;
   box-sizing: border-box;
-  /* border: 1px solid #000; */
 }
 
 .ProseMirror th {
