@@ -105,6 +105,7 @@ export function orderedListMarker(editor) {
         });
       });
 
+      tr.setMeta('orderedListMarker', true);
       return changed ? tr : null;
     },
   });

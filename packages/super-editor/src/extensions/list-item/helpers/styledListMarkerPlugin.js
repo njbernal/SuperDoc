@@ -19,9 +19,14 @@ export function styledListMarker(options = {}) {
 
       apply(tr, oldDecorationSet, oldState, newState) {
         if (!tr.docChanged) return oldDecorationSet;
+
+        const isOrderedListPlugin = tr.getMeta('orderedListMarker');
+        if (isOrderedListPlugin) return oldDecorationSet;
+
+        const marks = tr.getMeta('splitListItem');
         const decorations = [
-          ...getListMarkerDecorations(newState),
-          ...getListItemStylingFromParagraphProps(newState),
+          ...getListMarkerDecorations(newState, marks),
+          ...getListItemStylingFromParagraphProps(newState, marks),
         ];
         return DecorationSet.create(newState.doc, decorations);
       },
@@ -35,9 +40,11 @@ export function styledListMarker(options = {}) {
   });
 }
 
-function getListMarkerDecorations(state) {
+function getListMarkerDecorations(state, marks = []) {
   let { doc, storedMarks } = state;
   let decorations = [];
+
+  if (Array.isArray(storedMarks)) marks.push(...storedMarks);
 
   let listItems = findChildren(doc, (node) => node.type.name === 'listItem');
 
@@ -46,16 +53,16 @@ function getListMarkerDecorations(state) {
   }
 
   listItems.forEach(({ node, pos }) => {
-    let textStyleMarks = [];
     let textStyleType = getMarkType('textStyle', doc.type.schema);
+    let textStyleMarks = [...marks.filter((m) => m.type === textStyleType)];
     let isEmptyListItem = checkListItemEmpty(node);
 
-    if (isEmptyListItem && storedMarks) {
-      let marks = storedMarks.filter((mark) => mark.type === textStyleType);
-      textStyleMarks.push(...marks);
+    if (isEmptyListItem && marks.length) {
+      const textMarks = marks.filter((mark) => mark.type === textStyleType);
+      textStyleMarks.push(...textMarks);
     } else {
-      let marks = getListItemTextStyleMarks(node, doc, textStyleType);
-      textStyleMarks.push(...marks);
+      const itemMarks = getListItemTextStyleMarks(node, doc, textStyleType);
+      textStyleMarks.push(...itemMarks);
     }
 
     let fontSize = null;
