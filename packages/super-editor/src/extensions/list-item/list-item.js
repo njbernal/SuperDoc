@@ -127,14 +127,17 @@ export const ListItem = Node.create({
 
       decreaseListIndent: () => ({ commands }) => {
         const currentList = commands.getCurrentList();
+        const depth = currentList?.depth;
+
+        if (depth === 1) return false;
+        if (!commands.liftListItem(this.name)) { return true }
+        if (!commands.updateNodeStyle()) { return false }
+
         const currentNode = commands.getCurrentListNode();
         const currentNodeIndex = currentList?.node?.children.findIndex((child) => child === currentNode.node);
         const nextNodePos = currentNode?.pos + currentNode?.node.nodeSize;
         const followingNodes = currentList?.node?.children.slice(currentNodeIndex + 1) || [];
 
-        if (!commands.liftListItem(this.name)) { return false }
-
-        commands.updateNodeStyle();
         commands.updateOrderedListStyleType();
         commands.restartListNodes(followingNodes, nextNodePos);
         return true;
@@ -143,6 +146,8 @@ export const ListItem = Node.create({
       updateNodeStyle: () => ({ tr, state }) => {
         let list = findParentNode((node) => node.type.name === 'orderedList')(tr.selection);
         const current = findParentNode((node) => node.type.name === this.name)(state.selection);
+
+        if (!list) return false;
 
         const firstNodeAttrs = list?.node.children[0]?.attrs;
         const newPos = tr.mapping.map(current.pos);
