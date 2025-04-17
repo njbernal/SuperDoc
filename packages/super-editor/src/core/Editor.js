@@ -610,6 +610,7 @@ export class Editor extends EventEmitter {
   }
 
   getMaxContentSize() {
+    if (!this.converter) return {};
     const { pageSize = {}, pageMargins = {} } = this.converter.pageStyles ?? {};
     const { width, height } = pageSize;
     const { top = 0, bottom = 0, left = 0, right = 0 } = pageMargins;

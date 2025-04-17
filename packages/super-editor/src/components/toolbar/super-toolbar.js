@@ -22,6 +22,8 @@ export class SuperToolbar extends EventEmitter {
     icons: { ...toolbarIcons },
     mode: 'docx',
     excludeItems: [],
+    groups: null,
+    editor: null,
   };
 
   constructor(config) {
@@ -34,7 +36,8 @@ export class SuperToolbar extends EventEmitter {
     this.isDev = config.isDev || false;
     this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
-    
+
+    if (this.config.editor) this.config.mode = this.config.editor.options.mode;
     this.config.icons = {
       ...toolbarIcons,
       ...config.icons,
