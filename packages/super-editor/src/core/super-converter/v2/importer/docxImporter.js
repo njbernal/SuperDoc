@@ -13,6 +13,7 @@ import { annotationNodeHandlerEntity } from './annotationImporter.js';
 import { standardNodeHandlerEntity } from './standardNodeImporter.js';
 import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
 import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
+import { autoPageHandlerEntity } from './autoPageNumberImporter.js';
 import { tabNodeEntityHandler } from './tabImporter.js';
 import { listHandlerEntity } from './listImporter.js';
 import { importCommentData } from './documentCommentsImporter.js';
@@ -131,6 +132,7 @@ export const defaultNodeListHandler = () => {
     trackChangeNodeHandlerEntity,
     tableNodeHandlerEntity,
     tabNodeEntityHandler,
+    autoPageHandlerEntity,
     standardNodeHandlerEntity, //this should be the last one, bcs this parses everything!!!
   ];
 
@@ -174,7 +176,16 @@ const createNodeListHandler = (nodeHandlers) => {
     };
   };
 
-  const nodeListHandlerFn = ({ nodes: elements, docx, insideTrackChange, converter, editor, filename, parentStyleId, lists }) => {
+  const nodeListHandlerFn = ({
+    nodes: elements,
+    docx,
+    insideTrackChange,
+    converter,
+    editor,
+    filename,
+    parentStyleId,
+    lists
+  }) => {
     if (!elements || !elements.length) return [];
     
     const processedElements = [];
@@ -289,6 +300,8 @@ function getDocumentStyles(node, docx, converter, editor) {
   const sectPr = node.elements?.find((n) => n.name === 'w:sectPr');
   const styles = {};
 
+  const isAlternating = isAlternatingHeadersOddEven(docx);
+
   sectPr?.elements?.forEach((el) => {
     const { name, attributes } = el;
     switch (name) {
@@ -332,6 +345,8 @@ function getDocumentStyles(node, docx, converter, editor) {
         converter.headerIds.titlePg = true;
     }
   });
+
+  styles.alternateHeaders = isAlternating;
   return styles;
 };
 
@@ -409,7 +424,6 @@ function getHeaderFooter(el, elementType, docx, converter, editor) {
 
   // sectionType as in default, first, odd, even
   const sectionType = el.attributes['w:type'];
-
   const rId = el.attributes['r:id'];
   const rel = elements.find((el) => el.attributes['Id'] === rId);
   const target = rel.attributes['Target'];
@@ -425,7 +439,7 @@ function getHeaderFooter(el, elementType, docx, converter, editor) {
     docx,
     converter,
     editor,
-    filename: currentFileName
+    filename: currentFileName,
   });
 
   let storage, storageIds;
@@ -474,3 +488,18 @@ function getNumberingDefinitions(docx) {
     definitions: importListDefs,
   }
 }
+
+/**
+ * Check if the document has alternating headers and footers.
+ * 
+ * @param {Object} docx The parsed docx object
+ * @returns {Boolean} True if the document has alternating headers and footers, false otherwise
+ */
+const isAlternatingHeadersOddEven = (docx) => {
+  const settings = docx['word/settings.xml'];
+  if (!settings || !settings.elements?.length) return false;
+
+  const { elements = [] } = settings.elements[0];
+  const evenOdd = elements.find((el) => el.name === 'w:evenAndOddHeaders');
+  return !!evenOdd;
+};

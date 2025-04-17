@@ -14,7 +14,7 @@ import { kebabCase } from '@harbour-enterprises/common';
  * @type {import("docxImporter").NodeHandler}
  */
 export const handleParagraphNode = (params) => {
-  const { nodes, docx, nodeListHandler, filename, lists } = params;
+  const { nodes, docx, nodeListHandler, filename } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:p') {
     return { nodes: [], consumed: 0 };
   }
@@ -24,7 +24,8 @@ export const handleParagraphNode = (params) => {
   let schemaNode;
 
   // We need to pre-process paragraph nodes to combine various possible elements we will find ie: lists, links.
-  const processedElements = preProcessNodesForFldChar(node.elements);
+  // Also older MS word versions store auto page numbers here
+  let processedElements = preProcessNodesForFldChar(node.elements);
   node.elements = processedElements;
 
   // Check if this paragraph node is a list
@@ -371,9 +372,10 @@ export function getDefaultStyleDefinition(defaultStyleId, docx) {
  * @returns
  */
 export function preProcessNodesForFldChar(nodes) {
-  const processedNodes = [];
+  let processedNodes = [];
   const nodesToCombine = [];
   let isCombiningNodes = false;
+  let hasPageMarker = false;
   nodes?.forEach((n) => {
     const fldChar = n.elements?.find((el) => el.name === 'w:fldChar');
     if (fldChar) {
@@ -400,9 +402,22 @@ export function preProcessNodesForFldChar(nodes) {
         n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
       );
       const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
-      const instrText = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'))?.elements[0]
-        ?.elements[0].text;
+      const instrTextContainer = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'));
+      const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
+      const instrText = instrTextNode.elements[0].text;
+
+      if (!hasPageMarker) hasPageMarker = instrText?.startsWith('PAGE');
       const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
+
+      // If we have a page marker, we need to replace the last node with a page number node.
+      if (hasPageMarker) {
+        processedNodes = processedNodes.filter((n) => n.name !== 'w:r');
+        processedNodes.push({
+          name: 'sd:autoPageNumber',
+          type: 'element',
+        });
+        return [];
+      }
 
       if (!urlMatch || urlMatch?.length < 2) return [];
       const url = urlMatch[1];
@@ -428,6 +443,6 @@ export function preProcessNodesForFldChar(nodes) {
       });
     }
   });
-  
+
   return processedNodes;
 }

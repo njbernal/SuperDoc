@@ -147,7 +147,7 @@ export const Pagination = Extension.create({
       },
       props: {
         decorations(state) {
-          return PaginationPluginKey.getState(state).decorations;
+        return PaginationPluginKey.getState(state).decorations;
         },
       },
     });
@@ -155,6 +155,36 @@ export const Pagination = Extension.create({
     return [paginationPlugin];
   },
 });
+
+/**
+ * Get the correct header or footer ID based on the current page number and section type
+ * Consider wether or not we need to alternate odd/even pages or if we have a title page
+ * 
+ * @param {Number} currentPageNumber 
+ * @param {String} sectionType 
+ * @param {Editor} editor 
+ * @returns {String|null} The header or footer ID
+ */
+const getHeaderFooterId = (currentPageNumber, sectionType, editor) => {
+  const { alternateHeaders } = editor.converter.pageStyles;
+  const sectionIds = editor.converter[sectionType];
+
+  if (editor.headersIds?.titlePg && currentPageNumber === 0) return null;
+
+  const even = sectionIds.even;
+  const odd = sectionIds.odd;
+  const first = sectionIds.first;
+  const defaultHeader = sectionIds.default;
+
+  let sectionId = sectionIds.default;
+  if (alternateHeaders) {
+    if (currentPageNumber === 1) sectionId = first;
+    else if (currentPageNumber % 2 === 0) sectionId = even || defaultHeader;
+    else sectionId = odd || defaultHeader;
+  }
+
+  return sectionId;
+};
 
 
 /**
@@ -262,15 +292,13 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   let footer = null, header = null;
   const { headerIds, footerIds } = editor.converter;
 
-  let firstHeaderId = headerIds.first || headerIds.even || headerIds.default || 'default';
-  if (headerIds.titlePg) firstHeaderId = null;
+  const firstHeaderId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
   const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId);
   const pageBreak = createPageBreak({ editor, header: firstHeader, isFirstHeader: true });
   decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
 
-  const lastFooterId = footerIds.last || footerIds.default || 'default';
+  const lastFooterId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
   const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId);
-  const footerBreak = createPageBreak({ editor, footer: lastFooter, isLastFooter: true });
 
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
@@ -330,11 +358,11 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       };
 
       // Update the header and footer based on the current page number
-      currentPageNumber++;  
-      const headerId = (currentPageNumber % 2 === 0 ? headerIds.even :  headerIds.odd) || headerIds.default;
-      const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
+      currentPageNumber++;
+      const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
+      const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
       header = createHeader(pageMargins, pageSize, sectionData, headerId);
-      footer = createFooter(pageMargins, pageSize, sectionData, footerId);
+      footer = createFooter(pageMargins, pageSize, sectionData, footerId, currentPageNumber - 1);
 
       const bufferHeight = pageHeightThreshold - actualBreakBottom;
       const { node: spacingNode } = createFinalPagePadding(bufferHeight);
@@ -361,11 +389,13 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   const headerId = (currentPageNumber % 2 === 0 ? headerIds.even : headerIds.odd) || headerIds.default;
   const footerId = (currentPageNumber % 2 === 0 ? footerIds.even : footerIds.odd) || footerIds.default;
   header = createHeader(pageMargins, pageSize, sectionData, headerId);
-  footer = createFooter(pageMargins, pageSize, sectionData, footerId);
+  footer = createFooter(pageMargins, pageSize, sectionData, footerId, currentPageNumber);
   const bufferHeight = pageHeightThreshold - lastNodeCoords.bottom;
   const { node: spacingNode } = createFinalPagePadding(bufferHeight);
   const pageSpacer = Decoration.widget(doc.content.size, spacingNode, { key: 'stable-key' });
   decorations.push(pageSpacer);
+
+  const footerBreak = createPageBreak({ editor, footer: footer, isLastFooter: true });
 
   // Add the final footer
   decorations.push(Decoration.widget(doc.content.size, footerBreak, { key: 'stable-key' }));
@@ -434,13 +464,20 @@ function createHeader(pageMargins, pageSize, sectionData, headerId) {
  * @param {string} footerId The footer id to use
  * @returns {Object} The footer element and its height
  */
-function createFooter(pageMargins, pageSize, sectionData, footerId) {
+function createFooter(pageMargins, pageSize, sectionData, footerId, currentPageNumber) {
   const footerDef = sectionData.footers?.[footerId];
   const minFooterHeight = pageMargins.bottom * 96; // pageMargins are in inches
   const footerPaddingFromEdge = pageMargins.footer * 96;
-  const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight) - footerPaddingFromEdge;
+  const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight - footerPaddingFromEdge);
   let sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
+
   if (!sectionContainer) sectionContainer = document.createElement('div');
+
+  const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
+  if (autoPageNumber) {
+    autoPageNumber.innerText = currentPageNumber;
+  }
+
   sectionContainer.className = 'pagination-section-footer';
   sectionContainer.style.height = footerHeight + 'px';
   sectionContainer.style.marginBottom = footerPaddingFromEdge + 'px';

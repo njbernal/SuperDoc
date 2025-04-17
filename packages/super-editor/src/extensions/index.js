@@ -32,6 +32,7 @@ import { FieldAnnotation, fieldAnnotationHelpers } from './field-annotation/inde
 import { Image } from './image/index.js';
 import { BookmarkStart } from './bookmarks/index.js';
 import { Mention } from './mention/index.js';
+import { PageNumber } from './page-number/index.js';
 
 // Marks extensions
 import { TextStyle } from './text-style/text-style.js';
@@ -148,6 +149,7 @@ const getStarterExtensions = () => {
     Pagination,
     Highlight,
     LinkedStyles,
+    PageNumber,
   ];
 };
 
