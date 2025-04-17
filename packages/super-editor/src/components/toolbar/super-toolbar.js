@@ -149,7 +149,7 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain().sinkListItem('listItem').updateOrderedListStyleType().run();
+        return this.activeEditor.commands.increaseListIndent();
       }
 
       if (command in this.activeEditor.commands) {
@@ -163,7 +163,7 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain().liftListItem('listItem').updateOrderedListStyleType().run();
+        return this.activeEditor.commands.decreaseListIndent();
       }
 
       if (command in this.activeEditor.commands) {

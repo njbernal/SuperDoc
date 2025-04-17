@@ -102,6 +102,32 @@ export const OrderedList = Node.create({
         ({ commands }) => {
           return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks);
         },
+  
+      getCurrentList: () => ({ state }) => {
+        return findParentNode((node) => node.type.name === this.name)(state.selection);
+      },
+  
+      restartListNodes: (followingNodes, pos) => ({ tr, state }) => {      
+        let currentNodePos = pos
+        const nodes = followingNodes.map((node) => {
+          const resultNode = {
+            node,
+            pos: currentNodePos,
+          };
+
+          currentNodePos += node.nodeSize;
+          return resultNode;
+        });
+
+        nodes.forEach((item) => {
+          const { pos } = item
+          const newPos = tr.mapping.map(pos);
+
+          tr.setNodeMarkup(newPos, undefined, {});
+        });
+
+        return true;
+      },
 
       /**
        * Updates ordered list style type when sink or lift `listItem`.
@@ -110,7 +136,7 @@ export const OrderedList = Node.create({
       updateOrderedListStyleType:
         () =>
         ({ dispatch, state, tr }) => {
-          let list = findParentNode((node) => node.type.name === this.name)(state.selection);
+          let list = findParentNode((node) => node.type.name === this.name)(tr.selection);
 
           if (!list) {
             return true;
