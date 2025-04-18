@@ -427,8 +427,8 @@ const getListLevelDefinitionTag = (numId, level, pStyleId, docx) => {
 
   if (pStyleId) {
     const { numId: numIdFromStyles, ilvl: iLvlFromStyles } = getListNumIdFromStyleRef(pStyleId, docx) || {};
-    if (numIdFromStyles) numId = numIdFromStyles;
-    if (iLvlFromStyles) level = iLvlFromStyles ? parseInt(iLvlFromStyles) : null;
+    if (!numId && numIdFromStyles) numId = numIdFromStyles;
+    if (!level && iLvlFromStyles) level = iLvlFromStyles ? parseInt(iLvlFromStyles) : null;
   }
 
   const numberingElements = listData.elements;

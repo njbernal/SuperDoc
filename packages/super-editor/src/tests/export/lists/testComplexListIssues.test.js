@@ -130,3 +130,32 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
   });
 
 });
+
+describe('[custom-list-numbering1.docx] importing complex list (repeated num id in sub lists, breaks)', () => {
+  const filename = 'custom-list-numbering1.docx';
+  let docx, media, mediaFiles, fonts, editor, dispatch;
+  let currentState;
+
+  beforeAll(async () => {
+    ({ docx, media, mediaFiles, fonts } = await loadTestDataForEditorTests(filename));
+    ({ editor, dispatch } = initTestEditor({ content: docx, media, mediaFiles, fonts }));
+    currentState = editor.getJSON();
+  });
+
+  it('correctly imports list with numbering format SECTION %1.', () => {
+    const listItem = currentState.content[0].content[0];
+    const { attrs } = listItem;
+
+    expect(attrs.lvlText).toBe('SECTION %1.  ');
+  });
+
+  it ('correctly imports the sublist with numbering (a), (b) etc', () => {
+    const listItem = currentState.content[0].content[0];
+    const subList = listItem.content[1];
+    const subItem1 = subList.content[0];
+    expect(subItem1.attrs.lvlText).toBe('(%2)');
+
+    const subItem2 = subList.content[1];
+    expect(subItem2.attrs.lvlText).toBe('(%2)');
+  });
+});
