@@ -770,14 +770,14 @@ function flattenContent({ node }) {
         const indentElement = {
           type: 'element',
           name: 'w:ind',
-          indentAttrs,
+          attributes: indentAttrs,
         };
 
         const existingIndentIndex = pPrs.findIndex((el) => el.name === 'w:ind');
         if (existingIndentIndex !== -1) {
           pPrs[existingIndentIndex] = indentElement;
-        };
-      };
+        }
+      }
 
       const subList = item.content?.filter((c) => c.type === 'bulletList' || c.type === 'orderedList') || [];
       const notLists = item.content?.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList') || [];
