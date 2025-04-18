@@ -300,8 +300,6 @@ function getDocumentStyles(node, docx, converter, editor) {
   const sectPr = node.elements?.find((n) => n.name === 'w:sectPr');
   const styles = {};
 
-  const isAlternating = isAlternatingHeadersOddEven(docx);
-
   sectPr?.elements?.forEach((el) => {
     const { name, attributes } = el;
     switch (name) {
@@ -335,18 +333,14 @@ function getDocumentStyles(node, docx, converter, editor) {
           type: attributes['w:type'],
         };
         break;
-      case 'w:headerReference':
-        getHeaderFooter(el, 'header', docx, converter, editor);
-        break;
-      case 'w:footerReference':
-        getHeaderFooter(el, 'footer', docx, converter, editor);
-        break;
       case 'w:titlePg':
         converter.headerIds.titlePg = true;
     }
   });
 
-  styles.alternateHeaders = isAlternating;
+  // Import headers and footrs. Stores them in converter.headers and converter.footers
+  importHeadersFooters(docx, converter, editor);
+  styles.alternateHeaders = isAlternatingHeadersOddEven(docx);
   return styles;
 };
 
@@ -417,43 +411,93 @@ export function addDefaultStylesIfMissing(styles) {
   return updatedStyles;
 }
 
-function getHeaderFooter(el, elementType, docx, converter, editor) {
+/**
+ * Import all header and footer definitions
+ * 
+ * @param {Object} docx The parsed docx object
+ * @param {Object} converter The converter instance
+ * @param {Editor} editor The editor instance
+ */
+const importHeadersFooters = (docx, converter, editor) => {
   const rels = docx['word/_rels/document.xml.rels'];
   const relationships = rels.elements.find((el) => el.name === 'Relationships');
   const { elements } = relationships;
 
-  // sectionType as in default, first, odd, even
-  const sectionType = el.attributes['w:type'];
-  const rId = el.attributes['r:id'];
-  const rel = elements.find((el) => el.attributes['Id'] === rId);
-  const target = rel.attributes['Target'];
+  const headerType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header';
+  const footerType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer';
+  const headers = elements.filter((el) => el.attributes['Type'] === headerType);
+  const footers = elements.filter((el) => el.attributes['Type'] === footerType);
 
-  // Get the referenced file (ie: header1.xml)
-  const referenceFile = docx[`word/${target}`];
-  const currentFileName = target;
+  const sectPr = findSectPr(docx['word/document.xml']) || [];
+  const allSectPrElements = sectPr.flatMap((el) => el.elements);
 
-  const nodeListHandler = defaultNodeListHandler();
-  const schema = nodeListHandler.handler({
-    nodes: referenceFile.elements[0].elements,
-    nodeListHandler,
-    docx,
-    converter,
-    editor,
-    filename: currentFileName,
+  headers.forEach((header) => {
+    const { rId, referenceFile, currentFileName } = getHeaderFooterSectionData(header, docx);
+
+    const sectPrHeader = allSectPrElements.find((el) => el.name === 'w:headerReference' && el.attributes['r:id'] === rId);
+    const sectionType = sectPrHeader?.attributes['w:type'];
+    const nodeListHandler = defaultNodeListHandler();
+    const schema = nodeListHandler.handler({
+      nodes: referenceFile.elements[0].elements,
+      nodeListHandler,
+      docx,
+      converter,
+      editor,
+      filename: currentFileName,
+    });
+
+    converter.headers[rId] = { type: 'doc', content: [...schema] };
+    converter.headerIds[sectionType] = rId;
   });
 
-  let storage, storageIds;
+  footers.forEach((footer) => {
+    const { rId, referenceFile, currentFileName } = getHeaderFooterSectionData(footer, docx)
+    const sectPrFooter = allSectPrElements.find((el) => el.name === 'w:footerReference' && el.attributes['r:id'] === rId);
+    const sectionType = sectPrFooter?.attributes['w:type'];
 
-  if (elementType === 'header') {
-    storage = converter.headers;
-    storageIds = converter.headerIds;
-  } else if (elementType === 'footer') {
-    storage = converter.footers;
-    storageIds = converter.footerIds;
+    const nodeListHandler = defaultNodeListHandler();
+    const schema = nodeListHandler.handler({
+      nodes: referenceFile.elements[0].elements,
+      nodeListHandler,
+      docx,
+      converter,
+      editor,
+      filename: currentFileName,
+    });
+
+    converter.footers[rId] = { type: 'doc', content: [...schema] };
+    converter.footerIds[sectionType] = rId;
+  });
+};
+
+const findSectPr = (obj, result = []) => {
+  for (const key in obj) {
+    if (obj[key] === 'w:sectPr') {
+      result.push(obj)
+    } else if (typeof obj[key] === 'object') {
+      findSectPr(obj[key], result);
+    }
   }
+  return result;
+};
 
-  storage[rId] = { type: 'doc', content: [...schema] };
-  storageIds[sectionType] = rId;
+/**
+ * Get section data from the header or footer
+ * 
+ * @param {Object} sectionData The section data (header or footer)
+ * @param {Object} docx The parsed docx object
+ * @returns {Object} The section data
+ */
+const getHeaderFooterSectionData = (sectionData, docx) => {
+  const rId = sectionData.attributes.Id
+  const target = sectionData.attributes.Target;
+  const referenceFile = docx[`word/${target}`];
+  const currentFileName = target;
+  return {
+    rId,
+    referenceFile,
+    currentFileName
+  };
 };
 
 /**
