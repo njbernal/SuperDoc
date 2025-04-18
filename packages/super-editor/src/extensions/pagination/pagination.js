@@ -290,7 +290,6 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   let pageHeightThreshold = pageHeight;
   let hardBreakOffsets = 0;
   let footer = null, header = null;
-  const { headerIds, footerIds } = editor.converter;
 
   const firstHeaderId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
   const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId);
