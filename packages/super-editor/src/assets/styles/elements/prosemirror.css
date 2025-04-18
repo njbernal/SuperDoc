@@ -39,13 +39,26 @@
   font-size: var(--marker-font-size);
   font-family: var(--marker-font-family);
 }
-
 .ProseMirror li[data-marker-type] {
-  list-style-type: none;
+  list-style: none;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.5em;
+  align-items: start;
 }
-
 .ProseMirror li[data-marker-type]::marker {
-  content: attr(data-marker-type) ' ';
+  content: "";
+}
+.ProseMirror li[data-marker-type]::before {
+  content: attr(data-marker-type);
+  white-space: pre;
+  font-size: var(--marker-font-size);
+  font-family: var(--marker-font-family);
+  grid-column: 1;
+}
+.ProseMirror li[data-marker-type] > * {
+  grid-column: 2;
+  margin: 0;
 }
 
 .ProseMirror-hideselection *::selection {
