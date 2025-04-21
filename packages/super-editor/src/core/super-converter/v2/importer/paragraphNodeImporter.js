@@ -29,7 +29,7 @@ export const handleParagraphNode = (params) => {
   node.elements = processedElements;
 
   // Check if this paragraph node is a list
-  if (testForList(node)) {
+  if (testForList(node, docx)) {
     return { nodes: [], consumed: 0 };
   }
 
