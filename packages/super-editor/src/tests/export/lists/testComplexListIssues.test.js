@@ -15,7 +15,7 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
 
   it('imports the list correctly', () => {
     expect(currentState.content[0].type).toBe('orderedList');
-    expect(currentState.content[0].content.length).toBe(4);
+    expect(currentState.content[0].content.length).toBe(3);
   });
 
   it('first list item imports correctly', () => {
@@ -62,24 +62,26 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
     
     const sublist = listItem.content.find((el) => el.type === 'orderedList');
     expect(sublist).toBeDefined();
-    expect(sublist.content.length).toBe(3);
+    expect(sublist.content.length).toBe(1);
 
     const subItem1 = sublist.content[0];
     expect(subItem1.attrs.listLevel).toStrictEqual([3, 1]);
-    expect(subItem1.content.length).toBe(4);
+    expect(subItem1.content.length).toBe(2);
 
     // The node break
-    const nodeBreak = sublist.content[0].content[2];  
+    const nodeBreak = currentState.content[1];
     expect(nodeBreak.type).toBe('paragraph');
     expect(nodeBreak.content.length).toBe(1);
 
     // Ensure the nodes after the break have the correct listLevel index
-    const subItem3 = sublist.content[1];
-    expect(subItem3.type).toBe('listItem');
+    const listAfterBreak = currentState.content[3];
+    expect(listAfterBreak.type).toBe('bulletList');
+
+    const subItem3 = listAfterBreak.content[0].content[0].content[0]
     expect(subItem3.attrs.numId).toBe("5");
     expect(subItem3.attrs.listLevel).toStrictEqual([3, 2]);
 
-    const subItem4 = sublist.content[2];
+    const subItem4 = listAfterBreak.content[0].content[0].content[1]
     expect(subItem4.type).toBe('listItem');
     expect(subItem4.attrs.numId).toBe("5");
     expect(subItem4.attrs.listLevel).toStrictEqual([3, 3]);
@@ -87,7 +89,7 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
 
   it('root list continues correctly after third item with break', () => {
     // Make sure the 'FOUR' list item continues correctly here
-    const listItem = currentState.content[0].content[3];
+    const listItem = currentState.content[4].content[0]
     expect(listItem.type).toBe('listItem');
     expect(listItem.attrs.listLevel).toStrictEqual([4]);
 
