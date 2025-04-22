@@ -375,8 +375,6 @@ export function preProcessNodesForFldChar(nodes) {
   let processedNodes = [];
   let nodesToCombine = [];
   let isCombiningNodes = false;
-  let hasPageMarker = false;
-  let isNumPages = false;
 
   nodes?.forEach((n) => {
     if (n.seen) return;
@@ -389,82 +387,88 @@ export function preProcessNodesForFldChar(nodes) {
         isCombiningNodes = true;
         nodesToCombine.push(n);
       } else if (fldType === 'end') {
-        nodesToCombine.push(n);
         isCombiningNodes = false;
-      }
-    } else if (!isCombiningNodes) {
-      processedNodes.push(n);
-    }
-
-    if (isCombiningNodes) {
-      nodesToCombine.push(n);
-    } else if (!isCombiningNodes && nodesToCombine.length) {
-
-      // Need to extract all nodes between 'separate' and 'end' fldChar nodes
-      const textStart = nodesToCombine.findIndex((n) =>
-        n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'separate'),
-      );
-      const textEnd = nodesToCombine.findIndex((n) =>
-        n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
-      );
-      const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
-      const instrTextContainer = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'));
-      const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
-      const instrText = instrTextNode.elements[0].text;
-
-      if (!hasPageMarker) hasPageMarker = instrText?.startsWith(' PAGE');
-      if (!isNumPages) isNumPages = instrText?.startsWith(' NUMPAGES');
-      const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
-
-      // If we have a page marker, we need to replace the last node with a page number node.
-      if (hasPageMarker) {
-        const runs = processedNodes.filter((n) => n.name !== 'w:r');
-        const hasAutoNumber = runs.some((n) => n.name === 'sd:autoPageNumber');
-        if (!hasAutoNumber) {
-          processedNodes.push({
-            name: 'sd:autoPageNumber',
-            type: 'element',
-          });
-        };
+        nodesToCombine.push(n);
+        const result = processCombinedNodesForFldChar(nodesToCombine);
+        processedNodes.push(...result);
         nodesToCombine = [];
-        hasPageMarker = false;
-        return [];
-      } else if (isNumPages) {
-        const runs = processedNodes.filter((n) => n.name !== 'w:r');
-        const hasNumPages = runs.some((n) => n.name === 'sd:totalPageNumber');
-        if (!hasNumPages) {
-          processedNodes.push({
-            name: 'sd:totalPageNumber',
-            type: 'element',
-          });
-        }
-        isNumPages = false;
       }
-
-      if (!urlMatch || urlMatch?.length < 2) return [];
-      const url = urlMatch[1];
-
-      const textMarks = [];
-      textNodes.forEach((n) => {
-        const rPr = n.elements.find((el) => el.name === 'w:rPr');
-        if (!rPr) return;
-
-        const { elements } = rPr;
-        elements.forEach((el) => {
-          textMarks.push(el);
-        });
-      });
-
-      // Create a rPr and replace all nodes with the updated node.
-      const linkMark = { name: 'link', attributes: { href: url } };
-      const rPr = { name: 'w:rPr', type: 'element', elements: [linkMark, ...textMarks] };
-      processedNodes.push({
-        name: 'w:r',
-        type: 'element',
-        elements: [rPr, ...textNodes],
-      });
     }
+    
+    if (!isCombiningNodes) processedNodes.push(n);
+    else nodesToCombine.push(n); // Combine nodes
   });
 
   return processedNodes;
-}
+};
+
+/**
+ * Process the combined nodes for fldChar
+ * 
+ * @param {Array} nodesToCombine List of nodes to combine
+ * @returns {Array} Processed nodes
+ */
+const processCombinedNodesForFldChar = (nodesToCombine = []) => {
+  let processedNodes = [];
+  let hasPageMarker = false;
+  let isNumPages = false;
+
+  // Need to extract all nodes between 'separate' and 'end' fldChar nodes
+  const textStart = nodesToCombine.findIndex((n) =>
+    n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'separate'),
+  );
+  const textEnd = nodesToCombine.findIndex((n) =>
+    n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
+  );
+  const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
+  const instrTextContainer = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'));
+  const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
+  const instrText = instrTextNode?.elements[0].text;
+
+  if (!hasPageMarker) hasPageMarker = instrText?.trim().startsWith('PAGE');
+  if (!isNumPages) isNumPages = instrText?.trim().startsWith('NUMPAGES');
+  const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
+
+  // If we have a page marker, we need to replace the last node with a page number node.
+  if (hasPageMarker) {
+    processedNodes.push({
+      name: 'sd:autoPageNumber',
+      type: 'element',
+    });
+  }
+
+  // If we have a NUMPAGES marker, we need to replace the last node with a total page number node.
+  else if (isNumPages) {
+    processedNodes.push({
+      name: 'sd:totalPageNumber',
+      type: 'element',
+    });
+  }
+
+  // If we have a hyperlink, we need to replace the last node with a link node.
+  else if (urlMatch && urlMatch?.length >= 2) {
+    const url = urlMatch[1];
+
+    const textMarks = [];
+    textNodes.forEach((n) => {
+      const rPr = n.elements.find((el) => el.name === 'w:rPr');
+      if (!rPr) return;
+
+      const { elements } = rPr;
+      elements.forEach((el) => {
+        textMarks.push(el);
+      });
+    });
+
+    // Create a rPr and replace all nodes with the updated node.
+    const linkMark = { name: 'link', attributes: { href: url } };
+    const rPr = { name: 'w:rPr', type: 'element', elements: [linkMark, ...textMarks] };
+    processedNodes.push({
+      name: 'w:r',
+      type: 'element',
+      elements: [rPr, ...textNodes],
+    });
+  };
+
+  return processedNodes;
+};
