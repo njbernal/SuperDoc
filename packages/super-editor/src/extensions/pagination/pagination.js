@@ -169,12 +169,14 @@ const getHeaderFooterId = (currentPageNumber, sectionType, editor) => {
   const { alternateHeaders } = editor.converter.pageStyles;
   const sectionIds = editor.converter[sectionType];
 
-  if (editor.headersIds?.titlePg && currentPageNumber === 0) return null;
+  if (sectionIds?.titlePg && !sectionIds.first && currentPageNumber === 1) return null;
 
   const even = sectionIds.even;
   const odd = sectionIds.odd;
   const first = sectionIds.first;
   const defaultHeader = sectionIds.default;
+
+  if (sectionIds?.titlePg && first && currentPageNumber === 1) return first;
 
   let sectionId = sectionIds.default;
   if (alternateHeaders) {
@@ -399,6 +401,15 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   // Add the final footer
   decorations.push(Decoration.widget(doc.content.size, footerBreak, { key: 'stable-key' }));
 
+  // Update total page count, if any
+  decorations.forEach((decoration) => {
+    const sectionContainer = decoration.type.toDOM;
+    const totalPageNumber = sectionContainer?.querySelector('span[data-id="auto-total-pages"]');
+    if (totalPageNumber) {
+      totalPageNumber.innerText = currentPageNumber;
+    };
+  });
+
   // Return the widget decorations array
   return decorations;
 }
@@ -473,9 +484,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, currentPageN
   if (!sectionContainer) sectionContainer = document.createElement('div');
 
   const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
-  if (autoPageNumber) {
-    autoPageNumber.innerText = currentPageNumber;
-  }
+  if (autoPageNumber) autoPageNumber.innerText = currentPageNumber;
 
   sectionContainer.className = 'pagination-section-footer';
   sectionContainer.style.height = footerHeight + 'px';

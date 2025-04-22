@@ -23,3 +23,27 @@ export const PageNumber = Node.create({
     return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
 });
+
+export const TotalPageCount = Node.create({
+  name: 'total-page-number',
+  group: 'inline',
+  inline: true,
+
+  content: 'text*',
+
+  addOptions() {
+    return {
+      htmlAttributes: {
+        'data-id': 'auto-total-pages',
+      },
+    }
+  },
+
+  parseDOM() {
+    return [{ tag: 'span[data-id="auto-total-pages"' }];
+  },
+
+  renderDOM({ htmlAttributes }) {
+    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
+  },
+});
