@@ -380,18 +380,28 @@ export function preProcessNodesForFldChar(nodes) {
     if (n.seen) return;
 
     n.seen = true;
-    const fldChar = n.elements?.find((el) => el.name === 'w:fldChar');
-    if (fldChar) {
-      const fldType = fldChar.attributes['w:fldCharType'];
-      if (fldType === 'begin') {
-        isCombiningNodes = true;
-        nodesToCombine.push(n);
-      } else if (fldType === 'end') {
-        isCombiningNodes = false;
-        nodesToCombine.push(n);
-        const result = processCombinedNodesForFldChar(nodesToCombine);
+    const fldChar = n.elements?.filter((el) => el.name === 'w:fldChar') || [];
+    if (fldChar.length) {
+
+      // If we have a fldChar of length greater than 1, we need to process them as a group
+      if (fldChar.length > 1) {
+        const result = processCombinedNodesForFldChar([n]);
         processedNodes.push(...result);
-        nodesToCombine = [];
+      }
+
+      // if we have fldChar of length 1, we need to combine nodes to complete the fld chars
+      else {
+        const fldType = fldChar[0].attributes['w:fldCharType'];
+        if (fldType === 'begin') {
+          isCombiningNodes = true;
+          nodesToCombine.push(n);
+        } else if (fldType === 'end') {
+          isCombiningNodes = false;
+          nodesToCombine.push(n);
+          const result = processCombinedNodesForFldChar(nodesToCombine);
+          processedNodes.push(...result);
+          nodesToCombine = [];
+        }
       }
     }
     
@@ -401,6 +411,7 @@ export function preProcessNodesForFldChar(nodes) {
 
   return processedNodes;
 };
+
 
 /**
  * Process the combined nodes for fldChar
@@ -420,6 +431,7 @@ const processCombinedNodesForFldChar = (nodesToCombine = []) => {
   const textEnd = nodesToCombine.findIndex((n) =>
     n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
   );
+
   const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
   const instrTextContainer = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'));
   const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
