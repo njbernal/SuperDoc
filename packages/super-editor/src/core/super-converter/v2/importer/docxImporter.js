@@ -13,7 +13,7 @@ import { annotationNodeHandlerEntity } from './annotationImporter.js';
 import { standardNodeHandlerEntity } from './standardNodeImporter.js';
 import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
 import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
-import { autoPageHandlerEntity } from './autoPageNumberImporter.js';
+import { autoPageHandlerEntity, autoTotalPageCountEntity } from './autoPageNumberImporter.js';
 import { tabNodeEntityHandler } from './tabImporter.js';
 import { listHandlerEntity } from './listImporter.js';
 import { importCommentData } from './documentCommentsImporter.js';
@@ -133,6 +133,7 @@ export const defaultNodeListHandler = () => {
     tableNodeHandlerEntity,
     tabNodeEntityHandler,
     autoPageHandlerEntity,
+    autoTotalPageCountEntity,
     standardNodeHandlerEntity, //this should be the last one, bcs this parses everything!!!
   ];
 

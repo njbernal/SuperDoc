@@ -373,10 +373,15 @@ export function getDefaultStyleDefinition(defaultStyleId, docx) {
  */
 export function preProcessNodesForFldChar(nodes) {
   let processedNodes = [];
-  const nodesToCombine = [];
+  let nodesToCombine = [];
   let isCombiningNodes = false;
   let hasPageMarker = false;
+  let isNumPages = false;
+
   nodes?.forEach((n) => {
+    if (n.seen) return;
+
+    n.seen = true;
     const fldChar = n.elements?.find((el) => el.name === 'w:fldChar');
     if (fldChar) {
       const fldType = fldChar.attributes['w:fldCharType'];
@@ -387,13 +392,14 @@ export function preProcessNodesForFldChar(nodes) {
         nodesToCombine.push(n);
         isCombiningNodes = false;
       }
-    } else {
+    } else if (!isCombiningNodes) {
       processedNodes.push(n);
     }
 
     if (isCombiningNodes) {
       nodesToCombine.push(n);
     } else if (!isCombiningNodes && nodesToCombine.length) {
+
       // Need to extract all nodes between 'separate' and 'end' fldChar nodes
       const textStart = nodesToCombine.findIndex((n) =>
         n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'separate'),
@@ -406,17 +412,33 @@ export function preProcessNodesForFldChar(nodes) {
       const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
       const instrText = instrTextNode.elements[0].text;
 
-      if (!hasPageMarker) hasPageMarker = instrText?.includes('PAGE');
+      if (!hasPageMarker) hasPageMarker = instrText?.startsWith(' PAGE');
+      if (!isNumPages) isNumPages = instrText?.startsWith(' NUMPAGES');
       const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
 
       // If we have a page marker, we need to replace the last node with a page number node.
       if (hasPageMarker) {
-        processedNodes = processedNodes.filter((n) => n.name !== 'w:r');
-        processedNodes.push({
-          name: 'sd:autoPageNumber',
-          type: 'element',
-        });
+        const runs = processedNodes.filter((n) => n.name !== 'w:r');
+        const hasAutoNumber = runs.some((n) => n.name === 'sd:autoPageNumber');
+        if (!hasAutoNumber) {
+          processedNodes.push({
+            name: 'sd:autoPageNumber',
+            type: 'element',
+          });
+        };
+        nodesToCombine = [];
+        hasPageMarker = false;
         return [];
+      } else if (isNumPages) {
+        const runs = processedNodes.filter((n) => n.name !== 'w:r');
+        const hasNumPages = runs.some((n) => n.name === 'sd:totalPageNumber');
+        if (!hasNumPages) {
+          processedNodes.push({
+            name: 'sd:totalPageNumber',
+            type: 'element',
+          });
+        }
+        isNumPages = false;
       }
 
       if (!urlMatch || urlMatch?.length < 2) return [];
