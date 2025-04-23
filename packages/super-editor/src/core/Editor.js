@@ -42,6 +42,7 @@ export class Editor extends EventEmitter {
 
   options = {
     element: null,
+    selector: null,
     isHeadless: false,
     mockDocument: null,
     mockWindow: null,
@@ -103,7 +104,7 @@ export class Editor extends EventEmitter {
   constructor(options) {
     super();
     
-    options.element = options.isHeadless ? null : options.element || document.createElement('div');
+    this.#initContainerElement(options);
     this.#checkHeadless(options);
     this.setOptions(options);
 
@@ -118,6 +119,18 @@ export class Editor extends EventEmitter {
     let initMode = modes[this.options.mode] ?? modes.default;
     
     initMode();
+  }
+
+  #initContainerElement(options) {
+    if (!options.element && options.selector) {
+      const { selector } = options;
+      if (selector.startsWith('#')) {
+        options.element = document.getElementById(selector.slice(1));
+      } else if (selector.startsWith('.')) {
+        options.element = document.querySelector(options.selector);
+      };
+    };
+    options.element = options.isHeadless ? null : options.element || document.createElement('div');
   }
 
   #init(options) {

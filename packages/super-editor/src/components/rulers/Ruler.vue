@@ -40,6 +40,7 @@ let offsetX = 0;
  * Generate the ruler.
  */
 const initRuler = () => {
+  if (props.editor.options.mode !== 'docx') return;
   const rulerItems = [];
 
   const { pageMargins: docMargins, pageSize: docSize } = props.editor.getPageStyles();
