@@ -93,6 +93,7 @@ export class SuperDoc extends EventEmitter {
     selector: '#superdoc',
     documentMode: 'editing',
     role: 'editor',
+    document: {},
     documents: [],
     format: null,
     editorExtensions: [],
@@ -165,6 +166,9 @@ export class SuperDoc extends EventEmitter {
     this.superdocId = config.superdocId || uuidv4();
     this.colors = this.config.colors;
 
+    // Preprocess document
+    this.#initDocuments();
+
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
 
@@ -202,6 +206,18 @@ export class SuperDoc extends EventEmitter {
       documents: this.superdocStore.documents,
       users: this.users,
     };
+  }
+
+  #initDocuments(config) {
+    const hasDocumentConfig = this.config.document && Object.keys(this.config.document)?.length;
+    const hasListOfDocuments = this.config.documents && this.config.documents?.length;
+    if (hasDocumentConfig && hasListOfDocuments) {
+      console.warn('🦋 [superdoc] You can only provide one of document or documents');
+    };
+
+    if (hasDocumentConfig) {
+      this.config.documents = [this.config.document];
+    }
   }
 
   #initVueApp() {

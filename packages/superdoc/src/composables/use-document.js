@@ -11,6 +11,7 @@ export default function useDocument(params, superdocConfig) {
   const config = superdocConfig;
   const state = params.state;
   const role = params.role;
+  const html = params.html;
 
   // Placement
   const container = ref(null);
@@ -77,6 +78,7 @@ export default function useDocument(params, superdocConfig) {
   return {
     id,
     data,
+    html,
     type,
     config,
     state,
