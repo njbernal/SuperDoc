@@ -649,8 +649,7 @@ function translateList(params) {
  */
 function generateNewListDefinition(params, listType) {
   // Generate a new numId to add to numbering.xml
-
-  const nextNumbering = getLargestListDefinitionIndex(params.converter.numbering?.definitions);
+  const nextNumbering = getLargestListDefinitionIndex(params.converter?.numbering?.definitions);
   const definition = listType === 'bullet' ? baseBulletList : baseOrderedListDef;
   const listId = nextNumbering;
   const abstractId = definition.attributes['w:abstractNumId'];
@@ -1586,6 +1585,7 @@ function prepareHtmlAnnotation(params) {
   return {
     name: 'htmlAnnotation',
     elements: translateChildNodes({
+      ...params,
       node: htmlAnnotationNode,
     }),
   };
@@ -1682,7 +1682,6 @@ const translateFieldAttrsToMarks = (attrs = {}) => {
 function translateFieldAnnotation(params) {
   const { node, isFinalDoc } = params;
   const { attrs = {} } = node;
-  
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
 
