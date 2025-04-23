@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineExpose, ref } from 'vue';
+import { ref } from 'vue';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 
 const props = defineProps({
