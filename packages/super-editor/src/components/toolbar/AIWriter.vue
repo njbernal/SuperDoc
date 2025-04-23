@@ -53,7 +53,7 @@ onMounted(() => {
 
     // Emit ai highlight when the writer mounts through the toolbar
     if (props.superToolbar) {
-      props.superToolbar.emit('ai-highlight-add');
+      props.superToolbar.emit('ai-highlight', { type: 'add', data: null });
     }
   }
 
@@ -75,7 +75,7 @@ onMounted(() => {
 onUnmounted(() => {
   // emit the ai highlight remove event through the toolbar
   if (props.superToolbar) {
-    props.superToolbar.emit('ai-highlight-remove');
+    props.superToolbar.emit('ai-highlight', { type: 'remove', data: null });
   }
 
   // Remove all event listeners

@@ -350,14 +350,12 @@ onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
   }
-  proxy.$superdoc.on('ai-highlight-add', handleAiHighlightAdd);
-  proxy.$superdoc.on('ai-highlight-remove', handleAiHighlightRemove);
+  proxy.$superdoc.on('ai-highlight', handleAiHighlight);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown);
-  proxy.$superdoc.off('ai-highlight-add', handleAiHighlightAdd);
-  proxy.$superdoc.off('ai-highlight-remove', handleAiHighlightRemove);
+  proxy.$superdoc.off('ai-highlight', handleAiHighlight);
 });
 
 const selectionLayer = ref(null);
@@ -525,22 +523,18 @@ watch(getFloatingComments, () => {
 // AI Layer and Writer controls
 const aiLayer = ref(null);
 
-const handleAiHighlightAdd = () => {
+const handleAiHighlight = ({ type, data }) => {
   if (!aiLayer.value) {
     console.error('[Superdoc] aiLayer.value is not available');
     return;
   }
-  aiLayer.value.addAiHighlight();
-};
-
-const handleAiHighlightRemove = () => {
-  if (!aiLayer.value) {
-    console.error('[Superdoc] aiLayer.value is not available');
-    return;
+  
+  if (type === 'add') {
+    aiLayer.value.addAiHighlight();
+  } else if (type === 'remove') {
+    aiLayer.value.removeAiHighlight();
   }
-  aiLayer.value.removeAiHighlight();
 };
-
 
 // Add a new function to show the AIWriter at cursor position
 const showAiWriterAtCursor = () => {
@@ -558,7 +552,7 @@ const showAiWriterAtCursor = () => {
     // If we have selected text, add AI highlighting
     if (!selection.empty) {
       // Emit the highlight event to trigger the AI highlighting
-      proxy.$superdoc.emit('ai-highlight-add');
+      proxy.$superdoc.emit('ai-highlight', { type: 'add', data: null });
     }
     
     let coords;
@@ -600,7 +594,7 @@ const showAiWriterAtCursor = () => {
 const handleAiWriterClose = () => {
   showAiWriter.value = false;
   // Remove the AI highlight when AIWriter is closed
-  proxy.$superdoc.emit('ai-highlight-remove');
+  proxy.$superdoc.emit('ai-highlight', { type: 'remove', data: null });
 };
 </script>
 
