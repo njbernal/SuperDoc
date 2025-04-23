@@ -115,8 +115,7 @@ const processAiHighlights = (editor, doc, highlightColor) => {
         pos,
         pos + node.nodeSize,
         {
-          style: `background-color: ${highlightColor}33;`, // 33 is 20% opacity in hex
-          class: 'ai-highlight',
+          style: `background-color: ${highlightColor}33; border-radius: 4px;   transition: background-color 250ms ease;`, // 33 is 20% opacity in hex
         }
       );
       decorations.push(deco);

@@ -48,7 +48,7 @@
   }
 }
 
-.ai-text-appear {
+.sd-ai-text-appear {
   display: inline;
   opacity: 0;
   animation: aiTextAppear .7s ease-out forwards;

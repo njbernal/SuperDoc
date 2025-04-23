@@ -67,15 +67,6 @@ defineExpose({
   </div>
 </template>
 
-<style>
-/* Global style for the prosemirror AI highlight */
-.ai-highlight {
-  background-color: rgba(99, 102, 241, 0.2);
-  border-radius: 4px;
-  transition: background-color 250ms ease;
-  cursor: pointer;
-}
-</style>
 
 <style scoped>
 .ai-highlight-layer {
