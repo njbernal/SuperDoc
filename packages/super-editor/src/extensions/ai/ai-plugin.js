@@ -25,7 +25,7 @@ export const AiPlugin = Extension.create({
           })
         );
 
-        dispatch(tr);
+        if (dispatch) dispatch(tr);
         return true;
       },
 
@@ -51,7 +51,7 @@ export const AiPlugin = Extension.create({
         });
 
         if (markFound) {
-          dispatch(tr);
+          if (dispatch) dispatch(tr);
           return true;
         }
 
