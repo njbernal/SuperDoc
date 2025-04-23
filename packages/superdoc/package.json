@@ -23,6 +23,9 @@
       "import": "./dist/super-editor.es.js",
       "types": "./dist/super-editor/src/index.d.ts"
     },
+    "./super-editor/style.css": {
+      "import": "./dist/super-editor/style.css"
+    },
     "./common": {
       "import": "./dist/common.es.js"
     },

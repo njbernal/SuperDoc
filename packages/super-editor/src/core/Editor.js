@@ -107,7 +107,7 @@ export class Editor extends EventEmitter {
     this.#initContainerElement(options);
     this.#checkHeadless(options);
     this.setOptions(options);
-
+  
     let modes = {
       docx: () => this.#init(this.options),
       text: () => this.#initRichText(this.options),
@@ -125,11 +125,16 @@ export class Editor extends EventEmitter {
   #initContainerElement(options) {
     if (!options.element && options.selector) {
       const { selector } = options;
-      if (selector.startsWith('#')) {
-        options.element = document.getElementById(selector.slice(1));
-      } else if (selector.startsWith('.')) {
-        options.element = document.querySelector(options.selector);
+      if (selector.startsWith('#') || selector.startsWith('.')) {
+        options.element = document.querySelector(selector);
+      } else {
+        options.element = document.getElementById(selector);
       };
+
+      const textModes = ['text', 'html'];
+      if (textModes.includes(options.mode) && options.element) {
+        options.element.classList.add('sd-super-editor-html');
+      }
     };
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
   }
