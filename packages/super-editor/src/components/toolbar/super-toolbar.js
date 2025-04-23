@@ -51,7 +51,12 @@ export class SuperToolbar extends EventEmitter {
 
     let el = null;
     if (this.config.selector) {
-      el = document.getElementById(this.config.selector);
+      if (this.config.selector.startsWith('#') || this.config.selector.startsWith('.')) {
+        el = document.querySelector(this.config.selector);
+      } else {
+        el = document.getElementById(this.config.selector);
+      };
+
       if (!el) {
         console.warn(`[super-toolbar 🎨] Element not found: ${this.config.selector}`);
         return;
