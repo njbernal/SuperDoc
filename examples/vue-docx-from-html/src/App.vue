@@ -8,7 +8,7 @@ const init = () => {
     selector: '#editor', // Can also be a class ie: .main-editor
 
     // This key will force the document content to be replaced by the given HTML
-    html: "<p>abc test</p><p>abc test</p>",
+    html: `<p>I am <strong>a paragraph</strong> in <i>HTML</i></p>`,
 
     pagination: true,
 
