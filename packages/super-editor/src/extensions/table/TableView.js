@@ -33,6 +33,11 @@ export const createTableView = ({ editor }) => {
       updateTable(this.editor, this.node, this.table);
       updateColumns(node, this.colgroup, this.table, cellMinWidth);
       this.contentDOM = this.table.appendChild(document.createElement('tbody'));
+      
+      // use `setTimeout` to get cells.
+      setTimeout(() => {
+        updateTableWrapper(this.dom, this.table);
+      }, 0);
     }
 
     update(node) {
@@ -43,11 +48,20 @@ export const createTableView = ({ editor }) => {
       this.node = node;
       updateTable(this.editor, node, this.table);
       updateColumns(node, this.colgroup, this.table, this.cellMinWidth);
+      updateTableWrapper(this.dom, this.table);
 
       return true;
     }
 
     ignoreMutation(mutation) {
+      const tableWrapper = this.dom;
+      if (
+        mutation.target === tableWrapper
+        && (mutation.type === 'attributes' && mutation.attributeName === 'style')
+      ) {
+        return true;
+      }
+
       return (
         mutation.type === 'attributes'
         && (mutation.target === this.table || this.colgroup.contains(mutation.target))
@@ -120,4 +134,32 @@ function updateTable(editor, node, table) {
   Object.entries(htmlAttributes).forEach(([key, value]) => {
     table.setAttribute(key, value);
   });
+}
+
+function updateTableWrapper(tableWrapper, table) {
+  let defaultBorderWidth = 1;
+  let borderWidth;
+
+  if (!table) {
+    return;
+  }
+
+  let borderLeftMax = parseFloat(table.style.borderLeftWidth || 0);
+  let borderRightMax = parseFloat(table.style.borderRightWidth) || 0;
+
+  let firstColumnCells = [...table.querySelectorAll(':scope > tbody > tr > td:first-child')];
+  let lastColumnCells = [...table.querySelectorAll(':scope > tbody > tr > td:last-child')];
+
+  for (let cell of firstColumnCells) {
+    let borderLeft = parseFloat(cell.style.borderLeftWidth) || 0;
+    borderLeftMax = Math.max(borderLeftMax, borderLeft);
+  }
+  for (let cell of lastColumnCells) {
+    let borderRight = parseFloat(cell.style.borderRightWidth) || 0;
+    borderRightMax = Math.max(borderRightMax, borderRight);
+  }
+
+  // for simplicity, we take the maximum value of the borders.
+  borderWidth = Math.ceil(Math.max(borderLeftMax, borderRightMax));
+  tableWrapper.style.setProperty('--table-border-width', `${borderWidth || defaultBorderWidth}px`);
 }

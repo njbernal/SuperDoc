@@ -1,13 +1,6 @@
 import { Extension } from '@core/index.js';
 import { parseSizeUnit } from '@core/utilities/index.js';
 
-/**
- * Do we need a unit conversion system?
- *
- * For reference.
- * https://remirror.vercel.app/?path=/story/extensions-nodeformatting--basic
- * https://github.com/remirror/remirror/tree/HEAD/packages/remirror__extension-node-formatting
- */
 export const TextIndent = Extension.create({
   name: 'textIndent',
 
@@ -32,7 +25,7 @@ export const TextIndent = Extension.create({
             renderDOM: (attrs) => {
               if (!attrs.textIndent) return {};
               let [value, unit] = parseSizeUnit(attrs.textIndent);
-              if (Number.isNaN(value)) return {};
+              if (Number.isNaN(value) || !value) return {};
               unit = unit ? unit : this.options.defaults.unit;
               return { style: `margin-left: ${value}${unit}` };
             },

@@ -13,10 +13,12 @@ import { annotationNodeHandlerEntity } from './annotationImporter.js';
 import { standardNodeHandlerEntity } from './standardNodeImporter.js';
 import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
 import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
+import { autoPageHandlerEntity, autoTotalPageCountEntity } from './autoPageNumberImporter.js';
 import { tabNodeEntityHandler } from './tabImporter.js';
 import { listHandlerEntity } from './listImporter.js';
 import { importCommentData } from './documentCommentsImporter.js';
 import { getDefaultStyleDefinition } from './paragraphNodeImporter.js';
+import { baseNumbering } from '../exporter/helpers/base-list.definitions.js';
 
 /**
  * @typedef {import()} XmlNode
@@ -74,12 +76,15 @@ export const createDocumentJson = (docx, converter, editor) => {
     const content = node.elements?.filter((n) => !ignoreNodes.includes(n.name)) ?? [];
     const comments = importCommentData({ docx, nodeListHandler, converter, editor });
 
+    // Track imported lists
+    const lists = {};
     const parsedContent = nodeListHandler.handler({
       nodes: content,
       nodeListHandler,
       docx,
       converter,
       editor,
+      lists,
     });
 
     const result = {
@@ -107,6 +112,7 @@ export const createDocumentJson = (docx, converter, editor) => {
       pageStyles: getDocumentStyles(node, docx, converter, editor),
       comments,
       linkedStyles: getStyleDefinitions(docx, converter, editor),
+      numbering: getNumberingDefinitions(docx),
     };
   }
   return null;
@@ -126,6 +132,8 @@ export const defaultNodeListHandler = () => {
     trackChangeNodeHandlerEntity,
     tableNodeHandlerEntity,
     tabNodeEntityHandler,
+    autoPageHandlerEntity,
+    autoTotalPageCountEntity,
     standardNodeHandlerEntity, //this should be the last one, bcs this parses everything!!!
   ];
 
@@ -169,7 +177,16 @@ const createNodeListHandler = (nodeHandlers) => {
     };
   };
 
-  const nodeListHandlerFn = ({ nodes: elements, docx, insideTrackChange, converter, editor, filename, parentStyleId }) => {
+  const nodeListHandlerFn = ({
+    nodes: elements,
+    docx,
+    insideTrackChange,
+    converter,
+    editor,
+    filename,
+    parentStyleId,
+    lists
+  }) => {
     if (!elements || !elements.length) return [];
     
     const processedElements = [];
@@ -194,7 +211,8 @@ const createNodeListHandler = (nodeHandlers) => {
                 converter,
                 editor,
                 filename,
-                parentStyleId
+                parentStyleId,
+                lists,
               });
             },
             { nodes: [], consumed: 0 }
@@ -316,16 +334,14 @@ function getDocumentStyles(node, docx, converter, editor) {
           type: attributes['w:type'],
         };
         break;
-      case 'w:headerReference':
-        getHeaderFooter(el, 'header', docx, converter, editor);
-        break;
-      case 'w:footerReference':
-        getHeaderFooter(el, 'footer', docx, converter, editor);
-        break;
       case 'w:titlePg':
         converter.headerIds.titlePg = true;
     }
   });
+
+  // Import headers and footrs. Stores them in converter.headers and converter.footers
+  importHeadersFooters(docx, converter, editor);
+  styles.alternateHeaders = isAlternatingHeadersOddEven(docx);
   return styles;
 };
 
@@ -396,42 +412,139 @@ export function addDefaultStylesIfMissing(styles) {
   return updatedStyles;
 }
 
-function getHeaderFooter(el, elementType, docx, converter, editor) {
+/**
+ * Import all header and footer definitions
+ * 
+ * @param {Object} docx The parsed docx object
+ * @param {Object} converter The converter instance
+ * @param {Editor} editor The editor instance
+ */
+const importHeadersFooters = (docx, converter, editor) => {
   const rels = docx['word/_rels/document.xml.rels'];
   const relationships = rels.elements.find((el) => el.name === 'Relationships');
   const { elements } = relationships;
 
-  // sectionType as in default, first, odd, even
-  const sectionType = el.attributes['w:type'];
+  const headerType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header';
+  const footerType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer';
+  const headers = elements.filter((el) => el.attributes['Type'] === headerType);
+  const footers = elements.filter((el) => el.attributes['Type'] === footerType);
 
-  const rId = el.attributes['r:id'];
-  const rel = elements.find((el) => el.attributes['Id'] === rId);
-  const target = rel.attributes['Target'];
+  const sectPr = findSectPr(docx['word/document.xml']) || [];
+  const allSectPrElements = sectPr.flatMap((el) => el.elements);
 
-  // Get the referenced file (ie: header1.xml)
-  const referenceFile = docx[`word/${target}`];
-  const currentFileName = target;
+  headers.forEach((header) => {
+    const { rId, referenceFile, currentFileName } = getHeaderFooterSectionData(header, docx);
 
-  const nodeListHandler = defaultNodeListHandler();
-  const schema = nodeListHandler.handler({
-    nodes: referenceFile.elements[0].elements,
-    nodeListHandler,
-    docx,
-    converter,
-    editor,
-    filename: currentFileName
+    const sectPrHeader = allSectPrElements.find((el) => el.name === 'w:headerReference' && el.attributes['r:id'] === rId);
+    const sectionType = sectPrHeader?.attributes['w:type'];
+    const nodeListHandler = defaultNodeListHandler();
+    const schema = nodeListHandler.handler({
+      nodes: referenceFile.elements[0].elements,
+      nodeListHandler,
+      docx,
+      converter,
+      editor,
+      filename: currentFileName,
+    });
+
+    converter.headers[rId] = { type: 'doc', content: [...schema] };
+    converter.headerIds[sectionType] = rId;
   });
 
-  let storage, storageIds;
+  footers.forEach((footer) => {
+    const { rId, referenceFile, currentFileName } = getHeaderFooterSectionData(footer, docx)
+    const sectPrFooter = allSectPrElements.find((el) => el.name === 'w:footerReference' && el.attributes['r:id'] === rId);
+    const sectionType = sectPrFooter?.attributes['w:type'];
 
-  if (elementType === 'header') {
-    storage = converter.headers;
-    storageIds = converter.headerIds;
-  } else if (elementType === 'footer') {
-    storage = converter.footers;
-    storageIds = converter.footerIds;
+    const nodeListHandler = defaultNodeListHandler();
+    const schema = nodeListHandler.handler({
+      nodes: referenceFile.elements[0].elements,
+      nodeListHandler,
+      docx,
+      converter,
+      editor,
+      filename: currentFileName,
+    });
+
+    converter.footers[rId] = { type: 'doc', content: [...schema] };
+    converter.footerIds[sectionType] = rId;
+  });
+};
+
+const findSectPr = (obj, result = []) => {
+  for (const key in obj) {
+    if (obj[key] === 'w:sectPr') {
+      result.push(obj)
+    } else if (typeof obj[key] === 'object') {
+      findSectPr(obj[key], result);
+    }
   }
+  return result;
+};
 
-  storage[rId] = { type: 'doc', content: [...schema] };
-  storageIds[sectionType] = rId;
+/**
+ * Get section data from the header or footer
+ * 
+ * @param {Object} sectionData The section data (header or footer)
+ * @param {Object} docx The parsed docx object
+ * @returns {Object} The section data
+ */
+const getHeaderFooterSectionData = (sectionData, docx) => {
+  const rId = sectionData.attributes.Id
+  const target = sectionData.attributes.Target;
+  const referenceFile = docx[`word/${target}`];
+  const currentFileName = target;
+  return {
+    rId,
+    referenceFile,
+    currentFileName
+  };
+};
+
+/**
+ * Import this document's numbering.xml definitions
+ * They will be stored into converter.numbering
+ * 
+ * @param {Object} docx The parsed docx
+ * @returns {Object} The numbering definitions
+ */
+function getNumberingDefinitions(docx) {
+  let numbering = docx['word/numbering.xml'];
+  if (!numbering || !numbering.elements?.length || !numbering.elements[0].elements?.length) numbering = baseNumbering;
+
+  const elements = numbering.elements[0].elements;
+  const abstractDefs = elements.filter((el) => el.name === 'w:abstractNum');
+  const definitions = elements.filter((el) => el.name === 'w:num');
+
+  const abstractDefinitions = {};
+  abstractDefs.forEach((el) => {
+    const abstractId = Number(el.attributes['w:abstractNumId']);
+    abstractDefinitions[abstractId] = el;
+  });
+
+  const importListDefs = {};
+  definitions.forEach((el) => {
+    const numId = Number(el.attributes['w:numId']);
+    importListDefs[numId] = el;
+  });
+
+  return {
+    abstracts: abstractDefinitions,
+    definitions: importListDefs,
+  }
 }
+
+/**
+ * Check if the document has alternating headers and footers.
+ * 
+ * @param {Object} docx The parsed docx object
+ * @returns {Boolean} True if the document has alternating headers and footers, false otherwise
+ */
+const isAlternatingHeadersOddEven = (docx) => {
+  const settings = docx['word/settings.xml'];
+  if (!settings || !settings.elements?.length) return false;
+
+  const { elements = [] } = settings.elements[0];
+  const evenOdd = elements.find((el) => el.name === 'w:evenAndOddHeaders');
+  return !!evenOdd;
+};

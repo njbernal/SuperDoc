@@ -91,6 +91,9 @@ const handleDocumentReady = (documentId, container) => {
   if (areDocumentsReady.value) {
     if (!proxy.$superdoc.config.collaboration) isReady.value = true;
   }
+
+  isFloatingCommentsReady.value = true;
+  hasInitializedLocations.value = true;
   proxy.$superdoc.broadcastPdfDocumentReady();
 };
 

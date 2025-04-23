@@ -3,12 +3,13 @@ import { hasTextNode, parseProperties } from './importerHelpers.js';
 import { preProcessNodesForFldChar, getParagraphSpacing } from './paragraphNodeImporter.js';
 import { mergeTextNodes } from './mergeTextNodes.js';
 import { ErrorWithDetails } from '../../../helpers/ErrorWithDetails.js';
+import { twipsToInches, twipsToPixels, twipsToLines } from '../../helpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
  */
 export const handleListNode = (params) => {
-  const { nodes } = params;
+  const { nodes, lists, docx } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:p') {
     return { nodes: [], consumed: 0 };
   }
@@ -18,10 +19,10 @@ export const handleListNode = (params) => {
   const processedElements = preProcessNodesForFldChar(node.elements);
   node.elements = processedElements;
   
-  const pPr = node.elements.find((el) => el.name === 'w:pPr');
+  const originalPpr = node.elements.find((el) => el.name === 'w:pPr');
 
   // Check if this paragraph node is a list
-  if (testForList(node)) {
+  if (testForList(node, docx)) {
     // Get all siblings that are list items and haven't been processed yet.
     const siblings = carbonCopy(nodes);
     const listItems = [];
@@ -29,7 +30,7 @@ export const handleListNode = (params) => {
     // Iterate each item until we find the end of the list (a non-list item),
     // then send to the list handler for processing.
     let possibleList = siblings.shift();
-    while (possibleList && testForList(possibleList, true)) {
+    while (possibleList && testForList(possibleList, docx)) {
       listItems.push(possibleList);
       possibleList = siblings.shift();
       if (possibleList?.elements && !hasTextNode(possibleList.elements)) {
@@ -38,13 +39,14 @@ export const handleListNode = (params) => {
       }
     }
 
-    const listNodes = handleListNodes(listItems, params, 0);
+    const listNodes = handleListNodes({ listItems, params, originalPpr, level: 0 });
     return {
       nodes: [listNodes],
       consumed: listItems.filter((i) => i.seen).length,
+      lists,
     };
   } else {
-    return { nodes: [], consumed: 0 };
+    return { nodes: [], consumed: 0, lists };
   }
 };
 
@@ -71,16 +73,17 @@ export const listHandlerEntity = {
  * @param {number} [listLevel=0] - The current indentation level of the list.
  * @returns {Object} The processed list node with structured content.
  */
-function handleListNodes(
+function handleListNodes({
   listItems,
+  originalPpr,
   params,
   listLevel = 0,
   actualListLevel = 0,
   currentListNumId = null,
   path = '',
   isNested = false,
-) {
-  const { docx, nodeListHandler, insideTrackChange } = params;
+}) {
+  const { docx, nodeListHandler, lists } = params;
   const parsedListItems = [];
   let overallListType;
   let listStyleType;
@@ -93,13 +96,18 @@ function handleListNodes(
     return { nodes: [], consumed: 0 };
   }
 
-  let listItemIndices = {};
   const initialpPr = listItems[0].elements.find((el) => el.name === 'w:pPr');
-  const initialNumPr = initialpPr?.elements?.find((el) => el.name === 'w:numPr');
-  const initialNumIdTag = initialNumPr?.elements?.find((el) => el.name === 'w:numId') || {};
-  const { attributes: numIdAttrs = {} } = initialNumIdTag;
-  currentListNumId = numIdAttrs['w:val'];
-  actualListLevel = parseInt(initialNumPr?.elements?.find((el) => el.name === 'w:ilvl')?.attributes['w:val']) || 0;
+  const styleTag = initialpPr?.elements?.find((el) => el.name === 'w:pStyle');
+  const styleId = styleTag?.attributes['w:val'];
+
+  // List numId can come from inline props or styled def
+  const numPrTag = getNumPrRecursive({ node: listItems[0], styleId, docx });
+  currentListNumId = getNumIdFromTag(numPrTag);
+
+  // List level can come from inline props or styled def
+  actualListLevel = parseInt(numPrTag?.elements?.find((el) => el.name === 'w:ilvl')?.attributes['w:val']) || 0;
+  if (actualListLevel === undefined) actualListLevel = getOutlineLevelFromStyleTag(styleId, docx);
+
   let lastNestedListLevel = 0;
 
   for (let [index, item] of listItems.entries()) {
@@ -119,12 +127,21 @@ function handleListNodes(
     // As well as many other list properties
     const { attributes, elements, marks = [] } = parseProperties(item, docx);
     const textStyle = marks.find((mark) => mark.type === 'textStyle');
-    
-    const { listType, listOrderingType, ilvl, listrPrs, listpPrs, start, lvlText, lvlJc, numId } =
-      getNodeNumberingDefinition(attributes, listLevel, docx);
+
+    const {
+      listType,
+      listOrderingType,
+      ilvl,
+      listrPrs,
+      listpPrs,
+      start,
+      lvlText,
+      lvlJc,
+      numId
+    } = getNodeNumberingDefinition(item, listLevel, docx);
+
     listStyleType = listOrderingType;
     const intLevel = parseInt(ilvl);
-
     const isRoot = actualListLevel === intLevel && numId === currentListNumId;
     const isSameListLevelDef = isSameListLevelDefsExceptStart({
       firstListId: numId,
@@ -134,12 +151,20 @@ function handleListNodes(
       docx,
     });
     const isDifferentList = numId !== currentListNumId && !isSameListLevelDef;
-    const isNested =
-      listLevel < intLevel || (listLevel === intLevel && isDifferentList && lastNestedListLevel === listLevel);
+    const isNested = (
+      listLevel < intLevel
+      || listLevel === intLevel && isDifferentList && lastNestedListLevel === listLevel
+    );
+
+    // We keep track of all indices for all lists here with an object
+    // This allows us to detect disconnected lists and handle them correctly
+    if (!lists[currentListNumId]) lists[currentListNumId] = {};
+    if (!lists[currentListNumId][listLevel]) lists[currentListNumId][listLevel] = 0;
 
     // If this node belongs on this list level, add it to the list
     const nodeAttributes = {};
-    if (isRoot) {
+    if (isRoot && !isNested) {
+      lists[currentListNumId][actualListLevel]++;  
       overallListType = listType;
       item.seen = true;
 
@@ -164,15 +189,37 @@ function handleListNodes(
 
       schemaElements.push(parNode);
       lastNestedListLevel = listLevel;
-
-      if (!(intLevel in listItemIndices)) listItemIndices[intLevel] = parseInt(start);
-      else listItemIndices[intLevel] += 1;
-
+    
       let thisItemPath = [];
       if (listStyleType !== 'bullet') {
-        thisItemPath = [...path, listItemIndices[intLevel]];
+        thisItemPath = [...path, lists[currentListNumId][listLevel]];
       }
 
+      // Rebuild a path if we're continuing after a break
+      if (!path.length && actualListLevel > 0) {
+        const currentDef = lists[currentListNumId];
+        if (currentDef) {
+          const newPath = [];
+          Object.keys(currentDef).forEach((key) => {
+            newPath.push(currentDef[key]);
+          });
+          thisItemPath = newPath;
+        }
+      };
+
+      // Process additional possible inline styles
+      const pPr = item.elements.find((el) => el.name === 'w:pPr');
+      const indent = pPr?.elements.find((el) => el.name === 'w:ind');
+      if (indent) {
+        const indentAttrs = {};
+        if (indent.attributes['w:left'] !== undefined) indentAttrs.left = twipsToPixels(indent.attributes['w:left']);
+        if (indent.attributes['w:right'] !== undefined) indentAttrs.right = twipsToPixels(indent.attributes['w:right']);
+        if (indent.attributes['w:firstLine'] !== undefined) indentAttrs.firstLine = twipsToPixels(indent.attributes['w:firstLine']);
+        if (indent.attributes['w:hanging'] !== undefined) indentAttrs.hanging = twipsToPixels(indent.attributes['w:hanging']);
+        nodeAttributes['indent'] = indentAttrs;
+      }
+
+      // Process other core node attributes
       if (listpPrs) nodeAttributes['listParagraphProperties'] = listpPrs;
       if (listrPrs) nodeAttributes['listRunProperties'] = listrPrs;
       nodeAttributes['textStyle'] = textStyle;
@@ -184,8 +231,14 @@ function handleListNodes(
       nodeAttributes['attributes'] = {
         parentAttributes: item?.attributes || null,
       };
+
+      const originalRunProps = originalPpr?.elements?.find((el) => el.name === 'w:rPr');
+      if (originalRunProps) {
+        nodeAttributes.attributes["originalInlineRunProps"] = originalRunProps;
+      };
+
       nodeAttributes['numId'] = numId;
-      
+
       if (docx) {
         nodeAttributes['spacing'] = getParagraphSpacing(item, docx);
       }
@@ -197,16 +250,17 @@ function handleListNodes(
     // If this item belongs in a deeper list level, we need to process it by calling this function again
     // But going one level deeper.
     else if (isNested) {
-      const newPath = [...path, listItemIndices[listLevel]];
-      const sublist = handleListNodes(
-        listItems.slice(index),
+      const newPath = [...path, lists[currentListNumId][listLevel]];
+      const sublist = handleListNodes({
+        listItems: listItems.slice(index),
+        originalPpr,
         params,
-        listLevel + 1,
-        listLevel,
-        numId,
-        newPath,
-        true,
-      );
+        listLevel: listLevel + 1,
+        actualListLevel: listLevel,
+        currentListNumId: numId,
+        path: newPath,
+        isNested: true,
+      });
       lastNestedListLevel = sublist.lastNestedListLevel;
       delete sublist.lastNestedListLevel;
       const lastItem = parsedListItems[parsedListItems.length - 1];
@@ -217,9 +271,20 @@ function handleListNodes(
       }
     }
 
+    else if (!numId) {
+      item.seen = true;
+      const n = handleStandardNode({ ...params, nodes: [item] }).nodes[0];
+      parsedListItems[parsedListItems.length - 1]?.content.push(n);
+    }
+
     // If this item belongs in a higher list level, we need to break out of the loop and return to higher levels
     else {
       lastNestedListLevel = listLevel;
+
+      if (listLevel > 0 && item.elements[0].elements.find((el)=>el.name==='w:numPr')) {
+        lists[currentListNumId][listLevel] = 0;
+      }
+
       break;
     }
   }
@@ -229,32 +294,106 @@ function handleListNodes(
     content: parsedListItems,
     attrs: {
       'list-style-type': listStyleType,
+      listId: currentListNumId,
       attributes: {
         parentAttributes: listItems[0]?.attributes || null,
       },
-    },
+    }
   };
 
   if (isNested) resultingList.lastNestedListLevel = lastNestedListLevel;
+
   return resultingList;
 }
 
+const getOutlineLevelFromStyleTag = (styleTag, docx) => {
+  const matchedStyle = getStyleTagFromStyleId(styleTag, docx);
+  const pPr = matchedStyle?.elements?.find((style) => style.name === 'w:pPr');
+  const outlineLevel = pPr?.elements?.find((style) => style.name === 'w:outlineLvl');
+  
+  try {
+    return parseInt(outlineLevel?.attributes['w:val']);
+  } catch (e) {}
+};
+
 /**
- *
- * @param {XmlNode} node
- * @param {boolean} isInsideList
- * @returns {boolean|*}
+ * Checks if the given node is a list or not.
+ * 
+ * @param {XmlNode} node The node to check.
+ * @returns {boolean} Whether the node is a list or not.
  */
-export function testForList(node, isInsideList = false) {
+export function testForList(node, docx) {
   const { elements } = node;
   const pPr = elements?.find((el) => el.name === 'w:pPr');
   if (!pPr) return false;
 
   const paragraphStyle = pPr.elements?.find((el) => el.name === 'w:pStyle');
-  const isList = paragraphStyle?.attributes['w:val'] === 'ListParagraph';
-  const hasNumPr = pPr.elements?.find((el) => el.name === 'w:numPr');
-  return isList || hasNumPr;
-}
+  let numPr = pPr.elements?.find((el) => el.name === 'w:numPr');
+  let numId = getNumIdFromTag(numPr);
+
+  const styleId = paragraphStyle?.attributes['w:val'];
+  if (styleId && !numId) {
+    numPr = getNumPrRecursive({ node, styleId, docx });
+    numId = getNumIdFromTag(numPr);
+  }
+
+  return !!numId;
+};
+
+const getNumIdFromTag = (tag) => {
+  return tag?.elements?.find((el) => el.name === 'w:numId')?.attributes['w:val'];
+};
+
+/**
+ * Get the style tag from the style ID
+ * 
+ * @param {string} styleId The style ID to search for
+ * @param {Object} docx The docx data
+ * @returns {Object} The style tag
+ */
+function getStyleTagFromStyleId(styleId, docx) {
+  const styles = docx['word/styles.xml'];
+  const styleEls = styles.elements;
+  const wStyles = styleEls.find((el) => el.name === 'w:styles');
+  const styleTags = wStyles.elements.filter((style) => style.name === 'w:style');
+  return styleTags.find((tag) => tag.attributes['w:styleId'] === styleId);
+};
+
+/**
+ * Get the num ID from the style definition
+ * This is a recursive function that will check the style definition for the numId
+ * If it doesn't exist, it will check the basedOn style definition for the numId
+ * This will continue until we find a numId or we run out of basedOn styles
+ * 
+ * @param {Object} node The node to check
+ * @param {string} styleId The style ID to check
+ * @param {Object} docx The docx data
+ * @param {Set} seenStyleIds The set of style IDs we've already seen to avoid circular references
+ * @returns {string|null} The numId or null if not found
+ */
+function getNumPrRecursive({ node, styleId, docx, seenStyleIds = new Set() }) {
+  const initialPpr = node?.elements?.find((el) => el.name === 'w:pPr');
+  const initialNumPr = initialPpr?.elements?.find((el) => el.name === 'w:numPr');
+  let numPr = initialNumPr;
+  let numId = getNumIdFromTag(numPr);
+  if (numId) return numPr;
+
+  const matchedStyle = getStyleTagFromStyleId(styleId, docx);
+  const pPr = matchedStyle?.elements?.find((style) => style.name === 'w:pPr');
+
+  numPr = pPr?.elements?.find((style) => style.name === 'w:numPr');
+  numId = getNumIdFromTag(numPr);
+  const basedOn = matchedStyle?.elements?.find((style) => style.name === 'w:basedOn');
+
+  if (!numId && !seenStyleIds.has(styleId)) {
+    const basedOnStyleId = basedOn?.attributes['w:val'];
+    seenStyleIds.add(styleId);
+    if (!basedOnStyleId) return null;
+    return getNumPrRecursive({ styleId: basedOnStyleId, docx, seenStyleIds });
+  };
+
+  return numPr;
+};
 
 /**
  * Creates a list item node with specified content and marks.
@@ -331,7 +470,7 @@ const getListNumIdFromStyleRef = (styleId, docx) => {
   if (!numPr) return null;
 
   let numIdTag = numPr?.elements?.find((style) => style.name === 'w:numId') || {};
-  let numId = numIdTag?.attributes?.['w:val'];
+  let numId = getNumIdFromTag(numPr);
   let ilvlTag = numPr?.elements?.find((style) => style.name === 'w:ilvl');
   let ilvl = ilvlTag?.attributes?.['w:val'];
 
@@ -375,8 +514,8 @@ const getListLevelDefinitionTag = (numId, level, pStyleId, docx) => {
 
   if (pStyleId) {
     const { numId: numIdFromStyles, ilvl: iLvlFromStyles } = getListNumIdFromStyleRef(pStyleId, docx) || {};
-    if (numIdFromStyles) numId = numIdFromStyles;
-    if (iLvlFromStyles) level = iLvlFromStyles ? parseInt(iLvlFromStyles) : null;
+    if (!numId && numIdFromStyles) numId = numIdFromStyles;
+    if (!level && iLvlFromStyles) level = iLvlFromStyles ? parseInt(iLvlFromStyles) : null;
   }
 
   const numberingElements = listData.elements;
@@ -414,23 +553,25 @@ const getListLevelDefinitionTag = (numId, level, pStyleId, docx) => {
  * @param {ParsedDocx} docx
  * @returns
  */
-export function getNodeNumberingDefinition(attributes, level, docx) {
-  if (!attributes) return;
+export function getNodeNumberingDefinition(item, level, docx) {
+  if (!item) return;
+  const { attributes } = item;
 
   const { paragraphProperties = {} } = attributes;
   const { elements: listStyles = [] } = paragraphProperties;
-  const numPr = listStyles.find((style) => style.name === 'w:numPr');
-  if (!numPr) {
-    return {};
-  }
+  const initialPpr = item.elements.find((el) => el.name === 'w:pPr');
+  const styleTag = initialPpr?.elements?.find((el) => el.name === 'w:pStyle');
+  const styleId = styleTag?.attributes['w:val'];
+
+  const numPrTag = getNumPrRecursive({ node: item, styleId, docx });
+  if (!numPrTag) return {};
+
+  const numIdTag = numPrTag?.elements.find((style) => style.name === 'w:numId');
+  const numId = numIdTag?.attributes['w:val'];
 
   // Get the indent level
-  const ilvlTag = numPr.elements.find((style) => style.name === 'w:ilvl');
-  const ilvl = ilvlTag.attributes['w:val'];
-
-  // Get the list style id
-  const numIdTag = numPr.elements.find((style) => style.name === 'w:numId');
-  const numId = numIdTag.attributes['w:val'];
+  const ilvlTag = numPrTag?.elements.find((style) => style.name === 'w:ilvl');
+  const ilvl = ilvlTag?.attributes['w:val'] || getOutlineLevelFromStyleTag(styleId, docx);
 
   const pStyle = listStyles.find((style) => style.name === 'w:pStyle');
   const pStyleId = pStyle?.attributes['w:val'];
@@ -515,7 +656,7 @@ function _processListRunProperties(data) {
   elements.forEach((item) => {
     if (!expectedTypes.includes(item.name)) {
       // console.warn(`[numbering.xml] Unexpected list run prop found: ${item.name}`);
-    };
+    }
     const { attributes = {} } = item;
     Object.keys(attributes).forEach((key) => {
       runProperties[key] = attributes[key];

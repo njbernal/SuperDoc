@@ -1,7 +1,7 @@
 import { Node, Attribute } from '@core/index.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { generateDocxListAttributes, findParentNode } from '@helpers/index.js';
-import { orderedListSync as orderedListSyncPlugin } from './helpers/orderedListSyncPlugin.js';
+import { findParentNode } from '@helpers/index.js';
+import { orderedListSync as orderedListSyncPlugin, randomId } from './helpers/orderedListSyncPlugin.js';
 import { orderedListMarker as orderedListMarkerPlugin } from './helpers/orderedListMarkerPlugin.js';
 import { wrappingInputRule } from '../../core/inputRules/wrappingInputRule.js';
 
@@ -55,6 +55,11 @@ export const OrderedList = Node.create({
         // rendered: false,
       },
 
+      listId: {
+        default: null,
+        render: false,
+      },
+
       'list-style-type': {
         default: 'decimal',
         renderDOM: (attrs) => {
@@ -95,9 +100,34 @@ export const OrderedList = Node.create({
       toggleOrderedList:
         () =>
         ({ commands }) => {
-          const attributes = generateDocxListAttributes('orderedList');
-          return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks, attributes);
+          return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks);
         },
+  
+      getCurrentList: () => ({ state }) => {
+        return findParentNode((node) => node.type.name === this.name)(state.selection);
+      },
+  
+      restartListNodes: (followingNodes, pos) => ({ tr, state }) => {      
+        let currentNodePos = pos
+        const nodes = followingNodes.map((node) => {
+          const resultNode = {
+            node,
+            pos: currentNodePos,
+          };
+
+          currentNodePos += node.nodeSize;
+          return resultNode;
+        });
+
+        nodes.forEach((item) => {
+          const { pos } = item
+          const newPos = tr.mapping.map(pos);
+
+          tr.setNodeMarkup(newPos, undefined, {});
+        });
+
+        return true;
+      },
 
       /**
        * Updates ordered list style type when sink or lift `listItem`.
@@ -106,7 +136,7 @@ export const OrderedList = Node.create({
       updateOrderedListStyleType:
         () =>
         ({ dispatch, state, tr }) => {
-          let list = findParentNode((node) => node.type.name === this.name)(state.selection);
+          let list = findParentNode((node) => node.type.name === this.name)(tr.selection);
 
           if (!list) {
             return true;
@@ -221,7 +251,7 @@ export const OrderedList = Node.create({
   },
 
   addPmPlugins() {
-    return [orderedListMarkerPlugin(), orderedListSyncPlugin()];
+    return [orderedListMarkerPlugin(this.editor), orderedListSyncPlugin()];
   },
 
   addInputRules() {
@@ -249,6 +279,3 @@ export const OrderedList = Node.create({
   },
 });
 
-function randomId() {
-  return Math.floor(Math.random() * 0xffffffff).toString();
-}

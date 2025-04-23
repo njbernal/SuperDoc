@@ -22,6 +22,8 @@ export class SuperToolbar extends EventEmitter {
     icons: { ...toolbarIcons },
     mode: 'docx',
     excludeItems: [],
+    groups: null,
+    editor: null,
   };
 
   constructor(config) {
@@ -34,7 +36,8 @@ export class SuperToolbar extends EventEmitter {
     this.isDev = config.isDev || false;
     this.superdoc = config.superdoc;
     this.role = config.role || 'editor';
-    
+
+    if (this.config.editor) this.config.mode = this.config.editor.options.mode;
     this.config.icons = {
       ...toolbarIcons,
       ...config.icons,
@@ -146,7 +149,7 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain().sinkListItem('listItem').updateOrderedListStyleType().run();
+        return this.activeEditor.commands.increaseListIndent();
       }
 
       if (command in this.activeEditor.commands) {
@@ -160,7 +163,7 @@ export class SuperToolbar extends EventEmitter {
       let listItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
 
       if (listItem) {
-        return this.activeEditor.chain().liftListItem('listItem').updateOrderedListStyleType().run();
+        return this.activeEditor.commands.decreaseListIndent();
       }
 
       if (command in this.activeEditor.commands) {
@@ -349,7 +352,7 @@ export class SuperToolbar extends EventEmitter {
         } else {
           return item.activate();
         }
-      };
+      }
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
 

@@ -24,6 +24,6 @@ const handleTabNode = (params) => {
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const tabNodeEntityHandler = {
-  handlerName: 'runNodeHandler',
+  handlerName: 'tabNodeHandler',
   handler: handleTabNode,
 };

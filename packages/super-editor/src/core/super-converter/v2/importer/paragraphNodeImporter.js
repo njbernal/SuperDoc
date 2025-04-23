@@ -1,4 +1,4 @@
-import { twipsToInches, twipsToPixels, twipsToLines } from '../../helpers.js';
+import { twipsToInches, twipsToLines, twipsToPixels } from '../../helpers.js';
 import { testForList } from './listImporter.js';
 import { carbonCopy } from '../../../utilities/carbonCopy.js';
 import { mergeTextNodes } from './mergeTextNodes.js';
@@ -24,11 +24,12 @@ export const handleParagraphNode = (params) => {
   let schemaNode;
 
   // We need to pre-process paragraph nodes to combine various possible elements we will find ie: lists, links.
-  const processedElements = preProcessNodesForFldChar(node.elements);
+  // Also older MS word versions store auto page numbers here
+  let processedElements = preProcessNodesForFldChar(node.elements);
   node.elements = processedElements;
 
   // Check if this paragraph node is a list
-  if (testForList(node)) {
+  if (testForList(node, docx)) {
     return { nodes: [], consumed: 0 };
   }
 
@@ -49,33 +50,58 @@ export const handleParagraphNode = (params) => {
 
   const pPr = node.elements?.find((el) => el.name === 'w:pPr');
   const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
+  const nestedRPr = pPr?.elements?.find((el) => el.name === 'w:rPr');
+  
+  if (nestedRPr) {
+    schemaNode.attrs.marksAttrs = parseMarks(nestedRPr, []);
+  }
+  
   if (styleTag) {
     schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
   }
+  
+  if (docx) {
+    const indent = getParagraphIndent(node, docx, schemaNode.attrs['styleId']);
 
-  const indent = pPr?.elements?.find((el) => el.name === 'w:ind');
-  if (indent && indent.attributes) {
-    const { 'w:left': left, 'w:right': right, 'w:firstLine': firstLine } = indent?.attributes;
-
-    if (schemaNode.attrs) {
-      if (!schemaNode.attrs.indent) schemaNode.attrs.indent = {};
-      if (left) schemaNode.attrs['indent'].left = twipsToPixels(left);
-      if (right) schemaNode.attrs['indent'].right = twipsToPixels(right);
-      if (firstLine) schemaNode.attrs['indent'].firstLine = twipsToPixels(firstLine);
+    if (!schemaNode.attrs.indent) {
+      schemaNode.attrs.indent = {};
     }
 
-    const textIndentVal = left || firstLine || 0;
-    schemaNode.attrs['textIndent'] = `${twipsToInches(textIndentVal)}in`;
+    if (indent.left) {
+      schemaNode.attrs.indent.left = indent.left;
+    }
+    if (indent.right) {
+      schemaNode.attrs.indent.right = indent.right;
+    }
+    if (indent.firstLine) {
+      schemaNode.attrs.indent.firstLine = indent.firstLine;
+    }
+    if (indent.hanging) {
+      schemaNode.attrs.indent.hanging = indent.hanging;
+    }
+    if (indent.textIndent) {
+      schemaNode.attrs.textIndent = `${indent.textIndent}in`;
+    }
   }
 
   const justify = pPr?.elements?.find((el) => el.name === 'w:jc');
   if (justify && justify.attributes) {
     schemaNode.attrs['textAlign'] = justify.attributes['w:val'];
   }
+  
+  const keepLines = pPr?.elements?.find((el) => el.name === 'w:keepLines');
+  if (keepLines && keepLines.attributes) {
+    schemaNode.attrs['keepLines'] = keepLines.attributes['w:val'];
+  }
+
+  const keepNext = pPr?.elements?.find((el) => el.name === 'w:keepNext');
+  if (keepNext && keepNext.attributes) {
+    schemaNode.attrs['keepNext'] = keepNext.attributes['w:val'];
+  }
 
   if (docx) {
     const defaultStyleId = node.attributes?.['w:rsidRDefault'];
-    schemaNode.attrs['spacing'] = getParagraphSpacing(node, docx);
+    schemaNode.attrs['spacing'] = getParagraphSpacing(node, docx, schemaNode.attrs['styleId'], schemaNode.attrs.marksAttrs);
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
   }
 
@@ -92,7 +118,49 @@ export const handleParagraphNode = (params) => {
   return { nodes: schemaNode ? [schemaNode] : [], consumed: 1 };
 };
 
-export const getParagraphSpacing = (node, docx) => {
+export const getParagraphIndent = (node, docx, styleId = '') => {
+  const indent = {
+    left: 0,
+    right: 0,
+    firstLine: 0,
+    hanging: 0,
+    textIndent: 0,
+  };
+
+  const { indent: pDefaultIndent = {} } = getDefaultParagraphStyle(docx, styleId);
+
+  const pPr = node.elements?.find((el) => el.name === 'w:pPr');
+  const inLineIndentTag = pPr?.elements?.find((el) => el.name === 'w:ind');
+  const inLineIndent = inLineIndentTag?.attributes || {};
+
+  const leftIndent = inLineIndent?.['w:left'] || pDefaultIndent?.['w:left'];
+  const rightIndent = inLineIndent?.['w:right'] || pDefaultIndent?.['w:right'];
+  const firstLine = inLineIndent?.['w:firstLine'] || pDefaultIndent?.['w:firstLine'];
+  const hanging = inLineIndent?.['w:hanging'] || pDefaultIndent?.['w:hanging'];
+
+  if (leftIndent) {
+    indent.left = twipsToPixels(leftIndent);
+  }
+  if (rightIndent) {
+    indent.right = twipsToPixels(rightIndent);
+  }
+  if (firstLine) {
+    indent.firstLine = twipsToPixels(firstLine);
+  }
+  if (hanging) {
+    indent.hanging = twipsToPixels(hanging);
+  }
+
+  const textIndentValue = leftIndent - parseInt(hanging || 0) || 0;
+
+  if (textIndentValue) {
+    indent.textIndent = twipsToInches(textIndentValue);
+  }
+
+  return indent;
+};
+
+export const getParagraphSpacing = (node, docx, styleId = '', marks = []) => {
   // Check if we have default paragraph styles to override
   const spacing = {
     lineSpaceAfter: 0,
@@ -100,13 +168,16 @@ export const getParagraphSpacing = (node, docx) => {
     line: 0,
     lineRule: null,
   }
-
-  const { spacing: pDefaultSpacing = {} } = getDefaultParagraphStyle(docx);
+  
+  const { spacing: pDefaultSpacing = {} } = getDefaultParagraphStyle(docx, styleId);
   let lineSpaceAfter, lineSpaceBefore, line, lineRuleStyle;
 
   const pPr = node.elements?.find((el) => el.name === 'w:pPr');
   const inLineSpacingTag = pPr?.elements?.find((el) => el.name === 'w:spacing');
   const inLineSpacing = inLineSpacingTag?.attributes || {};
+  
+  const textStyleMark = marks.find((el) => el.type === 'textStyle');
+  const fontSize = textStyleMark?.attrs?.fontSize;
 
   // These styles are taken in order of precedence
   // 1. Inline spacing
@@ -117,9 +188,19 @@ export const getParagraphSpacing = (node, docx) => {
 
   const beforeSpacing = inLineSpacing?.['w:before'] || lineSpaceBefore || pDefaultSpacing?.['w:before'];
   if (beforeSpacing) spacing.lineSpaceBefore = twipsToPixels(beforeSpacing);
+  
+  const beforeAutospacing = inLineSpacing?.['w:beforeAutospacing'];
+  if (beforeAutospacing === '1' && fontSize) {
+    spacing.lineSpaceBefore += Math.round((parseInt(fontSize) * 0.5) * 96 / 72);
+  }
 
   const afterSpacing = inLineSpacing?.['w:after'] || lineSpaceAfter || pDefaultSpacing?.['w:after'];
   if (afterSpacing) spacing.lineSpaceAfter = twipsToPixels(afterSpacing);
+
+  const afterAutospacing = inLineSpacing?.['w:afterAutospacing'];
+  if (afterAutospacing === '1' && fontSize) {
+    spacing.lineSpaceAfter += Math.round((parseInt(fontSize) * 0.5) * 96 / 72);
+  }
 
   const lineRule = inLineSpacing?.['w:lineRule'] || lineRuleStyle || pDefaultSpacing?.['w:lineRule'];
   if (lineRule) spacing.lineRule = lineRule;
@@ -127,7 +208,7 @@ export const getParagraphSpacing = (node, docx) => {
   return spacing;
 };
 
-const getDefaultParagraphStyle = (docx) => {
+const getDefaultParagraphStyle = (docx, styleId = '') => {
   const styles = docx['word/styles.xml'];
   if (!styles) {
     return {};
@@ -136,11 +217,36 @@ const getDefaultParagraphStyle = (docx) => {
   const pDefault = defaults.elements.find((el) => el.name === 'w:pPrDefault');
   const pPrDefault = pDefault?.elements?.find((el) => el.name === 'w:pPr');
   const pPrDefaultSpacingTag = pPrDefault?.elements?.find((el) => el.name === 'w:spacing') || {};
+  const pPrDefaultIndentTag = pPrDefault?.elements?.find((el) => el.name === 'w:ind') || {};
+  
+  // Paragraph 'Normal' styles
+  const stylesNormal = styles.elements[0].elements?.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal');
+  const pPrNormal = stylesNormal?.elements?.find((el) => el.name === 'w:pPr');
+  const pPrNormalSpacingTag = pPrNormal?.elements?.find((el) => el.name === 'w:spacing') || {};
+  const pPrNormalIndentTag = pPrNormal?.elements?.find((el) => el.name === 'w:ind') || {};
+  
+  // Styles based on styleId
+  let pPrStyleIdSpacingTag = {};
+  let pPrStyleIdIndentTag = {};
+  if (styleId) {
+    const stylesById = styles.elements[0].elements?.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === styleId);
+    const pPrById = stylesById?.elements?.find((el) => el.name === 'w:pPr');
+    pPrStyleIdSpacingTag = pPrById?.elements?.find((el) => el.name === 'w:spacing') || {};
+    pPrStyleIdIndentTag = pPrById?.elements?.find((el) => el.name === 'w:ind') || {};
+  }
+  
   const { attributes: pPrDefaultSpacingAttr } = pPrDefaultSpacingTag;
+  const { attributes: pPrNormalSpacingAttr } = pPrNormalSpacingTag;
+  const { attributes: pPrByIdSpacingAttr } = pPrStyleIdSpacingTag;
+
+  const { attributes: pPrDefaultIndentAttr } = pPrDefaultIndentTag;
+  const { attributes: pPrNormalIndentAttr } = pPrNormalIndentTag;
+  const { attributes: pPrByIdIndentAttr } = pPrStyleIdIndentTag;
 
   return {
-    spacing: pPrDefaultSpacingAttr,
-  }
+    spacing: pPrByIdSpacingAttr || pPrDefaultSpacingAttr || pPrNormalSpacingAttr,
+    indent: pPrByIdIndentAttr || pPrDefaultIndentAttr || pPrNormalIndentAttr,
+  };
 };
 
 /**
@@ -266,63 +372,115 @@ export function getDefaultStyleDefinition(defaultStyleId, docx) {
  * @returns
  */
 export function preProcessNodesForFldChar(nodes) {
-  const processedNodes = [];
-  const nodesToCombine = [];
+  let processedNodes = [];
+  let nodesToCombine = [];
   let isCombiningNodes = false;
+
   nodes?.forEach((n) => {
-    const fldChar = n.elements?.find((el) => el.name === 'w:fldChar');
-    if (fldChar) {
-      const fldType = fldChar.attributes['w:fldCharType'];
-      if (fldType === 'begin') {
-        isCombiningNodes = true;
-        nodesToCombine.push(n);
-      } else if (fldType === 'end') {
-        nodesToCombine.push(n);
-        isCombiningNodes = false;
+    if (n.seen) return;
+
+    n.seen = true;
+    const fldChar = n.elements?.filter((el) => el.name === 'w:fldChar') || [];
+    if (fldChar.length) {
+
+      // If we have a fldChar of length greater than 1, we need to process them as a group
+      if (fldChar.length > 1) {
+        const result = processCombinedNodesForFldChar([n]);
+        processedNodes.push(...result);
       }
-    } else {
-      processedNodes.push(n);
+
+      // if we have fldChar of length 1, we need to combine nodes to complete the fld chars
+      else {
+        const fldType = fldChar[0].attributes['w:fldCharType'];
+        if (fldType === 'begin') {
+          isCombiningNodes = true;
+          nodesToCombine.push(n);
+        } else if (fldType === 'end') {
+          isCombiningNodes = false;
+          nodesToCombine.push(n);
+          const result = processCombinedNodesForFldChar(nodesToCombine);
+          processedNodes.push(...result);
+          nodesToCombine = [];
+        }
+      }
     }
-
-    if (isCombiningNodes) {
-      nodesToCombine.push(n);
-    } else if (!isCombiningNodes && nodesToCombine.length) {
-      // Need to extract all nodes between 'separate' and 'end' fldChar nodes
-      const textStart = nodesToCombine.findIndex((n) =>
-        n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'separate'),
-      );
-      const textEnd = nodesToCombine.findIndex((n) =>
-        n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
-      );
-      const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
-      const instrText = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'))?.elements[0]
-        ?.elements[0].text;
-      const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
-
-      if (!urlMatch || urlMatch?.length < 2) return [];
-      const url = urlMatch[1];
-
-      const textMarks = [];
-      textNodes.forEach((n) => {
-        const rPr = n.elements.find((el) => el.name === 'w:rPr');
-        if (!rPr) return;
-
-        const { elements } = rPr;
-        elements.forEach((el) => {
-          textMarks.push(el);
-        });
-      });
-
-      // Create a rPr and replace all nodes with the updated node.
-      const linkMark = { name: 'link', attributes: { href: url } };
-      const rPr = { name: 'w:rPr', type: 'element', elements: [linkMark, ...textMarks] };
-      processedNodes.push({
-        name: 'w:r',
-        type: 'element',
-        elements: [rPr, ...textNodes],
-      });
-    }
+    
+    if (!isCombiningNodes) processedNodes.push(n);
+    else nodesToCombine.push(n); // Combine nodes
   });
 
   return processedNodes;
-}
+};
+
+
+/**
+ * Process the combined nodes for fldChar
+ * 
+ * @param {Array} nodesToCombine List of nodes to combine
+ * @returns {Array} Processed nodes
+ */
+const processCombinedNodesForFldChar = (nodesToCombine = []) => {
+  let processedNodes = [];
+  let hasPageMarker = false;
+  let isNumPages = false;
+
+  // Need to extract all nodes between 'separate' and 'end' fldChar nodes
+  const textStart = nodesToCombine.findIndex((n) =>
+    n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'separate'),
+  );
+  const textEnd = nodesToCombine.findIndex((n) =>
+    n.elements?.some((el) => el.name === 'w:fldChar' && el.attributes['w:fldCharType'] === 'end'),
+  );
+
+  const textNodes = nodesToCombine.slice(textStart + 1, textEnd);
+  const instrTextContainer = nodesToCombine.find((n) => n.elements?.some((el) => el.name === 'w:instrText'));
+  const instrTextNode = instrTextContainer?.elements?.find((el) => el.name === 'w:instrText');
+  const instrText = instrTextNode?.elements[0].text;
+
+  if (!hasPageMarker) hasPageMarker = instrText?.trim().startsWith('PAGE');
+  if (!isNumPages) isNumPages = instrText?.trim().startsWith('NUMPAGES');
+  const urlMatch = instrText?.match(/HYPERLINK\s+"([^"]+)"/);
+
+  // If we have a page marker, we need to replace the last node with a page number node.
+  if (hasPageMarker) {
+    processedNodes.push({
+      name: 'sd:autoPageNumber',
+      type: 'element',
+    });
+  }
+
+  // If we have a NUMPAGES marker, we need to replace the last node with a total page number node.
+  else if (isNumPages) {
+    processedNodes.push({
+      name: 'sd:totalPageNumber',
+      type: 'element',
+    });
+  }
+
+  // If we have a hyperlink, we need to replace the last node with a link node.
+  else if (urlMatch && urlMatch?.length >= 2) {
+    const url = urlMatch[1];
+
+    const textMarks = [];
+    textNodes.forEach((n) => {
+      const rPr = n.elements.find((el) => el.name === 'w:rPr');
+      if (!rPr) return;
+
+      const { elements } = rPr;
+      elements.forEach((el) => {
+        textMarks.push(el);
+      });
+    });
+
+    // Create a rPr and replace all nodes with the updated node.
+    const linkMark = { name: 'link', attributes: { href: url } };
+    const rPr = { name: 'w:rPr', type: 'element', elements: [linkMark, ...textMarks] };
+    processedNodes.push({
+      name: 'w:r',
+      type: 'element',
+      elements: [rPr, ...textNodes],
+    });
+  };
+
+  return processedNodes;
+};

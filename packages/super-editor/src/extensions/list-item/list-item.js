@@ -1,6 +1,7 @@
 import { Node, Attribute } from '@core/index.js';
 import { generateOrderedListIndex } from '@helpers/orderedListUtils.js';
 import { styledListMarker as styledListMarkerPlugin } from './helpers/styledListMarkerPlugin.js';
+import { findParentNode } from '@helpers/index.js';
 
 export const ListItem = Node.create({
   name: 'listItem',
@@ -90,7 +91,6 @@ export const ListItem = Node.create({
         rendered: false,
       },
 
-      // numbering.xml reference id
       numId: {
         default: null,
         rendered: false,
@@ -103,8 +103,60 @@ export const ListItem = Node.create({
       spacing: {
         default: null,
         rendered: false,
+      },
+
+      indent: {
+        default: null,
+        rendered: false,
       }
     };
+  },
+
+  addCommands() {
+    return {
+      getCurrentListNode: () => ({ state }) => {
+        return findParentNode((node) => node.type.name === this.name)(state.selection);
+      },
+
+      increaseListIndent: () => ({ commands }) => {
+        if (!commands.sinkListItem(this.name)) { return false }
+        commands.updateNodeStyle();
+        commands.updateOrderedListStyleType();
+        return true;
+      },
+
+      decreaseListIndent: () => ({ commands }) => {
+        const currentList = commands.getCurrentList();
+        const depth = currentList?.depth;
+
+        if (depth === 1) return false;
+        if (!commands.liftListItem(this.name)) { return true }
+        if (!commands.updateNodeStyle()) { return false }
+
+        const currentNode = commands.getCurrentListNode();
+        const currentNodeIndex = currentList?.node?.children.findIndex((child) => child === currentNode.node);
+        const nextNodePos = currentNode?.pos + currentNode?.node.nodeSize;
+        const followingNodes = currentList?.node?.children.slice(currentNodeIndex + 1) || [];
+
+        commands.updateOrderedListStyleType();
+        commands.restartListNodes(followingNodes, nextNodePos);
+        return true;
+      },
+
+      updateNodeStyle: () => ({ tr, state }) => {
+        let list = findParentNode((node) => node.type.name === 'orderedList')(tr.selection);
+        const current = findParentNode((node) => node.type.name === this.name)(state.selection);
+
+        if (!list) return false;
+
+        const firstNodeAttrs = list?.node.children[0]?.attrs;
+        const newPos = tr.mapping.map(current.pos);
+        tr.setNodeMarkup(newPos, undefined, {
+          ...firstNodeAttrs,
+        });
+        return true;
+      },
+    }
   },
 
   addShortcuts() {
@@ -119,10 +171,10 @@ export const ListItem = Node.create({
         ]);
       },
       Tab: () => {
-        return this.editor.chain().sinkListItem(this.name).updateOrderedListStyleType().run();
+        return this.editor.commands.increaseListIndent();
       },
       'Shift-Tab': () => {
-        return this.editor.chain().liftListItem(this.name).updateOrderedListStyleType().run();
+        return this.editor.commands.decreaseListIndent();
       },
     };
   },

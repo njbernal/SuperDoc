@@ -110,6 +110,9 @@ export const splitListItem = (typeOrName) => (props) => {
 
     const filteredMarks = marks.filter((m) => splittableMarks.includes(m.type.name));
     tr.ensureMarks(filteredMarks);
+
+    // Add meta so we know which transactions are actually updating list items
+    tr.setMeta('splitListItem', filteredMarks)
   }
 
   return true;

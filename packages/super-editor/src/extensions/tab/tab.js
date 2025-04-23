@@ -15,7 +15,7 @@ export const TabNode = Node.create({
   addOptions() {
     return {
       htmlAttributes: {
-        class: 'tab',
+        class: 'super-doc-tab',
         // this works together with content prop:
         // since tab can't have content inside but content prop is defined I have to manually add attribute
         contentEditable: false,
@@ -24,7 +24,7 @@ export const TabNode = Node.create({
   },
 
   parseDOM() {
-    return [{ tag: 'span.tab' }];
+    return [{ tag: 'span.super-doc-tab' }];
   },
 
   renderDOM({ htmlAttributes }) {
@@ -55,7 +55,6 @@ export const TabNode = Node.create({
         },
 
         apply(tr, oldDecorationSet, oldState, newState) {
-          if (!tr.docChanged) return oldDecorationSet;
           const decorations = getTabDecorations(newState, view);
           return DecorationSet.create(newState.doc, decorations);
         },
@@ -82,7 +81,7 @@ const getTabDecorations = (state, view) => {
       let textWidth = 0;
 
       try {
-        view.state.doc.nodesBetween(pos - prevNodeSize - 1, pos - 1, (node, nodePos) => {
+        state.doc.nodesBetween(pos - prevNodeSize - 1, pos - 1, (node, nodePos) => {
           if (node.isText && node.textContent !== ' ') {
             const textWidthForNode = calcTextWidth(view, nodePos);
             textWidth += textWidthForNode;

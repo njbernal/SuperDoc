@@ -878,7 +878,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     // toggleTrackChangesFinal,
 
     zoom,
-    separator,
     fontButton,
     separator,
     fontSize,
@@ -926,7 +925,9 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
   if (superToolbar.config.mode !== 'docx') {
     const getLinkedStylesIndex = toolbarItems.findIndex((item) => item.name.value === 'linkedStyles');
     toolbarItems.splice(getLinkedStylesIndex - 1, 2);
-    toolbarItems = toolbarItems.filter((item) => item.name.value !== 'ruler');
+
+    const filterItems = ['ruler', 'zoom', 'undo', 'redo'];
+    toolbarItems = toolbarItems.filter((item) => !filterItems.includes(item.name.value));
   }
 
   // Track changes test buttons
