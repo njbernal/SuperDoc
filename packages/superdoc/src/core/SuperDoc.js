@@ -41,6 +41,12 @@ import {
  */
 
 /**
+ * @typedef {Object} Modules
+ * @property {Object} [comments] Comments module configuration
+ * @property {Object} [ai] AI module configuration
+ */
+
+/**
  * @typedef {Object} Config
  * @property {string} [superdocId] The ID of the SuperDoc
  * @property {string} selector The selector to mount the SuperDoc into
@@ -50,7 +56,7 @@ import {
  * @property {User} [user] The current user of this SuperDoc
  * @property {Array<User>} [users] All users of this SuperDoc (can be used for "@"-mentions)
  * @property {Array<string>} [colors] Colors to use for user awareness
- * @property {Object} [modules] Modules to load
+ * @property {Modules} [modules] Modules to load
  * @property {boolean} [pagination] Whether to show pagination in SuperEditors
  * @property {string} [toolbar] Optional DOM element to render the toolbar in
  * @property {Array<string>} [toolbarGroups] Toolbar groups to show
