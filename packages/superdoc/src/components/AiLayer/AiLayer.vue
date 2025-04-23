@@ -1,4 +1,5 @@
 <script setup>
+import { defineProps, defineExpose, ref } from 'vue';
 import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 
 const props = defineProps({
@@ -10,6 +11,9 @@ const props = defineProps({
 });
 
 const superdocStore = useSuperdocStore();
+
+// Create a ref for the highlight layer
+const highlightLayer = ref(null);
 
 const getStyle = () => {
   const placement = superdocStore.activeSelection.selectionBounds;
@@ -31,13 +35,12 @@ const addAiHighlight = () => {
     props.editor.commands.insertAiMark();
   } else {
     // Fallback to DOM method if editor is not available
-    const layer = document.querySelector('.ai-highlight-layer');
     // Only add if there isn't already a highlight
-    if (!layer.hasChildNodes()) {
+    if (highlightLayer.value && !highlightLayer.value.hasChildNodes()) {
       const highlightDiv = document.createElement('div');
       highlightDiv.className = 'ai-highlight-anchor sd-highlight';
       Object.assign(highlightDiv.style, getStyle());
-      layer.appendChild(highlightDiv);
+      highlightLayer.value.appendChild(highlightDiv);
     }
   }
 };
@@ -49,9 +52,8 @@ const removeAiHighlight = () => {
   } 
   
   // Always clear the DOM layer as a safety measure
-  const layer = document.querySelector('.ai-highlight-layer');
-  if (layer) {
-    layer.innerHTML = '';
+  if (highlightLayer.value) {
+    highlightLayer.value.innerHTML = '';
   }
 };
 
@@ -63,7 +65,7 @@ defineExpose({
 
 <template>
   <div class="ai-highlight-container" id="aiHighlightContainer">
-    <div class="ai-highlight-layer"></div>
+    <div class="ai-highlight-layer" ref="highlightLayer"></div>
   </div>
 </template>
 
