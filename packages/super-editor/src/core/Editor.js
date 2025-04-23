@@ -563,7 +563,7 @@ export class Editor extends EventEmitter {
         doc = this.#prepareDocumentForImport(doc);
 
         // If we have a new doc, and have html data, we initialize from html
-        if (this.options.isNewFile && this.options.html) doc = this.#createDocFromHTML(this.options.html)
+        if (this.options.html) doc = this.#createDocFromHTML(this.options.html)
 
         if (fragment && isHeadless) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
       }

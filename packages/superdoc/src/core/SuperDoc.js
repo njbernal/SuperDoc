@@ -47,6 +47,7 @@ import {
  * @property {string} selector The selector to mount the SuperDoc into
  * @property {'editing' | 'viewing' | 'suggesting'} documentMode The mode of the document
  * @property {'editor' | 'viewer' | 'suggester'} [role] The role of the user in this SuperDoc
+ * @property {Object | string} [document] The document to load. If a string, it will be treated as a URL
  * @property {Array<Document>} documents The documents to load
  * @property {User} [user] The current user of this SuperDoc
  * @property {Array<User>} [users] All users of this SuperDoc (can be used for "@"-mentions)
@@ -208,8 +209,10 @@ export class SuperDoc extends EventEmitter {
     };
   }
 
-  #initDocuments(config) {
-    const hasDocumentConfig = this.config.document && Object.keys(this.config.document)?.length;
+  #initDocuments() {
+    const doc = this.config.document;
+    const hasDocumentConfig = !!doc && typeof doc === 'object' && Object.keys(this.config.document)?.length;
+    const hasDocumentUrl = !!doc && typeof doc === 'string' && doc.length > 0;
     const hasListOfDocuments = this.config.documents && this.config.documents?.length;
     if (hasDocumentConfig && hasListOfDocuments) {
       console.warn('🦋 [superdoc] You can only provide one of document or documents');
@@ -217,6 +220,15 @@ export class SuperDoc extends EventEmitter {
 
     if (hasDocumentConfig) {
       this.config.documents = [this.config.document];
+    } else if (hasDocumentUrl) {
+      this.config.documents = [
+        {
+          type: DOCX,
+          url: this.config.document,
+          name: 'document.docx',
+          isNewFile: true,
+        },
+      ];
     }
   }
 
