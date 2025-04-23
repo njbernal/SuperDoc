@@ -557,24 +557,17 @@ export class Editor extends EventEmitter {
         // Perform any additional document processing prior to finalizing the doc here
         doc = this.#prepareDocumentForImport(doc);
 
-        if (fragment && isHeadless) {
-          doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
-        }
-      } else if (mode === 'text' || mode === 'html') {
-        if (content) {
-          let parsedContent = content;
-          if (typeof content === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-            parsedContent = tempDiv;
-            tempDiv.remove();
-          };
-          doc = loadFromSchema
-            ? this.schema.nodeFromJSON(parsedContent)
-            : DOMParser.fromSchema(this.schema).parse(parsedContent);
-        } else {
-          doc = this.schema.topNodeType.createAndFill();
-        }
+        // If we have a new doc, and have html data, we initialize from html
+        if (this.options.isNewFile && this.options.html) doc = this.#createDocFromHTML(this.options.html)
+
+        if (fragment && isHeadless) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
+      }
+
+      // If we are in HTML mode, we initialize from either content or html (or blank)
+      else if (mode === 'text' || mode === 'html') {
+        if (loadFromSchema) doc = this.schema.nodeFromJSON(content);
+        else if (content) doc = this.#createDocFromHTML(content);
+        else doc = this.schema.topNodeType.createAndFill();
       }
     } catch (err) {
       console.error(err);
@@ -582,6 +575,23 @@ export class Editor extends EventEmitter {
     }
   
     return doc;
+  }
+
+  /**
+   * Generate a prosemirror document from html content.
+   * @param {string} content HTML content.
+   * @returns {ProseMirrorNode} ProseMirror document.
+   */
+  #createDocFromHTML(content) {
+    let parsedContent = content;
+    if (typeof content === 'string') {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      parsedContent = tempDiv;
+      tempDiv.remove();
+    };
+
+    return DOMParser.fromSchema(this.schema).parse(parsedContent);
   }
 
   /**

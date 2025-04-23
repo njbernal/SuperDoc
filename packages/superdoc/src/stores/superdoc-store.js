@@ -61,17 +61,21 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     // Set up module config
     Object.assign(modules, configModules);
 
-    // Initialize documents
-    if (!configDocs?.length && config.format === 'docx' && !config.modules.collaboration) {
+    // For shorthand 'format' key, we can initialize a blank docx
+    if (!configDocs?.length && !config.modules.collaboration) {
       const newDoc = await getFileObject(BlankDOCX, 'blank.docx', DOCX);
-      configDocs.push({
+      const newDocConfig = {
         type: DOCX,
         data: newDoc,
         name: 'blank.docx',
         isNewFile: true,
-      });
-    };
+      };
 
+      if (config.html) newDocConfig.html = config.html;
+      configDocs.push(newDocConfig);
+    } 
+
+    // Initialize documents
     await initializeDocuments(configDocs);
     isReady.value = true;
   };
