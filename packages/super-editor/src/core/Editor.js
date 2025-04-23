@@ -111,6 +111,7 @@ export class Editor extends EventEmitter {
     let modes = {
       docx: () => this.#init(this.options),
       text: () => this.#initRichText(this.options),
+      html: () => this.#initRichText(this.options),
       default: () => {
         console.log('Not implemented.');
       },
@@ -559,7 +560,7 @@ export class Editor extends EventEmitter {
         if (fragment && isHeadless) {
           doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
         }
-      } else if (mode === 'text') {
+      } else if (mode === 'text' || mode === 'html') {
         if (content) {
           let parsedContent = content;
           if (typeof content === 'string') {
