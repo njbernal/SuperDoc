@@ -53,7 +53,16 @@ export const handleParagraphNode = (params) => {
   const nestedRPr = pPr?.elements?.find((el) => el.name === 'w:rPr');
   
   if (nestedRPr) {
-    schemaNode.attrs.marksAttrs = parseMarks(nestedRPr, []);
+    let marks = parseMarks(nestedRPr, []);
+
+    if (!schemaNode.content?.length) {
+      let highlightIndex = marks?.findIndex((i) => i.type === 'highlight');
+      if (highlightIndex !== -1) {
+        marks.splice(highlightIndex, 1)
+      }
+    }
+    
+    schemaNode.attrs.marksAttrs = marks;
   }
   
   if (styleTag) {

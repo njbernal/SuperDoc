@@ -77,9 +77,10 @@ export const Image = Node.create({
       },
 
       style: {
-        default: {},
+        default: null,
         rendered: true,
         renderDOM: ({ style }) => {
+          if (!style) return {};
           return { style };
         },
       },
