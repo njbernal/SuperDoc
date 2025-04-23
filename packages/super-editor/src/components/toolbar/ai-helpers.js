@@ -146,8 +146,9 @@ function getJsonBetweenFencesFromResponse(buffer) {
  */
 async function returnNonStreamingJson(response) {
   const jsonResponse = await response.json();
-  if (jsonResponse.custom_prompt) return jsonResponse.custom_prompt[0].value;
-  else {
+  if (jsonResponse.custom_prompt) {
+    return jsonResponse.custom_prompt[0].value;
+  } else {
     throw new Error('No custom prompt found in response');
   }
 }
