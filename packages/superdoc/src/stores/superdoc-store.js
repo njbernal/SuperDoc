@@ -61,17 +61,21 @@ export const useSuperdocStore = defineStore('superdoc', () => {
     // Set up module config
     Object.assign(modules, configModules);
 
-    // Initialize documents
-    if (!configDocs?.length && config.format === 'docx' && !config.modules.collaboration) {
+    // For shorthand 'format' key, we can initialize a blank docx
+    if (!configDocs?.length && !config.modules.collaboration) {
       const newDoc = await getFileObject(BlankDOCX, 'blank.docx', DOCX);
-      configDocs.push({
+      const newDocConfig = {
         type: DOCX,
         data: newDoc,
         name: 'blank.docx',
         isNewFile: true,
-      });
-    };
+      };
 
+      if (config.html) newDocConfig.html = config.html;
+      configDocs.push(newDocConfig);
+    } 
+
+    // Initialize documents
     await initializeDocuments(configDocs);
     isReady.value = true;
   };
@@ -104,6 +108,11 @@ export const useSuperdocStore = defineStore('superdoc', () => {
    * @returns {Promise<Object>} The document object with data
    */
   const _initializeDocumentData = async (doc) => {
+    if (currentConfig.value?.html) doc.html = currentConfig.value.html;
+
+    // Use docx as default if no type provided
+    if (!doc.data && doc.url && !doc.type) doc.type = DOCX;
+
     // If in collaboration mode, return the document as is
     if (currentConfig.value?.modules.collaboration && !doc.isNewFile) {
       return { ...doc, data: null, url: null };
@@ -111,10 +120,6 @@ export const useSuperdocStore = defineStore('superdoc', () => {
 
     // If we already have a File object, return it
     if (doc.data) return doc;
-    // If we don't have data, but have a URL and no type, we have an error
-    else if (!doc.data && doc.url && !doc.type) {
-      throw new Error('Document mime type must be specified when loading from URL');
-    }
 
     // If we have a URL, fetch the file and return it
     else if (doc.url && doc.type) {

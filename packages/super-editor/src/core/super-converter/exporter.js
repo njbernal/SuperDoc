@@ -9,8 +9,9 @@ import {
   linesToTwips,
   pixelsToEightPoints,
   pixelsToEmu,
-  pixelsToTwips,
-  rgbToHex
+  pixelsToTwips, 
+  ptToTwips,
+  rgbToHex,
 } from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
@@ -18,6 +19,8 @@ import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@
 import { carbonCopy } from '../utilities/carbonCopy.js';
 import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
+import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
+
 
 /**
  * @typedef {Object} ExportParams
@@ -169,7 +172,7 @@ function generateParagraphProperties(node) {
   const { styleId } = attrs;
   if (styleId) pPrElements.push({ name: 'w:pStyle', attributes: { 'w:val': styleId } });
   
-  const { spacing, indent, textAlign, textIndent, marksAttrs, keepLines, keepNext } = attrs;
+  const { spacing, indent, textAlign, textIndent, lineHeight, marksAttrs, keepLines, keepNext } = attrs;
   if (spacing) {
     const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
 
@@ -178,12 +181,28 @@ function generateParagraphProperties(node) {
     // Zero values have to be considered in export to maintain accurate line height
     if (lineSpaceBefore >= 0) attributes['w:before'] = pixelsToTwips(lineSpaceBefore);
     if (lineSpaceAfter >= 0) attributes['w:after'] = pixelsToTwips(lineSpaceAfter);
-    if (line) attributes['w:line'] = linesToTwips(line);
-    attributes['w:lineRule'] = lineRule || "auto";
+
+    if (lineRule === 'exact') {
+      if (lineHeight) attributes['w:line'] = ptToTwips(parseFloat(lineHeight));
+    } else {
+      if (lineHeight) attributes['w:line'] = linesToTwips(lineHeight);
+    }
+    
+    attributes['w:lineRule'] = lineRule || 'auto';
 
     const spacingElement = {
       name: 'w:spacing',
       attributes,
+    };
+    pPrElements.push(spacingElement);
+  }
+  
+  if (lineHeight && !spacing) {
+    const spacingElement = {
+      name: 'w:spacing',
+      attributes: {
+        'w:line': linesToTwips(lineHeight)
+      },
     };
     pPrElements.push(spacingElement);
   }
@@ -329,7 +348,7 @@ function getTextNodeForExport(text, marks) {
   const hasLeadingOrTrailingSpace = /^\s|\s$/.test(text);
   const space = hasLeadingOrTrailingSpace ? 'preserve' : null;
   const nodeAttrs = space ? { 'xml:space': space } : null;
-
+  
   const outputMarks = processOutputMarks(marks);
   const textNode = {
     name: 'w:t',
@@ -566,7 +585,7 @@ function translateList(params) {
     const actualNumId = attrsNumId || listNode.listId;
     const listId = actualNumId ?? generateNewListDefinition(params, listType);  
     const pPr = getListParagraphProperties(level, listId, additionalPprs);
-
+    
     content.forEach((contentNode, index) => {
       // Get paragraph attributes which were attached to list item node
       const paragraphNode = Object.assign({}, contentNode);
@@ -582,14 +601,8 @@ function translateList(params) {
       const propsElementIndex = outputNode.elements.findIndex((e) => e.name === 'w:pPr');
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
       if (!content.length) {
-        // Some empty nodes could have spacing defined
-        const spacingProp = outputNode.elements[propsElementIndex]?.elements.find((e) => e.name === 'w:spacing');
-        const elements = spacingProp ? [{
-          name: 'w:pPr',
-          type: 'element',
-          elements: [spacingProp],
-        }] : [];
-
+        // Apply initial properties to the empty nodes
+        const elements = contentNode.attrs.paragraphProperties ? [contentNode.attrs.paragraphProperties] : [];
         const spacer = { 
           name: 'w:p',
           type: 'element',
@@ -597,7 +610,7 @@ function translateList(params) {
         };
         return listNodes.push(spacer);
       }
-  
+      
       // pPr processing
       const { attributes: generalAttributes } = attrs;
       const { originalInlineRunProps } = generalAttributes || {};
@@ -606,7 +619,12 @@ function translateList(params) {
       if (propsElementIndex === -1) {
         outputNode.elements.unshift(carbonCopy(pPr));
       } else {
-        outputNode.elements[propsElementIndex] = carbonCopy(pPr);
+        // Check if there is any properties processed by translateParagraphNode
+        const resultProps = carbonCopy(pPr).elements.map(item => {
+          const isChanged = outputNode.elements[propsElementIndex].elements.find((e) => e.name === item.name);
+          return isChanged ? isChanged : item;
+        });
+        outputNode.elements[propsElementIndex].elements = resultProps;
       }
 
       // Remove the numPr properties from content nodes
@@ -629,37 +647,41 @@ function translateList(params) {
  * @param {Number} param.listId The list id
  * @returns {Object} The new abstract and num definitions
  */
-function generateNewListDefinition({ abstractId, listId }) {
+function generateNewListDefinition(params, listType) {
   // Generate a new numId to add to numbering.xml
-
-  // Generate the new abstractNum definition
-  const newAbstractDef = {
-    ...definition,
-    attributes: {
-      ...definition.attributes,
-      'w:abstractNumId': abstractId,
-    }
-  };
+  const nextNumbering = getLargestListDefinitionIndex(params.converter?.numbering?.definitions);
+  const definition = listType === 'bullet' ? baseBulletList : baseOrderedListDef;
+  const listId = nextNumbering;
+  const abstractId = definition.attributes['w:abstractNumId'];
 
   // Generate the new numId definition
   const newNumDef = {
     type: 'element',
     name: 'w:num',
     attributes: {
-      'w:numId': String(abstractId),
+      'w:numId': String(listId),
       'w16cid:durableId': '485517411'
     },
     elements: [
-      { name: 'w:abstractNumId', attributes: { 'w:val': String(listId) } },
+      { name: 'w:abstractNumId', attributes: { 'w:val': String(abstractId) } },
     ]
   };
 
-  return {
-    newAbstractDef,
-    newNumDef,
-  };
+  params.converter.numbering.definitions[listId] = newNumDef;
+  return listId;
 };
 
+/**
+ * Get the largest list definition index
+ * 
+ * @param {Object} definitions The list definitions
+ * @returns {number} The largest list definition index
+ */
+const getLargestListDefinitionIndex = (definitions) => {
+  if (!definitions || !Object.keys(definitions).length) return 0;
+  const maxKey = Math.max(...Object.keys(definitions).map((key) => parseInt(key, 10)));
+  return maxKey + 1;
+};
 
 /**
  * Get the paragraph properties for a list
@@ -696,37 +718,6 @@ function getListParagraphProperties(level, numId, additionalPprs = []) {
   };
 }
 
-
-/**
- * Get list definition details from the list plugin
- * @param {Number} listId The current list id
- * @param {*} editor The current editor instance
- * @returns {Object} An object containing list details
- */
-function getUserListDetails(listId, editor) {
-  const pluginState = listPluginKey.getState(editor.state);
-  const activeLists = pluginState?.lists;
-  const definitions = pluginState?.definitions;
-
-  const currentList = activeLists.find((list) => list.listId === Number(listId));
-  if (!currentList) {
-    //TODO: Investigate why this is happening
-    return {};
-  }
-  const { abstractId, source } = activeLists.find((list) => list.listId === Number(listId));
-
-  const isGenerated = source === 'generated';
-  const listType = activeLists[listId]?.listType;
-  const definition = definitions[listType];
-
-  return {
-    isGenerated,
-    listType,
-    definition,
-    abstractId,
-  };
-};
-
 /**
  * Flatten list nodes for processing.
  */
@@ -754,14 +745,14 @@ function flattenContent({ node }) {
         const indentElement = {
           type: 'element',
           name: 'w:ind',
-          indentAttrs,
+          attributes: indentAttrs,
         };
 
         const existingIndentIndex = pPrs.findIndex((el) => el.name === 'w:ind');
         if (existingIndentIndex !== -1) {
           pPrs[existingIndentIndex] = indentElement;
-        };
-      };
+        }
+      }
 
       const subList = item.content?.filter((c) => c.type === 'bulletList' || c.type === 'orderedList') || [];
       const notLists = item.content?.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList') || [];
@@ -808,7 +799,7 @@ function translateTable(params) {
   params.node = preProcessVerticalMergeCells(params.node, params);
   const elements = translateChildNodes(params);
   const tableProperties = generateTableProperties(params.node);
-  const gridProperties = generateTableGrid(params.node);
+  const gridProperties = generateTableGrid(params.node, params);
 
   elements.unshift(tableProperties);
   elements.unshift(gridProperties);
@@ -992,17 +983,32 @@ function generateTableBorders(node) {
  * @param {SchemaNode} node
  * @returns {XmlReadyNode} The table grid properties node
  */
-function generateTableGrid(node) {
-  const { gridColumnWidths } = node.attrs;
-  
+function generateTableGrid(node, params) {
+  const { editorSchema } = params;
+
+  let colgroup = [];
+
+  try {
+    const pmNode = editorSchema.nodeFromJSON(node);
+    const cellMinWidth = 25;
+    const { colgroupValues } = createColGroup(
+      pmNode,
+      cellMinWidth,
+    );
+
+    colgroup = colgroupValues;
+  } catch(err) {
+    colgroup = [];
+  }
+
   const elements = [];
-  gridColumnWidths?.forEach((width) => {
+  colgroup?.forEach((width) => {
     elements.push({
       name: 'w:gridCol',
-      attributes: { 'w:w': inchesToTwips(width) },
+      attributes: { 'w:w': pixelsToTwips(width) },
     });
   });
-
+  
   return {
     name: 'w:tblGrid',
     elements,
@@ -1579,6 +1585,7 @@ function prepareHtmlAnnotation(params) {
   return {
     name: 'htmlAnnotation',
     elements: translateChildNodes({
+      ...params,
       node: htmlAnnotationNode,
     }),
   };
@@ -1675,7 +1682,6 @@ const translateFieldAttrsToMarks = (attrs = {}) => {
 function translateFieldAnnotation(params) {
   const { node, isFinalDoc } = params;
   const { attrs = {} } = node;
-  
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
 

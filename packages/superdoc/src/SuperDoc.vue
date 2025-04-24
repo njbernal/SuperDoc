@@ -262,6 +262,7 @@ const editorOptions = (doc) => {
     users: proxy.$superdoc.users,
     colors: proxy.$superdoc.colors,
     role: proxy.$superdoc.config.role,
+    html: doc.html,
     documentMode: proxy.$superdoc.config.documentMode,
     rulers: doc.rulers,
     isInternal: proxy.$superdoc.config.isInternal,

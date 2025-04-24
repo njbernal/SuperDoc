@@ -42,6 +42,7 @@ export class Editor extends EventEmitter {
 
   options = {
     element: null,
+    selector: null,
     isHeadless: false,
     mockDocument: null,
     mockWindow: null,
@@ -103,13 +104,14 @@ export class Editor extends EventEmitter {
   constructor(options) {
     super();
     
-    options.element = options.isHeadless ? null : options.element || document.createElement('div');
+    this.#initContainerElement(options);
     this.#checkHeadless(options);
     this.setOptions(options);
-
+  
     let modes = {
       docx: () => this.#init(this.options),
       text: () => this.#initRichText(this.options),
+      html: () => this.#initRichText(this.options),
       default: () => {
         console.log('Not implemented.');
       },
@@ -118,6 +120,23 @@ export class Editor extends EventEmitter {
     let initMode = modes[this.options.mode] ?? modes.default;
     
     initMode();
+  }
+
+  #initContainerElement(options) {
+    if (!options.element && options.selector) {
+      const { selector } = options;
+      if (selector.startsWith('#') || selector.startsWith('.')) {
+        options.element = document.querySelector(selector);
+      } else {
+        options.element = document.getElementById(selector);
+      };
+
+      const textModes = ['text', 'html'];
+      if (textModes.includes(options.mode) && options.element) {
+        options.element.classList.add('sd-super-editor-html');
+      }
+    };
+    options.element = options.isHeadless ? null : options.element || document.createElement('div');
   }
 
   #init(options) {
@@ -543,24 +562,17 @@ export class Editor extends EventEmitter {
         // Perform any additional document processing prior to finalizing the doc here
         doc = this.#prepareDocumentForImport(doc);
 
-        if (fragment && isHeadless) {
-          doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
-        }
-      } else if (mode === 'text') {
-        if (content) {
-          let parsedContent = content;
-          if (typeof content === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-            parsedContent = tempDiv;
-            tempDiv.remove();
-          };
-          doc = loadFromSchema
-            ? this.schema.nodeFromJSON(parsedContent)
-            : DOMParser.fromSchema(this.schema).parse(parsedContent);
-        } else {
-          doc = this.schema.topNodeType.createAndFill();
-        }
+        // If we have a new doc, and have html data, we initialize from html
+        if (this.options.html) doc = this.#createDocFromHTML(this.options.html)
+
+        if (fragment && isHeadless) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
+      }
+
+      // If we are in HTML mode, we initialize from either content or html (or blank)
+      else if (mode === 'text' || mode === 'html') {
+        if (loadFromSchema) doc = this.schema.nodeFromJSON(content);
+        else if (content) doc = this.#createDocFromHTML(content);
+        else doc = this.schema.topNodeType.createAndFill();
       }
     } catch (err) {
       console.error(err);
@@ -568,6 +580,23 @@ export class Editor extends EventEmitter {
     }
   
     return doc;
+  }
+
+  /**
+   * Generate a prosemirror document from html content.
+   * @param {string} content HTML content.
+   * @returns {ProseMirrorNode} ProseMirror document.
+   */
+  #createDocFromHTML(content) {
+    let parsedContent = content;
+    if (typeof content === 'string') {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      parsedContent = tempDiv;
+      tempDiv.remove();
+    };
+
+    return DOMParser.fromSchema(this.schema).parse(parsedContent);
   }
 
   /**
@@ -668,7 +697,7 @@ export class Editor extends EventEmitter {
     element.style.webkitOverflowScrolling = 'touch';
 
     // Calculate line height
-    const defaultLineHeight = 1.15;
+    const defaultLineHeight = 1.2;
     proseMirror.style.lineHeight = defaultLineHeight;
 
     // If we are not using pagination, we still need to add some padding for header/footer
