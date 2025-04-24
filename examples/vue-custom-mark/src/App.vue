@@ -18,8 +18,34 @@ const init = () => {
     toolbarGroups: ['center'],
 
     editorExtensions: [CustomMark],
-
+    onReady: myCustomOnReady,
   });
+
+};
+
+
+/**
+ * When SuperDoc is ready, we can listen for updates coming from the editor.
+ */
+const myCustomOnReady = () => {
+  superdoc.value?.activeEditor?.on('update', async ({ editor }) => {
+    // Let's log the HTML representation of the editor on each update;
+    console.log('Content updated: ', editor.getHTML());
+
+    // Let's also pretend we're exporting to DOCX so we can save it somewhere
+    exportToDocx(editor);
+  });
+}
+
+
+/**
+ * This is an example of how to export the content of the editor to a DOCX file.
+ * @param { Editor } editor - The editor instance.
+ * @returns { Promise<void> } - A promise that resolves when the export is complete.
+ */
+const exportToDocx = async (editor) => {
+  const docx = await editor.exportDocx();
+  console.debug('Exported to DOCX - we have a blob now: ', docx);
 };
 
 const insertCustomMark = () => {
