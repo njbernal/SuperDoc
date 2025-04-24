@@ -29,6 +29,7 @@ import { SuperEditor, AIWriter } from '@harbour-enterprises/super-editor';
 import HtmlViewer from './components/HtmlViewer/HtmlViewer.vue';
 import useComment from './components/CommentsLayer/use-comment';
 import AiLayer from './components/AiLayer/AiLayer.vue';
+import { useSelectedText } from './composables/use-selected-text';
 
 // Stores
 const superdocStore = useSuperdocStore();
@@ -523,6 +524,12 @@ watch(getFloatingComments, () => {
 // AI Layer and Writer controls
 const aiLayer = ref(null);
 
+// Create a ref to pass to the composable
+const activeEditorRef = computed(() => proxy.$superdoc.activeEditor);
+
+// Use the composable to get the selected text
+const { selectedText } = useSelectedText(activeEditorRef);
+
 const handleAiHighlight = ({ type, data }) => {
   if (!aiLayer.value) {
     console.error('[Superdoc] aiLayer.value is not available');
@@ -706,12 +713,7 @@ const handleAiWriterClose = () => {
     <!-- AI Writer at cursor position -->
     <div class="ai-writer-container" v-if="showAiWriter" :style="aiWriterPosition">
       <AIWriter 
-        :selected-text="proxy.$superdoc.activeEditor && proxy.$superdoc.activeEditor.state ? 
-          proxy.$superdoc.activeEditor.state.doc.textBetween(
-            proxy.$superdoc.activeEditor.state.selection.from, 
-            proxy.$superdoc.activeEditor.state.selection.to, 
-            ' '
-          ) : ''"
+        :selected-text="selectedText"
         :handle-close="handleAiWriterClose"
         :editor="proxy.$superdoc.activeEditor"
         :key="proxy.$superdoc.config.modules?.comments?.aiApiKey"
