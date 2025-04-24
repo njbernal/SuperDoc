@@ -1,6 +1,10 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { writeStreaming, rewriteStreaming } from './ai-helpers';
+import edit from '@harbour-enterprises/common/icons/edit-regular.svg?raw';
+import paperPlane from '@harbour-enterprises/common/icons/paper-plane-regular.svg?raw';
+import timesCircle from '@harbour-enterprises/common/icons/times-circle-regular.svg?raw';
+import sun from '@harbour-enterprises/common/icons/sun-regular.svg?raw';
 
 const props = defineProps({
   selectedText: {
@@ -248,10 +252,7 @@ const handleInput = (event) => {
 <template>
   <div class="ai-writer prosemirror-isolated" ref="aiWriterRef" @mousedown.stop>
     <div class="ai-user-input-field">
-      <span class="ai-textarea-icon">
-        <i class="gradient-svg edit"></i>
-      </span>
-
+      <span class="ai-textarea-icon" v-html="edit"></span>
       <!-- Replace contenteditable div with textarea -->
       <textarea
         ref="editableRef"
@@ -264,17 +265,11 @@ const handleInput = (event) => {
       ></textarea>
     </div>
     <div class="ai-loader">
-      <span v-if="isLoading" class="ai-textarea-icon loading">
-        <span class="spinner-wrapper">
-          <i class="gradient-svg sun"></i>
-        </span>
+      <span v-if="isLoading" class="ai-textarea-icon loading spinner-wrapper">
+        <span v-html="sun"></span>
       </span>
-      <span v-else-if="isError" class="ai-textarea-icon error"
-        ><i class="gradient-svg times-circle" :title="isError"></i
-      ></span>
-      <span v-else-if="promptText" class="ai-textarea-icon ai-submit-button">
-        <i class="gradient-svg paper-plane" @click.stop="handleSubmit"></i>
-      </span>
+      <span v-else-if="isError" class="ai-textarea-icon error" v-html="timesCircle" />
+      <span v-else-if="promptText" class="ai-textarea-icon ai-submit-button" @click.stop="handleSubmit" v-html="paperPlane" />
     </div>
   </div>
 </template>
@@ -287,51 +282,15 @@ const handleInput = (event) => {
   position: relative;
 }
 
-.paper-plane {
-  --webkit-mask-image: url('@harbour-enterprises/common/icons/paper-plane-regular.svg');
-  --mask-image: url('@harbour-enterprises/common/icons/paper-plane-regular.svg');
-}
-
-.edit {
-  --webkit-mask-image: url('@harbour-enterprises/common/icons/edit-regular.svg');
-  --mask-image: url('@harbour-enterprises/common/icons/edit-regular.svg');
-}
-
-.times-circle {
-  --webkit-mask-image: url('@harbour-enterprises/common/icons/times-circle-regular.svg');
-  --mask-image: url('@harbour-enterprises/common/icons/times-circle-regular.svg');
-  background: #ed4337 !important;
-}
-
-.sun {
-  --webkit-mask-image: url('@harbour-enterprises/common/icons/sun-regular.svg');
-  --mask-image: url('@harbour-enterprises/common/icons/sun-regular.svg');
-}
-
-.gradient-svg {
-  /* Give your container some size */
-  width: 16px;
-  height: 16px;
-
-  /* Apply a gradient background */
-  background: linear-gradient(
-    270deg,
-    rgba(218, 215, 118, 0.5) -20%,
-    rgba(191, 100, 100, 1) 30%,
-    rgba(77, 82, 217, 1) 60%,
-    rgb(255, 219, 102) 150%
-  );
-
-  /* Use the SVG as a mask */
-  -webkit-mask-image: var(--webkit-mask-image);
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-
-  mask-image: var(--mask-image);
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
+/* Base icon styles */
+[class^="fa-"] {
+  font-family: 'Font Awesome 5 Pro';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  display: inline-block;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
 }
 
 .ai-writer {
@@ -388,22 +347,16 @@ const handleInput = (event) => {
 }
 
 .ai-textarea-icon {
-  display: flex;
-  font-family: 'Font Awesome 5 Pro';
-  content: '';
+  display: block;
   font-weight: 800;
   font-size: 14px;
-  background: linear-gradient(
-    270deg,
-    rgba(218, 215, 118, 0.5) -20%,
-    rgba(191, 100, 100, 1) 30%,
-    rgba(77, 82, 217, 1) 60%,
-    rgb(255, 219, 102) 150%
-  );
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-background-clip: text;
-  color: transparent;
+  width: 16px;
+  height: 16px;
+}
+
+.ai-textarea-icon svg {
+  height: 16px;
+  width: 16px;
 }
 
 .ai-textarea-icon.loading {
@@ -414,13 +367,6 @@ const handleInput = (event) => {
   display: flex;
 }
 
-.ai-textarea-icon.error {
-  background: #dc3545;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-background-clip: text;
-  color: transparent;
-}
 
 .ai-submit-button {
   border: none;
