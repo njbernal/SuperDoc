@@ -144,7 +144,7 @@ const handleTextChunk = (text) => {
         type: 'aiAnimationMark',
         attrs: { 
           class: 'sd-ai-text-appear',
-          'data-mark-id': `ai-animation-${Date.now()}`
+          'dataMarkId': `ai-animation-${Date.now()}`
         }
       }],
       text: textStr

@@ -57,7 +57,7 @@ export const AiAnimationMark = Mark.create({
         default: null,
         rendered: true,
       },
-      'data-mark-id': {
+      'dataMarkId': {
         default: null,
         rendered: true,
       }
