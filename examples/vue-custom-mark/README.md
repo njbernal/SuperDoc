@@ -1,8 +1,10 @@
 # SuperDoc
-## SuperDoc: Init a docx from HTML content
+## SuperDoc: Creating a custom mark
 
-An example of initializing SuperDoc with HTML content.
+An example of creating a custom Mark to use with SuperDoc.
+Note: Requires `SuperDoc 0.10.15` or later
 
-This example will initialize a docx file in SuperDoc (either a blank file or your own file), replacing the file's main contents with the HTML provided.
+[We create a custom mark here](https://github.com/Harbour-Enterprises/SuperDoc/blob/main/examples/vue-custom-mark/src/custom-mark.js)
+Note that we added a custom command to the mark, called setMyCustomMark. We can now insert this mark by calling this command from `superdoc.activeEditor.commands`
 
-Note: In the example we pass in `document: sample-document.docx` in the config, which loads our sample docx containing a header and footer. The inner contents are replaced with the HTML. You can simply **omit** this key and SuperDoc will initialize a blank document for your HTML.
+[Then we can pass it into the editor via the `editorExtensions` key](https://github.com/Harbour-Enterprises/SuperDoc/blob/e724d31eaba50a423ed0d73a4264a09b33d06eaa/examples/vue-custom-mark/src/App.vue#L20)

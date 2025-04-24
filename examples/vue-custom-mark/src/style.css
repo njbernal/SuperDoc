@@ -40,5 +40,5 @@ h1 {
 }
 
 .my-custom-mark-class {
-  border: 1px solid #646cff;
+  border-bottom: 1px solid #646cff;
 }
