@@ -44,6 +44,8 @@ import {
  * @typedef {Object} Modules
  * @property {Object} [comments] Comments module configuration
  * @property {Object} [ai] AI module configuration
+ * @property {string} [ai.apiKey] Harbour API key for AI features
+ * @property {string} [ai.endpoint] Custom endpoint URL for AI services
  */
 
 /**
