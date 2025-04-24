@@ -48,43 +48,56 @@ const handleClickOutside = (event) => {
 // Add ref for the textarea
 const editableRef = ref(null);
 
-// Save selection when component is mounted
-onMounted(() => {
+// Helper function to emit AI highlight events
+const emitAiHighlight = (type, data = null) => {
+  if (props.superToolbar) {
+    props.superToolbar.emit('ai-highlight', { type, data });
+  }
+};
+
+// Helper functions
+const saveSelection = () => {
   if (props.selectedText) {
     selectionState.value = props.editor.state.selection;
     // Store the selection in the editor's state
     props.editor.commands.setMeta('storedSelection', selectionState.value);
 
     // Emit ai highlight when the writer mounts through the toolbar
-    if (props.superToolbar) {
-      props.superToolbar.emit('ai-highlight', { type: 'add', data: null });
-    }
+    emitAiHighlight('add');
   }
+};
 
-  // Focus the textarea on mount
+const focusTextarea = () => {
   nextTick(() => {
     if (editableRef.value) {
       editableRef.value.focus();
     }
   });
+};
 
-  // Add click outside listener
+const addEventListeners = () => {
   document.addEventListener('mousedown', handleClickOutside);
-
-  // Add a capture phase event listener directly to the document
-  // We have to intercept the arrow keys to prevent them from being intercepted by ProseMirror
   document.addEventListener('keydown', handleCaptureKeyDown, true);
+};
+
+const removeEventListeners = () => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleCaptureKeyDown, true);
+};
+
+// Save selection when component is mounted
+onMounted(() => {
+  saveSelection();
+  focusTextarea();
+  addEventListeners();
 });
 
 onUnmounted(() => {
   // emit the ai highlight remove event through the toolbar
-  if (props.superToolbar) {
-    props.superToolbar.emit('ai-highlight', { type: 'remove', data: null });
-  }
+  emitAiHighlight('remove');
 
   // Remove all event listeners
-  document.removeEventListener('mousedown', handleClickOutside);
-  document.removeEventListener('keydown', handleCaptureKeyDown, true);
+  removeEventListeners();
 });
 
 // Capture phase handler to stop arrow key events from being intercepted in our ai textarea
