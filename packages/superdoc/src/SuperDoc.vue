@@ -30,6 +30,7 @@ import HtmlViewer from './components/HtmlViewer/HtmlViewer.vue';
 import useComment from './components/CommentsLayer/use-comment';
 import AiLayer from './components/AiLayer/AiLayer.vue';
 import { useSelectedText } from './composables/use-selected-text';
+import { useAi } from './composables/use-ai';
 
 // Stores
 const superdocStore = useSuperdocStore();
@@ -75,15 +76,30 @@ const layers = ref(null);
 const commentsLayer = ref(null);
 const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 101 });
 
-// Ai Layer
-const showAiLayer = ref(false);
+// Create a ref to pass to the composable
+const activeEditorRef = computed(() => proxy.$superdoc.activeEditor);
+
+// Use the composable to get the selected text
+const { selectedText } = useSelectedText(activeEditorRef);
+
+// Use the AI composable
+const {
+  showAiLayer,
+  showAiWriter,
+  aiWriterPosition,
+  aiLayer,
+  initAiLayer,
+  handleAiHighlight,
+  showAiWriterAtCursor,
+  handleAiWriterClose,
+  handleAiToolClick
+} = useAi({
+  emitAiHighlight: (params) => proxy.$superdoc.emit('ai-highlight', params),
+  activeEditorRef
+});
 
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
-
-// Add new state variables
-const showAiWriter = ref(false);
-const aiWriterPosition = reactive({ top: 0, left: 0 });
 
 const handleDocumentReady = (documentId, container) => {
   const doc = getDocument(documentId);
@@ -101,7 +117,7 @@ const handleDocumentReady = (documentId, container) => {
 const handleToolClick = (tool) => {
   const toolOptions = {
     comments: () => showAddComment(proxy.$superdoc),
-    ai: () => showAiWriterAtCursor(),
+    ai: () => handleAiToolClick(),
   };
 
   if (tool in toolOptions) {
@@ -148,7 +164,7 @@ const onEditorCreate = ({ editor }) => {
   proxy.$superdoc.log('[SuperDoc] Editor created', proxy.$superdoc.activeEditor);
   proxy.$superdoc.log('[SuperDoc] Page styles (pixels)', editor.getPageStyles());
   // Initialize the ai layer
-  showAiLayer.value = true;
+  initAiLayer(true);
 };
 
 const onEditorDestroy = () => {
@@ -520,89 +536,6 @@ watch(getFloatingComments, () => {
     hasInitializedLocations.value = true;
   });
 });
-
-// AI Layer and Writer controls
-const aiLayer = ref(null);
-
-// Create a ref to pass to the composable
-const activeEditorRef = computed(() => proxy.$superdoc.activeEditor);
-
-// Use the composable to get the selected text
-const { selectedText } = useSelectedText(activeEditorRef);
-
-const handleAiHighlight = ({ type, data }) => {
-  if (!aiLayer.value) {
-    console.error('[Superdoc] aiLayer.value is not available');
-    return;
-  }
-  
-  if (type === 'add') {
-    aiLayer.value.addAiHighlight();
-  } else if (type === 'remove') {
-    aiLayer.value.removeAiHighlight();
-  }
-};
-
-// Add a new function to show the AIWriter at cursor position
-const showAiWriterAtCursor = () => {
-  if (!proxy.$superdoc.activeEditor || proxy.$superdoc.activeEditor.isDestroyed) {
-    console.error('[SuperDoc] Editor not available');
-    return;
-  }
-
-  try {
-    // Get the current cursor position
-    const editor = proxy.$superdoc.activeEditor;
-    const { view } = editor;
-    const { selection } = view.state;
-    
-    // If we have selected text, add AI highlighting
-    if (!selection.empty) {
-      // Emit the highlight event to trigger the AI highlighting
-      proxy.$superdoc.emit('ai-highlight', { type: 'add', data: null });
-    }
-    
-    let coords;
-    try {
-      // Try to get coordinates from the selection head
-      coords = view.coordsAtPos(selection.$head.pos);
-    } catch (e) {
-      // Fallback to using the DOM selection if ProseMirror position is invalid
-      const domSelection = window.getSelection();
-      if (domSelection.rangeCount > 0) {
-        const range = domSelection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        coords = { top: rect.top, left: rect.left };
-      } else {
-        // If no selection, use editor position
-        const editorRect = view.dom.getBoundingClientRect();
-        coords = { top: editorRect.top + 50, left: editorRect.left + 50 };
-      }
-    }
-    
-    // Position the AIWriter at the cursor position
-    // Move down 30px to render under the cursor
-    aiWriterPosition.top = coords.top + 30 + 'px';
-    aiWriterPosition.left = coords.left + 'px';
-
-    // Show the AIWriter
-    showAiWriter.value = true;
-  } catch (error) {
-    console.error('[SuperDoc] Error displaying AIWriter:', error);
-    // Fallback position in center of editor
-    const editorDom = proxy.$superdoc.activeEditor.view.dom;
-    const rect = editorDom.getBoundingClientRect();
-    aiWriterPosition.top = rect.top + 100 + 'px';
-    aiWriterPosition.left = rect.left + 100 + 'px';
-    showAiWriter.value = true;
-  }
-};
-
-const handleAiWriterClose = () => {
-  showAiWriter.value = false;
-  // Remove the AI highlight when AIWriter is closed
-  proxy.$superdoc.emit('ai-highlight', { type: 'remove', data: null });
-};
 </script>
 
 <template>
