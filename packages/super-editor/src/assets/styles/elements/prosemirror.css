@@ -304,6 +304,13 @@ https://github.com/ProseMirror/prosemirror-tables/blob/master/demo/index.html
   display: block;
 }
 
+.ProseMirror div[data-type="contentBlock"] {
+  position: absolute; 
+  outline: none; 
+  user-select: none; 
+  z-index: -1;
+}
+
 .super-doc-dropcap {
   float: left;
   display: flex;
