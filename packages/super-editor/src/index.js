@@ -11,6 +11,7 @@ import { getAllowedImageDimensions } from './extensions/image/imageHelpers/proce
 import { Node, Attribute } from '@core/index.js';
 import { Extension } from '@core/Extension.js';
 import { Plugin } from 'prosemirror-state';
+import { Mark } from '@core/Mark.js';
 
 import SuperEditor from './components/SuperEditor.vue';
 import BasicUpload from './dev/components/BasicUpload.vue';
@@ -26,6 +27,7 @@ const Extensions = {
   Attribute,
   Extension,
   Plugin,
+  Mark,
 };
 
 /**
