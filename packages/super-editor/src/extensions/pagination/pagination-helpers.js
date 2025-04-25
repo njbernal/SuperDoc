@@ -55,6 +55,7 @@ export const initPaginationData = async (editor) => {
  * @returns {Promise<Object>} An object containing the height of the section, the section editor and the section container
  */
 const getSectionHeight = async (editor, data) => {
+  if (!data) return {};
   return new Promise((resolve) => {
     const editorContainer = document.createElement('div');
     editorContainer.className = 'super-editor';
