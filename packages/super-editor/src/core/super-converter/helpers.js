@@ -152,6 +152,28 @@ const getLineHeightValueString = (lineHeight, defaultUnit) => {
   return `line-height: ${value}${unit}`;
 }
 
+const deobfuscateFont = (arrayBuffer, guidHex) => {
+  const dta = new Uint8Array(arrayBuffer);
+
+  const guidStr = guidHex.replace(/[-{}]/g, '');
+  if (guidStr.length !== 32) throw new Error('Invalid GUID');
+
+  // Convert GUID hex string to byte array
+  const guidBytes = new Uint8Array(16);
+  for (let i = 0, j = 0; i < 32; i += 2, j++) {
+    const hexByte = guidStr[i] + guidStr[i + 1];
+    guidBytes[j] = parseInt(hexByte, 16);
+  }
+
+  // XOR the first 32 bytes using the reversed-index pattern
+  for (let i = 0; i < 32; i++) {
+    const gi = 15 - (i % 16); // guidBytes.length - (i % guidBytes.length) - 1
+    dta[i] ^= guidBytes[gi];
+  }
+
+  return dta.buffer;
+}
+
 export {
   inchesToTwips,
   twipsToInches,
@@ -173,5 +195,6 @@ export {
   rgbToHex,
   ptToTwips,
   twipsToPt,
-  getLineHeightValueString
+  getLineHeightValueString,
+  deobfuscateFont
 };

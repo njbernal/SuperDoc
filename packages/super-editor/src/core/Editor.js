@@ -520,7 +520,13 @@ export class Editor extends EventEmitter {
   }
 
   #initFonts() {
-    this.converter.getDocumentFonts();
+    const styleString = this.converter.getDocumentFonts();
+
+    if (styleString?.length) {
+      const style = document.createElement('style');
+      style.textContent = styleString;
+      document.head.appendChild(style);
+    }
   }
 
   /**

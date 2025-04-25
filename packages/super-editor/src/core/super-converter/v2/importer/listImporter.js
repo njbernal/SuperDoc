@@ -205,7 +205,7 @@ function handleListNodes({
           });
           thisItemPath = newPath;
         }
-      };
+      }
 
       // Process additional possible inline styles
       const pPr = item.elements.find((el) => el.name === 'w:pPr');

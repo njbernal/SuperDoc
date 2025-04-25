@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson, addDefaultStylesIfMissing } from './v2/importer/docxImporter.js';
-import { getArrayBufferFromUrl } from './helpers.js';
+import { deobfuscateFont, getArrayBufferFromUrl } from './helpers.js';
 import { baseNumbering } from './v2/exporter/helpers/base-list.definitions.js';
 import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
 import {
@@ -235,29 +235,10 @@ class SuperConverter {
       return { fontSizePt, kern, typeface, panose };
     }
   }
-
-  deobfuscateODTTF(odttfBuffer, guidHex) {
-    const fontBuffer = new Uint8Array(odttfBuffer);
-    const key = this.hexToBytes(guidHex.replace(/[-{}]/g, ''));
-
-    for (let i = 0; i < 32; i++) {
-      fontBuffer[i] ^= key[i % key.length];
-    }
-
-    return fontBuffer;
-  }
-
-  hexToBytes(hex) {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
-  }
   
   getDocumentFonts() {
     const fontTable = this.convertedXml['word/fontTable.xml'];
-    if (!fontTable) return;
+    if (!fontTable || !Object.keys(this.fonts).length) return;
     
     const fonts = fontTable.elements.find((el) => el.name === 'w:fonts');
     const embededFonts = fonts?.elements.filter(el => el.elements.some(nested =>  nested?.attributes && nested.attributes['r:id'] && nested.attributes['w:fontKey']));
@@ -278,7 +259,7 @@ class SuperConverter {
       const filePath = elements.find((el) => el.attributes.Id === font.attributes['r:id'])?.attributes?.Target;
       if (!filePath) return;
 
-      const ttfBuffer = this.deobfuscateODTTF(this.fonts[`word/${filePath}`], font.attributes['w:fontKey']);
+      const ttfBuffer = deobfuscateFont(this.fonts[`word/${filePath}`], font.attributes['w:fontKey']);
       // Convert to a blob and inject @font-face
       const blob = new Blob([ttfBuffer], { type: 'font/ttf' });
       const fontUrl = URL.createObjectURL(blob);
@@ -299,11 +280,7 @@ class SuperConverter {
       `;
     }
     
-    if (styleString.length) {
-      const style = document.createElement('style');
-      style.textContent = styleString;
-      document.head.appendChild(style);
-    }
+    return styleString;
   }
   
   getDocumentInternalId() {    
