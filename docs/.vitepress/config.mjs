@@ -82,6 +82,13 @@ function sidebar() {
         ],
       },
       {
+        text: 'Modules',
+        link: '/modules',
+        items: [
+          { text: 'Comments', link: '/modules/#comments' },
+        ]
+      },
+      {
         text: 'Resources',
         link: '/resources',
         items: [
