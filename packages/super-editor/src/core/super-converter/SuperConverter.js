@@ -260,6 +260,8 @@ class SuperConverter {
       if (!filePath) return;
 
       const ttfBuffer = deobfuscateFont(this.fonts[`word/${filePath}`], font.attributes['w:fontKey']);
+      if (!ttfBuffer) return;
+      
       // Convert to a blob and inject @font-face
       const blob = new Blob([ttfBuffer], { type: 'font/ttf' });
       const fontUrl = URL.createObjectURL(blob);

@@ -156,7 +156,11 @@ const deobfuscateFont = (arrayBuffer, guidHex) => {
   const dta = new Uint8Array(arrayBuffer);
 
   const guidStr = guidHex.replace(/[-{}]/g, '');
-  if (guidStr.length !== 32) throw new Error('Invalid GUID');
+  if (guidStr.length !== 32) {
+    console.error('Invalid GUID');
+    return;
+  }
+  
 
   // Convert GUID hex string to byte array
   const guidBytes = new Uint8Array(16);
