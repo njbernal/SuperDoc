@@ -204,6 +204,8 @@ class SuperConverter {
 
     // Get the run defaults for this document - this will include font, theme etc.
     const rDefault = defaults.elements.find((el) => el.name === 'w:rPrDefault');
+    if (!rDefault.elements) return {};
+    
     const rElements = rDefault.elements[0].elements;
     const rFonts = rElements?.find((el) => el.name === 'w:rFonts');
     if ('elements' in rDefault) {
