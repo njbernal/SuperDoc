@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.10.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.22...v0.10.23) (2025-04-28)
+
+
+### Bug Fixes
+
+* add ai icons to commons ([9ab0fa4](https://github.com/Harbour-Enterprises/SuperDoc/commit/9ab0fa42b3f5c1f7f5b2c66cab0c96f240ec786c))
+* add in safety check for dispatch ([3550f80](https://github.com/Harbour-Enterprises/SuperDoc/commit/3550f8033776bab508d6c83d81d8c28d85c128ac))
+* enhance AI text animation and processing ([91e2c73](https://github.com/Harbour-Enterprises/SuperDoc/commit/91e2c735f1de748af974fda6ab570ba684f66311))
+* format conditional ([28d5ade](https://github.com/Harbour-Enterprises/SuperDoc/commit/28d5adebfcd787710c23f2cc059d5d221cc35097))
+* make ai event more generic ([a2a94fc](https://github.com/Harbour-Enterprises/SuperDoc/commit/a2a94fc3a1e7a42a600c37cd317fe66869f6a14c))
+* prefix or remove global styles ([112c087](https://github.com/Harbour-Enterprises/SuperDoc/commit/112c087a1587df7e7ff9517556524adc07a842e9))
+* self contain the ai writer styles ([a699dc1](https://github.com/Harbour-Enterprises/SuperDoc/commit/a699dc125e94c0064eb00e1445b2978e1ac6bd66))
+* update data attribute naming for AI animation marks ([274fd41](https://github.com/Harbour-Enterprises/SuperDoc/commit/274fd4192b6b5b0a4dd610a44a315f81ac198a6f))
+* use a ref for ai layer ([e40adf2](https://github.com/Harbour-Enterprises/SuperDoc/commit/e40adf269f9e2333f9b994368a223c53cb51a844))
+
+
+### Features
+
+* add AI layer toggle functionality in SuperDoc component ([d43e907](https://github.com/Harbour-Enterprises/SuperDoc/commit/d43e90786fb7d710ab06d6661625825680fbb0b2))
+* add composable for selected text in editor ([27ba4eb](https://github.com/Harbour-Enterprises/SuperDoc/commit/27ba4eb247e42ecf621ced0a91af7088805f063f))
+* add magic wand icon to superdoc icons ([e466138](https://github.com/Harbour-Enterprises/SuperDoc/commit/e466138f316c913b644203402524cb0940cedb9b))
+* enhance AI Writer with text selection highlighting and improved UI styles ([ad582e6](https://github.com/Harbour-Enterprises/SuperDoc/commit/ad582e6c8f6707cdc59d33833810ea5d068a8858))
+* enhance AIWriter component to support event emission through superToolbar ([cef1d22](https://github.com/Harbour-Enterprises/SuperDoc/commit/cef1d2239cc08daebe776e03a7470ebbb3c1ccff))
+* enhance AIWriter component with new SVG icons and gradient styles ([15f2960](https://github.com/Harbour-Enterprises/SuperDoc/commit/15f296044989195e105af5b05eceb85b7437cbe0))
+* implement AI animation mark and enhance streaming functions in AIWriter ([17235ba](https://github.com/Harbour-Enterprises/SuperDoc/commit/17235ba69f65ea785726db0daa982465b87d5373))
+* initial commit for ai implementation ([13aba6a](https://github.com/Harbour-Enterprises/SuperDoc/commit/13aba6a46981108ad6df3a6173c5524c04006900))
+* integrate AI layer functionality with new composable ([c6db2d3](https://github.com/Harbour-Enterprises/SuperDoc/commit/c6db2d3beca4a7e7e2844115b119a254c047a177))
+* integrate AI Writer functionality with cursor positioning and UI controls ([dd0c357](https://github.com/Harbour-Enterprises/SuperDoc/commit/dd0c357da6959b48f500712522a35c645e4dfb63))
+* streamline AI Writer to always use streaming approach and close after first text chunk ([bea95b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/bea95b49f052dcb539669e2434eda89d53d351ec))
+* support custom endpoint configuration ([5f6c8df](https://github.com/Harbour-Enterprises/SuperDoc/commit/5f6c8dfedbb0de22df014f3936d85f5d4a3d351d))
+
 ## [0.10.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.21...v0.10.22) (2025-04-25)
 
 ## [0.10.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.20...v0.10.21) (2025-04-25)
