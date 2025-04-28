@@ -25,9 +25,12 @@ import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { useCommentsStore } from '@superdoc/stores/comments-store';
 
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
-import { SuperEditor } from '@harbour-enterprises/super-editor';
+import { SuperEditor, AIWriter } from '@harbour-enterprises/super-editor';
 import HtmlViewer from './components/HtmlViewer/HtmlViewer.vue';
 import useComment from './components/CommentsLayer/use-comment';
+import AiLayer from './components/AiLayer/AiLayer.vue';
+import { useSelectedText } from './composables/use-selected-text';
+import { useAi } from './composables/use-ai';
 
 // Stores
 const superdocStore = useSuperdocStore();
@@ -73,6 +76,28 @@ const layers = ref(null);
 const commentsLayer = ref(null);
 const toolsMenuPosition = reactive({ top: null, right: '-25px', zIndex: 101 });
 
+// Create a ref to pass to the composable
+const activeEditorRef = computed(() => proxy.$superdoc.activeEditor);
+
+// Use the composable to get the selected text
+const { selectedText } = useSelectedText(activeEditorRef);
+
+// Use the AI composable
+const {
+  showAiLayer,
+  showAiWriter,
+  aiWriterPosition,
+  aiLayer,
+  initAiLayer,
+  handleAiHighlight,
+  showAiWriterAtCursor,
+  handleAiWriterClose,
+  handleAiToolClick
+} = useAi({
+  emitAiHighlight: (params) => proxy.$superdoc.emit('ai-highlight', params),
+  activeEditorRef
+});
+
 // Hrbr Fields
 const hrbrFieldsLayer = ref(null);
 
@@ -92,6 +117,7 @@ const handleDocumentReady = (documentId, container) => {
 const handleToolClick = (tool) => {
   const toolOptions = {
     comments: () => showAddComment(proxy.$superdoc),
+    ai: () => handleAiToolClick(),
   };
 
   if (tool in toolOptions) {
@@ -137,6 +163,8 @@ const onEditorCreate = ({ editor }) => {
   proxy.$superdoc.broadcastEditorCreate(editor);
   proxy.$superdoc.log('[SuperDoc] Editor created', proxy.$superdoc.activeEditor);
   proxy.$superdoc.log('[SuperDoc] Page styles (pixels)', editor.getPageStyles());
+  // Initialize the ai layer
+  initAiLayer(true);
 };
 
 const onEditorDestroy = () => {
@@ -340,10 +368,12 @@ onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
   }
+  proxy.$superdoc.on('ai-highlight', handleAiHighlight);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown);
+  proxy.$superdoc.off('ai-highlight', handleAiHighlight);
 });
 
 const selectionLayer = ref(null);
@@ -518,6 +548,15 @@ watch(getFloatingComments, () => {
         <div class="tools-item" data-id="is-tool" @click.stop.prevent="handleToolClick('comments')">
           <div class="superdoc__tools-icon" v-html="superdocIcons.comment"></div>
         </div>
+        <!-- AI tool button -->
+        <div
+          v-if="proxy.$superdoc.toolbar?.config?.aiApiKey"
+          class="tools-item"
+          data-id="is-tool"
+          @click.stop.prevent="handleToolClick('ai')"
+        >
+          <div class="superdoc__tools-icon ai-tool"></div>
+        </div>
       </div>
 
       <div class="superdoc__document document">
@@ -554,6 +593,9 @@ watch(getFloatingComments, () => {
           :user="user"
           @highlight-click="handleHighlightClick"
         />
+
+        <!-- AI Layer for temporary highlights -->
+        <AiLayer v-if="showAiLayer" class="ai-layer" style="z-index: 4" ref="aiLayer" :editor="proxy.$superdoc.activeEditor" />
 
         <div class="superdoc__sub-document sub-document" v-for="doc in documents" :key="doc.id">
           <!-- PDF renderer -->
@@ -605,6 +647,16 @@ watch(getFloatingComments, () => {
           :current-document="doc"
         />
       </div>
+    </div>
+
+    <!-- AI Writer at cursor position -->
+    <div class="ai-writer-container" v-if="showAiWriter" :style="aiWriterPosition">
+      <AIWriter 
+        :selected-text="selectedText"
+        :handle-close="handleAiWriterClose"
+        :editor="proxy.$superdoc.activeEditor"
+        :api-key="proxy.$superdoc.toolbar?.config?.aiApiKey"
+      />
     </div>
   </div>
 </template>
@@ -682,6 +734,7 @@ watch(getFloatingComments, () => {
   position: absolute;
   z-index: 3;
   display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
@@ -739,4 +792,90 @@ watch(getFloatingComments, () => {
     position: relative;
   }
 }
+
+/* AI Writer styles */
+.ai-writer-container {
+  position: fixed;
+  z-index: 1000;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove the AI Sidebar styles */
+/* .ai-sidebar-container {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+} */
+
+/* Tools styles */
+.tools {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.tools .tool-icon {
+  font-size: 20px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background-color: #dbdbdb;
+  cursor: pointer;
+}
+
+.tools-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(219, 219, 219, 0.6);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tools-item i {
+  cursor: pointer;
+}
+
+.superdoc__tools-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.ai-tool > svg {
+  fill: transparent;
+}
+
+.ai-tool::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+
+  z-index: 1;
+  background: linear-gradient(
+    270deg,
+    rgba(218, 215, 118, 0.5) -20%,
+    rgba(191, 100, 100, 1) 30%,
+    rgba(77, 82, 217, 1) 60%,
+    rgb(255, 219, 102) 150%
+  );
+  -webkit-mask: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path d='M224 96l16-32 32-16-32-16-16-32-16 32-32 16 32 16 16 32zM80 160l26.7-53.3L160 80l-53.3-26.7L80 0 53.3 53.3 0 80l53.3 26.7L80 160zm352 128l-26.7 53.3L352 368l53.3 26.7L432 448l26.7-53.3L512 368l-53.3-26.7L432 288zm70.6-193.8L417.8 9.4C411.5 3.1 403.3 0 395.2 0c-8.2 0-16.4 3.1-22.6 9.4L9.4 372.5c-12.5 12.5-12.5 32.8 0 45.3l84.9 84.9c6.3 6.3 14.4 9.4 22.6 9.4 8.2 0 16.4-3.1 22.6-9.4l363.1-363.2c12.5-12.5 12.5-32.8 0-45.2zM359.5 203.5l-50.9-50.9 86.6-86.6 50.9 50.9-86.6 86.6z'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path d='M224 96l16-32 32-16-32-16-16-32-16 32-32 16 32 16 16 32zM80 160l26.7-53.3L160 80l-53.3-26.7L80 0 53.3 53.3 0 80l53.3 26.7L80 160zm352 128l-26.7 53.3L352 368l53.3 26.7L432 448l26.7-53.3L512 368l-53.3-26.7L432 288zm70.6-193.8L417.8 9.4C411.5 3.1 403.3 0 395.2 0c-8.2 0-16.4 3.1-22.6 9.4L9.4 372.5c-12.5 12.5-12.5 32.8 0 45.3l84.9 84.9c6.3 6.3 14.4 9.4 22.6 9.4 8.2 0 16.4-3.1 22.6-9.4l363.1-363.2c12.5-12.5 12.5-32.8 0-45.2zM359.5 203.5l-50.9-50.9 86.6-86.6 50.9 50.9-86.6 86.6z'/></svg>") center / contain no-repeat;
+  filter: brightness(1.2);
+  transition: filter 0.2s ease;
+}
+
+.ai-tool:hover::before {
+  filter: brightness(1.3);
+} 
+/* Tools styles - end */
 </style>

@@ -99,6 +99,12 @@ const init = async () => {
       //   url: 'ws://localhost:3050/docs/superdoc-id',
       //   token: 'token',
       // }
+      ai: {
+        // Provide your Harbour API key here for direct endpoint access
+        apiKey: '',
+        // Optional: Provide a custom endpoint for AI services
+        endpoint: 'https://sd-dev-express-gateway-i6xtm.ondigitalocean.app/insights',
+      },
     },
     onEditorCreate,
     onContentError,

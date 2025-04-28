@@ -33,12 +33,19 @@ import {
  * @property {string} [endpoint] The endpoint for telemetry
  */
 
-
 /**
  * @typedef {Object} Document
  * @property {string} id The ID of the document
  * @property {string} type The type of the document
  * @property {File | null} [data] The initial data of the document
+ */
+
+/**
+ * @typedef {Object} Modules
+ * @property {Object} [comments] Comments module configuration
+ * @property {Object} [ai] AI module configuration
+ * @property {string} [ai.apiKey] Harbour API key for AI features
+ * @property {string} [ai.endpoint] Custom endpoint URL for AI services
  */
 
 /**
@@ -52,7 +59,7 @@ import {
  * @property {User} [user] The current user of this SuperDoc
  * @property {Array<User>} [users] All users of this SuperDoc (can be used for "@"-mentions)
  * @property {Array<string>} [colors] Colors to use for user awareness
- * @property {Object} [modules] Modules to load
+ * @property {Modules} [modules] Modules to load
  * @property {boolean} [pagination] Whether to show pagination in SuperEditors
  * @property {string} [toolbar] Optional DOM element to render the toolbar in
  * @property {Array<string>} [toolbarGroups] Toolbar groups to show
@@ -103,7 +110,8 @@ export class SuperDoc extends EventEmitter {
     user: { name: null, email: null },
     users: [],
 
-    modules: {}, // Optional: Modules to load
+    modules: {}, // Optional: Modules to load. Use modules.ai.{your_key} to pass in your key
+
     title: 'SuperDoc',
     conversations: [],
     pagination: false, // Optional: Whether to show pagination in SuperEditors
@@ -392,11 +400,17 @@ export class SuperDoc extends EventEmitter {
       icons: this.config.toolbarIcons,
       documentMode: this.config.documentMode,
       superdoc: this,
+      aiApiKey: this.config.modules?.ai?.apiKey,
       ...moduleConfig,
     };
 
     this.toolbar = new SuperToolbar(config);
+
     this.toolbar.on('superdoc-command', this.onToolbarCommand.bind(this));
+    // AI highlight is not related to document editing, should be separate events
+    this.toolbar.on('ai-highlight', ({ type, data }) => {
+      this.emit('ai-highlight', { type, data });
+    });
     this.once('editorCreate', () => this.toolbar.updateToolbarState()); 
   }
 
