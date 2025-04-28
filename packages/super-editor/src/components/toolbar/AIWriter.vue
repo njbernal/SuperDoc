@@ -19,7 +19,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  key: {
+  apiKey: {
     type: String,
   },
 /**
@@ -215,7 +215,7 @@ const handleSubmit = async () => {
       documentXml: documentXml,
       config: {
         // Pass the aiApiKey to the AI helper functions
-        apiKey: props.key,
+        apiKey: props.apiKey,
       },
     };
 

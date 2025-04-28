@@ -943,6 +943,10 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     // search,
   ];
 
+  if (!superToolbar.config.aiApiKey) {
+    toolbarItems = toolbarItems.filter((item) => item.name.value !== 'ai');
+  }
+
   // Hide separators on small screens
   if (windowWidth <= breakpoints.md) {
     toolbarItems = toolbarItems.filter((item) => item.type !== 'separator');

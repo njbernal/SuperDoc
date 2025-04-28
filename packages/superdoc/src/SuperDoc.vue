@@ -650,7 +650,7 @@ watch(getFloatingComments, () => {
         :selected-text="selectedText"
         :handle-close="handleAiWriterClose"
         :editor="proxy.$superdoc.activeEditor"
-        :key="proxy.$superdoc.config.modules?.comments?.aiApiKey"
+        :api-key="proxy.$superdoc.toolbar?.config?.aiApiKey"
       />
     </div>
   </div>
