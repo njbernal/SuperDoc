@@ -4,3 +4,7 @@
   display: block;
   fill: currentColor;
 }
+
+.superdoc .ai-textarea-icon.error > svg {
+  fill: #ed4337;
+}
