@@ -1013,6 +1013,7 @@ export class Editor extends EventEmitter {
       isFinalDoc,
       commentsType,
       comments,
+      this,
     );
 
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);

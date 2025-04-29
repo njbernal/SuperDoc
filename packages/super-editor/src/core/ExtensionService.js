@@ -26,6 +26,14 @@ export class ExtensionService {
     this.editor = editor;
 
     this.externalExtensions = userExtensions || [];
+
+    this.externalExtensions = this.externalExtensions.map((extension) => {
+      return {
+        ...extension,
+        isExternal: true,
+      };
+    });
+  
     this.extensions = ExtensionService.getResolvedExtensions([...extensions, ...this.externalExtensions]);
     this.schema = Schema.createSchemaByExtensions(this.extensions, editor);
     this.#setupExtensions();

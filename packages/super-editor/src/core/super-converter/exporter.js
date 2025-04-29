@@ -344,19 +344,61 @@ function translateChildNodes(params) {
  * @returns {XmlReadyNode} The translated text node
  */
 
-function getTextNodeForExport(text, marks) {
+function getTextNodeForExport(text, marks, params) {
   const hasLeadingOrTrailingSpace = /^\s|\s$/.test(text);
   const space = hasLeadingOrTrailingSpace ? 'preserve' : null;
   const nodeAttrs = space ? { 'xml:space': space } : null;
-  
+  const textNodes = [];
+
   const outputMarks = processOutputMarks(marks);
-  const textNode = {
+  textNodes.push({
     name: 'w:t',
     elements: [{ text, type: 'text' }],
     attributes: nodeAttrs,
-  };
+  });
+
+  // For custom mark export, we need to add a bookmark start and end tag
+  // And store attributes in the bookmark name
+  if (params) {
+    const { editor } = params;
+    const customMarks = editor.extensionService.extensions.filter((e) => e.isExternal === true);
+
+    marks.forEach((mark) => {
+      const isCustomMark = customMarks.some((customMark) => {
+        const customMarkName = customMark.name;
+        return mark.type === customMarkName;
+      });
+
+      if (!isCustomMark) return;
   
-  return wrapTextInRun(textNode, outputMarks);
+      let attrsString = '';
+      Object.entries(mark.attrs).forEach(([key, value]) => {
+        if (value) {
+          attrsString += `${key}=${value};`;
+        }
+      }); 
+
+      if (isCustomMark) {
+        textNodes.unshift({
+          type: 'element',
+          name: 'w:bookmarkStart',
+          attributes: {
+            'w:id': '5000',
+            'w:name': mark.type + ';' + attrsString,
+          }
+        });
+        textNodes.push({
+          type: 'element',
+          name: 'w:bookmarkEnd',
+          attributes: {
+            'w:id': '5000',
+          }
+        });
+      };
+    });
+  }
+
+  return wrapTextInRun(textNodes, outputMarks);
 }
 
 /**
@@ -383,7 +425,7 @@ function translateTextNode(params) {
 
   const { text, marks = [] } = node;
 
-  return getTextNodeForExport(text, marks);
+  return getTextNodeForExport(text, marks, params);
 }
 
 function createTrackStyleMark(marks) {
@@ -448,8 +490,11 @@ function translateTrackedNode(params) {
  * @param {XmlReadyNode} node
  * @returns {XmlReadyNode} The wrapped run node
  */
-function wrapTextInRun(node, marks) {
-  const elements = [node];
+function wrapTextInRun(nodeOrNodes, marks) {
+  let elements = [];
+  if (Array.isArray(nodeOrNodes)) elements = nodeOrNodes;
+  else elements = [nodeOrNodes];
+
   if (marks && marks.length) elements.unshift(generateRunProps(marks));
   return {
     name: 'w:r',
@@ -1546,7 +1591,7 @@ function prepareTextAnnotation(params) {
   } = params;
 
   const marksFromAttrs = translateFieldAttrsToMarks(attrs);
-  return getTextNodeForExport(attrs.displayLabel, [...marks, ...marksFromAttrs]);
+  return getTextNodeForExport(attrs.displayLabel, [...marks, ...marksFromAttrs], params);
 }
 
 /**
@@ -1560,7 +1605,7 @@ function prepareCheckboxAnnotation(params) {
     node: { attrs = {}, marks = [] },
   } = params;
   const content = he.decode(attrs.displayLabel);
-  return getTextNodeForExport(content, marks);
+  return getTextNodeForExport(content, marks, params);
 }
 
 /**
@@ -1613,7 +1658,7 @@ function prepareUrlAnnotation(params) {
   } = params;
   const newId = addNewLinkRelationship(params, attrs.linkUrl);
 
-  const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks);
+  const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks, params);
 
   return {
     name: 'w:hyperlink',

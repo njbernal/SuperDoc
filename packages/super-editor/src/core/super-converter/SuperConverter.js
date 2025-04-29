@@ -321,6 +321,7 @@ class SuperConverter {
     isFinalDoc = false,
     commentsExportType,
     comments = [],
+    editor,
   ) {
     const commentsWithParaIds = comments.map((c) => prepareCommentParaIds(c));
     const commentDefinitions = commentsWithParaIds
@@ -332,7 +333,8 @@ class SuperConverter {
       comments,
       commentDefinitions,
       commentsExportType,
-      isFinalDoc
+      isFinalDoc,
+      editor,
     });
 
     const exporter = new DocxExporter(this);
@@ -378,7 +380,8 @@ class SuperConverter {
     comments,
     commentDefinitions,
     commentsExportType = 'clean',
-    isFinalDoc = false
+    isFinalDoc = false,
+    editor,
   }) {
     const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
 
@@ -395,6 +398,7 @@ class SuperConverter {
       comments,
       commentsExportType,
       exportedCommentDefs: commentDefinitions,
+      editor,
     });
 
     return { result, params };

@@ -20,7 +20,6 @@ const init = () => {
     editorExtensions: [CustomMark],
     onReady: myCustomOnReady,
   });
-
 };
 
 
@@ -53,6 +52,12 @@ const insertCustomMark = () => {
   superdoc.value?.activeEditor?.commands.setMyCustomMark(randomId);
 };
 
+const exportDocx = () => {
+  superdoc.value?.export({
+    exportType: ['docx']
+  });
+};
+
 onMounted(() => init());
 </script>
 
@@ -65,8 +70,9 @@ onMounted(() => init());
     <div id="toolbar" class="my-custom-toolbar"></div>
     <div class="editor-and-button">
       <div id="editor" class="main-editor"></div>
-      <div>
+      <div class="editor-buttons">
         <button class="insert-mark" @click="insertCustomMark">Insert custom mark</button>
+        <button class="insert-mark" @click="exportDocx">Export</button>
       </div>
     </div>
   </div>
@@ -84,6 +90,13 @@ onMounted(() => init());
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
+}
+.editor-buttons {
+  display: flex;
+  flex-direction: column;
+}
+.editor-buttons button {
+  margin-bottom: 10px;
 }
 .insert-mark {
   padding: 8px 12px;
