@@ -1,3 +1,5 @@
+import { Plugin, PluginKey } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
 import { Node, Attribute, Schema } from '@core/index.js';
 import { getSpacingStyleString, getMarksStyle } from '@extensions/linked-styles/index.js';
 
@@ -68,6 +70,14 @@ export const Paragraph = Node.create({
           return { style };
         },
       },
+      class: {
+        renderDOM: (attributes) => {
+          if (attributes.dropcap) {
+            return { class: `super-doc-dropcap`};
+          }
+          return null;
+        }
+      },
       styleId: { rendered: false },
       attributes: {
         rendered: false,
@@ -77,6 +87,7 @@ export const Paragraph = Node.create({
       keepLines: { rendered: false },
       keepNext: { rendered: false },
       paragraphProperties: { rendered: false },
+      dropcap: { rendered: false },
     };
   },
 
@@ -96,4 +107,54 @@ export const Paragraph = Node.create({
   renderDOM({ htmlAttributes }) {
     return ['p', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
+
+  addPmPlugins() {
+    const { view } = this.editor;
+    const dropcapPlugin = new Plugin({
+      name: 'dropcapPlugin',
+      key: new PluginKey('dropcapPlugin'),
+      state: {
+        init(_, state) {
+          let decorations = getDropcapDecorations(state, view);
+          return DecorationSet.create(state.doc, decorations);
+        },
+
+        apply(tr, oldDecorationSet, oldState, newState) {
+          const decorations = getDropcapDecorations(newState, view);
+          return DecorationSet.create(newState.doc, decorations);
+        },
+      },
+      props: {
+        decorations(state) {
+          return this.getState(state);
+        },
+      },
+    });
+    
+    return [dropcapPlugin];
+  }
 });
+
+const getDropcapDecorations = (state, view) => {
+  let decorations = [];
+  state.doc.descendants((node, pos) => {
+    if (node.attrs.dropcap?.type === 'margin') {
+      const width = getDropcapWidth(view, pos);
+      
+      decorations.push(
+        Decoration.node(pos, pos + node.nodeSize, { style: `margin-left: -${width}px;` }),
+      );
+    }
+  });
+  return decorations;
+};
+
+function getDropcapWidth(view, pos) {
+  const domNode = view.nodeDOM(pos);
+  if (domNode) {
+    const range = document.createRange();
+    range.selectNodeContents(domNode);
+    return range.getBoundingClientRect().width;
+  }
+  return 0;
+}
