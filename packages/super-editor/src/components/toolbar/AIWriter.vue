@@ -295,17 +295,6 @@ const handleInput = (event) => {
   position: relative;
 }
 
-/* Base icon styles */
-[class^="fa-"] {
-  font-family: 'Font Awesome 5 Pro';
-  font-weight: 400;
-  font-style: normal;
-  font-size: 16px;
-  display: inline-block;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-}
-
 .ai-writer {
   display: flex;
   flex-direction: column;
@@ -380,6 +369,9 @@ const handleInput = (event) => {
   display: flex;
 }
 
+.error {
+  fill: #ed4337;
+}
 
 .ai-submit-button {
   border: none;
