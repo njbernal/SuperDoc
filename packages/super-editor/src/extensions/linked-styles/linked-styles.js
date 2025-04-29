@@ -189,10 +189,11 @@ export const getSpacingStyle = (spacing) => {
  * @returns {String} The style string
  */
 export const getSpacingStyleString = (spacing) => {
-  const { lineSpaceBefore, lineSpaceAfter } = spacing;
+  const { lineSpaceBefore, lineSpaceAfter, line } = spacing;
   return `
     ${lineSpaceBefore ? `margin-top: ${lineSpaceBefore}px;` : ''}
     ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}
+    ${line ? getLineHeightValueString(line, '') : ''}
   `.trim();
 };
 

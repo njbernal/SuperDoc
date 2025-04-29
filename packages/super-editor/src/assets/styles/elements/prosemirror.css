@@ -303,3 +303,10 @@ https://github.com/ProseMirror/prosemirror-tables/blob/master/demo/index.html
 .ProseMirror-focused .ProseMirror-gapcursor {
   display: block;
 }
+
+.super-doc-dropcap {
+  float: left;
+  display: flex;
+  align-items: baseline;
+  margin-top: -5px;
+}

@@ -51,6 +51,7 @@ export const handleParagraphNode = (params) => {
   const pPr = node.elements?.find((el) => el.name === 'w:pPr');
   const styleTag = pPr?.elements?.find((el) => el.name === 'w:pStyle');
   const nestedRPr = pPr?.elements?.find((el) => el.name === 'w:rPr');
+  const framePr = pPr?.elements?.find((el) => el.name === 'w:framePr');
   
   if (nestedRPr) {
     schemaNode.attrs.marksAttrs = parseMarks(nestedRPr, []);
@@ -103,6 +104,10 @@ export const handleParagraphNode = (params) => {
     const defaultStyleId = node.attributes?.['w:rsidRDefault'];
     schemaNode.attrs['spacing'] = getParagraphSpacing(node, docx, schemaNode.attrs['styleId'], schemaNode.attrs.marksAttrs);
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
+  }
+  
+  if (framePr && framePr.attributes['w:dropCap']) {
+    schemaNode.attrs.dropcap = framePr.attributes['w:dropCap'];
   }
 
   schemaNode.attrs['filename'] = filename;
@@ -322,13 +327,13 @@ export function getDefaultStyleDefinition(defaultStyleId, docx) {
   if (pageBreakBefore) {
      if (!pageBreakBefore.attributes?.['w:val']) pageBreakBeforeVal = 1;
      else pageBreakBeforeVal = Number(pageBreakBefore?.attributes?.['w:val'])
-  };
+  }
   const pageBreakAfter = pPr?.elements?.find((el) => el.name === 'w:pageBreakAfter');
   let pageBreakAfterVal;
   if (pageBreakAfter) {
     if (!pageBreakAfter.attributes?.['w:val']) pageBreakAfterVal = 1;
     else pageBreakAfterVal = Number(pageBreakAfter?.attributes?.['w:val'])
- };
+ }
 
   const parsedAttrs = {
     name,
@@ -356,7 +361,7 @@ export function getDefaultStyleDefinition(defaultStyleId, docx) {
         parsedStyles[kebabCase(key)] = value
       });
       return;
-    };
+    }
 
     parsedStyles[type] = attrs;
   });
@@ -414,7 +419,7 @@ export function preProcessNodesForFldChar(nodes) {
   });
 
   return processedNodes;
-};
+}
 
 
 /**
