@@ -243,7 +243,7 @@ class SuperConverter {
     if (!fontTable || !Object.keys(this.fonts).length) return;
     
     const fonts = fontTable.elements.find((el) => el.name === 'w:fonts');
-    const embededFonts = fonts?.elements.filter(el => el.elements.some(nested =>  nested?.attributes && nested.attributes['r:id'] && nested.attributes['w:fontKey']));
+    const embededFonts = fonts?.elements.filter(el => el.elements?.some(nested =>  nested?.attributes && nested.attributes['r:id'] && nested.attributes['w:fontKey']));
     const fontsToInclude = embededFonts?.reduce((acc, cur) => {
       const embedElements = cur.elements.filter((el) => el.name.startsWith('w:embed'))?.map(el => ({ ...el, fontFamily: cur.attributes['w:name'] }));
       return [
