@@ -172,7 +172,7 @@ function generateParagraphProperties(node) {
   const { styleId } = attrs;
   if (styleId) pPrElements.push({ name: 'w:pStyle', attributes: { 'w:val': styleId } });
   
-  const { spacing, indent, textAlign, textIndent, lineHeight, marksAttrs, keepLines, keepNext } = attrs;
+  const { spacing, indent, textAlign, textIndent, lineHeight, marksAttrs, keepLines, keepNext, dropcap } = attrs;
   if (spacing) {
     const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
 
@@ -259,6 +259,19 @@ function generateParagraphProperties(node) {
     pPrElements.push({
       name: 'w:keepNext',
       attributes: { 'w:val': keepNext },
+    });
+  }
+  
+  if (dropcap) {
+    pPrElements.push({
+      name: 'w:framePr',
+      attributes: { 
+        'w:dropCap': dropcap.type,
+        'w:lines': dropcap.lines,
+        'w:wrap': dropcap.wrap,
+        'w:vAnchor': dropcap.vAnchor,
+        'w:hAnchor': dropcap.hAnchor,
+      },
     });
   }
   

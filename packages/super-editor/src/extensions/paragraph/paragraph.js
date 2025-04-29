@@ -138,7 +138,7 @@ export const Paragraph = Node.create({
 const getDropcapDecorations = (state, view) => {
   let decorations = [];
   state.doc.descendants((node, pos) => {
-    if (node.attrs.dropcap === 'margin') {
+    if (node.attrs.dropcap?.type === 'margin') {
       const width = getDropcapWidth(view, pos);
       
       decorations.push(

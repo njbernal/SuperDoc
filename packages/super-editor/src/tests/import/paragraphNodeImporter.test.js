@@ -274,3 +274,25 @@ describe('paragraph tests to check indentation', () => {
     expect(indent.firstLine).toBe(29);
   });
 });
+
+describe('paragraph with dropcaps', () => {
+
+  it('correctly gets dropcaps data', async () => {
+    const dataName = 'dropcaps.docx';
+    const docx = await getTestDataByFileName(dataName);
+    const documentXml = docx['word/document.xml'];
+
+    const doc = documentXml.elements[0];
+    const body = doc.elements[0];
+    const content = body.elements;
+
+    const { nodes } = handleParagraphNode({ nodes: [content[1]], docx, nodeListHandler: defaultNodeListHandler() });
+
+    const node = nodes[0];
+    expect(node.type).toBe('paragraph');
+
+    const { attrs } = node;
+    const { dropcap } = attrs;
+    expect(dropcap.type).toBe('drop');
+  });
+});

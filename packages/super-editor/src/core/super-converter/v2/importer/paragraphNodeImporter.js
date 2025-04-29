@@ -68,13 +68,13 @@ export const handleParagraphNode = (params) => {
       schemaNode.attrs.indent = {};
     }
 
-    if (indent.left) {
+    if (indent.left || indent.left === 0) {
       schemaNode.attrs.indent.left = indent.left;
     }
-    if (indent.right) {
+    if (indent.right || indent.right === 0) {
       schemaNode.attrs.indent.right = indent.right;
     }
-    if (indent.firstLine) {
+    if (indent.firstLine || indent.firstLine === 0) {
       schemaNode.attrs.indent.firstLine = indent.firstLine;
     }
     if (indent.hanging) {
@@ -107,7 +107,13 @@ export const handleParagraphNode = (params) => {
   }
   
   if (framePr && framePr.attributes['w:dropCap']) {
-    schemaNode.attrs.dropcap = framePr.attributes['w:dropCap'];
+    schemaNode.attrs.dropcap = {
+      type: framePr.attributes['w:dropCap'],
+      lines: framePr.attributes['w:lines'],
+      wrap: framePr.attributes['w:wrap'],
+      hAnchor: framePr.attributes['w:hAnchor'],
+      vAnchor: framePr.attributes['w:vAnchor'],
+    }
   }
 
   schemaNode.attrs['filename'] = filename;
