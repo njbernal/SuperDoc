@@ -5,6 +5,7 @@
   fill: currentColor;
 }
 
+/* Override global svg styles above for AI Writer error state */
 .superdoc .ai-textarea-icon.error > svg {
   fill: #ed4337;
 }

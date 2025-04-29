@@ -369,6 +369,9 @@ const handleInput = (event) => {
   display: flex;
 }
 
+.error {
+  fill: #ed4337;
+}
 
 .ai-submit-button {
   border: none;

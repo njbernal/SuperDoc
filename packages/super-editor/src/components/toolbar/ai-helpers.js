@@ -218,7 +218,6 @@ export async function write(prompt, options = {}) {
   };
 
   const response = await baseInsightsFetch(payload, options.config || {});
-  console.log('write response', response);
   return returnNonStreamingJson(response);
 }
 
