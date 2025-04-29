@@ -126,7 +126,12 @@ function handleListNodes({
     // Get the properties of the node - this is where we will find depth level for the node
     // As well as many other list properties
     const { attributes, elements, marks = [] } = parseProperties(item, docx);
+
+    const matchedStyle = getStyleTagFromStyleId(styleId, docx) || {};
+    const { marks: styleIdMarks } = parseProperties(matchedStyle, docx);
+    
     const textStyle = marks.find((mark) => mark.type === 'textStyle');
+    const textStyleFromStyles = styleIdMarks?.find((mark) => mark.type === 'textStyle');
 
     const {
       listType,
@@ -180,7 +185,7 @@ function handleListNodes({
         parNode = {
           ...parNode,
           attrs: {
-            textAlign: textStyle?.attrs.textAlign || null,
+            textAlign: textStyle?.attrs.textAlign || textStyleFromStyles?.attrs.textAlign || null,
             rsidRDefault: attributes?.['w:rsidRDefault'] || null,
           },
           content: mergeTextNodes(parNode.content),
@@ -209,7 +214,11 @@ function handleListNodes({
 
       // Process additional possible inline styles
       const pPr = item.elements.find((el) => el.name === 'w:pPr');
-      const indent = pPr?.elements.find((el) => el.name === 'w:ind');
+      let indent = pPr?.elements.find((el) => el.name === 'w:ind');
+      const pPrFromStyles = matchedStyle?.elements?.find((style) => style.name === 'w:pPr');
+      const stylesIndent = pPrFromStyles?.elements?.find((el) => el.name === 'w:ind');
+      if (!indent) indent = stylesIndent;
+      
       if (indent) {
         const indentAttrs = {};
         if (indent.attributes['w:left'] !== undefined) indentAttrs.left = twipsToPixels(indent.attributes['w:left']);
@@ -240,7 +249,7 @@ function handleListNodes({
       nodeAttributes['numId'] = numId;
 
       if (docx) {
-        nodeAttributes['spacing'] = getParagraphSpacing(item, docx);
+        nodeAttributes['spacing'] = getParagraphSpacing(item, docx, styleId);
       }
 
       const newListItem = createListItem(schemaElements, nodeAttributes, []);
@@ -353,11 +362,14 @@ const getNumIdFromTag = (tag) => {
  */
 function getStyleTagFromStyleId(styleId, docx) {
   const styles = docx['word/styles.xml'];
+  if (!styles) {
+    return {};
+  }
   const styleEls = styles.elements;
   const wStyles = styleEls.find((el) => el.name === 'w:styles');
   const styleTags = wStyles.elements.filter((style) => style.name === 'w:style');
   return styleTags.find((tag) => tag.attributes['w:styleId'] === styleId);
-};
+}
 
 /**
  * Get the num ID from the style definition
@@ -390,10 +402,10 @@ function getNumPrRecursive({ node, styleId, docx, seenStyleIds = new Set() }) {
     seenStyleIds.add(styleId);
     if (!basedOnStyleId) return null;
     return getNumPrRecursive({ styleId: basedOnStyleId, docx, seenStyleIds });
-  };
+  }
 
   return numPr;
-};
+}
 
 /**
  * Creates a list item node with specified content and marks.
