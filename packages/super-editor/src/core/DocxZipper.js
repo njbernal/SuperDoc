@@ -68,7 +68,7 @@ class DocxZipper {
           const imageUrl = URL.createObjectURL(file);
           this.media[zipEntry.name] = imageUrl;
         }
-      } else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
+      } else if (!isNode && zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
         const arraybuffer = await zipEntry.async('arraybuffer');
         this.fonts[zipEntry.name] = arraybuffer;
       }
