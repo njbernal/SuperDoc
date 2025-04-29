@@ -13,6 +13,8 @@ export class Mark {
 
   storage;
 
+  isExternal;
+
   config = {
     name: this.name,
   };
@@ -24,6 +26,8 @@ export class Mark {
     };
 
     this.name = this.config.name;
+
+    this.isExternal = Boolean(this.config.isExternal)
 
     if (this.config.addOptions) {
       this.options = callOrGet(

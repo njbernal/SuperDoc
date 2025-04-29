@@ -26,7 +26,11 @@ const handleRunNode = (params) => {
     }
     
     if (node.marks) marks.push(...node.marks);
-    processedRun = processedRun.map((n) => ({ ...n, marks: createImportMarks(marks), attributes }));
+    const newMarks = createImportMarks(marks);
+    processedRun = processedRun.map((n) => { 
+      const existingMarks = n.marks || [];
+      return { ...n, marks: [...newMarks, ...existingMarks], attributes }
+    });
   } else if (defaultNodeStyles.marks) {
     processedRun = processedRun.map((n) => ({ ...n, marks: createImportMarks(defaultNodeStyles.marks) }));
   }
