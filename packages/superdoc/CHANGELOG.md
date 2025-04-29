@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.10.27](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.26...v0.10.27) (2025-04-29)
+
 ## [0.10.26](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.25...v0.10.26) (2025-04-29)
 
 ## [0.10.25](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.10.24...v0.10.25) (2025-04-29)
