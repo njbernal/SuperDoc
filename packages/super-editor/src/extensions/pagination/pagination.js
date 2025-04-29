@@ -406,6 +406,9 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
     const sectionContainer = decoration.type.toDOM;
     const totalPageNumber = sectionContainer?.querySelector('span[data-id="auto-total-pages"]');
     if (totalPageNumber) {
+      const fontSize = totalPageNumber.previousElementSibling?.style?.fontSize ||
+      totalPageNumber.nextElementSibling?.style?.fontSize;
+      if (fontSize) totalPageNumber.style.fontSize = fontSize;
       totalPageNumber.innerText = currentPageNumber;
     };
   });
@@ -484,7 +487,12 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, currentPageN
   if (!sectionContainer) sectionContainer = document.createElement('div');
 
   const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
-  if (autoPageNumber) autoPageNumber.innerText = currentPageNumber;
+  if (autoPageNumber) {
+    const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
+      autoPageNumber.nextElementSibling?.style?.fontSize;
+    if (fontSize) autoPageNumber.style.fontSize = fontSize;
+    autoPageNumber.innerText = currentPageNumber;
+  }
 
   sectionContainer.className = 'pagination-section-footer';
   sectionContainer.style.height = footerHeight + 'px';

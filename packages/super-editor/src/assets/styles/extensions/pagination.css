@@ -40,3 +40,19 @@
   flex-direction: column;
   background-color: white;
 }
+
+/**
+Workaround to display pagination in footer 
+on the right if it is inside shape textbox.
+*/
+.pagination-section-footer .pm-shape-container:has(
+  [data-id="auto-page-number"],
+  [data-id="auto-total-pages"]
+) {
+  margin-left: auto;
+}
+
+.pagination-section-header img[contenteditable="false"],
+.pagination-section-footer img[contenteditable="false"] {
+  pointer-events: none;
+}
