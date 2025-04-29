@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson, addDefaultStylesIfMissing } from './v2/importer/docxImporter.js';
-import { getArrayBufferFromUrl } from './helpers.js';
+import { deobfuscateFont, getArrayBufferFromUrl } from './helpers.js';
 import { baseNumbering } from './v2/exporter/helpers/base-list.definitions.js';
 import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
 import {
@@ -79,6 +79,8 @@ class SuperConverter {
     this.convertedXml = {};
     this.docx = params?.docx || [];
     this.media = params?.media || {};
+    
+    this.fonts = params?.fonts || {};
 
     this.addedMedia = {};
     this.comments = [];
@@ -210,29 +212,79 @@ class SuperConverter {
     const rFonts = rElements?.find((el) => el.name === 'w:rFonts');
     if ('elements' in rDefault) {
       const fontThemeName = rElements.find((el) => el.name === 'w:rFonts')?.attributes['w:asciiTheme'];
-      let typeface, panose;
+      let typeface, panose, fontSizeNormal;
       if (fontThemeName) {
         const fontInfo = this.getThemeInfo(fontThemeName);
         typeface = fontInfo.typeface;
         panose = fontInfo.panose;
       } else if (rFonts) {
         typeface = rFonts?.attributes['w:ascii'];
-      } else {
-        const paragraphDefaults =
-          styles.elements[0].elements.filter((el) => {
-            return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
-          }) || [];
-        paragraphDefaults.forEach((el) => {
-          const rPr = el.elements.find((el) => el.name === 'w:rPr');
-          const fonts = rPr?.elements?.find((el) => el.name === 'w:rFonts');
-          typeface = fonts?.attributes['w:ascii'];
-        });
       }
 
-      const fontSizePt = Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2 || 12;
+      const paragraphDefaults =
+        styles.elements[0].elements.filter((el) => {
+          return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
+        }) || [];
+      paragraphDefaults.forEach((el) => {
+        const rPr = el.elements.find((el) => el.name === 'w:rPr');
+        const fonts = rPr?.elements?.find((el) => el.name === 'w:rFonts');
+        typeface = fonts?.attributes['w:ascii'];
+        fontSizeNormal = Number(rPr?.elements?.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2;
+      });
+
+      const fontSizePt = fontSizeNormal || Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2 || 12;
       const kern = rElements.find((el) => el.name === 'w:kern')?.attributes['w:val'];
       return { fontSizePt, kern, typeface, panose };
     }
+  }
+  
+  getDocumentFonts() {
+    const fontTable = this.convertedXml['word/fontTable.xml'];
+    if (!fontTable || !Object.keys(this.fonts).length) return;
+    
+    const fonts = fontTable.elements.find((el) => el.name === 'w:fonts');
+    const embededFonts = fonts?.elements.filter(el => el.elements.some(nested =>  nested?.attributes && nested.attributes['r:id'] && nested.attributes['w:fontKey']));
+    const fontsToInclude = embededFonts?.reduce((acc, cur) => {
+      const embedElements = cur.elements.filter((el) => el.name.startsWith('w:embed'))?.map(el => ({ ...el, fontFamily: cur.attributes['w:name'] }));
+      return [
+        ...acc,
+        ...embedElements,
+      ];
+    }, []);
+    
+    const rels = this.convertedXml['word/_rels/fontTable.xml.rels'];
+    const relationships = rels?.elements.find((el) => el.name === 'Relationships') || {};
+    const { elements } = relationships;
+    
+    let styleString = '';
+    for (const font of fontsToInclude) {
+      const filePath = elements.find((el) => el.attributes.Id === font.attributes['r:id'])?.attributes?.Target;
+      if (!filePath) return;
+
+      const ttfBuffer = deobfuscateFont(this.fonts[`word/${filePath}`], font.attributes['w:fontKey']);
+      if (!ttfBuffer) return;
+      
+      // Convert to a blob and inject @font-face
+      const blob = new Blob([ttfBuffer], { type: 'font/ttf' });
+      const fontUrl = URL.createObjectURL(blob);
+      const isNormal = font.name.includes('Regular');
+      const isBold = font.name.includes('Bold');
+      const isItalic = font.name.includes('Italic');
+      const isLight = font.name.includes('Light');
+      const fontWeight = isNormal ? 'normal' : isBold ? 'bold' : isLight ? '200' : 'normal';
+      
+      styleString += `
+        @font-face {
+          font-style: ${isItalic ? 'italic' : 'normal'};
+          font-weight: ${fontWeight};
+          font-display: swap;
+          font-family: ${font.fontFamily};
+          src: url(${fontUrl}) format('truetype');
+        }
+      `;
+    }
+    
+    return styleString;
   }
   
   getDocumentInternalId() {    
