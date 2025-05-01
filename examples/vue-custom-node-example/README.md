@@ -1,33 +1,13 @@
-# Custom Nodes in SuperDoc
+# SuperDoc
+## SuperDoc: Creating a custom mark
 
-You can create custom nodes (or extensions/plugins). For this example we'll create a simple custom node and pass it to the editor.
+An example of creating a custom Mark to use with SuperDoc.
+Note: Requires `SuperDoc 0.10.15` or later
 
-First, [we've created a basic example of a custom node here](https://github.com/Harbour-Enterprises/SuperDoc/blob/main/examples/vue-custom-node-example/src/plugins/MyCustomNodePlugin.js) showing __some__ of the API we have access to.
+[We create a custom mark here](https://github.com/Harbour-Enterprises/SuperDoc/blob/main/examples/vue-custom-mark/src/custom-mark.js)
+Note that we added a custom command to the mark, called setMyCustomMark. We can now insert this mark by calling this command from `superdoc.activeEditor.commands`
 
-We simply import it into our document editor, using:
-```
-import { myCustomNode } from '../plugins/MyCustomNodePlugin';
-```
+[Then we can pass it into the editor via the `editorExtensions` key](https://github.com/Harbour-Enterprises/SuperDoc/blob/e724d31eaba50a423ed0d73a4264a09b33d06eaa/examples/vue-custom-mark/src/App.vue#L20)
 
-And pass it to the editor via our config:
-```
-const config = {
-  // Our config...
-  editorExtensions: [myCustomNode],
-}
-```
-
-And that's it! Our editor now can use our custom node.
-
-## Custom commands
-Since our custom node creates a custom command `insertCustomNode` that takes an **object** as a param with keys `content` and `id`, we can use it via:
-```
-activeEditor.commands.insertCustomNode({ content, id })
-```
-
-## Running the example
-```
-npm install && npm run dev
-```
-
-The example inserts two instances of our custom node - once using a generic editor `insertContent` command and some HTML, and the second time using our newly-created custom command `insertCustomNode`
+## Exporting the docx
+This example also shows one way to export the docx to a blob whenever the content changes in the editor

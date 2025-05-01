@@ -1,82 +1,86 @@
+<script setup>
+import '@harbour-enterprises/superdoc/style.css';
+import { onMounted, shallowRef } from 'vue';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
+import UploadFile from './components/UploadFile.vue';
+
+// Default document
+import sampleDocument from '../../shared/data/sample-document.docx?url';
+
+// This is our custom node that we are creating for this example
+import { myCustomNode } from './custom-node';
+
+const superdoc = shallowRef(null);
+const editor = shallowRef(null);
+
+const init = (fileToLoad) => {
+  superdoc.value = new SuperDoc({
+    // Can also be a class ie: .main-editor
+    selector: '#editor',
+
+    // Enable pagination
+    pagination: true,
+
+    document: fileToLoad ? { data: fileToLoad } : sampleDocument,
+
+    // Initialize the toolbar
+    toolbar: '#toolbar',
+    toolbarGroups: ['center'],
+
+    // Pass in custom extensions
+    editorExtensions: [myCustomNode],
+
+    // Listen for ready event
+    onReady,
+  });
+};
+
+const handleFileUpdate = (file) => {
+  // Handle file update logic here
+  console.log('File updated:', file);
+  superdoc.value?.destroy();
+
+  init(file);
+}
+
+/* When SuperDoc is ready, we can store a reference to the editor instance */
+const onReady = () => {
+  superdoc.value?.activeEditor?.on('create', ({ editor: activeEditor }) => {
+    editor.value = activeEditor;
+  });
+}
+
+onMounted(() => init());
+</script>
+
 <template>
-  <div class="app">
-    <header>
-      <h1>SuperDoc Example</h1>
-      <button @click="fileInput?.click()">Load Document</button>
-      <input 
-        type="file" 
-        ref="fileInput" 
-        accept=".docx,.pdf" 
-        class="hidden"
-        @change="handleFileChange"
-      >
-    </header>
-    
-    <main>
-      <DocumentEditor
-        :document-id="documentId"
-        :initial-data="documentFile"
-        @editor-ready="handleEditorReady"
-      />
-    </main>
+  <div class="example-container">
+    <h1>SuperDoc: Create a custom node with custom command</h1>
+
+    <p>In this example, we create a simple custom node to pass into SuperDoc.</p>
+
+    <div id="toolbar" class="my-custom-toolbar"></div>
+    <div class="editor-and-button">
+      <div id="editor" class="main-editor"></div>
+      <div class="editor-buttons">
+        <UploadFile :update-file="handleFileUpdate" />
+        <button class="custom-button" @click="editor?.commands.insertCustomNode">Insert custom node</button>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import DocumentEditor from './components/DocumentEditor.vue';
-
-const documentId = ref('example-doc');
-const documentFile = ref(null);
-const fileInput = ref(null);
-
-const handleFileChange = (event) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    documentFile.value = file;
-    documentId.value = `doc-${Date.now()}`;
-  }
-};
-
-const handleEditorReady = (editor) => {
-  console.log('SuperDoc editor is ready', editor);
-};
-</script>
-
 <style>
-.app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  padding: 1rem;
-  background: #f5f5f5;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-header button {
-  padding: 0.5rem 1rem;
-  background: #1355ff;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.my-custom-node-default-class {
+  background-color: #1355FF;
+  border-radius: 8px;
   cursor: pointer;
+  color: white;
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
 }
-
-header button:hover {
-  background: #0044ff;
-}
-
-.hidden {
-  display: none;
-}
-
-main {
-  flex: 1;
-  padding: 1rem;
+.my-custom-node-default-class:hover {
+  background-color: #0a3dff;
 }
 </style>
