@@ -2,17 +2,20 @@ import { Node, Attribute } from '@core/index.js';
 
 export const LineBreak = Node.create({
   name: 'lineBreak',
-
   group: 'inline',
-
   inline: true,
+  marks: '',
+  defining: true,
+  selectable: false,
+  content: '',
+  atom: true,
 
   parseDOM() {
     return [{ tag: 'br' }];
   },
 
   renderDOM() {
-    return ['br', {}, 0];
+    return ['br', {}];
   },
 });
 
