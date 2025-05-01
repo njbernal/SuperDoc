@@ -29,10 +29,10 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
     expect(sublist.content.length).toBe(4); // 4 sub items
 
     const subItem1 = sublist.content[0];
-    expect(subItem1.attrs.listLevel).toStrictEqual([1, 1]);
+    expect(subItem1.attrs.listLevel).toStrictEqual([2, 1]);
 
     const subItem4 = sublist.content[3];
-    expect(subItem4.attrs.listLevel).toStrictEqual([1, 4]);
+    expect(subItem4.attrs.listLevel).toStrictEqual([2, 4]);
   });
 
   it('second list item imports correctly', () => {
@@ -49,10 +49,10 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
     const subItem1 = sublist.content[0];
     expect(subItem1.type).toBe('listItem');
     expect(subItem1.attrs.numId).toBe("5");
-    expect(subItem1.attrs.listLevel).toStrictEqual([2, 1]);
+    expect(subItem1.attrs.listLevel).toStrictEqual([3, 1]);
     
     const subItem2 = sublist.content[1];
-    expect(subItem2.attrs.listLevel).toStrictEqual([2, 2]);
+    expect(subItem2.attrs.listLevel).toStrictEqual([3, 2]);
   });
 
   it('third list item with node break imports correctly', () => {
@@ -65,7 +65,7 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
     expect(sublist.content.length).toBe(1);
 
     const subItem1 = sublist.content[0];
-    expect(subItem1.attrs.listLevel).toStrictEqual([3, 1]);
+    expect(subItem1.attrs.listLevel).toStrictEqual([4, 1]);
     expect(subItem1.content.length).toBe(2);
 
     // The node break
@@ -79,12 +79,12 @@ describe('[complex-list-def-issue.docx] importing complex list (repeated num id 
 
     const subItem3 = listAfterBreak.content[0].content[0].content[0]
     expect(subItem3.attrs.numId).toBe("5");
-    expect(subItem3.attrs.listLevel).toStrictEqual([3, 2]);
+    expect(subItem3.attrs.listLevel).toStrictEqual([4, 2]);
 
     const subItem4 = listAfterBreak.content[0].content[0].content[1]
     expect(subItem4.type).toBe('listItem');
     expect(subItem4.attrs.numId).toBe("5");
-    expect(subItem4.attrs.listLevel).toStrictEqual([3, 3]);
+    expect(subItem4.attrs.listLevel).toStrictEqual([4, 3]);
   });
 
   it('root list continues correctly after third item with break', () => {

@@ -164,12 +164,13 @@ function handleListNodes({
     // We keep track of all indices for all lists here with an object
     // This allows us to detect disconnected lists and handle them correctly
     if (!lists[currentListNumId]) lists[currentListNumId] = {};
-    if (!lists[currentListNumId][listLevel]) lists[currentListNumId][listLevel] = 0;
+    if (!lists[currentListNumId][listLevel]) {
+      lists[currentListNumId][listLevel] = Number(start);
+    }
 
     // If this node belongs on this list level, add it to the list
     const nodeAttributes = {};
     if (isRoot && !isNested) {
-      lists[currentListNumId][actualListLevel]++;  
       overallListType = listType;
       item.seen = true;
 
@@ -198,6 +199,7 @@ function handleListNodes({
       let thisItemPath = [];
       if (listStyleType !== 'bullet') {
         thisItemPath = [...path, lists[currentListNumId][listLevel]];
+        lists[currentListNumId][actualListLevel]++;  
       }
 
       // Rebuild a path if we're continuing after a break
