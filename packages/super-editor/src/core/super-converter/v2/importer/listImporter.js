@@ -188,6 +188,7 @@ function handleListNodes({
           attrs: {
             textAlign: textStyle?.attrs.textAlign || textStyleFromStyles?.attrs.textAlign || null,
             rsidRDefault: attributes?.['w:rsidRDefault'] || null,
+            styleId,
           },
           content: mergeTextNodes(parNode.content),
         };
