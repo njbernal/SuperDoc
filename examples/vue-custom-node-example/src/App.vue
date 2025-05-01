@@ -64,7 +64,11 @@ onMounted(() => init());
       <div id="editor" class="main-editor"></div>
       <div class="editor-buttons">
         <UploadFile :update-file="handleFileUpdate" />
-        <button class="custom-button" @click="editor?.commands.insertCustomNode">Insert custom node</button>
+        <button class="custom-button" @click="editor?.commands.insertCustomNode">Insert custom node (custom command)</button>
+        <button
+          class="custom-button" 
+          @click="editor?.commands.insertContent(`<div data-node-type='customNode' id='some-id-123'>Custom Node Content</div>`)"
+        >Insert custom node (insertContent())</button>
       </div>
     </div>
   </div>
