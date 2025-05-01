@@ -90,6 +90,7 @@ export function exportSchemaToJson(params) {
     commentReference: () => null,
     shapeContainer: translateShapeContainer,
     shapeTextbox: translateShapeTextbox,
+    contentBlock: translateContentBlock,
   };
 
   if (!router[type]) {
@@ -1876,6 +1877,40 @@ function translateShapeTextbox(params) {
   return textbox;
 }
 
+function translateContentBlock(params) {
+  const { node } = params;
+  const { drawingContent } = node.attrs;
+
+  const drawing = {
+    name: 'w:drawing',
+    elements: [
+      ...(
+        drawingContent
+        ? [...(drawingContent.elements || [])]
+        : []
+      )
+    ],
+  };
+
+  const choice = {
+    name: 'mc:Choice',
+    attributes: { Requires: 'wps' },
+    elements: [drawing],
+  };
+
+  const alternateContent = {
+    name: 'mc:AlternateContent',
+    elements: [choice],
+  };
+
+  const par = {
+    name: 'w:p',
+    elements: [wrapTextInRun(alternateContent)],
+  };
+
+  return par;
+}
+
 export class DocxExporter {
   constructor(converter) {
     this.converter = converter;
@@ -1928,7 +1963,7 @@ export class DocxExporter {
 
     if (name === 'w:instrText') {
       tags.push(elements[0].text);
-    } else if (name === 'w:t' || name === 'w:delText') {
+    } else if (name === 'w:t' || name === 'w:delText' || name === 'wp:posOffset') {
       const text = this.#replaceSpecialCharacters(elements[0].text);
       tags.push(text);
     } else {

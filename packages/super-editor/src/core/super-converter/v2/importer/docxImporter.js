@@ -13,6 +13,7 @@ import { annotationNodeHandlerEntity } from './annotationImporter.js';
 import { standardNodeHandlerEntity } from './standardNodeImporter.js';
 import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
 import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
+import { alternateChoiceHandler } from './alternateChoiceImporter.js';
 import { autoPageHandlerEntity, autoTotalPageCountEntity } from './autoPageNumberImporter.js';
 import { tabNodeEntityHandler } from './tabImporter.js';
 import { listHandlerEntity } from './listImporter.js';
@@ -121,6 +122,7 @@ export const createDocumentJson = (docx, converter, editor) => {
 
 export const defaultNodeListHandler = () => {
   const entities = [
+    alternateChoiceHandler,
     runNodeHandlerEntity,
     pictNodeHandlerEntity,
     paragraphNodeHandlerEntity,

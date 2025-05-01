@@ -36,6 +36,7 @@ import { Mention } from './mention/index.js';
 import { PageNumber, TotalPageCount } from './page-number/index.js';
 import { ShapeContainer } from './shape-container/index.js';
 import { ShapeTextbox } from './shape-textbox/index.js';
+import { ContentBlock } from './content-block/index.js';
 
 // Marks extensions
 import { TextStyle } from './text-style/text-style.js';
@@ -159,6 +160,7 @@ const getStarterExtensions = () => {
     TotalPageCount,
     ShapeContainer,
     ShapeTextbox,
+    ContentBlock,
   ];
 };
 

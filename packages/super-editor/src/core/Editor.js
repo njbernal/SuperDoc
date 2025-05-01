@@ -697,6 +697,7 @@ export class Editor extends EventEmitter {
     element.style.paddingLeft = pageMargins.left + 'in';
     element.style.paddingRight = pageMargins.right + 'in';
     element.style.boxSizing = 'border-box';
+    element.style.isolation = 'isolate'; // to create new stacking context.
 
     proseMirror.style.outline = 'none';
     proseMirror.style.border = 'none';
