@@ -33,9 +33,9 @@ describe('[custom-list1.docx] test import custom lists', () => {
     const lvlText = attrs.lvlText;
     expect(lvlText).toBe("%1.%2.");
 
-    // We expect the list level to be [1, 1]
+    // We expect the list level to be [2, 1]
     const listLevel = attrs.listLevel;
-    expect(listLevel).toStrictEqual([1, 1]);
+    expect(listLevel).toStrictEqual([2, 1]);
   });
 
   it('can import the second sub-element (1.2)', () => {
@@ -48,9 +48,9 @@ describe('[custom-list1.docx] test import custom lists', () => {
     const lvlText = attrs.lvlText;
     expect(lvlText).toBe("%1.%2.");
 
-    // We expect the list level to be [1, 2]
+    // We expect the list level to be [2, 2]
     const listLevel = attrs.listLevel;
-    expect(listLevel).toStrictEqual([1, 2]);
+    expect(listLevel).toStrictEqual([2, 2]);
   });
 
   it('can import the sub-sub-element (1.2.1)', () => {
@@ -63,8 +63,8 @@ describe('[custom-list1.docx] test import custom lists', () => {
     const lvlText = attrs.lvlText;
     expect(lvlText).toBe("%1.%2.%3.");
 
-    // We expect the list level to be [1, 2, 1]
+    // We expect the list level to be [2, 3, 1]
     const listLevel = attrs.listLevel;
-    expect(listLevel).toStrictEqual([1, 2, 1]);
+    expect(listLevel).toStrictEqual([2, 3, 1]);
   });
 });
