@@ -12,7 +12,7 @@
   },
   "description": "",
   "dependencies": {
-    "@harbour-enterprises/superdoc": "^0.9.7",
+    "@harbour-enterprises/superdoc": "^0.10.44",
     "express": "^4.21.2"
   },
   "devDependencies": {

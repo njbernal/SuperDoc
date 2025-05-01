@@ -2,7 +2,7 @@
 import '@harbour-enterprises/superdoc/style.css';
 import { onMounted, shallowRef } from 'vue';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
-import UploadFile from './components/UploadFile.vue';
+import UploadFile from '../../shared/vue/UploadFile/UploadFile.vue';
 
 // Default document
 import sampleDocument from '../../shared/data/sample-document.docx?url';

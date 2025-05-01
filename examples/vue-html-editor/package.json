@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@harbour-enterprises/superdoc": "^0.10.8",
+    "@harbour-enterprises/superdoc": "^0.10.44",
     "vue": "^3.5.13"
   },
   "devDependencies": {

@@ -2,16 +2,21 @@
 import '@harbour-enterprises/superdoc/style.css';
 import { onMounted, shallowRef } from 'vue';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
+import UploadFile from '../../shared/vue/UploadFile/UploadFile.vue';
+import sampleDocument from '../../shared/data/sample-document.docx?url';
 
 // This is our custom mark that we are creating for this example
 import { CustomMark } from './custom-mark.js';
 
 const superdoc = shallowRef(null);
-const init = () => {
+const init = (fileToLoad) => {
   superdoc.value = new SuperDoc({
     selector: '#editor', // Can also be a class ie: .main-editor
 
     pagination: true,
+
+    // Load the document if provided, otherwise load the sample document
+    document: fileToLoad ? { data: fileToLoad } : sampleDocument,
 
     // Initialize the toolbar
     toolbar: '#toolbar',
@@ -30,9 +35,6 @@ const myCustomOnReady = () => {
   superdoc.value?.activeEditor?.on('update', async ({ editor }) => {
     // Let's log the HTML representation of the editor on each update;
     console.log('Content updated: ', editor.getHTML());
-
-    // Let's also pretend we're exporting to DOCX so we can save it somewhere
-    exportToDocx(editor);
   });
 }
 
@@ -58,6 +60,14 @@ const exportDocx = () => {
   });
 };
 
+const handleFileUpdate = (file) => {
+  // Handle file update logic here
+  console.log('File updated:', file);
+  superdoc.value?.destroy();
+
+  init(file);
+};
+
 onMounted(() => init());
 </script>
 
@@ -71,39 +81,10 @@ onMounted(() => init());
     <div class="editor-and-button">
       <div id="editor" class="main-editor"></div>
       <div class="editor-buttons">
-        <button class="insert-mark" @click="insertCustomMark">Insert custom mark</button>
-        <button class="insert-mark" @click="exportDocx">Export</button>
+        <UploadFile :update-file="handleFileUpdate" />
+        <button class="custom-button" @click="insertCustomMark">Insert custom mark</button>
+        <button class="custom-button" @click="exportDocx">Export</button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.example-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.editor-and-button {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-}
-.editor-buttons {
-  display: flex;
-  flex-direction: column;
-}
-.editor-buttons button {
-  margin-bottom: 10px;
-}
-.insert-mark {
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-left: 10px;
-  outline: none;
-  border: none;
-  background-color: #AECEE6;
-}
-</style>
