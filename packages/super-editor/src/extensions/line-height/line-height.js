@@ -23,7 +23,8 @@ export const LineHeight = Extension.create({
             parseDOM: (el) => el.style.lineHeight,
             renderDOM: (attrs) => {
               if (!attrs.lineHeight) return {};
-              return { style: getLineHeightValueString(attrs.lineHeight, this.options.defaults.unit) };
+              
+              return { style: getLineHeightValueString(attrs.lineHeight, this.options.defaults.unit, attrs.spacing?.lineRule) };
             },
           },
         },

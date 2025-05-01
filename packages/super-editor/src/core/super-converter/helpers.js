@@ -142,14 +142,16 @@ const rgbToHex = (rgb) => {
     .join('');
 }
 
-const getLineHeightValueString = (lineHeight, defaultUnit) => {
+const getLineHeightValueString = (lineHeight, defaultUnit, lineRule = '', isObject = false) => {
   let [value, unit] = parseSizeUnit(lineHeight);
-  if (Number.isNaN(value)) return {};
+  if (Number.isNaN(value) || value === 0) return {};
+  if (lineRule === 'atLeast' && value < 1) return {};
+  
   unit = unit ? unit : defaultUnit;
 
   // MS Word has a slightly bigger gap with line spacing equal to Superdoc's
   value += unit ? 4 : 0.2;
-  return `line-height: ${value}${unit}`;
+  return isObject ? { ['line-height']: `${value}${unit}` } : `line-height: ${value}${unit}`;
 }
 
 const deobfuscateFont = (arrayBuffer, guidHex) => {

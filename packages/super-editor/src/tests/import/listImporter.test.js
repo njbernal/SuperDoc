@@ -1167,6 +1167,7 @@ describe('custom nested list tests', () => {
               type: 'paragraph',
               attrs: {
                 rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
                 textAlign: null
               },
               content: [
@@ -1197,6 +1198,7 @@ describe('custom nested list tests', () => {
                       type: 'paragraph',
                       attrs: {
                         rsidRDefault: '006B7646',
+                        styleId: 'ListParagraph',
                         textAlign: null
                       },
                       content: [
@@ -1408,6 +1410,7 @@ describe('custom nested list tests', () => {
               type: 'paragraph',
               attrs: {
                 rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
                 textAlign: null
               },
               content: [
@@ -1432,6 +1435,7 @@ describe('custom nested list tests', () => {
                       type: 'paragraph',
                       attrs: {
                         rsidRDefault: '009F090C',
+                        styleId: 'ListParagraph',
                         textAlign: null
                       },
                       content: [
@@ -1640,6 +1644,7 @@ describe('custom nested list tests', () => {
               type: 'paragraph',
               attrs: {
                 rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
                 textAlign: null
               },
               content: [
@@ -1664,6 +1669,7 @@ describe('custom nested list tests', () => {
                       type: 'paragraph',
                       attrs: {
                         rsidRDefault: '009F090C',
+                        styleId: 'ListParagraph',
                         textAlign: null
                       },
                       content: [
@@ -1757,7 +1763,8 @@ describe('custom nested list tests', () => {
                       type: 'paragraph',
                       attrs: {
                         rsidRDefault: '009F090C',
-                        textAlign: null
+                        textAlign: null,
+                        styleId: 'ListParagraph',
                       },
                       content: [
                         {

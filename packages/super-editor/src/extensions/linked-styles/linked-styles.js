@@ -29,7 +29,7 @@ export const LinkedStyles = Extension.create({
           const parentNode = findParentNode((node) => node.type.name === 'paragraph')(tr.selection) || {};
           pos = parentNode.pos;
           paragraphNode = parentNode.node;
-        };
+        }
 
         tr.setNodeMarkup(pos, undefined, {
           ...paragraphNode.attrs,
@@ -54,7 +54,7 @@ const createLinkedStylesPlugin = (editor) => {
         const styles = editor.converter?.linkedStyles || [];
         return {
           styles,
-          decorations: generateDecorations(editor.state?.doc, styles),
+          decorations: generateDecorations(editor.state, styles),
         };
       },
       apply(tr, prev, oldEditorState, newEditorState) {
@@ -62,7 +62,7 @@ const createLinkedStylesPlugin = (editor) => {
         let decorations = prev.decorations || DecorationSet.empty;
         if (tr.docChanged) {
           const styles = LinkedStylesPluginKey.getState(editor.state).styles;
-          decorations = generateDecorations(newEditorState.doc, styles);
+          decorations = generateDecorations(newEditorState, styles);
         }
 
         return { ...prev, decorations };
@@ -79,13 +79,15 @@ const createLinkedStylesPlugin = (editor) => {
 /**
  * Generate style decorations for linked styles
  * 
- * @param {Object} doc The current document object
+ * @param {Object} state Editor state
  * @param {Array[Object]} styles The linked styles
  * @returns {DecorationSet} The decorations
  */
-const generateDecorations = (doc, styles) => {
+const generateDecorations = (state, styles) => {
   const decorations = [];
   let lastStyleId = null;
+  const doc = state?.doc;
+  
   doc.descendants((node, pos) => {
     const { name } = node.type;
 
@@ -97,7 +99,10 @@ const generateDecorations = (doc, styles) => {
     const linkedStyle = getLinkedStyle(lastStyleId, styles);
     if (!linkedStyle) return;
 
-    const styleString = generateLinkedStyleString(linkedStyle, node);
+    const $pos = state.doc.resolve(pos);
+    const parent = $pos.parent;
+
+    const styleString = generateLinkedStyleString(linkedStyle, node, parent);
     if (!styleString) return;
 
     const decoration = Decoration.inline(pos, pos + node.nodeSize, { style: styleString });
@@ -112,9 +117,10 @@ const generateDecorations = (doc, styles) => {
  * 
  * @param {Object} linkedStyle The linked style object
  * @param {Object} node The current node
+ * @param {Object} parent The parent of current
  * @returns {String} The style string
  */
-export const generateLinkedStyleString = (linkedStyle, node, includeSpacing = true) => {
+export const generateLinkedStyleString = (linkedStyle, node, parent, includeSpacing = true) => {
   if (!linkedStyle?.definition?.styles) return '';
   const markValue = {};
 
@@ -138,16 +144,19 @@ export const generateLinkedStyleString = (linkedStyle, node, includeSpacing = tr
     
     // Check if this node has the expected mark. If yes, we are not overriding it
     const mark = flattenedMarks.find((n) => n.key === key);
+    const hasParentIndent = Object.keys(parent?.attrs.indent || {});
+    const hasParentSpacing = Object.keys(parent?.attrs.spacing || {});
 
     // If no mark already in the node, we override the style
     if (!mark) {
-      if (key === 'spacing' && includeSpacing) {
+      if (key === 'spacing' && includeSpacing && !hasParentSpacing) {
         const space = getSpacingStyle(value);
         Object.entries(space).forEach(([k, v]) => {
           markValue[k] = v;
         });
-      } else if (key === 'indent' && includeSpacing) {
+      } else if (key === 'indent' && includeSpacing && !hasParentIndent) {
         const { leftIndent, rightIndent, firstLine } = value;
+        
         if (leftIndent) markValue['margin-left'] = leftIndent + 'px';
         if (rightIndent) markValue['margin-right'] = rightIndent + 'px';
         if (firstLine) markValue['text-indent'] = firstLine + 'px';
@@ -158,7 +167,7 @@ export const generateLinkedStyleString = (linkedStyle, node, includeSpacing = tr
       }
     }
   });
-
+  
   return Object.entries(markValue).map(([key, value]) => `${key}: ${value}`).join(';');
 };
 
@@ -174,11 +183,11 @@ const getLinkedStyle = (styleId, styles = []) => {
 };
 
 export const getSpacingStyle = (spacing) => {
-  const { lineSpaceBefore, lineSpaceAfter, line } = spacing;
+  const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
   return {
     'margin-top': lineSpaceBefore + 'px',
     'margin-bottom': lineSpaceAfter + 'px',
-    ...getLineHeightValueString(line, '')
+    ...getLineHeightValueString(line, '', lineRule, true)
   };
 };
 

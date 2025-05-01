@@ -368,14 +368,31 @@ export class SuperToolbar extends EventEmitter {
         item.deactivate();
       }
       
+      // Activate toolbar items based on linked styles
+      const styleIdMark = marks.find((mark) => mark.name === 'styleId');
+      if (styleIdMark?.attrs.styleId) {
+        const markToStyleMap = {
+          fontSize: 'font-size',
+          fontFamily: 'font-family',
+          bold: 'bold',
+          textAlign: 'textAlign',
+        };
+        const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
+        if (markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
+          const value = {
+            [item.name.value]: linkedStyles?.definition.styles[markToStyleMap[item.name.value]]
+          };
+          item.activate(value);
+        }
+      }
+      
       const spacingAttr = marks.find((mark) => mark.name === 'spacing');
       if (item.name.value === 'lineHeight' && (activeMark?.attrs?.lineHeight || spacingAttr)) {
         item.selectedValue.value = activeMark?.attrs?.lineHeight || spacingAttr.attrs?.spacing?.line || '';
       }
 
       if (item.name.value === 'tableActions') {
-        if (inTable) item.disabled.value = false;
-        else item.disabled.value = true;
+        item.disabled.value = !inTable;
       }
     });
   }
