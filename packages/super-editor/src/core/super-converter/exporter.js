@@ -1932,6 +1932,12 @@ export class DocxExporter {
         for (let child of elements) {
           const newElements = this.#generateXml(child);
           if (!newElements) continue;
+
+          if (typeof newElements === 'string') {
+            tags.push(newElements);
+            continue;
+          }
+
           const removeUndefined = newElements.filter((el) => {
             return el !== '<undefined>' && el !== '</undefined>'
           });
