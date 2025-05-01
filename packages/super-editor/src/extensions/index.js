@@ -112,7 +112,7 @@ const getStarterExtensions = () => {
     Document,
     FontFamily,
     FontSize,
-    // History,
+    History,
     Heading,
     Italic,
     ListItem,
@@ -163,7 +163,7 @@ const getStarterExtensions = () => {
 };
 
 export {
-  // History,
+  History,
   Heading,
   Document,
   Text,
