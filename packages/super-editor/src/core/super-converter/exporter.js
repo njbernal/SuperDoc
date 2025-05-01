@@ -1922,6 +1922,10 @@ export class DocxExporter {
     else tag += '>';
     let tags = [tag];
 
+    if (!name && node.type === 'text') {
+      return node.text;
+    }
+
     if (name === 'w:instrText') {
       tags.push(elements[0].text);
     } else if (name === 'w:t' || name === 'w:delText') {
