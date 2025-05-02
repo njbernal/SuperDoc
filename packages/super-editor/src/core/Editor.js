@@ -592,7 +592,7 @@ export class Editor extends EventEmitter {
         // If we have a new doc, and have html data, we initialize from html
         if (this.options.html) doc = this.#createDocFromHTML(this.options.html)
 
-        if (fragment && isHeadless) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
+        if (fragment) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
       }
 
       // If we are in HTML mode, we initialize from either content or html (or blank)
