@@ -44,7 +44,7 @@ export default function SuperDocEditor() {
 
   const handleExport = useCallback(async () => {
     console.debug('Exporting document', superdoc.current);
-    superdoc.current.export({});
+    superdoc.current.export();
   });
 
   return (
