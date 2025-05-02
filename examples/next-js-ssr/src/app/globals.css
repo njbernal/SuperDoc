@@ -69,6 +69,11 @@ h1 {
   outline: none;
   border: none;
   background-color: #AECEE6;
+  transition: all 250ms ease;
+  cursor: pointer;
+}
+.custom-button:hover {
+  background-color: #A0C1D6;
 }
 .hidden {
   display: none;
