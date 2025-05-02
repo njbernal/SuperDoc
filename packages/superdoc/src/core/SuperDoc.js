@@ -549,7 +549,7 @@ export class SuperDoc extends EventEmitter {
     exportedName,
     additionalFiles = [],
     additionalFileNames = []
-  }) {
+  } = {}) {
     // Get the docx files first
     const baseFileName = exportedName ? cleanName(exportedName) : cleanName(this.config.title);
     const docxFiles = await this.exportEditorsToDOCX({ commentsType });
