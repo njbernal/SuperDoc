@@ -246,6 +246,13 @@ export class Editor extends EventEmitter {
   }
 
   /**
+   * Focus the editor.
+   */
+  focus() {
+    this.view?.focus();
+  }
+
+  /**
    * Get the editor state.
    */
   get state() {

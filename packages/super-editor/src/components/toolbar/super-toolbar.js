@@ -434,6 +434,7 @@ export class SuperToolbar extends EventEmitter {
    * @param {Object} argument is the argument passed to the command
    */
   emitCommand({ item, argument }) {
+    this.activeEditor?.focus();
     const { command } = item;
     
     if (!command) {
