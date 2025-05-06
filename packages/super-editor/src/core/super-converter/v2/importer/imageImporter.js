@@ -57,7 +57,7 @@ export function handleImageImport(node, currentFileName, params) {
   const shapeURI = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
   if (!!uri && uri === shapeURI) {
     return handleShapeDrawing(params, node, graphicData);
-  };
+  }
 
   const picture = graphicData.elements.find((el) => el.name === 'pic:pic');
   if (!picture || !picture.elements) return null;
@@ -68,11 +68,26 @@ export function handleImageImport(node, currentFileName, params) {
   const positionHTag = node.elements.find((el) => el.name === 'wp:positionH');
   const positionH = positionHTag?.elements.find((el) => el.name === 'wp:posOffset');
   const positionHValue = emuToPixels(positionH?.elements[0]?.text);
+  const hRelativeFrom = positionHTag?.attributes.relativeFrom;
+  const alignH = positionHTag?.elements.find((el) => el.name === 'wp:align')?.elements[0]?.text;
 
   const positionVTag = node.elements.find((el) => el.name === 'wp:positionV');
   const positionV = positionVTag?.elements.find((el) => el.name === 'wp:posOffset');
   const positionVValue = emuToPixels(positionV?.elements[0]?.text);
+  const vRelativeFrom = positionVTag?.attributes.relativeFrom;
+  const alignV = positionVTag?.elements.find((el) => el.name === 'wp:align')?.elements[0]?.text;
+  
+  let anchorData = null;
+  if (hRelativeFrom || alignH || vRelativeFrom || alignV) {
+    anchorData = {
+      hRelativeFrom,
+      vRelativeFrom,
+      alignH,
+      alignV,
+    };
+  }
 
+  
   const marginOffset = {
     left: positionHValue,
     top: positionVValue,
@@ -101,6 +116,7 @@ export function handleImageImport(node, currentFileName, params) {
       padding,
       marginOffset,
       size,
+      anchorData,
       originalPadding: {
         distT: attributes['distT'],
         distB: attributes['distB'],

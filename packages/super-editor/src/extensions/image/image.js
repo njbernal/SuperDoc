@@ -1,5 +1,6 @@
 import { Node, Attribute } from '@core/index.js';
 import { ImagePlaceholderPlugin } from './imageHelpers/imagePlaceholderPlugin.js';
+import { ImagePositionPlugin } from './imageHelpers/imagePositionPlugin.js';
 
 export const Image = Node.create({
   name: 'image',
@@ -54,6 +55,11 @@ export const Image = Node.create({
         rendered: false,
       },
 
+      anchorData: {
+        default: null,
+        rendered: false,
+      },
+
       size: {
         default: {},
         renderDOM: ({ size }) => {
@@ -61,6 +67,19 @@ export const Image = Node.create({
           let { width, height } = size ?? {};
           if (width) style += `width: ${width}px;`;
           if (height) style += `height: auto;`;
+          return { style };
+        },
+      },
+      
+      padding: {
+        default: {},
+        renderDOM: ({ padding, marginOffset }) => {
+          let { left = 0, top = 0, bottom = 0, right = 0 } = padding ?? {};
+          let style = '';
+          if (left && !marginOffset?.left) style += `margin-left: ${left}px;`;
+          if (top && !marginOffset?.top) style += `margin-top: ${top}px;`;
+          if (bottom) style += `margin-bottom: ${bottom}px;`;
+          if (right) style += `margin-right: ${right}px;`;
           return { style };
         },
       },
@@ -113,6 +132,6 @@ export const Image = Node.create({
   },
 
   addPmPlugins() {
-    return [ImagePlaceholderPlugin()];
+    return [ImagePlaceholderPlugin(), ImagePositionPlugin({editor: this.editor })];
   },
 });
