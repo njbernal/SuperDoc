@@ -610,13 +610,7 @@ export function getNodeNumberingDefinition(item, level, docx) {
   let listType;
   if (unorderedListTypes.includes(listTypeDef?.toLowerCase())) listType = 'bulletList';
   else if (orderedListTypes.includes(listTypeDef)) listType = 'orderedList';
-  else {
-    throw new ErrorWithDetails('ListParsingError', `Unknown list type found during import: ${listTypeDef}`, { 
-      listOrderingType: listTypeDef, ilvl, numId, listrPrs, listpPrs, start, lvlText, lvlJc 
-    });
-    // throw new Error(`Unknown list type found during import: ${listTypeDef}`);
-  }
-
+  else return {};
   return { listType, listOrderingType: listTypeDef, ilvl, numId, listrPrs, listpPrs, start, lvlText, lvlJc };
 }
 
