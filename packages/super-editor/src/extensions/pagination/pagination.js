@@ -179,9 +179,11 @@ const getHeaderFooterId = (currentPageNumber, sectionType, editor) => {
   if (sectionIds?.titlePg && first && currentPageNumber === 1) return first;
 
   let sectionId = sectionIds.default;
+  if (currentPageNumber === 1) sectionId = first || defaultHeader;
+
   if (alternateHeaders) {
     if (currentPageNumber === 1) sectionId = first;
-    else if (currentPageNumber % 2 === 0) sectionId = even || defaultHeader;
+    if (currentPageNumber % 2 === 0) sectionId = even || defaultHeader;
     else sectionId = odd || defaultHeader;
   }
 
@@ -319,7 +321,19 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
     if (!coords) return;
     
     let shouldAddPageBreak = coords.bottom > pageHeightThreshold;
-    const isHardBreakNode = currentNode.type.name === 'hardBreak';
+    let isHardBreakNode = currentNode.type.name === 'hardBreak';
+
+    const paragraphSectPrBreak = currentNode.attrs?.pageBreakSource;
+    if (paragraphSectPrBreak === 'sectPr') {
+      const nextNode = doc.nodeAt(currentPos + currentNode.nodeSize);
+      const nextNodeSectPr = nextNode?.attrs?.pageBreakSource === 'sectPr';
+      if (!nextNodeSectPr) isHardBreakNode = true;
+
+      const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
+      const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
+      console.debug('headerId', headerId);
+      console.debug('footerId', footerId);
+    };
 
     if (currentNode.type.name === 'paragraph' && currentNode.attrs.styleId) {
       const linkedStyles = LinkedStylesPluginKey.getState(editor.state)?.styles;
