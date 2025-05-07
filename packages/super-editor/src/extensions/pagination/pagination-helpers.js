@@ -14,8 +14,8 @@ export const initPaginationData = async (editor) => {
   if (!editor.converter) return;
 
   const sectionData = { headers: {}, footers: {} };
-  const headerIds = editor.converter.headerIds;
-  const footerIds = editor.converter.footerIds;
+  const headerIds = editor.converter.headerIds.ids;
+  const footerIds = editor.converter.footerIds.ids;
 
   for (let key in headerIds) {
     const sectionId = headerIds[key];

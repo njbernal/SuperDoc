@@ -36,7 +36,7 @@ export const TabNode = Node.create({
       tabSize: {
         renderDOM: ({ tabSize }) => {
           if (!tabSize) return {};
-          const style = `width: ${tabSize}px;`;
+          const style = `width: ${tabSize}px; min-width: ${tabSize}px;`;
           return { style };
         },
       },

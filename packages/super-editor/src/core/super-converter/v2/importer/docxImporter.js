@@ -451,6 +451,8 @@ const importHeadersFooters = (docx, converter, editor) => {
       filename: currentFileName,
     });
 
+    if (!converter.headerIds.ids) converter.headerIds.ids = [];
+    converter.headerIds.ids.push(rId);
     converter.headers[rId] = { type: 'doc', content: [...schema] };
     converter.headerIds[sectionType] = rId;
   });
@@ -470,6 +472,8 @@ const importHeadersFooters = (docx, converter, editor) => {
       filename: currentFileName,
     });
 
+    if (!converter.footerIds.ids) converter.footerIds.ids = [];
+    converter.footerIds.ids.push(rId);
     converter.footers[rId] = { type: 'doc', content: [...schema] };
     converter.footerIds[sectionType] = rId;
   });

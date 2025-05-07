@@ -165,9 +165,25 @@ export const Pagination = Extension.create({
  * @param {Editor} editor 
  * @returns {String|null} The header or footer ID
  */
-const getHeaderFooterId = (currentPageNumber, sectionType, editor) => {
+const getHeaderFooterId = (currentPageNumber, sectionType, editor, node = null) => {
   const { alternateHeaders } = editor.converter.pageStyles;
   const sectionIds = editor.converter[sectionType];
+
+  if (node && node.attrs?.paragraphProperties?.sectPr) {
+    const sectPr = node.attrs?.paragraphProperties?.sectPr;
+
+    if (currentPageNumber === 1) {
+      if (sectionType === 'headerIds') {
+        const sectionData = sectPr?.elements?.find((el) => el.name === 'w:headerReference' && el.attributes?.['w:type'] === 'first');
+        const newId = sectionData?.attributes?.['r:id'];
+        return newId;
+      } else if (sectionType === 'footerIds') {
+        const sectionData = sectPr?.elements?.find((el) => el.name === 'w:footerReference' && el.attributes?.['w:type'] === 'first');
+        const newId = sectionData?.attributes?.['r:id'];
+        return newId;
+      }
+    }
+  }
 
   if (sectionIds?.titlePg && !sectionIds.first && currentPageNumber === 1) return null;
 
@@ -329,10 +345,13 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       const nextNodeSectPr = nextNode?.attrs?.pageBreakSource === 'sectPr';
       if (!nextNodeSectPr) isHardBreakNode = true;
 
-      const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
-      const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
-      console.debug('headerId', headerId);
-      console.debug('footerId', footerId);
+      if (currentPageNumber === 1) {
+        const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor, currentNode);
+        decorations.pop(); // Remove the first header and replace with sectPr header
+        const newFirstHeader = createHeader(pageMargins, pageSize, sectionData, headerId);
+        const pageBreak = createPageBreak({ editor, header: newFirstHeader, isFirstHeader: true });
+        decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
+      };
     };
 
     if (currentNode.type.name === 'paragraph' && currentNode.attrs.styleId) {
@@ -373,9 +392,10 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       };
 
       // Update the header and footer based on the current page number
+      const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor, currentNode);
+
       currentPageNumber++;
       const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
-      const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
       header = createHeader(pageMargins, pageSize, sectionData, headerId);
       footer = createFooter(pageMargins, pageSize, sectionData, footerId, currentPageNumber - 1);
 
