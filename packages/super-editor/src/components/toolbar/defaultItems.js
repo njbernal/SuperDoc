@@ -944,7 +944,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     // search,
   ];
 
-  if (!superToolbar.config.aiApiKey) {
+  if (!superToolbar.config?.superdoc?.config?.modules?.ai) {
     toolbarItems = toolbarItems.filter((item) => item.name.value !== 'ai');
   }
 

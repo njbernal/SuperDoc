@@ -550,7 +550,7 @@ watch(getFloatingComments, () => {
         </div>
         <!-- AI tool button -->
         <div
-          v-if="proxy.$superdoc.toolbar?.config?.aiApiKey"
+          v-if="proxy.$superdoc.config.modules.ai"
           class="tools-item"
           data-id="is-tool"
           @click.stop.prevent="handleToolClick('ai')"
