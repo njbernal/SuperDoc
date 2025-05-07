@@ -663,4 +663,21 @@ export class SuperDoc extends EventEmitter {
     delete this.app.config.globalProperties.$config;
     delete this.app.config.globalProperties.$superdoc;
   }
+
+  /**
+   * Focus the active editor or the first editor in the superdoc
+   * @returns {void}
+   */
+  focus() {
+    if (this.activeEditor) {
+      this.activeEditor.focus();
+    } else {
+      this.superdocStore.documents.find((doc) => {
+        const editor = doc.getEditor();
+        if (editor) {
+          editor.focus();
+        }
+      });
+    }
+  }
 }
