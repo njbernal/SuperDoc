@@ -65,13 +65,15 @@ export const handleParagraphNode = (params) => {
     
     schemaNode.attrs.marksAttrs = marks;
   }
-  
+
+  let styleId;
   if (styleTag) {
-    schemaNode.attrs['styleId'] = styleTag.attributes['w:val'];
+    styleId = styleTag.attributes['w:val'];
+    schemaNode.attrs['styleId'] = styleId;
   }
-  
+
   if (docx) {
-    const indent = getParagraphIndent(node, docx, schemaNode.attrs['styleId']);
+    const indent = getParagraphIndent(node, docx, styleId);
 
     if (!schemaNode.attrs.indent) {
       schemaNode.attrs.indent = {};
@@ -86,10 +88,10 @@ export const handleParagraphNode = (params) => {
     if (indent.firstLine || indent.firstLine === 0) {
       schemaNode.attrs.indent.firstLine = indent.firstLine;
     }
-    if (indent.hanging) {
+    if (indent.hanging || indent.hanging === 0) {
       schemaNode.attrs.indent.hanging = indent.hanging;
     }
-    if (indent.textIndent) {
+    if (indent.textIndent || indent.textIndent === 0) {
       schemaNode.attrs.textIndent = `${indent.textIndent}in`;
     }
   }
@@ -111,10 +113,10 @@ export const handleParagraphNode = (params) => {
 
   if (docx) {
     const defaultStyleId = node.attributes?.['w:rsidRDefault'];
-    schemaNode.attrs['spacing'] = getParagraphSpacing(node, docx, schemaNode.attrs['styleId'], schemaNode.attrs.marksAttrs);
+    schemaNode.attrs['spacing'] = getParagraphSpacing(node, docx, styleId, schemaNode.attrs.marksAttrs);
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
   }
-  
+
   if (framePr && framePr.attributes['w:dropCap']) {
     schemaNode.attrs.dropcap = {
       type: framePr.attributes['w:dropCap'],
@@ -134,6 +136,14 @@ export const handleParagraphNode = (params) => {
       content: mergeTextNodes(schemaNode.content),
     };
   }
+
+  // Pass through this paragraph's sectPr, if any
+  const sectPr = pPr?.elements?.find((el) => el.name === 'w:sectPr');
+  if (sectPr) {
+    if (!schemaNode.attrs.paragraphProperties) schemaNode.attrs.paragraphProperties = {};
+    schemaNode.attrs.paragraphProperties.sectPr = sectPr;
+    schemaNode.attrs.pageBreakSource = 'sectPr';
+  };
 
   return { nodes: schemaNode ? [schemaNode] : [], consumed: 1 };
 };
@@ -252,16 +262,20 @@ const getDefaultParagraphStyle = (docx, styleId = '') => {
   // Styles based on styleId
   let pPrStyleIdSpacingTag = {};
   let pPrStyleIdIndentTag = {};
+  let pPrStyleJc = {};
   if (styleId) {
     const stylesById = styles.elements[0].elements?.find((el) => el.name === 'w:style' && el.attributes['w:styleId'] === styleId);
     const pPrById = stylesById?.elements?.find((el) => el.name === 'w:pPr');
+
     pPrStyleIdSpacingTag = pPrById?.elements?.find((el) => el.name === 'w:spacing') || {};
     pPrStyleIdIndentTag = pPrById?.elements?.find((el) => el.name === 'w:ind') || {};
+    pPrStyleJc = pPrById?.elements?.find((el) => el.name === 'w:jc') || {};
   }
   
   const { attributes: pPrDefaultSpacingAttr } = pPrDefaultSpacingTag;
   const { attributes: pPrNormalSpacingAttr } = pPrNormalSpacingTag;
   const { attributes: pPrByIdSpacingAttr } = pPrStyleIdSpacingTag;
+  const { attributes: pPrByIdJcAttr } = pPrStyleJc;
 
   const { attributes: pPrDefaultIndentAttr } = pPrDefaultIndentTag;
   const { attributes: pPrNormalIndentAttr } = pPrNormalIndentTag;
@@ -270,6 +284,7 @@ const getDefaultParagraphStyle = (docx, styleId = '') => {
   return {
     spacing: pPrByIdSpacingAttr || pPrDefaultSpacingAttr || pPrNormalSpacingAttr,
     indent: pPrByIdIndentAttr || pPrDefaultIndentAttr || pPrNormalIndentAttr,
+    justify: pPrByIdJcAttr,
   };
 };
 

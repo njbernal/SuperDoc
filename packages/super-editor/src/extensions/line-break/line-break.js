@@ -35,6 +35,19 @@ export const HardBreak = Node.create({
     }
   },
 
+  addAttributes() {
+    return {
+      pageBreakSource: {
+        rendered: false,
+        default: null,
+      },
+      pageBreakType: {
+        default: null,
+        rendered: false,
+      }
+    }
+  },
+
   parseDOM() {
     return [{ tag: 'span' }];
   },

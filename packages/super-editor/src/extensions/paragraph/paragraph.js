@@ -88,6 +88,21 @@ export const Paragraph = Node.create({
       keepNext: { rendered: false },
       paragraphProperties: { rendered: false },
       dropcap: { rendered: false },
+      pageBreakSource: { rendered: false },
+      justify: {
+        renderDOM: ({ justify }) => {
+          const { val: jc } = justify || {};
+          if (!jc) return {};
+
+          let style = '';
+          if (jc === 'left') style += 'text-align: left;';
+          else if (jc === 'right') style += 'text-align: right;';
+          else if (jc === 'center') style += 'text-align: center;';
+          else if (jc === 'both') style += 'text-align: justify;';
+
+          return { style };
+        },
+      }
     };
   },
 
