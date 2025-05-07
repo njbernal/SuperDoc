@@ -264,7 +264,7 @@ function generateParagraphProperties(node) {
       attributes: { 'w:val': keepNext },
     });
   }
-  
+
   if (dropcap) {
     pPrElements.push({
       name: 'w:framePr',
@@ -277,7 +277,12 @@ function generateParagraphProperties(node) {
       },
     });
   }
-  
+
+  const sectPr = node.attrs?.paragraphProperties?.sectPr;
+  if (sectPr) {
+    pPrElements.push(sectPr);
+  }
+
   if (!pPrElements.length) return null;
 
   return {
@@ -1807,7 +1812,11 @@ function translateFieldAnnotation(params) {
   };
 };
 
-export function translateHardBreak() {
+export function translateHardBreak(params) {
+  const { node = {} } = params;
+  const { attrs = {} } = node;
+  const { pageBreakSource } = attrs;
+  if (pageBreakSource === 'sectPr') return null;
   return {
     name: 'w:r',
     elements: [{
