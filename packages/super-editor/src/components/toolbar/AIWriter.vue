@@ -22,6 +22,10 @@ const props = defineProps({
   apiKey: {
     type: String,
   },
+  endpoint: {
+    type: String,
+    required: false,
+  },
 /**
    * AIWriter component is used both in the superToolbar and SuperDoc directly
    * When we are rending in the toolbar menu, our events are emitted through toolbar to Superdoc
@@ -216,6 +220,7 @@ const handleSubmit = async () => {
       config: {
         // Pass the aiApiKey to the AI helper functions
         apiKey: props.apiKey,
+        endpoint: props.endpoint,
       },
     };
 

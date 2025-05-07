@@ -25,6 +25,7 @@ export class SuperToolbar extends EventEmitter {
     groups: null,
     editor: null,
     aiApiKey: null,
+    aiEndpoint: null,
   };
 
   constructor(config) {
