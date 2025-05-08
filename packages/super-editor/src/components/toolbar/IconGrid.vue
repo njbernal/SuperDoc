@@ -1,5 +1,6 @@
 <script setup>
 import IconGridRow from './IconGridRow.vue';
+import DropIcon from '@harbour-enterprises/common/icons/droplet-slash.svg?raw';
 
 const emit = defineEmits(['select', 'clickoutside']);
 const props = defineProps({
@@ -15,6 +16,10 @@ const props = defineProps({
     type: Object,
     required: false,
   },
+  hasNoneIcon: {
+    type: Boolean,
+    required: false,
+  }
 });
 
 const handleSelect = (option) => {
@@ -24,31 +29,58 @@ const handleSelect = (option) => {
 </script>
 
 <template>
-  <div class="option-grid-ctn">
-    <IconGridRow 
-      :icons="icons"
-      :active-color="activeColor"
-      @select="handleSelect"
-    />
-    
-    <template v-if="customIcons.flat().length">
-      <span class="option-grid-ctn__subtitle">Custom colors</span>
-      
+  <div class="options-grid-wrap">
+    <div 
+      v-if="hasNoneIcon"
+      class="none-option"
+      @click="handleSelect('none')"
+    >
+      <span 
+        v-html="DropIcon"
+        class="none-icon"
+      ></span>
+      None
+    </div>
+    <div class="option-grid-ctn">
       <IconGridRow
-        :icons="customIcons"
+        :icons="icons"
         :active-color="activeColor"
         @select="handleSelect"
       />
-    </template>
+
+      <template v-if="customIcons.flat().length">
+        <span class="option-grid-ctn__subtitle">Custom colors</span>
+
+        <IconGridRow
+          :icons="customIcons"
+          :active-color="activeColor"
+          @select="handleSelect"
+        />
+      </template>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.options-grid-wrap {
+  padding: 5px;
+  border-radius: 5px;
+}
+.none-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  &:hover {
+    opacity: 0.65;
+  }
+}
+.none-icon {
+  width: 16px;
+}
 .option-grid-ctn {
   display: flex;
   flex-direction: column;
-  padding: 5px;
-  border-radius: 5px;
   background-color: #fff;
   z-index: 3;
   box-sizing: border-box;
