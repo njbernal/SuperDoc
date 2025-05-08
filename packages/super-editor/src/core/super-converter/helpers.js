@@ -84,10 +84,28 @@ function ptToTwips(pt) {
   return pt * 20;
 }
 
-const getArrayBufferFromUrl = async (url) => {
-  const res = await fetch(url);
-  const buffer = await res.arrayBuffer();
-  return buffer;
+const getArrayBufferFromUrl = async (dataUrlOrBase64) => {
+  const base64 = dataUrlOrBase64.includes(',') 
+    ? dataUrlOrBase64.split(',', 2)[1] 
+    : dataUrlOrBase64;
+
+  // browser and newer node: atob exists
+  if (typeof globalThis.atob === 'function') {
+    const binary = globalThis.atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  // Node.js: Buffer exists
+  const buf = Buffer.from(base64, 'base64');
+  return buf.buffer.slice(
+    buf.byteOffset, 
+    buf.byteOffset + buf.byteLength
+  );
 };
 
 const getContentTypesFromXml = (contentTypesXml) => {
