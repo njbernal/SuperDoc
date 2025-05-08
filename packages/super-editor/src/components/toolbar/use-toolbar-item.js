@@ -19,6 +19,7 @@ export const useToolbarItem = (options) => {
   const type = options.type;
   const name = ref(options.name);
   const command = options.command;
+  const noArgumentCommand = options.noArgumentCommand;
   const icon = ref(options.icon);
   const group = ref(options.group || 'center');
   const allowWithoutEditor = ref(options.allowWithoutEditor);
@@ -112,6 +113,7 @@ export const useToolbarItem = (options) => {
     name,
     type,
     command,
+    noArgumentCommand,
     icon,
     tooltip,
     group,

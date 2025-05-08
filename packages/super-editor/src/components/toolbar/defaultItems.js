@@ -218,12 +218,13 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     active: false,
     tooltip: 'Highlight color',
     command: 'setHighlight',
+    noArgumentCommand: 'unsetHighlight',
     suppressActiveHighlight: true,
     options: [
       {
         key: 'color',
         type: 'render',
-        render: () => renderColorOptions(superToolbar, highlight),
+        render: () => renderColorOptions(superToolbar, highlight, [], true),
       },
     ],
     onActivate: ({ color }) => {

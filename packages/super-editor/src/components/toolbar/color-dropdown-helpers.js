@@ -20,7 +20,7 @@ export const makeColorOption = (color, label = null) => {
   };
 };
 
-export const renderColorOptions = (superToolbar, button, customIcons = []) => {
+export const renderColorOptions = (superToolbar, button, customIcons = [], hasNoneIcon = false) => {
   const handleSelect = (e) => {
     button.iconColor.value = e;
     superToolbar.emitCommand({ item: button, argument: e });
@@ -32,6 +32,7 @@ export const renderColorOptions = (superToolbar, button, customIcons = []) => {
       icons,
       customIcons,
       activeColor: button.iconColor,
+      hasNoneIcon,
       onSelect: handleSelect,
     }),
   ]);

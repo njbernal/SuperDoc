@@ -322,7 +322,7 @@ export class SuperToolbar extends EventEmitter {
     const option = {
       key: 'color',
       type: 'render',
-      render: () => renderColorOptions(this, highlightItem, result),
+      render: () => renderColorOptions(this, highlightItem, result, true),
     }
 
     highlightItem.nestedOptions.value = [option];
@@ -459,8 +459,16 @@ export class SuperToolbar extends EventEmitter {
 
   #runCommandWithArgumentOnly({ item, argument }, callback) {
     if (!argument || !this.activeEditor) return;
-
+    
     let command = item.command;
+    const noArgumentCommand = item.noArgumentCommand;
+    
+    if (argument === 'none' && noArgumentCommand in this.activeEditor?.commands) {
+      this.activeEditor.commands[noArgumentCommand]();
+      this.updateToolbarState();
+      return;
+    }
+    
     if (command in this.activeEditor?.commands) {
       this.activeEditor.commands[command](argument);
       if (typeof callback === 'function') callback(argument);
