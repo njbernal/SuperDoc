@@ -78,7 +78,7 @@ export const Paragraph = Node.create({
           return null;
         }
       },
-      styleId: { rendered: false },
+      styleId: { },
       attributes: {
         rendered: false,
       },

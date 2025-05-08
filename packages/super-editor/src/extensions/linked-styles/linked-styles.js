@@ -144,8 +144,8 @@ export const generateLinkedStyleString = (linkedStyle, node, parent, includeSpac
     
     // Check if this node has the expected mark. If yes, we are not overriding it
     const mark = flattenedMarks.find((n) => n.key === key);
-    const hasParentIndent = Object.keys(parent?.attrs.indent || {});
-    const hasParentSpacing = Object.keys(parent?.attrs.spacing || {});
+    const hasParentIndent = Object.keys(parent?.attrs?.indent || {});
+    const hasParentSpacing = Object.keys(parent?.attrs?.spacing || {});
 
     // If no mark already in the node, we override the style
     if (!mark) {
