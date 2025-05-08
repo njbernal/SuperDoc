@@ -1158,6 +1158,7 @@ export class Editor extends EventEmitter {
   };
 
   async replaceFile(newFile) {
+    this.setOptions({ annotations: true })
     const [docx, media, mediaFiles, fonts] = await Editor.loadXmlData(newFile);
     this.setOptions({
       fileSource: newFile,
@@ -1173,9 +1174,13 @@ export class Editor extends EventEmitter {
     this.#createConverter();
     this.#initMedia();
     this.initDefaultStyles();
-    
-    this.initializeCollaborationData(true);
-    
+
+    if (this.options.ydoc && this.options.collaborationProvider) {
+      this.initializeCollaborationData(true);
+    } else {
+      this.#insertNewFileData();
+    };
+
     if (!this.options.ydoc) {
       this.#initPagination();
       this.#initComments();
