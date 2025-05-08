@@ -26,7 +26,11 @@ export const handleDrawingNode = (params) => {
 
   // Some images are identified by wp:anchor
   const isAnchor = elements.find((el) => el.name === 'wp:anchor');
-  if (isAnchor) result = handleImageImport(elements[0], currentFileName, params);
+  if (isAnchor) {
+    
+    result = handleImageImport(elements[0], currentFileName, params);
+    result.attrs.isAnchor = isAnchor;
+  }
 
   // Others, wp:inline
   const inlineImage = elements.find((el) => el.name === 'wp:inline');
@@ -77,6 +81,12 @@ export function handleImageImport(node, currentFileName, params) {
   const vRelativeFrom = positionVTag?.attributes.relativeFrom;
   const alignV = positionVTag?.elements.find((el) => el.name === 'wp:align')?.elements[0]?.text;
   
+  const simplePos = node.elements.find((el) => el.name === 'wp:simplePos');
+  const wrapSquare = node.elements.find((el) => el.name === 'wp:wrapSquare');
+  const wrapTopAndBottom = node.elements.find((el) => el.name === 'wp:wrapTopAndBottom');
+  
+  const docPr = node.elements.find((el) => el.name === 'wp:docPr');
+  
   let anchorData = null;
   if (hRelativeFrom || alignH || vRelativeFrom || alignV) {
     anchorData = {
@@ -86,7 +96,6 @@ export function handleImageImport(node, currentFileName, params) {
       alignV,
     };
   }
-
   
   const marginOffset = {
     left: positionHValue,
@@ -111,18 +120,31 @@ export function handleImageImport(node, currentFileName, params) {
     type: 'image',
     attrs: {
       src: path,
-      alt: 'Image',
+      alt: docPr?.attributes.name || 'Image',
+      id: docPr?.attributes.id || '',
+      title: docPr?.attributes.descr || 'Image',
       inline: true,
       padding,
       marginOffset,
       size,
       anchorData,
+      ...(simplePos && {
+        simplePos: {
+          x: simplePos.attributes.x,
+          y: simplePos.attributes.y,
+        }
+      }),
+      ...(wrapSquare && {
+        wrapText: wrapSquare.attributes.wrapText
+      }),
+      wrapTopAndBottom: !!wrapTopAndBottom,
       originalPadding: {
         distT: attributes['distT'],
         distB: attributes['distB'],
         distL: attributes['distL'],
         distR: attributes['distR'],
       },
+      originalAttributes: node.attributes,
       rId: relAttributes['Id'],
     },
   };

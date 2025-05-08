@@ -40,6 +40,8 @@ export const Image = Node.create({
       alt: {
         default: null,
       },
+      
+      id: { rendered: false },
 
       title: {
         default: null,
@@ -54,11 +56,17 @@ export const Image = Node.create({
         default: null,
         rendered: false,
       },
+      originalAttributes: { rendered: false },
+      wrapTopAndBottom: { rendered: false },
 
       anchorData: {
         default: null,
         rendered: false,
       },
+      
+      isAnchor: { rendered: false },
+      simplePos: { rendered: false },
+      wrapText: { rendered: false },
 
       size: {
         default: {},

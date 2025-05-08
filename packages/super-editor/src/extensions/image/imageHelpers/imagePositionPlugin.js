@@ -34,7 +34,7 @@ export const ImagePositionPlugin = ({ editor }) => {
             );
             view.dispatch(updateTransaction);
           }
-          if (pagination.isReadyToInit) {
+          if (pagination?.isReadyToInit) {
             shouldUpdate = true;
           }
         },
