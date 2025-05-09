@@ -49,7 +49,6 @@ async function baseInsightsFetch(payload, options = {}) {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
-      credentials: 'include',
     });
 
     if (!response.ok) {
