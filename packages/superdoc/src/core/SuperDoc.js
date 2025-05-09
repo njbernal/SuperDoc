@@ -221,6 +221,7 @@ export class SuperDoc extends EventEmitter {
     const doc = this.config.document;
     const hasDocumentConfig = !!doc && typeof doc === 'object' && Object.keys(this.config.document)?.length;
     const hasDocumentUrl = !!doc && typeof doc === 'string' && doc.length > 0;
+    const hasDocumentFile = !!doc && doc instanceof File;
     const hasListOfDocuments = this.config.documents && this.config.documents?.length;
     if (hasDocumentConfig && hasListOfDocuments) {
       console.warn('🦋 [superdoc] You can only provide one of document or documents');
@@ -234,6 +235,15 @@ export class SuperDoc extends EventEmitter {
           type: DOCX,
           url: this.config.document,
           name: 'document.docx',
+          isNewFile: true,
+        },
+      ];
+    } else if (hasDocumentFile) {
+      this.config.documents = [
+        {
+          type: this.config.document.type,
+          data: this.config.document,
+          name: this.config.document.name,
           isNewFile: true,
         },
       ];
