@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
-import { DOMParser } from 'prosemirror-model';
 import { writeStreaming, rewriteStreaming } from './ai-helpers';
 import edit from '@harbour-enterprises/common/icons/edit-regular.svg?raw';
 import paperPlane from '@harbour-enterprises/common/icons/paper-plane-regular.svg?raw';
@@ -95,13 +94,6 @@ onMounted(() => {
   saveSelection();
   focusTextarea();
   addEventListeners();
-
-  // props.editor.commands.insertContent({
-  //   type: 'aiLoaderNode',
-  // });
-
-  console.log('Available node types:', Object.keys(props.editor.schema.nodes));
-  console.log('Available mark types:', Object.keys(props.editor.schema.marks));
 });
 
 onUnmounted(() => {
@@ -163,44 +155,24 @@ const handleTextChunk = (text) => {
       return;
     }
 
-    // Mock API response - in reality, this would come from your API
-    const mockHtmlResponse = `
-        <p>This is <strong>bold</strong> and <em>italic</em> text with <span style="color: red;">red</span> color.</p>
-        <p>This is a second paragraph with some <strong>more formatting</strong>.</p>
-        <ul>
-          <li>Item 1</li>
-          <li>Item 2</li>
-          <li>Item 3</li>
-        </ul>
-        <br>
-    `;
+    // Convert to string in case it's not already a string
+    const textStr = String(text);
 
-    if (mockHtmlResponse.includes('<') && mockHtmlResponse.includes('>')) {
-      // For HTML content
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = mockHtmlResponse;
-      
-      // Parse the HTML into a ProseMirror document fragment
-      const parser = DOMParser.fromSchema(props.editor.schema);
-      const parsedDoc = parser.parse(tempDiv);
-      
-      // Convert to JSON structure and insert
-      props.editor.commands.insertContent(parsedDoc.toJSON());
-    } else {
-      // For plain text, use the existing approach with animation
-      const wrappedContent = {
-        type: 'text',
-        marks: [{
-          type: 'aiAnimationMark',
-          attrs: { 
-            class: 'sd-ai-text-appear',
-            'dataMarkId': `ai-animation-${Date.now()}`
-          }
-        }],
-        text: mockHtmlResponse
-      };
-      props.editor.commands.insertContent(wrappedContent);
-    }
+    // Wrap the content in a span with our animation class and unique ID
+    const wrappedContent = {
+      type: 'text',
+      marks: [{
+        type: 'aiAnimationMark',
+        attrs: { 
+          class: 'sd-ai-text-appear',
+          'dataMarkId': `ai-animation-${Date.now()}`
+        }
+      }],
+      text: textStr
+    };
+
+    // Insert the new content
+    props.editor.commands.insertContent(wrappedContent);
     
     // Hide the AI Writer after content is received
     props.handleClose();
