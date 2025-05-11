@@ -1,7 +1,7 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { AiMarkName } from './ai-constants.js';
+import { AiMarkName, AiLoaderNodeName } from './ai-constants.js';
 
 export const AiPluginKey = new PluginKey('ai');
 
@@ -56,6 +56,42 @@ export const AiPlugin = Extension.create({
         }
 
         return false;
+      },
+
+      /**
+       * Remove all AI nodes of a specific type from the document
+       * @param {String} nodeName - The name of the node to remove
+       * @returns {Boolean} - True if any nodes were removed, false otherwise
+       */
+      removeAiNode: (nodeName = AiLoaderNodeName) => ({ tr, dispatch, state }) => {
+        const { doc } = state;
+        const positions = [];
+
+        // First, collect all positions where we need to delete nodes
+        doc.descendants((node, pos) => {
+          if (node.type.name === nodeName) {
+            positions.push(pos);
+          }
+        });
+
+        // If no nodes found, return false
+        if (positions.length === 0) {
+          return false;
+        }
+
+        // Sort positions in descending order to avoid position shifting
+        positions.sort((a, b) => b - a);
+
+        // Delete nodes from highest to lowest position
+        positions.forEach(pos => {
+          const node = doc.nodeAt(pos);
+          if (node) {
+            tr.delete(pos, pos + node.nodeSize);
+          }
+        });
+
+        if (dispatch) dispatch(tr);
+        return true;
       }
     };
   },

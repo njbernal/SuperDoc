@@ -72,34 +72,3 @@ export const AiAnimationMark = Mark.create({
     return [AiAnimationMarkName, Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 });
-
-export const AiLoaderNode = Node.create({
-  name: AiLoaderNodeName,
-  
-  group: 'inline',
-  
-  inline: true,
-  
-  atom: true,
-  
-  selectable: false,
-  
-  draggable: false,
-
-  addOptions() {
-    return {
-      htmlAttributes: {
-        class: 'sd-ai-loader',
-        contentEditable: 'false',
-      }
-    };
-  },
-
-  parseDOM() {
-    return [{ tag: 'span.sd-ai-loader' }];
-  },
-
-  renderDOM({ htmlAttributes }) {
-    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), ''];
-  }
-});

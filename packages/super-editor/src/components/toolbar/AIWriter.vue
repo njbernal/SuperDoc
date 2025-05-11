@@ -144,6 +144,9 @@ const getDocumentXml = () => {
 // Handler for processing text chunks from the stream
 const handleTextChunk = (text) => {
   try {
+    // Remove the loader node when we start receiving text
+    props.editor.commands.removeAiNode('aiLoaderNode');
+
     // If this is the first chunk and we're rewriting, remove the selected text
     if (props.selectedText && !textProcessingStarted.value) {
       props.editor.commands.deleteSelection();
@@ -204,6 +207,14 @@ const handleSubmit = async () => {
   previousText.value = '';
 
   try {
+    // Close the AI Writer immediately
+    props.handleClose();
+
+    // Insert the loader node at the current cursor position
+    props.editor.commands.insertContent({
+      type: 'aiLoaderNode',
+    });
+
     // Enable track changes if in suggesting mode
     if (isInSuggestingMode.value) {
       props.editor.commands.enableTrackChanges();
@@ -233,8 +244,6 @@ const handleSubmit = async () => {
       await writeStreaming(promptText.value, options, handleTextChunk, handleDone);
     }
 
-    // If all is good, close the AI Writer
-    props.handleClose();
   } catch (error) {
     console.error('AI generation error:', error);
     isError.value = error.message || 'An error occurred';
