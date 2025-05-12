@@ -261,7 +261,11 @@ class SuperConverter {
       const filePath = elements.find((el) => el.attributes.Id === font.attributes['r:id'])?.attributes?.Target;
       if (!filePath) return;
 
-      const ttfBuffer = deobfuscateFont(this.fonts[`word/${filePath}`], font.attributes['w:fontKey']);
+      const fontUint8Array = this.fonts[`word/${filePath}`];
+      const fontBuffer = fontUint8Array?.buffer;
+      if (!fontBuffer) return;
+      
+      const ttfBuffer = deobfuscateFont(fontBuffer, font.attributes['w:fontKey']);
       if (!ttfBuffer) return;
       
       // Convert to a blob and inject @font-face
