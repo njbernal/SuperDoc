@@ -244,9 +244,10 @@ superdoc.goToSearchResult(match); // Pass in a match from the result of search()
 ### Customization
 You can customize the color of the highlights from these styles:
 
+```
 .ProseMirror-search-match
 .ProseMirror-active-search-match
-
+```
 
 ## Next Steps
 
