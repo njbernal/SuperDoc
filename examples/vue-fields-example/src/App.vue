@@ -1,0 +1,150 @@
+<script setup>
+import '@harbour-enterprises/superdoc/style.css';
+import { onMounted, shallowRef } from 'vue';
+import { SuperDoc } from '@harbour-enterprises/superdoc';
+import UploadFile from './UploadFile.vue';
+import { fieldAnnotationHelpers } from '@harbour-enterprises/superdoc';
+
+
+// Default document
+import sampleDocument from '/sample-document.docx?url';
+
+// This is our custom node that we are creating for this example
+import { myCustomNode } from './custom-node';
+
+const superdoc = shallowRef(null);
+const editor = shallowRef(null);
+const snapshot = shallowRef(null);
+
+const init = (fileToLoad) => {
+  superdoc.value = new SuperDoc({
+    // Can also be a class ie: .main-editor
+    selector: '#editor',
+
+    // Enable pagination
+    pagination: true,
+
+    document: fileToLoad ? { data: fileToLoad } : sampleDocument,
+
+    // Initialize the toolbar
+    toolbar: '#toolbar',
+    toolbarGroups: ['center'],
+
+    // Pass in custom extensions
+    editorExtensions: [myCustomNode],
+
+    // Listen for ready event
+    onReady,
+  });
+};
+
+const handleFileUpdate = (file) => {
+  // Handle file update logic here
+  console.log('File updated:', file);
+  superdoc.value?.destroy();
+
+  init(file);
+}
+
+/* When SuperDoc is ready, we can store a reference to the editor instance */
+const onReady = () => {
+  superdoc.value?.activeEditor?.on('create', ({ editor: activeEditor }) => {
+    editor.value = activeEditor;
+  });
+}
+
+const saveSnapshot = () => {
+  if (editor.value) {
+    snapshot.value = editor.value.view.state;
+  }
+}
+
+const restoreSnapshot = () => {
+  if (editor.value && snapshot.value) {
+    editor.value.view.updateState(snapshot.value);
+    snapshot.value = null;
+  }
+}
+
+const SAMPLE_FIELD_ID = '123';
+const replaceField = () => {
+  const field = fieldAnnotationHelpers.findFieldAnnotationsByFieldId(
+    SAMPLE_FIELD_ID,
+    editor.value.state,
+  );
+
+  const node = field[0].node;
+  const attrs = {
+    ...node.attrs,
+    rawHtml: document.getElementById('custom-html').value,
+  }
+  editor.value.commands.updateFieldAnnotations(node.attrs.fieldId, attrs);
+};
+
+const setEditable = () => {
+  superdoc.value?.setDocumentMode('editing');
+}
+const setViewing = () => {
+  superdoc.value?.setDocumentMode('viewing');
+}
+
+const addField = () => {
+  editor.value.commands.addFieldAnnotationAtSelection({
+    displayLabel: 'My placeholder field',
+    fieldId: SAMPLE_FIELD_ID,
+    type: 'html',
+    fieldType: 'HTMLINPUT',
+    fieldColor: '#000099',
+  });
+}
+
+onMounted(() => init());
+</script>
+
+<template>
+  <div class="example-container">
+    <h1>SuperDoc: Create a custom node with custom command</h1>
+
+    <p>In this example, we create a simple custom node to pass into SuperDoc.</p>
+
+    <div id="toolbar" class="my-custom-toolbar"></div>
+    <div class="editor-and-button">
+      <div id="editor" class="main-editor"></div>
+      <div class="editor-buttons">
+        <UploadFile :update-file="handleFileUpdate" />
+        <button class="custom-button" @click="addField">Insert '123' field</button>
+
+        <button class="custom-button" @click="saveSnapshot">Save state</button>
+        <button class="custom-button" @click="restoreSnapshot" :disabled="!snapshot">Restore state</button>
+        <button class="custom-button" @click="replaceField">Replace '123' field</button>
+        <textarea
+          id="custom-html"
+          class="custom-textarea"
+          placeholder="Type some HTML to replace custom nodes with"
+          value="<p>Custom <b>Node</b> Content</p>"
+        ></textarea>
+
+        <button class="custom-button" @click="setEditable">Set editable</button>
+        <button class="custom-button" @click="setViewing">Set viewing</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+textarea {
+  margin-left: 10px;
+}
+.my-custom-node-default-class {
+  background-color: #1355FF;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.my-custom-node-default-class:hover {
+  background-color: #0a3dff;
+}
+</style>

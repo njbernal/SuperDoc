@@ -411,6 +411,13 @@ export const FieldAnnotation = Node.create({
           return true;
         },
 
+      addFieldAnnotationAtSelection:
+        (attrs = {}, editorFocus = false) =>
+        ({ editor, dispatch, state, tr, commands }) => {
+          const { from } = state.selection;
+          commands.addFieldAnnotation(from, attrs, editorFocus);
+        },
+
       /**
        * Update annotations associated with a field.
        * @param fieldIdOrArray The field ID or array of field IDs.
@@ -489,7 +496,6 @@ export const FieldAnnotation = Node.create({
             let newPos = tr.mapping.map(pos);
             let currentNode = tr.doc.nodeAt(newPos);
             let nodeEqual = node.attrs.fieldId === currentNode?.attrs?.fieldId;
-
             if (nodeEqual) {
               tr.setNodeMarkup(newPos, undefined, {
                 ...node.attrs,
