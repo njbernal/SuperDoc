@@ -1,5 +1,6 @@
 import { Extension } from '@core/Extension.js';
 import { search, SearchQuery, setSearchState, getMatchHighlights } from 'prosemirror-search';
+import { TextSelection } from 'prosemirror-state';
 
 
 export const Search = Extension.create({
@@ -38,7 +39,24 @@ export const Search = Extension.create({
           to:   deco.to,
           text: newState.doc.textBetween(deco.from, deco.to)
         }));
-      }
+      },
+
+      goToSearchResult: (match) => ({ state, dispatch, editor }) => {
+        const { from, to } = match
+
+        editor.view.focus()
+        const tr = state.tr
+          .setSelection(TextSelection.create(state.doc, from, to))
+          .scrollIntoView()
+        dispatch(tr)
+
+        const { node } = editor.view.domAtPos(from)
+        if (node?.scrollIntoView) {
+          node.scrollIntoView({ block: 'center', inline: 'nearest' })
+        }
+
+        return true
+      },
 
     }
   }
