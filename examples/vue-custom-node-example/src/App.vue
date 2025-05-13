@@ -2,10 +2,10 @@
 import '@harbour-enterprises/superdoc/style.css';
 import { onMounted, shallowRef } from 'vue';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
-import UploadFile from '../../shared/vue/UploadFile/UploadFile.vue';
+import UploadFile from './UploadFile.vue';
 
 // Default document
-import sampleDocument from '../../shared/data/sample-document.docx?url';
+import sampleDocument from '/sample-document.docx?url';
 
 // This is our custom node that we are creating for this example
 import { myCustomNode } from './custom-node';
