@@ -964,7 +964,6 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
     aiButton,
     overflow,
     documentMode,
-    search,
   ];
 
   if (!superToolbar.config?.superdoc?.config?.modules?.ai) {
