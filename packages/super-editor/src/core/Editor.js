@@ -1,6 +1,7 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from 'prosemirror-model';
+import { search, SearchQuery, setSearchState, getMatchHighlights } from 'prosemirror-search';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
 import { EventEmitter } from './EventEmitter.js';
 import { ExtensionService } from './ExtensionService.js';
@@ -183,7 +184,7 @@ export class Editor extends EventEmitter {
     if (!this.options.ydoc) {
       this.#initPagination();
       this.#initComments();
-    };
+    }
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -194,7 +195,7 @@ export class Editor extends EventEmitter {
   #initRichText(options) {
     if (!options.extensions || !options.extensions.length) {
       this.options.extensions = getRichTextExtensions();
-    };
+    }
 
     this.#createExtensionService();
     this.#createCommandService();
@@ -226,6 +227,30 @@ export class Editor extends EventEmitter {
   #onFocus({ editor, event }) {
     this.toolbar?.setActiveEditor(editor);
     this.options.onFocus({ editor, event });
+  }
+
+  goToFirstMatch() {
+    const highlights = getMatchHighlights(this.view.state);
+    if (!highlights || !highlights.children?.length) return;
+    
+    const match = highlights.children.find(item => item.local);
+    const firstSearchItemPosition = highlights.children[0] + match.local[0].from + 1;
+    this.view.domAtPos(firstSearchItemPosition)?.node?.scrollIntoView(true);
+  }
+  
+  doSearch(text) {
+    const query = new SearchQuery({
+      search: text,
+      caseSensitive: false,
+      regexp: false,
+      wholeWord: false 
+    });
+    const tr = this.view.state.tr;
+    setSearchState(tr, query);
+    this.view.dispatch(tr);
+
+    this.goToFirstMatch();
+    return getMatchHighlights(this.view.state);
   }
 
   setToolbar(toolbar) {
@@ -641,9 +666,14 @@ export class Editor extends EventEmitter {
       dispatchTransaction: this.#dispatchTransaction.bind(this),
       state: EditorState.create(state),
     });
-
+    
+    const searchPlugin = search();
+    
     const newState = this.state.reconfigure({
-      plugins: this.extensionService.plugins,
+      plugins: [
+        ...this.extensionService.plugins,
+        searchPlugin,
+      ],
     });
 
     this.view.updateState(newState);

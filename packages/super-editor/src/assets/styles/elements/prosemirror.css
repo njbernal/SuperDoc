@@ -317,3 +317,10 @@ https://github.com/ProseMirror/prosemirror-tables/blob/master/demo/index.html
   align-items: baseline;
   margin-top: -5px;
 }
+
+.ProseMirror-search-match {
+  background-color: #ffff0054;
+}
+.ProseMirror-active-search-match {
+  background-color: #ff6a0054;
+}
