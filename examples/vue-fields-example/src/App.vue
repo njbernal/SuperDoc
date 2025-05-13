@@ -51,6 +51,10 @@ const onReady = () => {
   superdoc.value?.activeEditor?.on('create', ({ editor: activeEditor }) => {
     editor.value = activeEditor;
   });
+  superdoc.value?.activeEditor?.on('fieldAnnotationDropped', (params) => {
+    const { sourceField } = params;
+    addField(sourceField);
+  });
 }
 
 const saveSnapshot = () => {
@@ -88,15 +92,25 @@ const setViewing = () => {
   superdoc.value?.setDocumentMode('viewing');
 }
 
-const addField = () => {
-  editor.value.commands.addFieldAnnotationAtSelection({
+const getHTMLField = () => {
+  return {
     displayLabel: 'My placeholder field',
     fieldId: SAMPLE_FIELD_ID,
     type: 'html',
     fieldType: 'HTMLINPUT',
     fieldColor: '#000099',
-  });
+  };
+};
+
+const addField = (field) => {
+  if (!field) field = getHTMLField();
+  editor.value.commands.addFieldAnnotationAtSelection(field);
 }
+
+const onDragStart = (event) => {
+  const field = getHTMLField();
+  event.dataTransfer.setData('fieldAnnotation', JSON.stringify({ sourceField: field }));
+};
 
 onMounted(() => init());
 </script>
@@ -109,6 +123,9 @@ onMounted(() => init());
 
     <div id="toolbar" class="my-custom-toolbar"></div>
     <div class="editor-and-button">
+      <div class="editor-buttons" style="margin-right: 10px;">
+        <div class="draggable-field" draggable="true" @dragstart="onDragStart">HTML field</div>
+      </div>
       <div id="editor" class="main-editor"></div>
       <div class="editor-buttons">
         <UploadFile :update-file="handleFileUpdate" />
@@ -146,5 +163,14 @@ textarea {
 }
 .my-custom-node-default-class:hover {
   background-color: #0a3dff;
+}
+.draggable-field {
+  background-color: #1355FF;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
 }
 </style>
