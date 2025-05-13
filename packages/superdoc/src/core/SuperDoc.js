@@ -517,7 +517,7 @@ export class SuperDoc extends EventEmitter {
   }
 
   search(text) {
-    this.activeEditor?.commands.search(text);
+    return this.activeEditor?.commands.search(text);
   }
 
   /**

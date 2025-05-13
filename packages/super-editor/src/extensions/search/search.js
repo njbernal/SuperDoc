@@ -17,20 +17,29 @@ export const Search = Extension.create({
         const firstSearchItemPosition = highlights.children[0] + match.local[0].from + 1;
         editor.view.domAtPos(firstSearchItemPosition)?.node?.scrollIntoView(true);
       },
-      search: (text) => ({ commands, state, dispatch }) => {
+      search: (text) => ({ state, dispatch }) => {
         const query = new SearchQuery({
           search: text,
           caseSensitive: false,
           regexp: false,
-          wholeWord: false 
+          wholeWord: false,
         });
         const tr = state.tr;
         setSearchState(tr, query);
+
+        const newState = state.apply(tr);
+        const decoSet = getMatchHighlights(newState);
+        const decorations = decoSet ? decoSet.find() : [];
+
         dispatch(tr);
 
-        commands.goToFirstMatch();
-        return getMatchHighlights(state);
+        return decorations.map(deco => ({
+          from: deco.from,
+          to:   deco.to,
+          text: newState.doc.textBetween(deco.from, deco.to)
+        }));
       }
+
     }
   }
 });
