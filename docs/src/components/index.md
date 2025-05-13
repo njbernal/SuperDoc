@@ -203,6 +203,44 @@ SuperEditor has a variety of hooks
 
 You can get a list of currently available commands from ```editor.commands```
 
+# Search
+## SuperDoc extension
+
+SuperDoc 0.11 adds a new .docx search feature.
+
+### Usage
+Search works the same if you're using SuperDoc or the Editor instance directly.
+
+```
+const superdoc = new SuperDoc({ ...myConfig });
+
+// Text search
+const results = superdoc.search('My text search'); // An array of results
+// Or editor.commands.search('My text search');
+
+// results = [
+//      { from: 12, to: 24, text: 'My text search' },
+//      …
+//   ]
+
+// Regex
+const regexResults = superdoc.search(/\b\w+ng\b/gi);
+// Or editor.commands.search('My text search');
+
+// results = [
+//      { from:  5, to: 13, text: 'painting' },
+//      { from: 18, to: 28, text: 'preparing' },
+//      …
+//   ]
+```
+
+### Commands
+superdoc.search(...)
+// Or editor.commands.search(...)
+
+superdoc.goToSearchResult(match); // Pass in a match from the result of search()
+// Or editor.commands.goToSearchResult(match);
+
 ## Next Steps
 
 - See [Integration](/integration/) for framework-specific integration guides
@@ -242,3 +280,4 @@ const config = {
 
 ### Default toolbar buttons
 See all buttons in defaultItems.js
+

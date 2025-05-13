@@ -78,6 +78,7 @@ function sidebar() {
         items: [
           { text: 'SuperDoc', link: '/components/#superdoc' },
           { text: 'SuperEditor', link: '/components/#supereditor' },
+          { text: 'Search', link: '/components/#search' },
           { text: 'Toolbar', link: '/components/#superdoc-toolbar' },
         ],
       },
