@@ -23,15 +23,22 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    * @param {Object} params.data - Additional data (optional)
    */
   const handleAiHighlight = ({ type, data }) => {
-    if (!aiLayer.value) {
-      console.error('[useAi] aiLayer.value is not available');
-      return;
-    }
-    
-    if (type === 'add') {
-      aiLayer.value.addAiHighlight();
-    } else if (type === 'remove') {
-      aiLayer.value.removeAiHighlight();
+    console.log('handleAiHighlight called', type, data)
+    if (!aiLayer.value) return;
+
+    switch (type) {
+      case 'add':
+        console.log('Case: add')
+        aiLayer.value.addAiHighlight();
+        break;
+      case 'remove':
+        console.log('Case: remove')
+        aiLayer.value.removeAiHighlight();
+        break;
+      case 'update':
+        console.log('Case: update')
+        aiLayer.value.updateAiHighlight();
+        break;
     }
   };
 
@@ -101,8 +108,6 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    */
   const handleAiWriterClose = () => {
     showAiWriter.value = false;
-    // Remove the AI highlight when AIWriter is closed
-    emitAiHighlight({ type: 'remove', data: null });
   };
 
   /**
@@ -111,13 +116,20 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    * @param {Boolean} value - Whether to show the AI layer
    */
   const initAiLayer = (value = true) => {
-    showAiLayer.value = value;
+    if (showAiLayer.__v_isRef) {
+      showAiLayer.value = value;
+    } else {
+      console.warn('showAiLayer is not a ref in initAiLayer');
+    }
   };
 
   /**
    * Handle tool click for AI functionality
    */
   const handleAiToolClick = () => {
+    // Emit the highlight event before showing the AI writer
+    // @todo: is this double?
+    emitAiHighlight({ type: 'add', data: null });
     showAiWriterAtCursor();
   };
 

@@ -45,6 +45,18 @@ const addAiHighlight = () => {
   }
 };
 
+// @todo: 
+// - need to implement pulse css
+const updateAiHighlight = () => {
+  // Add pulsing animation to all existing highlights
+    const highlights = document.getElementsByClassName('sd-ai-highlight');
+    Array.from(highlights).forEach(highlight => {
+      highlight.classList.add('sd-ai-highlight-pulse');
+      console.log('highlight added to ', highlight)
+    });
+
+};
+
 const removeAiHighlight = () => {
   // Remove the AI mark using the editor if available
   if (props.editor && !props.editor.isDestroyed) {
@@ -60,6 +72,7 @@ const removeAiHighlight = () => {
 defineExpose({
   addAiHighlight,
   removeAiHighlight,
+  updateAiHighlight,
 });
 </script>
 
@@ -84,4 +97,5 @@ defineExpose({
 .bypass {
   display: none;
 }
+
 </style>

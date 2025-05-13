@@ -152,6 +152,7 @@ const processAiHighlights = (editor, doc, highlightColor) => {
         pos + node.nodeSize,
         {
           style: `background-color: ${highlightColor}33; border-radius: 4px;   transition: background-color 250ms ease;`, // 33 is 20% opacity in hex
+          class: 'sd-ai-highlight-element',
         }
       );
       decorations.push(deco);

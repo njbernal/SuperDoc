@@ -1,4 +1,5 @@
 import { Attribute, Node } from '@core/index.js';
+import dotsLoader from '@harbour-enterprises/common/icons/dots-loader.svg';
 import { AiLoaderNodeName } from './ai-constants.js';
 
 export const AiLoaderNode = Node.create({
@@ -28,10 +29,16 @@ export const AiLoaderNode = Node.create({
   },
 
   renderDOM({ htmlAttributes }) {
-    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 
-      ['div', {}, ''],
-      ['div', {}, ''],
-      ['div', {}, '']
-    ];
+    const span = document.createElement('span');
+    Object.entries(Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes))
+      .forEach(([k, v]) => span.setAttribute(k, v));
+
+    const img = document.createElement('img');
+    img.src = dotsLoader;
+    img.alt = 'loading...';
+    img.width = 100;
+    img.height = 50;
+    span.appendChild(img);
+    return span;
   }
 });
