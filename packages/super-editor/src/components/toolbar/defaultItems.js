@@ -281,7 +281,7 @@ export const makeDefaultItems = (superToolbar, isDev = false, windowWidth, role,
   const renderSearchDropdown = () => {
     
     const handleSubmit = ({ value }) => {
-      superToolbar.activeEditor.doSearch(value);
+      superToolbar.activeEditor.commands.search(value);
     };
     
     return h('div', {}, [
