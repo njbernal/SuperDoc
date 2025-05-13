@@ -18,26 +18,42 @@ export const Search = Extension.create({
         const firstSearchItemPosition = highlights.children[0] + match.local[0].from + 1;
         editor.view.domAtPos(firstSearchItemPosition)?.node?.scrollIntoView(true);
       },
-      search: (text) => ({ state, dispatch }) => {
-        const query = new SearchQuery({
-          search: text,
-          caseSensitive: false,
-          regexp: false,
-          wholeWord: false,
+
+      search: (patternInput) => ({ state, dispatch }) => {
+        let pattern;
+        let caseSensitive = false;
+        let regexp = false;
+        const wholeWord = false;
+
+        if (patternInput instanceof RegExp) {
+          regexp = true;
+          pattern = patternInput.source;
+          caseSensitive = !patternInput.flags.includes('i');
+        } else if (typeof patternInput === 'string' && /^\/(.+)\/([gimsuy]*)$/.test(patternInput)) {
+          const [, body, flags] = patternInput.match(/^\/(.+)\/([gimsuy]*)$/);
+          regexp = true;
+          pattern = body;
+          caseSensitive = !flags.includes('i');
+        } else {
+          pattern = String(patternInput);
+        }
+
+        const query = new SearchQuery({ 
+          search: pattern, 
+          caseSensitive, 
+          regexp,
+          wholeWord 
         });
-        const tr = state.tr;
-        setSearchState(tr, query);
-
-        const newState = state.apply(tr);
-        const decoSet = getMatchHighlights(newState);
-        const decorations = decoSet ? decoSet.find() : [];
-
+        const tr = setSearchState(state.tr, query);
         dispatch(tr);
 
-        return decorations.map(deco => ({
-          from: deco.from,
-          to:   deco.to,
-          text: newState.doc.textBetween(deco.from, deco.to)
+        const newState  = state.apply(tr);
+        const decoSet   = getMatchHighlights(newState);
+        const matches   = decoSet ? decoSet.find() : [];
+        return matches.map(d => ({
+          from: d.from,
+          to:   d.to,
+          text: newState.doc.textBetween(d.from, d.to)
         }));
       },
 
