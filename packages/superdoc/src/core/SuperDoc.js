@@ -516,6 +516,10 @@ export class SuperDoc extends EventEmitter {
     }
   }
 
+  search(text) {
+    return this.activeEditor?.commands.search(text);
+  }
+
   /**
    * Set the document to locked or unlocked
    * @param {boolean} lock
