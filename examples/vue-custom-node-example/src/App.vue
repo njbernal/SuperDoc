@@ -2,16 +2,17 @@
 import '@harbour-enterprises/superdoc/style.css';
 import { onMounted, shallowRef } from 'vue';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
-import UploadFile from '../../shared/vue/UploadFile/UploadFile.vue';
+import UploadFile from './UploadFile.vue';
 
 // Default document
-import sampleDocument from '../../shared/data/sample-document.docx?url';
+import sampleDocument from '/sample-document.docx?url';
 
 // This is our custom node that we are creating for this example
 import { myCustomNode } from './custom-node';
 
 const superdoc = shallowRef(null);
 const editor = shallowRef(null);
+const snapshot = shallowRef(null);
 
 const init = (fileToLoad) => {
   superdoc.value = new SuperDoc({
@@ -50,6 +51,32 @@ const onReady = () => {
   });
 }
 
+const saveSnapshot = () => {
+  if (editor.value) {
+    snapshot.value = editor.value.view.state;
+  }
+}
+
+const restoreSnapshot = () => {
+  if (editor.value && snapshot.value) {
+    editor.value.view.updateState(snapshot.value);
+    snapshot.value = null;
+  }
+}
+
+const replaceNextNode = () => {
+  const nodes = editor.value?.getNodesOfType('customNode') || [];
+  const customHTML = document.getElementById('custom-html').value;
+  editor.value.replaceNodeWithHTML(nodes[0], customHTML);
+};
+
+const setEditable = () => {
+  superdoc.value?.setDocumentMode('editing');
+}
+const setViewing = () => {
+  superdoc.value?.setDocumentMode('viewing');
+}
+
 onMounted(() => init());
 </script>
 
@@ -69,12 +96,28 @@ onMounted(() => init());
           class="custom-button" 
           @click="editor?.commands.insertContent(`<div data-node-type='customNode' id='some-id-123'>Custom Node Content</div>`)"
         >Insert custom node (insertContent())</button>
+
+        <button class="custom-button" @click="saveSnapshot">Save state</button>
+        <button class="custom-button" @click="restoreSnapshot" :disabled="!snapshot">Restore state</button>
+        <button class="custom-button" @click="replaceNextNode">Replace next Custom Node</button>
+        <textarea
+          id="custom-html"
+          class="custom-textarea"
+          placeholder="Type some HTML to replace custom nodes with"
+          value="<p>Custom Node Content</p>"
+        ></textarea>
+
+        <button class="custom-button" @click="setEditable">Set editable</button>
+        <button class="custom-button" @click="setViewing">Set viewing</button>
       </div>
     </div>
   </div>
 </template>
 
 <style>
+textarea {
+  margin-left: 10px;
+}
 .my-custom-node-default-class {
   background-color: #1355FF;
   border-radius: 8px;

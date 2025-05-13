@@ -440,7 +440,8 @@ const importHeadersFooters = (docx, converter, editor) => {
     const { rId, referenceFile, currentFileName } = getHeaderFooterSectionData(header, docx);
 
     const sectPrHeader = allSectPrElements.find((el) => el.name === 'w:headerReference' && el.attributes['r:id'] === rId);
-    const sectionType = sectPrHeader?.attributes['w:type'];
+    let sectionType = sectPrHeader?.attributes['w:type'];
+    if (converter.headerIds[sectionType]) sectionType = null;
     const nodeListHandler = defaultNodeListHandler();
     const schema = nodeListHandler.handler({
       nodes: referenceFile.elements[0].elements,
@@ -454,7 +455,7 @@ const importHeadersFooters = (docx, converter, editor) => {
     if (!converter.headerIds.ids) converter.headerIds.ids = [];
     converter.headerIds.ids.push(rId);
     converter.headers[rId] = { type: 'doc', content: [...schema] };
-    converter.headerIds[sectionType] = rId;
+    sectionType && (converter.headerIds[sectionType] = rId);
   });
 
   footers.forEach((footer) => {

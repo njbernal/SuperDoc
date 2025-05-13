@@ -2,6 +2,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
+import { helpers } from '@core/index.js';
 import { EventEmitter } from './EventEmitter.js';
 import { ExtensionService } from './ExtensionService.js';
 import { CommandService } from './CommandService.js';
@@ -145,9 +146,11 @@ export class Editor extends EventEmitter {
     this.#createSchema();
     this.#createConverter();
     this.#initMedia();
-    this.#initFonts();
-    
 
+    if (!this.options.isHeadless) {
+      this.#initFonts();
+    }
+    
     this.on('beforeCreate', this.options.onBeforeCreate);
     this.emit('beforeCreate', { editor: this });
     this.on('contentError', this.options.onContentError);
@@ -1186,4 +1189,22 @@ export class Editor extends EventEmitter {
       this.#initComments();
     }
   }
+
+  getNodesOfType(type) {
+    const { findChildren } = helpers;
+    return findChildren(this.state.doc, (node) => node.type.name === type);
+  }
+
+  replaceNodeWithHTML(targetNode, html) {
+    const { tr } = this.state;
+    const { dispatch } = this.view;
+
+    if (!targetNode || !html) return;
+    const start = targetNode.pos;
+    const end = start + targetNode.node.nodeSize;
+    const htmlNode = this.#createDocFromHTML(html);
+    tr.replaceWith(start, end, htmlNode);
+    dispatch(tr);
+  }
+
 }
