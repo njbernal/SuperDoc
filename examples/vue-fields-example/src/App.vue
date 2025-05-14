@@ -21,6 +21,9 @@ const init = (fileToLoad) => {
     // Enable pagination
     pagination: true,
 
+    // Enable annotation import
+    annotations: true,
+
     document: fileToLoad ? { data: fileToLoad } : sampleDocument,
 
     // Initialize the toolbar
@@ -113,6 +116,10 @@ const addField = (field) => {
   editor.value.commands.addFieldAnnotationAtSelection(field);
 }
 
+const exportDocx = () => {
+  superdoc.value?.export();
+};
+
 const onDragStart = (event) => {
 
   const getField = (id) => {
@@ -158,8 +165,11 @@ onMounted(() => init());
           value="<p>Custom <b>Node</b> Content</p>"
         ></textarea>
 
+        <br />
         <button class="custom-button" @click="setEditable">Set editable</button>
         <button class="custom-button" @click="setViewing">Set viewing</button>
+        <br />
+        <button class="custom-button" @click="exportDocx">Export docx</button>
       </div>
     </div>
   </div>

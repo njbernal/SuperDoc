@@ -1735,7 +1735,7 @@ function prepareHtmlAnnotation(params) {
   } = params;
 
   const parser = new window.DOMParser();
-  const paragraphHtml = parser.parseFromString(attrs.rawHtml, 'text/html');
+  const paragraphHtml = parser.parseFromString(attrs.rawHtml || attrs.displayLabel, 'text/html');
 
   const state = EditorState.create({
     doc: PMDOMParser.fromSchema(params.editorSchema).parse(paragraphHtml),
