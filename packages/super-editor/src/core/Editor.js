@@ -186,7 +186,7 @@ export class Editor extends EventEmitter {
     if (!this.options.ydoc) {
       this.#initPagination();
       this.#initComments();
-    };
+    }
 
     window.setTimeout(() => {
       if (this.isDestroyed) return;
@@ -197,7 +197,7 @@ export class Editor extends EventEmitter {
   #initRichText(options) {
     if (!options.extensions || !options.extensions.length) {
       this.options.extensions = getRichTextExtensions();
-    };
+    }
 
     this.#createExtensionService();
     this.#createCommandService();
@@ -644,9 +644,9 @@ export class Editor extends EventEmitter {
       dispatchTransaction: this.#dispatchTransaction.bind(this),
       state: EditorState.create(state),
     });
-
+    
     const newState = this.state.reconfigure({
-      plugins: this.extensionService.plugins,
+      plugins: [...this.extensionService.plugins],
     });
 
     this.view.updateState(newState);

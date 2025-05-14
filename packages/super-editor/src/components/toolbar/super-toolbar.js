@@ -271,6 +271,10 @@ export class SuperToolbar extends EventEmitter {
   getToolbarItemByGroup(groupName) {
     return this.toolbarItems.filter((item) => item.group.value === groupName);
   }
+  
+  getToolbarItemByName(name) {
+    return this.toolbarItems.find((item) => item.name.value === name);
+  }
 
   #makeToolbarItems(superToolbar, icons, isDev = false) {
     const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar

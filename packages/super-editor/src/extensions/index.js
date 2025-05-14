@@ -56,6 +56,7 @@ import { PopoverPlugin } from './popover-plugin/index.js';
 import { TrackChanges } from './track-changes/index.js';
 import { Pagination } from './pagination/index.js';
 import { LinkedStyles } from './linked-styles/linked-styles.js';
+import { Search } from './search/index.js';
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
@@ -162,6 +163,7 @@ const getStarterExtensions = () => {
     ShapeContainer,
     ShapeTextbox,
     ContentBlock,
+    Search,
   ];
 };
 
@@ -222,4 +224,5 @@ export {
   AiAnimationMark,
   AiLoaderNode,
   AiPlugin,
+  Search,
 };
