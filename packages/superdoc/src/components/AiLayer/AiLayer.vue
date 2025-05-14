@@ -45,16 +45,22 @@ const addAiHighlight = () => {
   }
 };
 
-// @todo: 
-// - need to implement pulse css
 const updateAiHighlight = () => {
-  // Add pulsing animation to all existing highlights
-    const highlights = document.getElementsByClassName('sd-ai-highlight');
-    Array.from(highlights).forEach(highlight => {
-      highlight.classList.add('sd-ai-highlight-pulse');
-      console.log('highlight added to ', highlight)
-    });
-
+  // Instead of directly manipulating the DOM, let's use the editor's API
+  if (props.editor && !props.editor.isDestroyed) {
+    // We use a custom command to toggle the pulse class on AI highlights
+    // This applies the CSS animation without directly modifying the DOM nodes
+    // that ProseMirror manages
+    props.editor.commands.updateAiHighlightStyle('sd-ai-highlight-pulse');
+  } else {
+    // Fallback for when editor is not available - using our DOM layer
+    if (highlightLayer.value) {
+      const highlights = highlightLayer.value.querySelectorAll('.ai-highlight-anchor');
+      Array.from(highlights).forEach(highlight => {
+        highlight.classList.add('sd-ai-highlight-pulse');
+      });
+    }
+  }
 };
 
 const removeAiHighlight = () => {

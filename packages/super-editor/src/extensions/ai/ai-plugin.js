@@ -30,6 +30,32 @@ export const AiPlugin = Extension.create({
       },
 
       /**
+       * Update the AI highlights with custom styling
+       * @param {String} className - The CSS class to add to the AI highlights
+       * @returns {Boolean} - True if the highlight style was updated
+       */
+      updateAiHighlightStyle: (className) => ({ tr, dispatch }) => {
+        // We can use a transaction meta to communicate with the plugin
+        // to update our decorations with the new class
+        tr.setMeta(AiPluginKey, { type: 'updateStyle', className });
+        
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+
+      /**
+       * Clear any custom styling from AI highlights
+       * @returns {Boolean} - True if the highlight style was cleared
+       */
+      clearAiHighlightStyle: () => ({ tr, dispatch }) => {
+        // We'll send null to clear any custom classes
+        tr.setMeta(AiPluginKey, { type: 'updateStyle', className: null });
+        
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+
+      /**
        * Remove all AI marks from the document
        * @param {String} markName - The name of the mark to remove - defaults to AiMarkName
        * Can also be used to remove the ai animation mark after streams are complete
@@ -104,20 +130,46 @@ export const AiPlugin = Extension.create({
         init() {
           return {
             decorations: DecorationSet.empty,
-            highlightColor: '#6366f1'  // Indigo color, matches AiLayer
+            highlightColor: '#6366f1',  // Indigo color, matches AiLayer
+            customClass: null, // For storing custom class like pulse animation
           };
         },
         apply(tr, oldState, _, newEditorState) {
-          // If the document hasn't changed, return the old state
-          if (!tr.docChanged) return oldState;
+          // Check if we have an update meta for styling
+          const meta = tr.getMeta(AiPluginKey);
+          let customClass = oldState.customClass;
+          
+          if (meta && meta.type === 'updateStyle') {
+            customClass = meta.className;
+          }
+          
+          // Clear pulse animation when text is being inserted/replaced
+          // This ensures it doesn't persist after AI has inserted content
+          if (tr.docChanged && customClass === 'sd-ai-highlight-pulse') {
+            // Check if any text was inserted in places with AI marks
+            let hasTextChanges = false;
+            tr.steps.forEach(step => {
+              if (step.slice && step.slice.content.size > 0) {
+                hasTextChanges = true;
+              }
+            });
+            
+            if (hasTextChanges) {
+              customClass = null;
+            }
+          }
+          
+          // If no document changes and no meta updates, return the old state
+          if (!tr.docChanged && !meta) return oldState;
 
-          // Process AI highlights in the document
-          const { decorations } = processAiHighlights(editor, newEditorState.doc, oldState.highlightColor) || {};
+          // Process AI highlights in the document with custom class if needed
+          const { decorations } = processAiHighlights(editor, newEditorState.doc, oldState.highlightColor, customClass) || {};
           const decorationSet = DecorationSet.create(newEditorState.doc, decorations);
 
           return {
             ...oldState,
             decorations: decorationSet,
+            customClass,
           };
         }
       },
@@ -136,9 +188,10 @@ export const AiPlugin = Extension.create({
  * @param {*} editor The current editor instance
  * @param {*} doc The current document
  * @param {string} highlightColor The color to use for highlights
+ * @param {string} customClass Optional custom class to add to the decorations
  * @returns {Object} The decorations for AI marks
  */
-const processAiHighlights = (editor, doc, highlightColor) => {
+const processAiHighlights = (editor, doc, highlightColor, customClass = null) => {
   const decorations = [];
 
   doc.descendants((node, pos) => {
@@ -147,13 +200,21 @@ const processAiHighlights = (editor, doc, highlightColor) => {
     const aiMark = marks.find((mark) => mark.type.name === AiMarkName);
     
     if (aiMark) {
+      // Base style and classes
+      const attrs = {
+        style: `background-color: ${highlightColor}33; border-radius: 4px; transition: background-color 250ms ease;`, // 33 is 20% opacity in hex
+        class: 'sd-ai-highlight-element',
+      };
+      
+      // Add custom class if provided
+      if (customClass) {
+        attrs.class += ` ${customClass}`;
+      }
+      
       const deco = Decoration.inline(
         pos,
         pos + node.nodeSize,
-        {
-          style: `background-color: ${highlightColor}33; border-radius: 4px;   transition: background-color 250ms ease;`, // 33 is 20% opacity in hex
-          class: 'sd-ai-highlight-element',
-        }
+        attrs
       );
       decorations.push(deco);
     }

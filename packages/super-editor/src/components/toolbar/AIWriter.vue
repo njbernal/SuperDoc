@@ -167,6 +167,9 @@ const handleTextChunk = (text) => {
     if (props.selectedText && !textProcessingStarted.value) {
       emitAiHighlight('remove');
       
+      // Clear the pulsing animation when we start inserting text
+      props.editor.commands.clearAiHighlightStyle();
+      
       // Check if we have a valid stored selection
       if (selectionState.value) {
         // Apply the stored selection using the TextSelection API

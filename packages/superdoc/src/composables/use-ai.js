@@ -25,14 +25,26 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
   const handleAiHighlight = ({ type, data }) => {
     console.log('handleAiHighlight called', type, data)
     if (!aiLayer.value) return;
+    
+    // Get the editor from the ref
+    const editor = activeEditorRef.value;
 
     switch (type) {
       case 'add':
         console.log('Case: add')
+        // First clear any existing pulse animation if the editor is available
+        if (editor && !editor.isDestroyed) {
+          editor.commands.clearAiHighlightStyle();
+        }
+        // Then add the highlight
         aiLayer.value.addAiHighlight();
         break;
       case 'remove':
         console.log('Case: remove')
+        // Clear any pulse animation before removing highlight
+        if (editor && !editor.isDestroyed) {
+          editor.commands.clearAiHighlightStyle();
+        }
         aiLayer.value.removeAiHighlight();
         break;
       case 'update':
