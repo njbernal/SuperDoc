@@ -23,7 +23,6 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    * @param {Object} params.data - Additional data (optional)
    */
   const handleAiHighlight = ({ type, data }) => {
-    console.log('handleAiHighlight called', type, data)
     if (!aiLayer.value) return;
     
     // Get the editor from the ref
@@ -31,7 +30,6 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
 
     switch (type) {
       case 'add':
-        console.log('Case: add')
         // First clear any existing pulse animation if the editor is available
         if (editor && !editor.isDestroyed) {
           editor.commands.clearAiHighlightStyle();
@@ -40,7 +38,6 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
         aiLayer.value.addAiHighlight();
         break;
       case 'remove':
-        console.log('Case: remove')
         // Clear any pulse animation before removing highlight
         if (editor && !editor.isDestroyed) {
           editor.commands.clearAiHighlightStyle();
@@ -48,7 +45,6 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
         aiLayer.value.removeAiHighlight();
         break;
       case 'update':
-        console.log('Case: update')
         aiLayer.value.updateAiHighlight();
         break;
     }

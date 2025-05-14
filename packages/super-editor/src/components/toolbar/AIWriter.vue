@@ -59,6 +59,7 @@ const editableRef = ref(null);
 
 // Helper function to emit AI highlight events
 // We need to emit through the superToolbar if it exists, otherwise emit through the emits
+// Hoping we can simplify this logic in the future if we combine SE and SD
 const emitAiHighlight = (type, data = null) => {
   if (props.superToolbar) {
     props.superToolbar.emit('ai-highlight', { type, data });
@@ -184,7 +185,7 @@ const handleTextChunk = (text) => {
         // Dispatch the transaction to update the editor state
         props.editor.view.dispatch(tr);
       } else {
-        console.log('No stored selection to restore');
+        console.warn('[AIWriter] No stored selection to restore');
       }
       
       // Now delete the selection
@@ -248,7 +249,7 @@ const handleSubmit = async () => {
   isLoading.value = true;  // Set loading to true before starting the operation
 
   try {
-    // Close the AI Writer immediately
+    // Close the AI Writer immediately and transition to loading states
     props.handleClose();
 
     // If there is selected text, emit the update event to start pulsing animation

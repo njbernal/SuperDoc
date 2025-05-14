@@ -31,6 +31,7 @@ export const AiPlugin = Extension.create({
 
       /**
        * Update the AI highlights with custom styling
+       * @remarks This is to avoid manipulating the DOM directly - use Prosemirror state. Avoids re-rendering the entire document
        * @param {String} className - The CSS class to add to the AI highlights
        * @returns {Boolean} - True if the highlight style was updated
        */
@@ -93,14 +94,12 @@ export const AiPlugin = Extension.create({
         const { doc } = state;
         const positions = [];
 
-        // First, collect all positions where we need to delete nodes
         doc.descendants((node, pos) => {
           if (node.type.name === nodeName) {
             positions.push(pos);
           }
         });
 
-        // If no nodes found, return false
         if (positions.length === 0) {
           return false;
         }
@@ -131,7 +130,7 @@ export const AiPlugin = Extension.create({
           return {
             decorations: DecorationSet.empty,
             highlightColor: '#6366f1',  // Indigo color, matches AiLayer
-            customClass: null, // For storing custom class like pulse animation
+            customClass: null, // Pulse animation class spot (later)
           };
         },
         apply(tr, oldState, _, newEditorState) {
