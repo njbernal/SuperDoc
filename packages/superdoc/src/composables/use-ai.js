@@ -124,11 +124,7 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    * @param {Boolean} value - Whether to show the AI layer
    */
   const initAiLayer = (value = true) => {
-    if (showAiLayer.__v_isRef) {
-      showAiLayer.value = value;
-    } else {
-      console.warn('showAiLayer is not a ref in initAiLayer');
-    }
+    showAiLayer.value = value;
   };
 
   /**
