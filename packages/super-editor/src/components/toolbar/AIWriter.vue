@@ -235,7 +235,6 @@ const handleDone = () => {
   setTimeout(() => {
     props.editor.commands.removeAiMark('aiAnimationMark');
     // Remove the highlight when we're done
-    //@todo: confirm we need this
     emitAiHighlight('remove');
   }, 1000);
 };
@@ -295,7 +294,8 @@ const handleSubmit = async () => {
     console.error('AI generation error:', error);
     isError.value = error.message || 'An error occurred';
   } finally {
-    promptText.value = ''; // Clear the input after submission
+    // Clear the input after submission
+    promptText.value = '';
     // Only disable track changes if we enabled it (in suggesting mode)
     if (isInSuggestingMode.value) {
       props.editor.commands.disableTrackChanges();
