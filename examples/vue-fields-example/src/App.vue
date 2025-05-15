@@ -21,6 +21,9 @@ const init = (fileToLoad) => {
     // Enable pagination
     pagination: true,
 
+    // Enable annotation import
+    annotations: true,
+
     document: fileToLoad ? { data: fileToLoad } : sampleDocument,
 
     // Initialize the toolbar
@@ -64,10 +67,12 @@ const restoreSnapshot = () => {
   }
 }
 
-const SAMPLE_FIELD_ID = '123';
+const SAMPLE_HTML_FIELD_ID = '123';
+const SAMPLE_TEXT_FIELD_ID = '456';
+
 const replaceField = () => {
   const field = fieldAnnotationHelpers.findFieldAnnotationsByFieldId(
-    SAMPLE_FIELD_ID,
+    SAMPLE_HTML_FIELD_ID,
     editor.value.state,
   );
 
@@ -89,10 +94,20 @@ const setViewing = () => {
 const getHTMLField = () => {
   return {
     displayLabel: 'My placeholder field',
-    fieldId: SAMPLE_FIELD_ID,
+    fieldId: SAMPLE_HTML_FIELD_ID,
     type: 'html',
     fieldType: 'HTMLINPUT',
     fieldColor: '#000099',
+  };
+};
+
+const getTextField = () => {
+  return {
+    displayLabel: 'My text field',
+    fieldId: SAMPLE_TEXT_FIELD_ID,
+    type: 'text',
+    fieldType: 'TEXTINPUT',
+    fieldColor: '#990000',
   };
 };
 
@@ -101,8 +116,24 @@ const addField = (field) => {
   editor.value.commands.addFieldAnnotationAtSelection(field);
 }
 
+const exportDocx = () => {
+  superdoc.value?.export();
+};
+
 const onDragStart = (event) => {
-  const field = getHTMLField();
+
+  const getField = (id) => {
+    switch (id) {
+      case 'html-field':
+        return getHTMLField();
+      case 'text-field':
+        return getTextField();
+      default:
+        return null;
+    }
+  }
+
+  const field = getField(event.target.id);
   event.dataTransfer.setData('fieldAnnotation', JSON.stringify({ sourceField: field }));
 };
 
@@ -117,17 +148,16 @@ onMounted(() => init());
 
     <div id="toolbar" class="my-custom-toolbar"></div>
     <div class="editor-and-button">
-      <div class="editor-buttons" style="margin-right: 10px;">
-        <div class="draggable-field" draggable="true" @dragstart="onDragStart">HTML field</div>
+      <div class="editor-buttons fields" style="margin-right: 10px;">
+        <div class="draggable-field" draggable="true" @dragstart="onDragStart" id="html-field">HTML field</div>
+        <div class="draggable-field" draggable="true" @dragstart="onDragStart" id="text-field">TEXT field</div>
       </div>
       <div id="editor" class="main-editor"></div>
       <div class="editor-buttons">
         <UploadFile :update-file="handleFileUpdate" />
-        <button class="custom-button" @click="addField">Insert '123' field</button>
-
         <button class="custom-button" @click="saveSnapshot">Save state</button>
         <button class="custom-button" @click="restoreSnapshot" :disabled="!snapshot">Restore state</button>
-        <button class="custom-button" @click="replaceField">Replace '123' field</button>
+        <button class="custom-button" @click="replaceField">Update HTML field content</button>
         <textarea
           id="custom-html"
           class="custom-textarea"
@@ -135,14 +165,20 @@ onMounted(() => init());
           value="<p>Custom <b>Node</b> Content</p>"
         ></textarea>
 
+        <br />
         <button class="custom-button" @click="setEditable">Set editable</button>
         <button class="custom-button" @click="setViewing">Set viewing</button>
+        <br />
+        <button class="custom-button" @click="exportDocx">Export docx</button>
       </div>
     </div>
   </div>
 </template>
 
 <style>
+.fields > div {
+  margin-bottom: 10px;
+}
 textarea {
   margin-left: 10px;
 }
