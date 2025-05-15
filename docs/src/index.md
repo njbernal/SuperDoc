@@ -87,7 +87,7 @@ const config = {
   // Required: A DOM element ID to render superdoc into
   selector: '#superdoc',
 
-  // Optional: Initial document mode: viewing, editing. Defaults to viewing
+  // Optional: Initial document mode: viewing, suggesting,editing. Defaults to editing
   documentMode: 'editing',
 
   // Optional: User role: editor, suggester, viewer. Defaults to editor
@@ -220,8 +220,9 @@ superdoc.off('ready', myReadyHandler);
 // Export the document as DOCX
 await superdoc.export();
 
-// Switch between viewing and editing modes
+// Switch between viewing, suggesting, and editing modes
 superdoc.setDocumentMode('viewing');
+superdoc.setDocumentMode('suggesting');
 superdoc.setDocumentMode('editing');
 
 // Get a list of HTML strings (one per DOCX editor)
