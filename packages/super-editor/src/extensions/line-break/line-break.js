@@ -2,17 +2,20 @@ import { Node, Attribute } from '@core/index.js';
 
 export const LineBreak = Node.create({
   name: 'lineBreak',
-
   group: 'inline',
-
   inline: true,
+  marks: '',
+  defining: true,
+  selectable: false,
+  content: '',
+  atom: true,
 
   parseDOM() {
     return [{ tag: 'br' }];
   },
 
   renderDOM() {
-    return ['br', {}, 0];
+    return ['br', {}];
   },
 });
 
@@ -20,14 +23,28 @@ export const HardBreak = Node.create({
   name: 'hardBreak',
   group: 'inline',
   inline: true,
+  selectable: false,
+  atom: true,
 
   addOptions() {
     return {
       htmlAttributes: {
-        contentEditable: false,
+        contentEditable: 'false',
         lineBreakType: 'page',
-        style: 'display: none;',
       },
+    }
+  },
+
+  addAttributes() {
+    return {
+      pageBreakSource: {
+        rendered: false,
+        default: null,
+      },
+      pageBreakType: {
+        default: null,
+        rendered: false,
+      }
     }
   },
 
@@ -35,7 +52,7 @@ export const HardBreak = Node.create({
     return [{ tag: 'span' }];
   },
 
-  renderDOM({ node, htmlAttributes }) {
-    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
-  },
+  renderDOM({ htmlAttributes }) {
+    return ['span', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
+  }
 });

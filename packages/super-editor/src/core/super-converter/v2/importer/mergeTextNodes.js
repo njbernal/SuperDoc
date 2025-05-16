@@ -1,3 +1,4 @@
+import { marks } from 'prosemirror-schema-basic';
 import { objectIncludes } from '../../../utilities/objectIncludes.js';
 
 export const mergeTextNodes = (nodes) => {
@@ -51,7 +52,10 @@ const canMergeTextNodes = (nodeA, nodeB) => {
   }
 
   for (let i = 0; i < marksA.length; i++) {
-    if (marksA[i].type !== marksB[i].type || !areAttrsEqual(marksA[i].attrs, marksB[i].attrs)) {
+    if (!marksA[i].attrs) marksA[i].attrs = {};
+    if (!marksB[i].attrs) marksB[i].attrs = {};
+
+    if (marksA[i].type !== marksB[i].type || Object.keys(marksA[i].attrs).length !== Object.keys(marksB[i].attrs).length || !areAttrsEqual(marksA[i].attrs, marksB[i].attrs)) {
       return false;
     }
   }

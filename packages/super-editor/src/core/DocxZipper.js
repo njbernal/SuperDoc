@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { getContentTypesFromXml } from './super-converter/helpers.js';
+import { CONTENT_TYPES } from './super-converter/exporter-docx-defs.js';
 
 /**
  * Class to handle unzipping and zipping of docx files
@@ -32,7 +33,7 @@ class DocxZipper {
    * docProps/core.xml
    * docProps/app.xml
    * */
-  async getDocxData(file) {
+  async getDocxData(file, isNode = false) {
     const extractedFiles = await this.unzip(file);
     const files = Object.entries(extractedFiles.files);
 
@@ -48,18 +49,25 @@ class DocxZipper {
           content,
         });
       } else if (zipEntry.name.startsWith('word/media') && zipEntry.name !== 'word/media/') {
-        const blob = await zipEntry.async('blob');
 
-        // Create an Object of media Uint8Arrays for collaboration
-        // These will be shared via ydoc
+        // If we are in node, we need to convert the buffer to base64
+        if (isNode) {
+          const buffer = await zipEntry.async('nodebuffer');
+          const fileBase64 = buffer.toString('base64');
+          mediaObjects[zipEntry.name] = fileBase64;
+        }
 
-        const extension = this.getFileExtension(zipEntry.name);
-        const fileBase64 = await zipEntry.async('base64');
-        this.mediaFiles[zipEntry.name] = `data:image/${extension};base64,${fileBase64}`;
+        // If we are in the browser, we can use the base64 directly
+        else {
+          const blob = await zipEntry.async('blob');
+          const extension = this.getFileExtension(zipEntry.name);
+          const fileBase64 = await zipEntry.async('base64');
+          this.mediaFiles[zipEntry.name] = `data:image/${extension};base64,${fileBase64}`;
 
-        const file = new File([blob], zipEntry.name, { type: blob.type });
-        const imageUrl = URL.createObjectURL(file);
-        this.media[zipEntry.name] = imageUrl;
+          const file = new File([blob], zipEntry.name, { type: blob.type });
+          const imageUrl = URL.createObjectURL(file);
+          this.media[zipEntry.name] = imageUrl;
+        }
       } else if (zipEntry.name.startsWith('word/fonts') && zipEntry.name !== 'word/fonts/') {
         const uint8array = await zipEntry.async('uint8array');
         this.fonts[zipEntry.name] = uint8array;
@@ -76,17 +84,18 @@ class DocxZipper {
   /**
    * Update [Content_Types].xml with extensions of new Image annotations
    */
-  async updateContentTypes(unzippedOriginalDocx, media) {
+  async updateContentTypes(docx, media) {
     const newMediaTypes = Object.keys(media).map((name) => {
       return this.getFileExtension(name);
     });
 
     const contentTypesPath = '[Content_Types].xml';
-    const contentTypesXml = await unzippedOriginalDocx.file(contentTypesPath).async('string');
+    const contentTypesXml = await docx.file(contentTypesPath).async('string');
     let typesString = '';
 
     const defaultMediaTypes = getContentTypesFromXml(contentTypesXml);
 
+    // Update media types in content types
     const seenTypes = new Set();
     for (let type of newMediaTypes) {
       // Current extension already presented in Content_Types
@@ -97,11 +106,32 @@ class DocxZipper {
       typesString += newContentType;
       seenTypes.add(type);
     }
+  
+    // Update for comments
+    if (docx.files['word/comments.xml']) {
+      const commentsDef = `<Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" />`;
+      if (!contentTypesXml.includes(commentsDef)) typesString += commentsDef;
+    };
 
+    if (docx.files['word/commentsExtended.xml']) {
+      const commentsExtendedDef = `<Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml" />`;
+      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
+    };
+
+    if (docx.files['word/commentsIds.xml']) {
+      const commentsIdsDef = `<Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml" />`;
+      if (!contentTypesXml.includes(commentsIdsDef)) typesString += commentsIdsDef;
+    };
+
+    if (docx.files['word/commentsExtensible.xml']) {
+      const commentsExtendedDef = `<Override PartName="/word/commentsExtensible.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml" />`;
+      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
+    };
+  
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
-
     const updatedContentTypesXml = contentTypesXml.replace(beginningString, `${beginningString}${typesString}`);
-    unzippedOriginalDocx.file(contentTypesPath, updatedContentTypesXml);
+
+    docx.file(contentTypesPath, updatedContentTypesXml);
   }
 
   async unzip(file) {
@@ -109,9 +139,7 @@ class DocxZipper {
     return zip;
   }
 
-  async updateZip({ docx, updatedDocs, originalDocxFile, media, fonts }) {
-    const isHeadless = navigator?.isHeadless;
-
+  async updateZip({ docx, updatedDocs, originalDocxFile, media, fonts, isHeadless }) {
     // We use a different re-zip process if we have the original docx vs the docx xml metadata
     let zip;
 
@@ -134,13 +162,18 @@ class DocxZipper {
    */
   async exportFromCollaborativeDocx(docx, updatedDocs, media, fonts) {
     const zip = new JSZip();
+
+    // Rebuild original files
     for (const file of docx) {
-      let content = file.content;
-      if (file.name in updatedDocs) {
-        content = updatedDocs[file.name];
-      }
+      const content = file.content;
       zip.file(file.name, content);
-    }
+    };
+
+    // Replace updated docs
+    Object.keys(updatedDocs).forEach((key) => {
+      const content = updatedDocs[key];
+      zip.file(key, content);
+    });
 
     Object.keys(media).forEach((name) => {
       const binaryData = Buffer.from(media[name], 'base64');

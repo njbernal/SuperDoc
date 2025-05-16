@@ -1,5 +1,5 @@
 <script setup>
-import { ref, getCurrentInstance, onMounted, onDeactivated } from 'vue';
+import { ref, getCurrentInstance, onMounted, onDeactivated, nextTick } from 'vue';
 import { throttle } from './helpers.js';
 import ButtonGroup from './ButtonGroup.vue';
 
@@ -18,11 +18,27 @@ const getFilteredItems = (position) => {
 
 onMounted(() => {
   window.addEventListener('resize', onResizeThrottled);
+  window.addEventListener('keydown', onKeyDown);
 });
 
 onDeactivated(() => {
   window.removeEventListener('resize', onResizeThrottled);
+  window.removeEventListener('keydown', onKeyDown);
 });
+
+const onKeyDown = async (e) => {
+  if (e.metaKey && e.key === 'f') {
+    e.preventDefault();
+    const searchItem = proxy.$toolbar.getToolbarItemByName('search');
+    if (searchItem) {
+      searchItem.expand.value = true;
+      await nextTick();
+      if (searchItem.inputRef.value) {
+        searchItem.inputRef.value.focus();
+      }
+    }
+  }
+}
 
 const onWindowResized = async () => {
   await proxy.$toolbar.onToolbarResize();
@@ -68,11 +84,13 @@ const handleCommand = ({ item, argument }) => {
   padding: 4px 16px;
   box-sizing: border-box;
 }
-@media (max-width: 1120px) {
+
+@media (max-width: 1280px) {
   .superdoc-toolbar-group-side {
     min-width: auto !important;
   }
 }
+
 @media (max-width: 768px) {
   .superdoc-toolbar {
     padding: 4px 10px;

@@ -8,8 +8,10 @@ import { TextIndent } from './text-indent/index.js';
 import { LineHeight } from './line-height/index.js';
 import { FormatCommands } from './format-commands/index.js';
 import { DropCursor } from './dropcursor/index.js';
+import { Gapcursor } from './gapcursor/index.js';
 import { Collaboration } from './collaboration/index.js';
 import { CollaborationCursor } from './collaboration-cursor/index.js';
+import { AiPlugin, AiMark, AiAnimationMark } from './ai/index.js';
 
 // Nodes extensions
 import { Document } from './document/index.js';
@@ -31,6 +33,10 @@ import { FieldAnnotation, fieldAnnotationHelpers } from './field-annotation/inde
 import { Image } from './image/index.js';
 import { BookmarkStart } from './bookmarks/index.js';
 import { Mention } from './mention/index.js';
+import { PageNumber, TotalPageCount } from './page-number/index.js';
+import { ShapeContainer } from './shape-container/index.js';
+import { ShapeTextbox } from './shape-textbox/index.js';
+import { ContentBlock } from './content-block/index.js';
 
 // Marks extensions
 import { TextStyle } from './text-style/text-style.js';
@@ -41,36 +47,61 @@ import { Highlight } from './highlight/index.js';
 import { Strike } from './strike/index.js';
 import { Link } from './link/index.js';
 import { TrackInsert, TrackDelete, TrackFormat } from './track-changes/index.js';
+import { CommentsMark } from './comment/index.js';
 
 // Plugins
-import { DecorationClick } from './decoration-click/index.js';
 import { CommentsPlugin } from './comment/index.js';
 import { Placeholder } from './placeholder/index.js';
 import { PopoverPlugin } from './popover-plugin/index.js';
-import { TrackChanges } from "./track-changes/index.js";
-import { Pagination } from "./pagination/index.js";
+import { TrackChanges } from './track-changes/index.js';
+import { Pagination } from './pagination/index.js';
+import { LinkedStyles } from './linked-styles/linked-styles.js';
+import { Search } from './search/index.js';
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
 
-const getRichTextExtensions = () => [
-  Bold,
-  Color,
-  Document,
-  History,
-  Italic,
-  Link,
-  Paragraph,
-  Strike,
-  Text,
-  TextStyle,
-  Underline,
-  DecorationClick,
-  Placeholder,
-  PopoverPlugin,
-  Mention,
-  Highlight,
-];
+const getRichTextExtensions = () => {
+  return [
+    Bold,
+    BulletList,
+    Color,
+    Document,
+    FontFamily,
+    FontSize,
+    History,
+    Heading,
+    Italic,
+    ListItem,
+    LineHeight,
+    Link,
+    OrderedList,
+    Paragraph,
+    HardBreak,
+    Strike,
+    Text,
+    TextAlign,
+    TextIndent,
+    TextStyle,
+    Underline,
+    Placeholder,
+    PopoverPlugin,
+    Mention,
+    Highlight,
+    FormatCommands,
+    Table,
+    TableRow,
+    TableCell,
+    TableHeader,
+    FieldAnnotation,
+    DropCursor,
+    TrackInsert,
+    TrackDelete,
+    TrackFormat,
+    AiPlugin,
+    Image,
+  ];
+};
 
 const getStarterExtensions = () => {
   return [
@@ -83,7 +114,7 @@ const getStarterExtensions = () => {
     Document,
     FontFamily,
     FontSize,
-    // History,
+    History,
     Heading,
     Italic,
     ListItem,
@@ -102,8 +133,8 @@ const getStarterExtensions = () => {
     TextStyle,
     Underline,
     FormatCommands,
-    DecorationClick,
     CommentsPlugin,
+    Gapcursor,
     Table,
     TableRow,
     TableCell,
@@ -119,13 +150,24 @@ const getStarterExtensions = () => {
     TrackInsert,
     TrackDelete,
     TrackFormat,
+    CommentsMark,
     Pagination,
-    Highlight
+    Highlight,
+    LinkedStyles,
+    AiPlugin,
+    AiMark,
+    AiAnimationMark,
+    PageNumber,
+    TotalPageCount,
+    ShapeContainer,
+    ShapeTextbox,
+    ContentBlock,
+    Search,
   ];
 };
 
 export {
-  // History,
+  History,
   Heading,
   Document,
   Text,
@@ -153,8 +195,8 @@ export {
   TextStyle,
   LineHeight,
   FormatCommands,
-  DecorationClick,
   CommentsPlugin,
+  Gapcursor,
   Table,
   TableRow,
   TableCell,
@@ -173,7 +215,12 @@ export {
   TrackInsert,
   TrackDelete,
   TrackFormat,
+  CommentsMark,
   trackChangesHelpers,
   getStarterExtensions,
   getRichTextExtensions,
+  AiMark,
+  AiAnimationMark,
+  AiPlugin,
+  Search,
 };

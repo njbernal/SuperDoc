@@ -5,6 +5,8 @@ import { getNodeType } from './helpers/getNodeType.js';
 import { getExtensionConfigField } from './helpers/getExtensionConfigField.js';
 import { getSchemaTypeByName } from './helpers/getSchemaTypeByName.js';
 import { callOrGet } from './utilities/callOrGet.js';
+import { isExtensionRulesEnabled } from './helpers/isExtentionRulesEnabled.js';
+import { inputRulesPlugin } from './InputRule.js';
 
 /**
  * ExtensionService is the main class to work with extensions.
@@ -16,11 +18,23 @@ export class ExtensionService {
 
   extensions;
 
+  externalExtensions = [];
+
   splittableMarks = [];
 
-  constructor(extensions, editor) {
+  constructor(extensions, userExtensions, editor) {
     this.editor = editor;
-    this.extensions = ExtensionService.getResolvedExtensions(extensions);
+
+    this.externalExtensions = userExtensions || [];
+
+    this.externalExtensions = this.externalExtensions.map((extension) => {
+      return {
+        ...extension,
+        isExternal: true,
+      };
+    });
+  
+    this.extensions = ExtensionService.getResolvedExtensions([...extensions, ...this.externalExtensions]);
     this.schema = Schema.createSchemaByExtensions(this.extensions, editor);
     this.#setupExtensions();
   }
@@ -104,6 +118,8 @@ export class ExtensionService {
     const editor = this.editor;
     const extensions = ExtensionService.sortByPriority([...this.extensions].reverse());
 
+    const inputRules = [];
+
     const allPlugins = extensions
       .map((extension) => {
         const context = {
@@ -129,6 +145,12 @@ export class ExtensionService {
 
         plugins.push(keymap(bindingsObject));
 
+        const addInputRules = getExtensionConfigField(extension, 'addInputRules', context);
+
+        if (isExtensionRulesEnabled(extension, editor.options.enableInputRules) && addInputRules) {
+          inputRules.push(...addInputRules());
+        }
+
         const addPmPlugins = getExtensionConfigField(extension, 'addPmPlugins', context);
 
         if (addPmPlugins) {
@@ -140,7 +162,13 @@ export class ExtensionService {
       })
       .flat();
 
-    return [...allPlugins];
+    return [
+      inputRulesPlugin({
+        editor,
+        rules: inputRules,
+      }),
+      ...allPlugins
+    ];
   }
 
   /**

@@ -14,7 +14,7 @@ export const Mention = Node.create({
   addOptions() {
     return {
       htmlAttributes: {
-        class: 'superdoc-at-mention',
+        class: 'super-editor-mention',
       },
     };
   },
@@ -22,9 +22,10 @@ export const Mention = Node.create({
   parseDOM() {
     return [
       {
-        tag: `span[data-type="${this.name}"]`,
+        tag: `span[data-type="${this.name || this.email}"]`,
         getAttrs: (node) => ({
           name: node.getAttribute('name') || null,
+          email: node.getAttribute('email') || null,
         }),
       },
     ];
@@ -35,14 +36,15 @@ export const Mention = Node.create({
 
     return [
       'span',
-      Attribute.mergeAttributes({ 'data-type': this.name }, this.options.htmlAttributes, htmlAttributes),
-      `@${name}`,
+      Attribute.mergeAttributes({ 'data-type': this.name || this.email, }, this.options.htmlAttributes, htmlAttributes),
+      `@${name ? name : email}`,
     ];
   },
 
   addAttributes() {
     return {
       name: { default: null },
+      email: { default: null },
     };
   },
 });

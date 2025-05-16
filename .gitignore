@@ -29,9 +29,13 @@ lerna-debug.log*
 *.sln
 *.sw?
 
-# VuePress
-.vuepress/.temp
-.vuepress/.cache
-.vuepress/dist
+# VitePress
+.vitepress/.temp
+.vitepress/.cache
+.vitepress/dist
 
 packages/super-editor/src/tests/data/*
+
+# Playwright
+test-results
+*.tgz

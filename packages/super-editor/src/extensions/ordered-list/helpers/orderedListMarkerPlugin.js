@@ -1,12 +1,11 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 
-export function orderedListMarker(options = {}) {
+export function orderedListMarker(editor) {
   return new Plugin({
     key: new PluginKey('orderedListMarker'),
 
     appendTransaction: (transactions, oldState, newState) => {
       let docChanges = transactions.some((tr) => tr.docChanged) && !oldState.doc.eq(newState.doc);
-
       if (!docChanges) {
         return;
       }
@@ -19,11 +18,12 @@ export function orderedListMarker(options = {}) {
       }
 
       let changed = false;
-      Array.from(listItemsByList).forEach(([list, items]) => {
+      Array.from(listItemsByList).forEach(([syncId, items]) => {
+        const list = items[0];
         let listItems = items;
-        let isBulletList = list.type.name === 'bulletList';
-        let listHasSyncId = !!list.attrs.syncId; // Lists with syncId?
-        let listHasItemsWithoutAttrs = list.childCount !== listItems.length;
+        let isBulletList = list.node.type.name === 'bulletList';
+        let listHasSyncId = !!list.node.attrs.syncId; // Lists with syncId?
+        let listHasItemsWithoutAttrs = list.node.childCount !== listItems.length;
 
         // If the list was toggled to a bullet list,
         // then remove ordered marker attrs from list items.
@@ -73,8 +73,8 @@ export function orderedListMarker(options = {}) {
           let { node, pos } = listItem;
           let { lvlText, listLevel, listNumberingType } = node.attrs;
 
+          if (!Array.isArray(currentAttrs.listLevel)) currentAttrs.listLevel = JSON.parse(currentAttrs.listLevel);
           let newListLevel = [...currentAttrs.listLevel.slice(0, -1), currentAttrs.listLevel.at(-1) + 1];
-
           let equalMarkerAttrs =
             lvlText === currentAttrs.lvlText &&
             listNumberingType === currentAttrs.listNumberingType &&
@@ -105,6 +105,7 @@ export function orderedListMarker(options = {}) {
         });
       });
 
+      tr.setMeta('orderedListMarker', true);
       return changed ? tr : null;
     },
   });
@@ -122,8 +123,10 @@ function getOrderedListItemsByList(state) {
     if (isListItem && hasListLevel && hasLvlText && orderedType) {
       let $pos = doc.resolve(pos);
       let list = $pos.parent;
-      if (!map.get(list)) map.set(list, []);
-      let items = map.get(list);
+
+      const key = `${list.attrs.listId}, ${node.attrs.listLevel.slice(0, -1)}`;
+      if (!map.get(key)) map.set(key, []);
+      let items = map.get(key);
       items.push({ node, pos });
     }
   });

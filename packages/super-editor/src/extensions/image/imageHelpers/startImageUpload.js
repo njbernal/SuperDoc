@@ -1,8 +1,6 @@
 import { ImagePlaceholderPluginKey, findPlaceholder } from './imagePlaceholderPlugin.js';
 import { handleImageUpload as handleImageUploadDefault } from './handleImageUpload.js';
-import { getImageFileDimensions } from './getImageFileDimensions.js';
-
-const MAX_WIDTH = 600;
+import { processUploadedImage } from './processUploadedImage.js';
 
 export const startImageUpload = async ({ editor, view, file }) => {
   // Handler from config or default
@@ -20,17 +18,16 @@ export const startImageUpload = async ({ editor, view, file }) => {
 
   let width;
   let height;
-
   try {
-    ({ width, height } = await getImageFileDimensions(file));
+    // Will process the image file in place
+    const processedImageResult = await processUploadedImage(file, editor);
+    width = processedImageResult.width;
+    height = processedImageResult.height;
+    file = processedImageResult.file;
   } catch (err) {
+    console.warn('Error processing image:', err);
     return;
   }
-
-  let pmElement = editor.element?.querySelector('.ProseMirror');
-  let maxWidth = pmElement?.clientWidth ?? MAX_WIDTH;
-
-  ({ width, height } = resizeImageIfNeeded(width, height, maxWidth));
 
   // A fresh object to act as the ID for this upload
   let id = {};
@@ -93,14 +90,3 @@ export const startImageUpload = async ({ editor, view, file }) => {
     },
   );
 };
-
-function resizeImageIfNeeded(width, height, maxWidth) {
-  if (width > maxWidth) {
-    let scale = maxWidth / width;
-    let newWidth = maxWidth;
-    let newHeight = Math.round(height * scale);
-    return { width: newWidth, height: newHeight };
-  }
-
-  return { width, height };
-}

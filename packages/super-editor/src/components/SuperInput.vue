@@ -1,6 +1,6 @@
 <script setup>
 import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
-import { Editor } from '@vue-3/index.js';
+import { Editor } from '@/index.js';
 import { getRichTextExtensions, Placeholder } from '@extensions/index.js';
 
 const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
@@ -39,6 +39,7 @@ const onTransaction = ({ editor, transaction }) => {
 
 const onFocus = ({ editor, transaction }) => {
   isFocused.value = true;
+  updateUsersState();
   emit('focus', { editor, transaction });
 };
 
@@ -63,6 +64,15 @@ const initEditor = async () => {
   });
 };
 
+const handleFocus = () => {
+  isFocused.value = true;
+  editor.value?.view?.focus();
+};
+
+const updateUsersState = () => {
+  editor.value?.setOptions({ users: props.users });
+};
+
 onMounted(() => {
   initEditor();
 });
@@ -74,26 +84,35 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor" :class="{ 'super-input-active': isFocused }">
+  <div class="super-editor super-input" :class="{ 'super-input-active': isFocused }" @click.stop.prevent="handleFocus">
     <div id="currentContent" style="display: none" v-html="modelValue"></div>
-    <div ref="editorElem" class="editor-element"></div>
+    <div ref="editorElem" class="editor-element super-editor__element"></div>
   </div>
 </template>
 
 <style scoped>
 .super-editor {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   border: 1px solid #999;
   outline: none;
-  height: 100%;
-  width: 100%;
   transition: border 0.2s ease;
+  background-color: white;
 }
+
+.super-input {
+  font-size: 13px;
+  font-family: inherit;
+}
+
 .editor-element {
   height: 100%;
   width: 100%;
   border: none;
   outline: none;
 }
+
 .super-input-active {
   border: 1px solid #007bff;
   outline: none;

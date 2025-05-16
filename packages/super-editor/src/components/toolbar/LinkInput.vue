@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch, getCurrentInstance } from 'vue';
+import { ref, computed, watch, getCurrentInstance, onMounted } from "vue";
+import { toolbarIcons } from './toolbarIcons.js';
 
 const emit = defineEmits(['submit', 'cancel']);
 const props = defineProps({
@@ -65,12 +66,23 @@ const isAnchor = computed(() => props.href.startsWith('#'));
 const openLink = () => {
   window.open(url.value, '_blank');
 };
+
 watch(
   () => props.href,
   (newVal) => {
-    rawUrl.value = newVal;
+  rawUrl.value = newVal;
   },
 );
+
+const focusInput = () => {
+  const input = document.querySelector('.link-input-ctn input');
+  if (!input) return;
+  input.focus();
+};
+
+onMounted(() => {
+  if (props.showInput) focusInput();
+});
 </script>
 
 <template>
@@ -81,7 +93,7 @@ watch(
 
     <div v-if="showInput && !isAnchor">
       <div class="input-row">
-        <i class="fas fa-link input-icon"></i>
+        <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input
           type="text"
           placeholder="Type or paste a link"
@@ -90,11 +102,17 @@ watch(
           @keydown.enter.stop.prevent="handleSubmit"
           @keydown="urlError = false"
         />
-        <i :class="{ disabled: !validUrl }" class="fal fa-external-link-alt open-link-icon" @click="openLink"></i>
+
+        <div 
+          class="open-link-icon" 
+          :class="{ disabled: !validUrl }" 
+          v-html="toolbarIcons.openLink" 
+          @click="openLink">
+        </div>
       </div>
       <div class="input-row link-buttons">
         <button class="remove-btn" @click="handleRemove" v-if="href">
-          <i class="fal fa-times"></i>
+          <div class="remove-btn__icon" v-html="toolbarIcons.removeLink"></div>
           Remove
         </button>
         <button class="submit-btn" v-if="showApply" @click="handleSubmit" :class="{ 'disable-btn': isDisabled }">
@@ -110,6 +128,13 @@ watch(
 </template>
 
 <style scoped>
+.link-input-ctn :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
 .open-link-icon {
   margin-left: 10px;
   width: 30px;
@@ -119,14 +144,22 @@ watch(
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
   transition: all 0.2s ease;
   cursor: pointer;
 }
+
 .open-link-icon:hover {
   color: #1355ff;
   background-color: white;
   border: 1px solid #dbdbdb;
 }
+
+.open-link-icon :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+
 .disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -137,9 +170,15 @@ watch(
   justify-content: flex-end;
   margin-top: 10px;
 }
-.remove-btn i {
-  margin-right: 5px;
+
+.remove-btn__icon {
+  display: inline-flex;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-right: 4px;
 }
+
 .link-buttons button {
   margin-left: 5px;
 }
@@ -160,13 +199,17 @@ watch(
   font-weight: 600;
   margin-bottom: 10px;
 }
+
 .input-icon {
   position: absolute;
   transform: rotate(45deg);
   left: 25px;
-  font-size: 12px;
+  width: auto;
+  height: 12px;
   color: #999;
+  pointer-events: none;
 }
+
 .hasBottomMargin {
   margin-bottom: 1em;
 }
@@ -178,8 +221,12 @@ watch(
   padding: 1em;
   border-radius: 5px;
   background-color: #fff;
+  box-sizing: border-box;
 }
 .remove-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: 10px 16px;
   border-radius: 8px;
   outline: none;
@@ -190,11 +237,15 @@ watch(
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #ebebeb;
+  box-sizing: border-box;
 }
 .remove-btn:hover {
   background-color: #dbdbdb;
 }
 .submit-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: 10px 16px;
   border-radius: 8px;
   outline: none;
@@ -205,6 +256,7 @@ watch(
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 .submit-btn:hover {
   background-color: #0d47c1;
@@ -219,13 +271,13 @@ watch(
 .input-row input {
   font-size: 13px;
   flex-grow: 1;
-  padding: 5px;
   padding: 10px;
   border-radius: 8px;
   padding-left: 32px;
   box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
   color: #666;
   border: 1px solid #ddd;
+  box-sizing: border-box;
 }
 .input-row input:active,
 .input-row input:focus {

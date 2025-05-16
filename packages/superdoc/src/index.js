@@ -1,9 +1,5 @@
-import { Superdoc } from './core/index.js';
-import { SuperConverter, Editor, getRichTextExtensions } from '@harbour-enterprises/super-editor';
-import { createZip } from '@harbour-enterprises/super-editor/zipper';
-
+import { SuperConverter, Editor, getRichTextExtensions, createZip } from '@harbour-enterprises/super-editor';
 import {
-  SuperInput,
   helpers as superEditorHelpers,
   fieldAnnotationHelpers,
   trackChangesHelpers,
@@ -11,8 +7,8 @@ import {
 import { DOCX, PDF, HTML, getFileObject, compareVersions } from '@harbour-enterprises/common';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
 
+export * from './core/index.js';
 export {
-  Superdoc,
   BlankDOCX,
   getFileObject,
   compareVersions,
@@ -23,9 +19,6 @@ export {
   DOCX,
   PDF,
   HTML,
-
-  // Components
-  SuperInput,
 
   // Helpers
   superEditorHelpers,

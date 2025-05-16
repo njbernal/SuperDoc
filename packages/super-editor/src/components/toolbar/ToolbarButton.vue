@@ -1,6 +1,7 @@
 <script setup>
 import ToolbarButtonIcon from './ToolbarButtonIcon.vue';
 import { ref, computed } from 'vue';
+import { toolbarIcons } from './toolbarIcons.js';
 
 const emit = defineEmits(['buttonClick', 'textSubmit']);
 
@@ -74,6 +75,10 @@ const onFontSizeInput = (event) => {
   let { value } = event.target;
   inlineTextInput.value = value.replace(/[^0-9]/g, '');
 };
+
+const caretIcon = computed(() => {
+  return active.value ? toolbarIcons.dropdownCaretUp : toolbarIcons.dropdownCaretDown;
+});
 </script>
 
 <template>
@@ -116,12 +121,14 @@ const onFontSizeInput = (event) => {
         />
       </span>
 
-      <i
+      <div 
         v-if="hasCaret"
-        class="dropdown-caret fas"
-        :class="active ? 'fa-caret-up' : 'fa-caret-down'"
+        class="dropdown-caret"
+        v-html="caretIcon"
         :style="{ opacity: disabled ? 0.6 : 1 }"
-      ></i>
+        >
+      </div>
+
     </div>
   </div>
 </template>
@@ -139,7 +146,6 @@ const onFontSizeInput = (event) => {
   height: 32px;
   max-height: 32px;
   border-radius: 6px;
-
   overflow-y: visible;
   display: flex;
   align-items: center;
@@ -149,6 +155,7 @@ const onFontSizeInput = (event) => {
   transition: all 0.2s ease-out;
   user-select: none;
   position: relative;
+  box-sizing: border-box;
 }
 .toolbar-button:hover {
   background-color: #dbdbdb;
@@ -212,20 +219,38 @@ const onFontSizeInput = (event) => {
   padding: 2px 0;
   outline: none;
   border: 1px solid #d8dee5;
+  box-sizing: border-box;
 }
 
 .button-text-input::placeholder {
   color: #47484a;
 }
 
-@media (max-width: 1120px) {
-  .doc-mode {
-    .button-label {
-      display: none;
-    }
-    .toolbar-icon {
-      margin-right: 5px;
-    }
+.dropdown-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: auto;
+  width: 10px;
+  height: 10px;
+}
+
+@media (max-width: 1280px) {
+  .toolbar-item--doc-mode .button-label {
+    display: none;
+  }
+
+  .toolbar-item--doc-mode .toolbar-icon {
+    margin-right: 5px;
+  }
+
+  .toolbar-item--linked-styles {
+    width: auto !important;
+  }
+  
+  .toolbar-item--linked-styles .button-label {
+    display: none;
   }
 }
 </style>

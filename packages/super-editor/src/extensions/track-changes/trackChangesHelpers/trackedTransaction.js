@@ -5,7 +5,8 @@ import { replaceAroundStep } from './replaceAroundStep.js';
 import { addMarkStep } from './addMarkStep.js';
 import { removeMarkStep } from './removeMarkStep.js';
 import { TrackDeleteMarkName } from '../constants.js';
-import { findMark } from './documentHelpers.js';
+import { findMark } from '@core/helpers/index.js';
+import { CommentsPluginKey } from '../../comment/comments-plugin.js';
 
 /**
  * Tracked transaction to track changes.
@@ -21,7 +22,8 @@ export const trackedTransaction = ({ tr, state, user }) => {
   if (
     !tr.steps.length ||
     (tr.meta && !Object.keys(tr.meta).every((meta) => onlyInputTypeMeta.includes(meta))) ||
-    notAllowedMeta.includes(tr.getMeta('inputType'))
+    notAllowedMeta.includes(tr.getMeta('inputType')) ||
+    tr.getMeta(CommentsPluginKey) // Skip if it's a comment transaction.
   ) {
     return tr;
   }

@@ -19,6 +19,7 @@ export const useToolbarItem = (options) => {
   const type = options.type;
   const name = ref(options.name);
   const command = options.command;
+  const noArgumentCommand = options.noArgumentCommand;
   const icon = ref(options.icon);
   const group = ref(options.group || 'center');
   const allowWithoutEditor = ref(options.allowWithoutEditor);
@@ -41,9 +42,11 @@ export const useToolbarItem = (options) => {
   const parentItem = ref(null);
 
   // icon properties
-  const overflowIcon = ref(options.overflowIcon);
   const iconColor = ref(options.iconColor);
   const hasCaret = ref(options.hasCaret);
+
+  // dropdown properties
+  const dropdownStyles = ref(options.dropdownStyles);
 
   // tooltip properties
   const tooltip = ref(options.tooltip);
@@ -59,6 +62,12 @@ export const useToolbarItem = (options) => {
 
   const markName = ref(options.markName);
   const labelAttr = ref(options.labelAttr);
+  
+  // Dropdown item
+  const selectedValue = ref(options.selectedValue);
+  const dropdownValueKey = ref(options.dropdownValueKey);
+  
+  const inputRef = ref(options.inputRef || null);
 
   const nestedOptions = ref([]);
   if (options.options) {
@@ -106,6 +115,7 @@ export const useToolbarItem = (options) => {
     name,
     type,
     command,
+    noArgumentCommand,
     icon,
     tooltip,
     group,
@@ -121,9 +131,9 @@ export const useToolbarItem = (options) => {
     minWidth,
     argument,
     parentItem,
-    overflowIcon,
     iconColor,
     hasCaret,
+    dropdownStyles,
     tooltipVisible,
     tooltipTimeout,
     defaultLabel,
@@ -136,6 +146,9 @@ export const useToolbarItem = (options) => {
     childItem,
 
     allowWithoutEditor,
+    dropdownValueKey,
+    selectedValue,
+    inputRef
   };
 
   return {

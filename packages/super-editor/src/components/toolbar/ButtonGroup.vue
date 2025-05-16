@@ -23,15 +23,15 @@ const props = defineProps({
 });
 
 const currentItem = ref(null);
-// Matches media query from Superdoc.vue
+// Matches media query from SuperDoc.vue
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 const styleMap = {
   left: {
-    minWidth: '150px',
+    minWidth: '140px',
     justifyContent: 'flex-start',
   },
   right: {
-    minWidth: '150px',
+    minWidth: '140px',
     justifyContent: 'flex-end',
   },
   default: {
@@ -70,7 +70,8 @@ const closeDropdowns = () => {
 
 const handleSelect = (item, option) => {
   closeDropdowns();
-  emit('command', { item, argument: option.label });
+  const value = item.dropdownValueKey.value ? option[item.dropdownValueKey.value] : option.label;
+  emit('command', { item, argument: value });
 };
 
 const handleClickOutside = (e) => {
@@ -103,12 +104,21 @@ const handleClickOutside = (e) => {
         class="toolbar-button toolbar-dropdown"
         @select="(key, option) => handleSelect(item, option)"
         @clickoutside="handleClickOutside"
+        :style="item.dropdownStyles.value"
       >
-        <ToolbarButton
-          :toolbar-item="item"
-          @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
-          @buttonClick="handleToolbarButtonClick(item)"
-        />
+        <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">
+          <template #trigger>
+            <ToolbarButton
+              :toolbar-item="item"
+              @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
+              @buttonClick="handleToolbarButtonClick(item)"
+            />
+          </template>
+          <div>
+            {{ item.tooltip }}
+            <span v-if="item.disabled.value">(disabled)</span>
+          </div>
+        </n-tooltip>
       </n-dropdown>
 
       <n-tooltip trigger="hover" v-else-if="isButton(item)">

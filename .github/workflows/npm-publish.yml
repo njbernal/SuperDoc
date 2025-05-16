@@ -1,12 +1,20 @@
-name: Publish Superdoc Package to npm on Tag
+name: Publish SuperDoc Package to npm
 
 on:
   push:
     branches:
       - main
     paths-ignore:
-      - 'README.md'
+      - '*.md'
+      - 'LICENSE'
       - '.github/**'
+      - '.vscode/**'
+      - '.gitignore'
+      - '*.toml'
+      - '*.yml'
+      - '*.yaml'
+      - '.prettierrc'
+
   workflow_dispatch:
 
 permissions:
@@ -14,13 +22,24 @@ permissions:
   actions: write
 
 jobs:
-  publish:
-    if: github.actor != 'github-actions[bot]'
+  run-unit-tests:
+    uses: ./.github/workflows/run-unit-tests.yml
+
+  release:
+    # Block the workflow until the run-unit-tests job is complete
+    needs: run-unit-tests
+    # Only run if:
+    # 1. It's a workflow_dispatch event OR
+    # 2. It's a push event AND commit message doesn't contain [skip ci] or release
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.SUPERDOC_PAT }}
 
       - name: Setup node
@@ -29,31 +48,17 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
 
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
-
-      - name: Configure Git Credentials
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update versions
-        run: |
-          cd packages/superdoc
-          cp ../../README.md README.md
-          npm version patch
-          git add .
-          git commit -m "[skip ci] Bump version"
-          git push
-        env:
-          GIT_TOKEN: ${{ secrets.SUPERDOC_PAT }}
+      - name: Install dependencies
+        run: npm install
 
-      - name: Publish
-        run: |
-          cd packages/superdoc
-          npm publish --access public
+      - name: Release
+        working-directory: packages/superdoc
         env:
+          GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run release

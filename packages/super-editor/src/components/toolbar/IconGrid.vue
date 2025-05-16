@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, computed } from 'vue';
+import IconGridRow from './IconGridRow.vue';
+import DropIcon from '@harbour-enterprises/common/icons/droplet-slash.svg?raw';
 
 const emit = defineEmits(['select', 'clickoutside']);
 const props = defineProps({
@@ -7,80 +8,94 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  customIcons: {
+    type: Array,
+    required: false,
+  },
   activeColor: {
     type: Object,
     required: false,
   },
+  hasNoneIcon: {
+    type: Boolean,
+    required: false,
+  }
 });
 
-const handleClick = (option) => {
-  emit('select', option.value);
+const handleSelect = (option) => {
+  emit('select', option);
 };
 
-const isActive = computed(() => (option) => {
-  if (!props.activeColor.value) return false;
-  return props.activeColor.value === option.value;
-});
-
-const getCheckStyle = (color, optionIndex) => {
-  const lightColors = ['#FFFFFF', '#FAFF09'];
-  if (optionIndex === 5 || lightColors.includes(color)) return { color: '#000' };
-  return { color: '#FFF' };
-};
-
-onMounted(() => {
-  const isMatrix = props.icons.every((row) => Array.isArray(row));
-  if (!isMatrix) throw new Error('icon props must be 2d array');
-});
 </script>
 
 <template>
-  <div class="option-grid-ctn">
-    <div class="option-row" v-for="(row, rowIndex) in icons" :key="rowIndex">
-      <div
-        class="option"
-        v-for="(option, optionIndex) in row"
-        :key="optionIndex"
-        @click.stop.prevent="handleClick(option)"
-      >
-        <i :class="option.icon" :style="option.style"></i>
-        <i
-          class="fas fa-check active-check"
-          :style="getCheckStyle(option.value, optionIndex)"
-          v-if="isActive(option)"
-        ></i>
-      </div>
+  <div class="options-grid-wrap">
+    <div 
+      v-if="hasNoneIcon"
+      class="none-option"
+      @click="handleSelect('none')"
+    >
+      <span 
+        v-html="DropIcon"
+        class="none-icon"
+      ></span>
+      None
+    </div>
+    <div class="option-grid-ctn">
+      <IconGridRow
+        :icons="icons"
+        :active-color="activeColor"
+        @select="handleSelect"
+      />
+
+      <template v-if="customIcons.flat().length">
+        <span class="option-grid-ctn__subtitle">Custom colors</span>
+
+        <IconGridRow
+          :icons="customIcons"
+          :active-color="activeColor"
+          @select="handleSelect"
+        />
+      </template>
     </div>
   </div>
 </template>
 
 <style scoped>
+.options-grid-wrap {
+  padding: 5px;
+  border-radius: 5px;
+}
+.none-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  &:hover {
+    opacity: 0.65;
+  }
+}
+.none-icon {
+  width: 16px;
+}
 .option-grid-ctn {
   display: flex;
   flex-direction: column;
-  padding: 5px;
-  border-radius: 5px;
   background-color: #fff;
   z-index: 3;
-}
-.option-row {
-  display: flex;
-  flex-direction: row;
-}
-.option {
-  border-radius: 50%;
-  cursor: pointer;
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  box-sizing: border-box;
+  &__subtitle {
+    padding: 3px;
+    font-size: 12px;
+    font-weight: 600;
+
+  }
 }
 
-.option:hover {
-  background-color: #dbdbdb;
-}
-.active-check {
-  position: absolute;
+.option-grid-ctn :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
 }
 </style>

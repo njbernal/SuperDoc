@@ -1,446 +1,370 @@
 <script setup>
-import { computed, toRefs, ref, getCurrentInstance, onMounted } from 'vue';
+import { computed, toRefs, ref, getCurrentInstance, onMounted, nextTick } from 'vue';
 import { NDropdown, NTooltip, NSelect } from 'naive-ui';
 import { storeToRefs } from 'pinia';
-import { useCommentsStore } from '@/stores/comments-store';
-import { useSuperdocStore } from '@/stores/superdoc-store';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
 import { SuperInput } from '@harbour-enterprises/super-editor';
-import useSelection from '@/helpers/use-selection';
-import useComment from '@/components/CommentsLayer/use-comment';
-import Avatar from '@/components/general/Avatar.vue';
+import { superdocIcons } from '@superdoc/icons.js';
+import { isAllowed, PERMISSIONS } from '@superdoc/core/collaboration/permissions.js';
+import useSelection from '@superdoc/helpers/use-selection';
+import useComment from '@superdoc/components/CommentsLayer/use-comment';
+import Avatar from '@superdoc/components/general/Avatar.vue';
 import InternalDropdown from './InternalDropdown.vue';
-import falCheckIcon from '@/assets/fontawesome/light/check.svg?raw';
+import CommentHeader from './CommentHeader.vue';
+import CommentInput from './CommentInput.vue';
 
-const superdocStore = useSuperdocStore();
-const commentsStore = useCommentsStore();
-const { COMMENT_EVENTS } = commentsStore;
-const {
-  getConfig,
-  activeComment,
-  pendingComment,
-  floatingCommentsOffset,
-  suppressInternalExternal,
-  skipSelectionUpdate,
-} = storeToRefs(commentsStore);
-const { areDocumentsReady, getDocument } = superdocStore;
-const { selectionPosition, activeZoom, documentScroll } = storeToRefs(superdocStore);
-const { proxy } = getCurrentInstance();
-
+const emit = defineEmits(['click-outside', 'ready', 'dialog-exit']);
 const props = defineProps({
-  user: {
-    type: Object,
-    required: false,
-  },
-  users: {
-    type: Array,
-    required: false,
-  },
-  data: {
+  comment: {
     type: Object,
     required: true,
+  },
+  autoFocus: {
+    type: Boolean,
+    default: false,
   },
   parent: {
-    type: Object,
+  type: Object,
     required: false,
-  },
-  currentDocument: {
-    type: Object,
-    required: true,
   },
 });
 
-const emit = defineEmits(['click-outside', 'ready', 'dialog-exit']);
-const currentElement = ref(null);
-const isInternal = ref(props.data.isInternal);
-const isEditing = ref(false);
-const currentComment = ref('');
+const { proxy } = getCurrentInstance();
+const role = proxy.$superdoc.config.role;
+const commentCreator = props.comment.email;
+
+const superdocStore = useSuperdocStore();
+const commentsStore = useCommentsStore();
+
+/* Comments store refs */
+const { addComment, cancelComment, deleteComment, removePendingComment, } = commentsStore;
+const {
+  suppressInternalExternal,
+  getConfig,
+  activeComment,
+  floatingCommentsOffset,
+  pendingComment,
+  currentCommentText,
+  isDebugging,
+  editingCommentId,
+  editorCommentPositions,
+} = storeToRefs(commentsStore);
+
+const { activeZoom } = storeToRefs(superdocStore);
+
+const isInternal = ref(true);
 const isFocused = ref(false);
+const commentInput = ref(null);
+const commentDialogElement = ref(null);
 
-const addComment = () => {
-  const value = currentComment.value;
-  if (!value) return;
+const isActiveComment = computed(() => activeComment.value === props.comment.commentId);
+const showButtons = computed(() => {
+  return !getConfig.readOnly
+    && isActiveComment.value
+    && !props.comment.resolvedTime
+    && editingCommentId.value !== props.comment.commentId;
+});
 
-  // create the new comment for the conversation
-  const comment = useComment({
-    user: {
-      email: props.user.email,
-      name: props.user.name,
-    },
-    timestamp: new Date(),
-    comment: value,
-  });
+const showSeparator = computed(() => (index) => {
+  if (showInputSection.value && index === comments.value.length - 1) return true;
+  return comments.value.length > 1
+    && index !== comments.value.length - 1
+});
 
-  // If this conversation is pending addition, add to the document first
-  if (pendingComment.value && pendingComment.value.conversationId === props.data.conversationId) {
-    const newConversation = { ...pendingComment.value };
+const showInputSection = computed(() => {
+  return !getConfig.readOnly
+    && isActiveComment.value
+    && !props.comment.resolvedTime
+    && editingCommentId.value !== props.comment.commentId;
+});
 
-    const parentBounds = props.parent.getBoundingClientRect();
+const comments = computed(() => {
+  const parentComment = props.comment;
+  return commentsStore.commentsList
+    .filter((c) => {
+      const isThreadedComment = c.parentCommentId === parentComment.commentId;
+      const isThisComment = c.commentId === props.comment.commentId;
+      return isThreadedComment || isThisComment;
+    })
+    .sort((a, b) => a.commentId === props.comment.commentId && a.createdTime - b.createdTime);
+});
 
-    const selection = pendingComment.value.selection.getValues();
-    selection.selectionBounds.top = selection.selectionBounds.top; // - parentBounds.top;
-    selection.selectionBounds.bottom = selection.selectionBounds.bottom; // - parentBounds.top;
+const isInternalDropdownDisabled = computed(() => {
+  if (props.comment.resolvedTime) return true;
+  return getConfig.value.readOnly;
+});
 
-    const bounds = selection.selectionBounds;
-    if (bounds.top > bounds.bottom) {
-      const temp = bounds.top;
-      bounds.top = bounds.bottom;
-      bounds.bottom = temp;
-    }
-    if (bounds.left > bounds.right) {
-      const temp = bounds.left;
-      bounds.left = bounds.right;
-      bounds.right = temp;
-    }
-    newConversation.selection = useSelection(selection);
-    newConversation.comments.push(comment);
+const isEditingThisComment = computed(() => (comment) => {
+  return editingCommentId.value === comment.commentId;
+});
 
-    // Suppress click if the selection was made by the super-editor
-    newConversation.suppressClick = isSuppressClick(pendingComment.value.selection);
-    newConversation.thread = newConversation.conversationId;
+const shouldShowInternalExternal = computed(() => {
+  if (!proxy.$superdoc.config.isInternal) return false;
+  return !suppressInternalExternal.value && !props.comment.trackedChange;
+});
 
-    // Remove the pending comment
-    pendingComment.value = null;
-    skipSelectionUpdate.value = true;
+const hasTextContent = computed(() => {
+  return currentCommentText.value && currentCommentText.value !== "<p></p>";
+});
 
-    const editor = proxy.$superdoc.activeEditor;
-    if (editor) createNewEditorComment({ conversation: newConversation, editor });
+const setFocus = () => {
+  if (props.comment.resolvedTime) return;
+  activeComment.value = props.comment.commentId;
+  props.comment.setActive(proxy.$superdoc);
+};
 
-    newConversation.isInternal = isInternal.value;
-    props.currentDocument.conversations.push(newConversation);
-    proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
-  } else {
-    props.data.comments.push(comment);
-    proxy.$superdoc.broadcastComments(COMMENT_EVENTS.ADD, props.data.getValues());
-  }
+const handleClickOutside = (e) => {
+  if (e.target.classList.contains('n-dropdown-option-body__label')) return;
+  if (e.target.classList.contains('comment-highlight')) return;
+  if (activeComment.value === props.comment.commentId) {
+    floatingCommentsOffset.value = 0;
+    emit('dialog-exit');
+  };
 
-  currentComment.value = '';
-  emit('dialog-exit');
   activeComment.value = null;
 };
 
-const createNewEditorComment = ({ conversation, editor }) => {
-  editor.commands.insertComment(conversation);
+const handleAddComment = () => {
+  const options = {
+    documentId: props.comment.fileId,
+    isInternal: pendingComment.value ? pendingComment.value.isInternal : isInternal.value,
+    parentCommentId: pendingComment.value ? null : props.comment.commentId,
+  };
+
+  if (pendingComment.value) {
+    const selection = pendingComment.value.selection.getValues();
+    options.selection = selection;
+  };
+
+  const comment = commentsStore.getPendingComment(options);
+  addComment({ superdoc: proxy.$superdoc, comment })
 };
 
-const isSuppressClick = (selection) => {
-  return selection.source === 'super-editor' ? true : false;
-};
-function formatDate(timestamp) {
-  const date = new Date(timestamp);
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const meridiem = hours >= 12 ? 'PM' : 'AM';
-  const formattedHours = hours % 12 || 12;
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const month = monthNames[date.getMonth()];
-  const day = date.getDate();
-  const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')}${meridiem}`;
-  const formattedDate = `${formattedTime} ${month} ${day}`;
-  return formattedDate;
+const handleReject = () => {
+  if (props.comment.trackedChange) {
+    props.comment.resolveComment({
+      email: superdocStore.user.email,
+      name: superdocStore.user.name,
+      superdoc: proxy.$superdoc,
+    });
+    proxy.$superdoc.activeEditor.commands.rejectTrackedChangeById(props.comment.commentId);
+  } else {
+    commentsStore.deleteComment({ superdoc: proxy.$superdoc, commentId: props.comment.commentId });
+  };
+
+  nextTick(() => {
+    commentsStore.lastUpdate = new Date();
+    activeComment.value = null;
+  });
 }
+
+const handleResolve = () => {
+  if (props.comment.trackedChange) {
+    proxy.$superdoc.activeEditor.commands.acceptTrackedChangeById(props.comment.commentId);
+  }
+
+  props.comment.resolveComment({
+    email: superdocStore.user.email,
+    name: superdocStore.user.name,
+    superdoc: proxy.$superdoc,
+  });
+
+  nextTick(() => {
+    commentsStore.lastUpdate = new Date();
+    activeComment.value = null;
+  });
+};
+
+const handleOverflowSelect = (value, comment) => {
+  switch (value) {
+    case 'edit':
+      currentCommentText.value = comment.commentText;
+      activeComment.value = comment.commentId;
+      editingCommentId.value = comment.commentId;
+      break;
+    case 'delete':
+      deleteComment({ superdoc: proxy.$superdoc, commentId: comment.commentId });
+      break;
+  };
+};
+
+const handleCommentUpdate = (comment) => {
+  editingCommentId.value = null;
+  comment.setText({ text: currentCommentText.value, superdoc: proxy.$superdoc });
+  removePendingComment(proxy.$superdoc);
+}
+
+const getTrackedChangeType = (comment) => {
+  const { trackedChangeType } = comment;
+  switch (trackedChangeType) {
+    case 'trackInsert':
+      return 'Add';
+    case 'trackDelete':
+      return 'Delete';
+    case 'both':
+      return 'both';
+    case 'trackFormat':
+      return 'Format';
+    default:
+      return '';
+  };
+}
+
+const handleInternalExternalSelect = (value) => {
+  const isPendingComment = !!pendingComment.value;
+  const isInternal = value.toLowerCase() === 'internal';
+
+  if (!isPendingComment) props.comment.setIsInternal({ isInternal: isInternal, superdoc: proxy.$superdoc });
+  else pendingComment.value.isInternal = isInternal;
+};
 
 const getSidebarCommentStyle = computed(() => {
   const style = {};
+
+
+  const comment = props.comment;
   if (isActiveComment.value) {
     style.backgroundColor = 'white';
-    style.zIndex = 10;
+    style.zIndex = 50;
   }
 
-  if (!props.data.comments.length && currentElement.value) {
-    const selectionBounds = props.data.selection.getContainerLocation(props.parent);
-    const bounds = props.data.selection.selectionBounds;
-    const parentTop = props.parent?.getBoundingClientRect()?.top || 0;
-    const currentBounds = currentElement.value.getBoundingClientRect();
-    style.top = bounds.top * activeZoom.value + 'px';
+  if (pendingComment.value && pendingComment.value.commentId === props.comment.commentId) {
+    const top = Math.max(96, pendingComment.value.selection?.selectionBounds.top - 50);
+    style.position = 'absolute';
+    style.top = top + 'px';
   }
 
   return style;
 });
 
-const cleanConversations = () => {
-  if (props.data.comments.length) return;
-  // if (!pendingComment.value) selectionPosition.value = null;
-  const id = props.data.conversationId;
-  pendingComment.value = null;
-  props.currentDocument.removeConversation(id);
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.DELETED, id);
+const getProcessedDate = (timestamp) => {
+  const isString = typeof timestamp === 'string';
+  return isString ? new Date(timestamp).getTime() : timestamp;
 };
 
-const handleClickOutside = (e) => {
-  if (e.target.classList.contains('n-dropdown-option-body__label')) return;
-  if (activeComment.value === props.data.conversationId) {
-    floatingCommentsOffset.value = 0;
+const handleCancel = (comment) => {
+  editingCommentId.value = null;
+  cancelComment(proxy.$superdoc);
+};
 
-    emit('dialog-exit');
-    if (e.target.dataset.id) activeComment.value = e.target.dataset.id;
-    else if (!e.target.dataset.threadId) activeComment.value = null;
-    cleanConversations();
+const usersFiltered = computed(() => {
+  const users = proxy.$superdoc.users;
+
+  if (props.comment.isInternal === true) {
+    return users.filter((user) => user.access?.role === 'internal');
   }
-};
 
-const setFocus = () => {
-  activeComment.value = props.data.conversationId;
-};
-
-const markDone = () => {
-  const convo = getCurrentConvo();
-  convo.markDone(props.user.email, props.user.name);
-  props.currentDocument.removeConversation(convo.conversationId);
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.RESOLVED, convo.getValues());
-};
-
-const cancelComment = () => {
-  activeComment.value = null;
-  pendingComment.value = null;
-  if (!props.data.comments.length) {
-    cleanConversations();
-  }
-};
-
-const isActiveComment = computed(() => {
-  return activeComment.value === props.data.conversationId;
+  return users;
 });
-
-const setConversationInternal = (state) => {
-  isInternal.value = state === 'internal';
-  const convo = getCurrentConvo();
-  if (convo) {
-    convo.isInternal = isInternal.value;
-    proxy.$superdoc.broadcastComments(COMMENT_EVENTS.UPDATE, convo.getValues());
-  }
-};
-
-const overflowOptions = [
-  {
-    label: 'Edit',
-    key: 'edit',
-  },
-  {
-    label: 'Delete',
-    key: 'delete',
-  },
-  {
-    label: 'Quote',
-    key: 'delete',
-    disabled: true,
-  },
-];
-
-const getCurrentConvo = () => {
-  return props.currentDocument.conversations.find((c) => c.conversationId === props.data.conversationId);
-};
-
-const handleOverflowSelection = (index, item, key) => {
-  switch (key) {
-    case 'edit':
-      handleEdit(item);
-      break;
-    case 'delete':
-      handleDelete(index);
-      break;
-    case 'quote':
-      handleQuote();
-      break;
-  }
-};
-
-const handleEdit = (item) => {
-  currentComment.value = item.comment;
-  isEditing.value = item;
-};
-
-const handleDelete = (index) => {
-  const convo = getCurrentConvo();
-  if (!convo) return;
-
-  if (convo.comments.length === 1) {
-    props.currentDocument.removeConversation(convo.conversationId);
-  } else {
-    convo.comments.splice(index, 1);
-  }
-
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.DELETED, convo.conversationId);
-};
-
-const handleQuote = () => {
-  // TODO: Implement quote functionality
-  console.log('Quote');
-};
-
-const updateComment = (item) => {
-  item.comment = currentComment.value;
-  currentComment.value = '';
-  const convo = getCurrentConvo();
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.UPDATE, convo.getValues());
-  isEditing.value = false;
-};
-
-const showButtons = computed(() => {
-  return !getConfig.readOnly && isActiveComment.value && !props.data.markedDone && !isEditing.value;
-});
-const showInputSection = computed(() => {
-  return !getConfig.readOnly && isActiveComment.value && !props.data.markedDone && !isEditing.value;
-});
-const showSeparator = computed(() => (index) => {
-  return props.data.comments.length > 1 && index !== props.data.comments.length - 1;
-});
-
-/**
- * Mark a tracked change as accepted or rejected. Only available in SuperEditor docs.
- */
-const markAccepted = () => {
-  const convo = getCurrentConvo();
-  const editor = props.currentDocument.getEditor();
-  editor.commands.acceptTrackedChange(convo.comments[0]);
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.CHANGE_ACCEPTED, convo.getValues());
-
-  const document = getDocument(convo.documentId);
-  document.conversations = document.conversations.filter((c) => c.conversationId !== convo.conversationId);
-};
-const markRejected = () => {
-  const convo = getCurrentConvo();
-  const editor = props.currentDocument.getEditor();
-  editor.commands.rejectTrackedChange(convo.comments[0]);
-  proxy.$superdoc.broadcastComments(COMMENT_EVENTS.CHANGE_REJECTED, convo.getValues());
-
-  const document = getDocument(convo.documentId);
-  document.conversations = document.conversations.filter((c) => c.conversationId !== convo.conversationId);
-};
 
 onMounted(() => {
-  emit('ready', props.data.conversationId, currentElement);
-});
+  if (props.autoFocus) {
+    nextTick(() => setFocus());
+  };
+
+  nextTick(() => {
+    const commentId = props.comment.importedId !== undefined ? props.comment.importedId : props.comment.commentId;
+    emit('ready', { commentId, elementRef: commentDialogElement });
+  });
+})
 </script>
 
 <template>
   <div
-    v-if="areDocumentsReady"
     class="comments-dialog"
-    :class="{ 'is-active': isActiveComment }"
-    @click.stop.prevent="setFocus"
-    :id="data.conversationId"
-    :style="getSidebarCommentStyle"
+    :class="{ 'is-active': isActiveComment, 'is-resolved': props.comment.resolvedTime }"
     v-click-outside="handleClickOutside"
-    ref="currentElement"
+    @click.stop.prevent="setFocus"
+    :style="getSidebarCommentStyle"
+    ref="commentDialogElement"
   >
-    <!-- internal/external dropdown when conversation has comments -->
-    <div v-if="!pendingComment && !data.isTrackedChange && !suppressInternalExternal" class="existing-internal-input">
+
+    <div v-if="shouldShowInternalExternal" class="existing-internal-input">
       <InternalDropdown
+        @click.stop.prevent
         class="internal-dropdown"
-        :state="props.data.isInternal ? 'internal' : 'external'"
-        @select="setConversationInternal($event)"
+        :is-disabled="isInternalDropdownDisabled"
+        :state="comment.isInternal ? 'internal' : 'external'"
+        @select="handleInternalExternalSelect"
       />
     </div>
 
-    <!-- Comments -->
-    <div v-for="(item, index) in data.comments" class="comment-container">
-      <div class="card-section comment-header">
-        <div class="comment-header-left">
-          <div class="avatar">
-            <Avatar :user="item.user" />
+    <!-- Comments and their threaded (sub) comments are rendered here -->
+    <div v-for="(comment, index) in comments" :key="index" class="conversation-item">
+      <CommentHeader
+        :config="getConfig"
+        :timestamp="getProcessedDate(comment.createdTime)"
+        :comment="comment"
+        @resolve="handleResolve"
+        @reject="handleReject"
+        @overflow-select="handleOverflowSelect($event, comment)"
+      />
+
+      <div class="card-section comment-body" v-if="comment.trackedChange">
+        <div class="tracked-change">
+          <div class="tracked-change">
+            <div v-if="comment.trackedChangeType === 'trackFormat'">
+              <span class="change-type">Format: </span><span class="tracked-change-text">{{ comment.trackedChangeText }}</span>
+            </div>
+            <div v-if="comment.trackedChangeText && comment.trackedChangeType !== 'trackFormat'">
+              <span class="change-type">Added: </span><span class="tracked-change-text">{{ comment.trackedChangeText }}</span>
+            </div>
+            <div v-if="comment.deletedText && comment.trackedChangeType !== 'trackFormat'">
+              <span class="change-type">Deleted: </span><span class="tracked-change-text">{{ comment.deletedText }}</span>
+            </div>
           </div>
-          <div class="user-info">
-            <div class="user-name">{{ item.user.name }}</div>
-            <div class="user-timestamp">{{ formatDate(item.timestamp) }}</div>
-          </div>
-        </div>
-
-        <!-- Tracked changes don't have resolution, only accept / reject -->
-        <div class="overflow-menu" v-if="data.isTrackedChange && index === 0">
-          <i class="fal fa-check" @click.stop.prevent="markAccepted" title="Accept change"> </i>
-          <i class="fal fa-times" @click.stop.prevent="markRejected" title="Reject change"> </i>
-        </div>
-
-        <!-- comment actions -->
-        <div class="overflow-menu" v-else>
-          <i
-            v-if="index === 0 && getConfig.allowResolve"
-            class="fal fa-check"
-            @click.stop.prevent="markDone"
-            title="Mark done and hide comment thread"
-          >
-          </i>
-
-          <!-- <n-dropdown
-              trigger="click"
-              :options="overflowOptions"
-              @select="handleOverflowSelection(index, item, $event)">
-                <i class="fal fa-ellipsis-v" title="More options"></i>
-          </n-dropdown> -->
         </div>
       </div>
 
-      <!-- Tracked change comment area -->
-      <div class="card-section comment-body" v-if="data.isTrackedChange && index === 0">
-        <div class="comment tracked-change" v-if="item.trackedChange?.insertion">
-          <span class="change-type">Add: </span>
-          {{ item.trackedChange.insertion }}
+      <!-- Show the comment text, unless we enter edit mode, then show an input and update buttons -->
+      <div class="card-section comment-body" v-if="!comment.trackedChange">
+        <div v-if="!isDebugging && !isEditingThisComment(comment)" class="comment" v-html="comment.commentText"></div>
+        <div v-else-if="isDebugging && !isEditingThisComment(comment)" class="comment">
+          {{ editorCommentPositions[comment.importedId !== undefined ? comment.importedId: comment.commentId]?.bounds }}
         </div>
-        <div class="comment tracked-change" v-if="item.trackedChange?.deletion">
-          <span class="change-type">Remove: </span>
-          {{ item.trackedChange.deletion }}
-        </div>
-      </div>
-
-      <!-- Comment area -->
-      <div class="card-section comment-body" v-else>
-        <div class="comment" v-if="item !== isEditing" v-html="item.comment"></div>
-
-        <div class="comment-editing" v-else-if="item === isEditing && !getConfig.readOnly">
-          <div class="comment-entry" :class="{ 'input-active': isFocused }">
-            <SuperInput
-              class="superdoc-field"
-              placeholder="Add a comment"
-              v-model="currentComment"
-              :users="superdocStore.users"
-              @focus="isFocused = true"
-              @blur="isFocused = false"
-            />
-          </div>
+        <div v-else class="comment-editing">
+          <CommentInput
+            :users="usersFiltered"
+            :config="getConfig"
+            :include-header="false"
+            :comment="comment"
+          />
           <div class="comment-footer">
-            <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
-            <button class="sd-button primary" @click.stop.prevent="updateComment(item)">Update</button>
+            <button class="sd-button" @click.stop.prevent="handleCancel(comment)">Cancel</button>
+            <button
+              class="sd-button primary"
+              @click.stop.prevent="handleCommentUpdate(comment)"
+              >
+                Update
+              </button>
           </div>
         </div>
       </div>
       <div class="comment-separator" v-if="showSeparator(index)"></div>
     </div>
 
-    <!-- New comment entry -->
-    <div class="input-section" v-if="showInputSection && !getConfig.readOnly">
-      <div class="comment-header">
-        <div class="comment-header-left">
-          <div class="avatar">
-            <Avatar :user="props.user" />
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ props.user.name }}</div>
-            <div class="user-timestamp"></div>
-          </div>
-        </div>
-      </div>
-      <div class="comment-entry" :class="{ 'input-active': isFocused }">
-        <SuperInput
-          class="superdoc-field"
-          placeholder="Add a comment"
-          v-model="currentComment"
-          :users="superdocStore.users"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
-        />
-      </div>
-      <InternalDropdown
-        class="internal-dropdown initial-internal-dropdown"
-        v-if="pendingComment && !suppressInternalExternal"
-        @select="setConversationInternal($event)"
+    <!-- This area is appended to a comment if adding a new sub comment -->
+    <div v-if="showInputSection && !getConfig.readOnly">
+      <CommentInput
+        ref="commentInput"
+        :users="usersFiltered"
+        :config="getConfig"
+        :comment="props.comment"
       />
+
+      <div class="comment-footer" v-if="showButtons && !getConfig.readOnly">
+        <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
+        <button
+          class="sd-button primary"
+          @click.stop.prevent="handleAddComment"
+          :disabled="!hasTextContent"
+          :class="{ disabled: !hasTextContent }">
+            Comment
+          </button>
+      </div>
     </div>
 
-    <!-- footer buttons -->
-    <div class="comment-footer" v-if="showButtons && !getConfig.readOnly">
-      <button class="sd-button" @click.stop.prevent="cancelComment">Cancel</button>
-      <button class="sd-button primary" @click.stop.prevent="addComment">Comment</button>
-    </div>
   </div>
 </template>
 
@@ -448,12 +372,21 @@ onMounted(() => {
 .change-type {
   font-style: italic;
   font-weight: 600;
+  font-size: 10px;
+  color: #555;
+}
+.tracked-change {
+  font-size: 12px;
+}
+.tracked-change-text {
+  color: #111;
 }
 .comment-separator {
   background-color: #dbdbdb;
   height: 1px;
   width: 100%;
-  margin: 15px 0;
+  margin: 10px 0;
+  font-weight: 400;
 }
 .existing-internal-input {
   margin-bottom: 10px;
@@ -462,7 +395,6 @@ onMounted(() => {
   margin-top: 10px;
 }
 .comments-dialog {
-  position: absolute;
   display: flex;
   flex-direction: column;
   padding: 10px 15px;
@@ -473,67 +405,12 @@ onMounted(() => {
   -moz-box-shadow: 0px 4px 12px 0px rgba(50, 50, 50, 0.15);
   box-shadow: 0px 4px 12px 0px rgba(50, 50, 50, 0.15);
   z-index: 5;
-  width: 300px;
+  max-width: 300px;
+  min-width: 200px;
+  width: 100%;
 }
 .is-active {
   z-index: 10;
-}
-.overflow-menu {
-  flex-shrink: 1;
-  display: flex;
-}
-
-.overflow-menu__icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 250ms ease;
-  padding: 3px;
-  margin-left: 2px;
-  cursor: pointer;
-}
-
-.overflow-menu__icon:hover {
-  background-color: #dbdbdb;
-}
-
-.overflow-menu__icon :deep(svg) {
-  max-width: 100%;
-  max-height: 100%;
-  display: block;
-  fill: currentColor;
-}
-.comment-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.comment-header-left {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.avatar {
-  margin-right: 10px;
-}
-.user-info {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-}
-.user-name {
-  font-weight: 600;
-  line-height: 1.2em;
-}
-.user-timestamp {
-  line-height: 1.2em;
-  font-size: 12px;
-  color: #999;
 }
 .input-section {
   margin-top: 10px;
@@ -546,9 +423,8 @@ onMounted(() => {
   font-size: 13px;
   margin: 10px 0;
 }
-.conversation-item {
-  border-bottom: 1px solid #dbdbdb;
-  padding-bottom: 10px;
+.is-resolved {
+  background-color: #f0f0f0;
 }
 .comment-footer {
   margin: 5px 0 5px;
@@ -565,12 +441,6 @@ onMounted(() => {
 }
 .comment-editing button {
   margin-left: 5px;
-}
-.comment-entry {
-  border-radius: 8px;
-  border: 1px solid #dbdbdb !important;
-  width: 100%;
-  transition: all 250ms ease;
 }
 .tracked-change {
   margin: 0;

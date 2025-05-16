@@ -1,8 +1,14 @@
 import { Node, Attribute } from '@core/index.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { generateDocxListAttributes, findParentNode } from '@helpers/index.js';
-import { orderedListSync as orderedListSyncPlugin } from './helpers/orderedListSyncPlugin.js';
+import { findParentNode } from '@helpers/index.js';
+import { orderedListSync as orderedListSyncPlugin, randomId } from './helpers/orderedListSyncPlugin.js';
 import { orderedListMarker as orderedListMarkerPlugin } from './helpers/orderedListMarkerPlugin.js';
+import { wrappingInputRule } from '../../core/inputRules/wrappingInputRule.js';
+
+/**
+ * Matches an ordered list to a 1. on input (or any number followed by a dot).
+ */
+const inputRegex = /^(\d+)\.\s$/;
 
 export const OrderedList = Node.create({
   name: 'orderedList',
@@ -18,6 +24,7 @@ export const OrderedList = Node.create({
       itemTypeName: 'listItem',
       htmlAttributes: {},
       keepMarks: true,
+      keepAttributes: false,
       listStyleTypes: ['decimal', 'lowerAlpha', 'lowerRoman'],
     };
   },
@@ -46,6 +53,11 @@ export const OrderedList = Node.create({
           };
         },
         // rendered: false,
+      },
+
+      listId: {
+        default: null,
+        render: false,
       },
 
       'list-style-type': {
@@ -88,9 +100,34 @@ export const OrderedList = Node.create({
       toggleOrderedList:
         () =>
         ({ commands }) => {
-          const attributes = generateDocxListAttributes('orderedList');
-          return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks, attributes);
+          return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks);
         },
+  
+      getCurrentList: () => ({ state }) => {
+        return findParentNode((node) => node.type.name === this.name)(state.selection);
+      },
+  
+      restartListNodes: (followingNodes, pos) => ({ tr, state }) => {      
+        let currentNodePos = pos
+        const nodes = followingNodes.map((node) => {
+          const resultNode = {
+            node,
+            pos: currentNodePos,
+          };
+
+          currentNodePos += node.nodeSize;
+          return resultNode;
+        });
+
+        nodes.forEach((item) => {
+          const { pos } = item
+          const newPos = tr.mapping.map(pos);
+
+          tr.setNodeMarkup(newPos, undefined, {});
+        });
+
+        return true;
+      },
 
       /**
        * Updates ordered list style type when sink or lift `listItem`.
@@ -99,7 +136,7 @@ export const OrderedList = Node.create({
       updateOrderedListStyleType:
         () =>
         ({ dispatch, state, tr }) => {
-          let list = findParentNode((node) => node.type.name === this.name)(state.selection);
+          let list = findParentNode((node) => node.type.name === this.name)(tr.selection);
 
           if (!list) {
             return true;
@@ -214,10 +251,31 @@ export const OrderedList = Node.create({
   },
 
   addPmPlugins() {
-    return [orderedListMarkerPlugin(), orderedListSyncPlugin()];
+    return [orderedListMarkerPlugin(this.editor), orderedListSyncPlugin()];
+  },
+
+  addInputRules() {
+    let inputRule = wrappingInputRule({
+      match: inputRegex,
+      type: this.type,
+      getAttributes: match => ({ start: +match[1] }),
+      joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
+    })
+
+    if (this.options.keepMarks || this.options.keepAttributes) {
+      inputRule = wrappingInputRule({
+        match: inputRegex,
+        type: this.type,
+        keepMarks: this.options.keepMarks,
+        keepAttributes: this.options.keepAttributes,
+        getAttributes: match => ({ start: +match[1], ...this.editor.getAttributes('textStyle') }),
+        joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
+        editor: this.editor,
+      })
+    }
+    return [
+      inputRule,
+    ];
   },
 });
 
-function randomId() {
-  return Math.floor(Math.random() * 0xffffffff).toString();
-}

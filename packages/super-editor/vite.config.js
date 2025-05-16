@@ -3,17 +3,27 @@ import { fileURLToPath, URL } from 'node:url'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import vue from '@vitejs/plugin-vue'
 
+import { version as superdocVersion } from '../superdoc/package.json';
+
 export default defineConfig(({ mode }) => {
   const plugins = [vue()];
 
   if (mode !== 'test') plugins.push(nodePolyfills());
 
-  
   return {
     plugins,
+    // Combined test configuration
     test: {
       globals: true,
       environment: 'jsdom',
+      exclude: [
+        '**/src/tests/e2e/**',
+        '**/*.spec.js',
+        '**/src/tests/playwright/**',
+      ],
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(superdocVersion),
     },
     optimizeDeps: {
       exclude: ['yjs', 'tippy.js']
@@ -29,20 +39,16 @@ export default defineConfig(({ mode }) => {
         external: [
           'vue',
           'yjs',
-          'tippy.js',
           'y-protocols',
-          '@fortawesome/fontawesome-free',
-          '@fortawesome/free-solid-svg-icons',
-          '@fortawesome/vue-fontawesome',
         ],
         input: {
           'super-editor': 'src/index.js',
           'editor': '@core/Editor',
-          'super-converter': '@core/super-converter/SuperConverter',
+          'converter': '@core/super-converter/SuperConverter',
           'docx-zipper': '@core/DocxZipper',
           'toolbar': '@components/toolbar/Toolbar.vue',
-          'super-input': '@components/SuperInput.vue',
-          'zipper': '@core/super-converter/zipper.js',
+          'file-zipper': '@core/super-converter/zipper.js',
+          'ai-writer': '@components/toolbar/AIWriter.vue',
         },
         output: {
           globals: {
@@ -50,21 +56,20 @@ export default defineConfig(({ mode }) => {
             'tippy.js': 'tippy',
           },
           manualChunks: {
-            'super-converter': ['@core/super-converter/SuperConverter'],
+            'converter': ['@core/super-converter/SuperConverter'],
             'editor': ['@core/Editor'],
             'docx-zipper': ['@core/DocxZipper'],
             'toolbar': ['@components/toolbar/Toolbar.vue'],
             'super-input': ['@components/SuperInput.vue'],
+            'file-zipper': ['@core/super-converter/zipper.js'],
+            'ai-writer': ['@components/toolbar/AIWriter.vue'],
           },
           entryFileNames: '[name].es.js',
           chunkFileNames: 'chunks/[name]-[hash].js'
         }
       },
-      minify: false,
-      sourcemap: true,
-      esbuild: {
-        drop: [],
-      },
+      minify: true,
+      sourcemap: false,
     },
     server: {
       port: 9096,
@@ -79,8 +84,8 @@ export default defineConfig(({ mode }) => {
         '@components': fileURLToPath(new URL('./src/components', import.meta.url)),
         '@helpers': fileURLToPath(new URL('./src/core/helpers', import.meta.url)),
         '@packages': fileURLToPath(new URL('../', import.meta.url)),
-        '@vue-3': fileURLToPath(new URL('./src/vue-3', import.meta.url)),
         '@converter': fileURLToPath(new URL('./src/core/super-converter', import.meta.url)),
+        '@tests': fileURLToPath(new URL('./src/tests', import.meta.url)),
       },
       extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     },

@@ -1,8 +1,8 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useCommentsStore } from '@/stores/comments-store';
-import CommentDialog from '@/components/CommentsLayer/CommentDialog.vue';
+import { useCommentsStore } from '@superdoc/stores/comments-store';
+import CommentDialog from '@superdoc/components/CommentsLayer/CommentDialog.vue';
 
 const commentsStore = useCommentsStore();
 const props = defineProps({
@@ -75,9 +75,7 @@ const getVisibleComments = computed(() => {
   <div class="comments-group" :style="getSidebarCommentStyle" @click="handleClick" v-if="!isExpanded && !isActiveGroup">
     <div class="group-collapsed">
       <div class="number-bubble">{{ getNumberOfConversations }}</div>
-      <!-- TODO
-      <i class="fal fa-comment comments-icon"></i> 
-      -->
+      <!-- TODO: icon -->
     </div>
   </div>
 

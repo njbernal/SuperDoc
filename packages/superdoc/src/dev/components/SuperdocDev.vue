@@ -2,18 +2,32 @@
 import '@harbour-enterprises/common/styles/common-styles.css';
 import { nextTick, onMounted, provide, ref, shallowRef } from 'vue';
 
-import { Superdoc } from '@core/index.js';
+import { SuperDoc } from '@superdoc/index.js';
 import { DOCX, PDF, HTML } from '@harbour-enterprises/common';
 import { BasicUpload, getFileObject } from '@harbour-enterprises/common';
 import { fieldAnnotationHelpers } from '@harbour-enterprises/super-editor';
+import { toolbarIcons } from '../../../../super-editor/src/components/toolbar/toolbarIcons';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
-import EditorInputs from './EditorInputs.vue';
 
 /* For local dev */
-let superdoc = shallowRef(null);
-let activeEditor = shallowRef(null);
+const superdoc = shallowRef(null);
+const activeEditor = shallowRef(null);
 
+const title = ref('initial title');
 const currentFile = ref(null);
+const commentsPanel = ref(null);
+const showCommentsPanel = ref(true);
+
+const urlParams = new URLSearchParams(window.location.search);
+const isInternal = urlParams.has('internal');
+const testUserEmail = urlParams.get('email') || 'user@superdoc.com';
+const testUserName = urlParams.get('name') || `SuperDoc ${Math.floor(1000 + Math.random() * 9000)}`;
+const userRole = urlParams.get('role') || 'editor';
+
+const user = {
+  name: testUserName,
+  email: testUserEmail,
+};
 
 const handleNewFile = async (file) => {
   // Generate a file url
@@ -26,10 +40,6 @@ const handleNewFile = async (file) => {
 };
 
 const init = async () => {
-  const user = {
-    name: 'Super Document Jr.',
-    email: 'user@harbourshare.com',
-  };
 
   let testId = 'document-123';
   // const testId = "document_6a9fb1e0725d46989bdbb3f9879e9e1b";
@@ -37,107 +47,108 @@ const init = async () => {
     superdocId: 'superdoc-dev',
     selector: '#superdoc',
     toolbar: 'toolbar',
-    // toolbarGroups: ['center'],
-    role: 'editor',
+    toolbarGroups: ['center'],
+    role: userRole,
     documentMode: 'editing',
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
+    rulers: false,
+    annotations: false,
+    isInternal,
+    telemetry: false,
+    // format: 'docx',
+    // html: '<p>Hello world</p>',
     // isDev: true,
-    user: {
-      name: 'Super Document Jr.',
-      email: 'user@harbourshare.com',
-    },
-    documents: [
-      {
-        data: currentFile.value,
-        id: testId,
-        // type: DOCX,
-        isNewFile: true,
-      },
+    user,
+    title: 'Test document',
+    users: [
+      { name: 'Nick Bernal', email: 'nick@harbourshare.com', access: 'internal' },
+      { name: 'Eric Doversberger', email: 'eric@harbourshare.com', access: 'external' },
     ],
+    document: {
+      data: currentFile.value,
+      id: testId,
+      isNewFile: true,
+    },
+    // documents: [
+    //   {
+    //     data: currentFile.value,
+    //     id: testId,
+    //     isNewFile: true,
+    //   },
+    // ],
     modules: {
       comments: {
-        // readOnly: true,
-        // allowResolve: false,
+        // comments: sampleComments,
+        overflow: true,
+        selector: 'comments-panel',
       },
-      'hrbr-fields': {},
+      toolbar: {
+        selector: 'toolbar',
+        toolbarGroups: ['left', 'center', 'right'],
+        // groups: {
+        //   center: ['bold'],
+        //   right: ['documentMode']
+        // },
+        excludeItems: [], // ['italic', 'bold'],
+      },
+      // 'hrbr-fields': {},
+
+      // To test this dev env with collaboration you must run a local collaboration server here.
       // collaboration: {
       //   url: 'ws://localhost:3050/docs/superdoc-id',
-      // }
+      //   token: 'token',
+      // },
+      ai: {
+        // Provide your Harbour API key here for direct endpoint access
+        // apiKey: 'test',
+        // Optional: Provide a custom endpoint for AI services
+        // endpoint: 'https://sd-dev-express-gateway-i6xtm.ondigitalocean.app/insights',
+      },
     },
     onEditorCreate,
     onContentError,
     // handleImageUpload: async (file) => url,
+    // Override icons.
+    toolbarIcons: {},
+    onCommentsUpdate,
+    onCommentsListChange: ({ isRendered }) => {
+      isCommentsListOpen.value = isRendered;
+    }
   };
 
-  superdoc.value = new Superdoc(config);
+  superdoc.value = new SuperDoc(config);
+  superdoc.value?.on('ready', () => {
+    superdoc.value.addCommentsList(commentsPanel.value);
+  });
+
+  // const ydoc = superdoc.value.ydoc;
+  // const metaMap = ydoc.getMap('meta');
+  // metaMap.observe((event) => {
+  //   const { keysChanged } = event;
+  //   keysChanged.forEach((key) => {
+  //     if (key === 'title') {
+  //       title.value = metaMap.get('title');
+  //     }
+  //   });
+  // });
+};
+
+const onCommentsUpdate = (updateData) => {
+  console.debug('[END USER] Comments updated', updateData);
 };
 
 const onContentError = ({ editor, error, documentId, file }) => {
   console.debug('Content error on', documentId, error);
 };
 
-const exportDocx = async () => {
-  const result = await activeEditor.value?.exportDocx();
-  const blob = new Blob([result], { type: DOCX });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'exported.docx';
-  a.click();
-};
-
-/* Inputs pane and field annotations */
-const draggedInputId = ref(null);
-const activeSigner = ref(null);
-const signersListInfo = ref([
-  {
-    signerindex: 0,
-    signername: 'Signer 1',
-    signeremail: 'signer1@harbourshare.com',
-    isactive: true,
-    signercolor: '#016c59',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 0,
-    signerid: 'signerid-1723657655732-7x1vne6lq1r',
-    iscreator: false,
-  },
-  {
-    signerindex: 1,
-    signername: 'Signer 2',
-    signeremail: 'signer2@harbourshare.com',
-    isactive: true,
-    signercolor: '#6943d0',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 1,
-    signerid: 'signerid-1723657671736-msk8e5qpd0c',
-    iscreator: false,
-  },
-]);
-
-const updateDraggedInputId = (inputId) => {
-  draggedInputId.value = inputId;
-};
-const updateActiveSigner = (signerIdx) => {
-  activeSigner.value = signerIdx;
+const exportDocx = async (commentsType) => {
+  console.debug('Exporting docx', { commentsType });
+  await superdoc.value.export({ commentsType });
 };
 
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
-
-  editor.on('fieldAnnotationDropped', ({ sourceField, editor, pos }) => {
-    console.log('fieldAnnotationDropped', { sourceField });
-
-    let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
-    editor.commands.addFieldAnnotation(pos, {
-      displayLabel: 'Enter your info',
-      fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-      fieldType: 'TEXTINPUT',
-      fieldColor: signer?.signercolor,
-    });
-  });
 
   editor.on('fieldAnnotationClicked', (params) => {
     console.log('fieldAnnotationClicked', { params });
@@ -147,7 +158,24 @@ const onEditorCreate = ({ editor }) => {
     console.log('fieldAnnotationSelected', { params });
   });
 };
-/* Inputs pane and field annotations */
+
+const handleTitleChange = (e) => {
+  title.value = e.target.innerText;
+
+  const ydoc = superdoc.value.ydoc;
+  const metaMap = ydoc.getMap('meta');
+  metaMap.set('title', title.value);
+  console.debug('Title changed', metaMap.toJSON());
+};
+
+const isCommentsListOpen = ref(false);
+const toggleCommentsPanel = () => {
+  if (isCommentsListOpen.value) {
+    superdoc.value?.removeCommentsList();
+  } else {
+    superdoc.value?.addCommentsList(commentsPanel.value);
+  }
+};
 
 onMounted(async () => {
   handleNewFile(await getFileObject(BlankDOCX, 'test.docx', DOCX));
@@ -168,7 +196,10 @@ onMounted(async () => {
           </div>
         </div>
         <div class="dev-app__header-side dev-app__header-side--right">
-          <button class="dev-app__header-export-btn" @click="exportDocx">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx()">Export Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('clean')">Export clean Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocx('external')">Export external Docx</button>
+          <button class="dev-app__header-export-btn" @click="toggleCommentsPanel">Toggle comments panel</button>
         </div>
       </div>
 
@@ -176,6 +207,10 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view">
+          <div class="comments-panel" v-show="isCommentsListOpen">
+            <div id="comments-panel" ref="commentsPanel"></div>
+          </div>
+
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">
               <div id="superdoc"></div>
@@ -189,30 +224,49 @@ onMounted(async () => {
 
 <style>
 .sd-toolbar {
-  min-width: 800px;
   width: 100%;
 }
-.superdoc .layers {
+.comments-panel {
+  width: 320px;
+}
+.superdoc .super-editor {
   background-color: white;
   border-radius: 16px;
   border: 1px solid #d3d3d3 !important;
   text-align: left;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
   transition: all 0.18s ease-out;
-  margin: 50px;
-  overflow: hidden;
 }
-.superdoc .layers:hover {
+.superdoc .super-editor:hover {
   border: 1px solid #0160cc86;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
 }
-.superdoc .layers:focus-within {
+.superdoc .super-editor:focus-within {
   border: 1px solid #015fcc;
   box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
+}
+
+@media screen and (max-width: 1024px) {
+  .superdoc {
+    max-width: calc(100vw - 10px);
+  }
 }
 </style>
 
 <style scoped>
+.temp-comment {
+  margin: 5px;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+}
+.comments-panel {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  background-color: #FAFAFA;
+  z-index: 100;
+}
 .dev-app {
   --header-height: 154px;
   --toolbar-height: 39px;
@@ -222,7 +276,8 @@ onMounted(async () => {
 }
 
 .dev-app__layout {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
 }
@@ -232,6 +287,7 @@ onMounted(async () => {
   justify-content: space-between;
   background-color: rgb(222, 237, 243);
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .dev-app__header-side {
@@ -247,14 +303,12 @@ onMounted(async () => {
 .dev-app__main {
   display: flex;
   justify-content: center;
+  overflow: auto;
 }
 
 .dev-app__view {
   display: flex;
   padding-top: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  overflow-y: auto;
 }
 
 .dev-app__content {
@@ -265,8 +319,6 @@ onMounted(async () => {
 }
 
 .dev-app__content-container {
-  /* width: 100%;
-  max-width: 8.5in; */
   width: auto;
 }
 

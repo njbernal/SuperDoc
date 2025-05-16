@@ -1,27 +1,42 @@
-import { Node } from '@core/index.js';
-import { v4 as uuidv4 } from 'uuid';
+import { Node, Attribute } from '@core/index.js';
 
 export const CommentRangeStart = Node.create({
   name: 'commentRangeStart',
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
 
   parseDOM() {
     return [{ tag: 'commentRangeStart' }];
   },
 
-  renderDOM() {
-    return ['commentRangeStart', 0];
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
+
+  renderDOM({ htmlAttributes}) {
+    return ['commentRangeStart', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {
     return {
       'w:id': {
-        default: () => uuidv4(),
+        rendered: false,
+      },
+      internal: {
+        default: true,
+        rendered: false,
       },
     };
   },
@@ -32,22 +47,34 @@ export const CommentRangeEnd = Node.create({
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
+
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
 
   parseDOM() {
     return [{ tag: 'commentRangeEnd' }];
   },
 
-  renderDOM() {
-    return ['commentRangeEnd', 0];
+  renderDOM({ htmlAttributes }) {
+    return ['commentRangeEnd', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {
     return {
       'w:id': {
-        default: () => uuidv4(),
+        rendered: false,
       },
     };
   },
@@ -58,16 +85,28 @@ export const CommentReference = Node.create({
 
   group: 'inline',
 
-  content: 'text*',
-
   inline: true,
+
+  atom: true,
+
+  selectable: false,
+
+  draggable: false,
+
+  addOptions() {
+    return {
+      htmlAttributes: {
+        contentEditable: 'false',
+      }
+    }
+  },
 
   parseDOM() {
     return [{ tag: 'commentReference' }];
   },
 
-  renderDOM() {
-    return ['commentReference', 0];
+  renderDOM({ htmlAttributes }) {
+    return ['commentReference', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes)];
   },
 
   addAttributes() {

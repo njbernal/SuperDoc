@@ -1,7 +1,7 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "0.2.14",
+  "version": "0.11.13",
   "license": "AGPL-3.0",
   "readme": "../../README.md",
   "files": [
@@ -9,39 +9,51 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/superdoc.es.js"
+      "import": "./dist/superdoc.es.js",
+      "require": "./dist/superdoc.cjs",
+      "types": "./dist/index.d.ts"
     },
-    "./super-converter": {
-      "import": "./dist/super-converter.es.js"
+    "./converter": {
+      "import": "./dist/super-editor/converter.es.js"
     },
     "./docx-zipper": {
-      "import": "./dist/docx-zipper.es.js"
+      "import": "./dist/super-editor/docx-zipper.es.js"
     },
     "./super-editor": {
-      "import": "./dist/super-editor.es.js"
+      "import": "./dist/super-editor.es.js",
+      "types": "./dist/super-editor/src/index.d.ts"
+    },
+    "./super-editor/style.css": {
+      "import": "./dist/super-editor/style.css"
     },
     "./common": {
       "import": "./dist/common.es.js"
     },
-    "./zipper": {
-      "import": "./dist/zipper.es.js"
+    "./file-zipper": {
+      "import": "./dist/super-editor/file-zipper.es.js"
     },
     "./style.css": "./dist/style.css"
   },
-  "main": "./dist/superdoc.es.js",
+  "main": "./dist/superdoc.umd.js",
   "module": "./dist/superdoc.es.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "cd ../super-editor && npm run build && cd ../superdoc && vite build && tsc && npm run build:umd",
+    "build:es": "cd ../super-editor && npm run build && cd ../superdoc && vite build",
+    "build:umd": "vite build --config vite.config.umd.js",
+    "release": "release-it --ci --increment=patch",
     "clean": "rm -rf dist",
-    "pack": "rm *.tgz 2>/dev/null || true && cd ../super-editor && npm run build && cd ../superdoc && npm run build && npm pack && mv harbour-enterprises-superdoc-0.2.5.tgz ./superdoc.tgz"
+    "pack:local": "npm run build:es && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz",
+    "pack": "npm run build && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz"
   },
   "dependencies": {
-    "@harbour-enterprises/super-editor": "0.0.1-alpha.0",
+    "buffer-crc32": "^1.0.0",
     "eventemitter3": "^5.0.1",
     "jsdom": "^25.0.1",
     "naive-ui": "^2.39.0",
     "pinia": "^2.1.7",
+    "rollup-plugin-copy": "^3.5.0",
     "tippy": "^0.0.0",
     "vue": "^3.4.21"
   },
@@ -53,11 +65,15 @@
   },
   "devDependencies": {
     "@hocuspocus/provider": "^2.13.6",
-    "@vitejs/plugin-vue": "^5.0.4",
+    "@release-it/conventional-changelog": "^10.0.0",
+    "@rollup/plugin-replace": "^6.0.2",
+    "@vitejs/plugin-vue": "^5.2.1",
     "pdfjs-dist": "4.3.136",
     "postcss-nested": "^6.0.1",
     "postcss-nested-import": "^1.3.0",
-    "vite": "^5.3.6",
+    "release-it": "^18.1.1",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.12",
     "vue-draggable-next": "^2.2.1"
   }
 }

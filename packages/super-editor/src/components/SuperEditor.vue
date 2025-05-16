@@ -1,12 +1,20 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, onMounted, onBeforeUnmount, computed, shallowRef } from 'vue';
-import { Editor } from '@vue-3/index.js';
+import { ref, onMounted, onBeforeUnmount, computed, shallowRef, reactive, nextTick } from 'vue';
+import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
-import { observeDomChanges } from './pagination-helpers.js';
+import { adjustPaginationBreaks } from './pagination-helpers.js';
+import { onMarginClickCursorChange } from './cursor-helpers.js';
+import Ruler from './rulers/Ruler.vue';
 
-const emit = defineEmits(['editor-ready', 'editor-click', 'editor-keydown', 'comments-loaded', 'selection-update']);
+const emit = defineEmits([
+  'editor-ready',
+  'editor-click',
+  'editor-keydown',
+  'comments-loaded',
+  'selection-update',
+]);
 
 const props = defineProps({
   documentId: {
@@ -37,6 +45,7 @@ const editor = shallowRef(null);
 
 const editorWrapper = ref(null);
 const editorElem = ref(null);
+
 let dataPollTimeout;
 
 const stopPolling = () => {
@@ -84,9 +93,13 @@ const initializeData = async () => {
     delete props.options.content;
     const ydoc = props.options.ydoc;
     const provider = props.options.collaborationProvider;
-    provider.on('synced', () => {
+    const handleSynced = () => {
       pollForMetaMapData(ydoc);
-    });
+      // Remove the synced event listener.
+      // Avoids re-initializing the editor in case the connection is lost and reconnected
+      provider.off('synced', handleSynced);
+    }
+    provider.on('synced', handleSynced);
   }
 };
 
@@ -104,13 +117,17 @@ const initEditor = async ({ content, media = {}, mediaFiles = {}, fonts = {} } =
     element: editorElem.value,
     fileSource: props.fileSource,
     extensions: getExtensions(),
+    externalExtensions: props.options.externalExtensions,
     documentId: props.documentId,
     content,
     media,
     mediaFiles,
     fonts,
-    users: [], // For comment @-mentions, only users that have access to the document
     ...props.options,
+  });
+
+  editor.value.on('paginationUpdate', () => {
+    adjustPaginationBreaks(editorElem, editor);
   });
 
   editor.value.on('collaborationReady', () => {
@@ -139,17 +156,35 @@ const handleSuperEditorClick = (event) => {
   }
 };
 
-let paginationObserver;
 onMounted(() => {
-  // Initialize pagination observer if pagination is enabled
-  if (props.options?.pagination) paginationObserver = observeDomChanges(editorWrapper, editor);
-
   initializeData();
   if (props.options?.suppressSkeletonLoader || !props.options?.collaborationProvider) editorReady.value = true;
 });
 
+const handleMarginClick = (event) => {
+  if (event.target.classList.contains('ProseMirror')) return;
+
+  onMarginClickCursorChange(event, editor.value);
+};
+
+/**
+ * Triggered when the user changes the margin value from the ruler
+ *
+ * @param {Object} param0
+ * @param {String} param0.side - The side of the margin being changed
+ * @param {Number} param0.value - The new value of the margin in inches
+ * @returns {void}
+ */
+const handleMarginChange = ({ side, value }) => {
+  if (!editor.value) return;
+
+  const pageStyles = editor.value.getPageStyles();
+  const { pageMargins } = pageStyles;
+  const update = { ...pageMargins, [side]: value };
+  editor.value?.updatePageStyle({ pageMargins: update });
+};
+
 onBeforeUnmount(() => {
-  paginationObserver?.disconnect();
   stopPolling();
   editor.value?.destroy();
   editor.value = null;
@@ -157,9 +192,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="super-editor-component-wrapper">
-    <div class="super-editor" @keydown="handleSuperEditorKeydown" @click="handleSuperEditorClick" ref="editorWrapper">
-      <div ref="editorElem" class="editor-element"></div>
+  <div class="super-editor-container">
+  
+    <Ruler
+      class="ruler"
+      v-if="options.rulers && !!editor"
+      :editor="editor"
+      @margin-change="handleMarginChange"
+    />
+
+    <div 
+      class="super-editor"
+      ref="editorWrapper"
+      @keydown="handleSuperEditorKeydown" 
+      @click="handleSuperEditorClick"
+      @mousedown="handleMarginClick"
+    >
+      <div ref="editorElem" class="editor-element super-editor__element"></div>
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">
@@ -183,25 +232,37 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.super-editor-component-wrapper {
-  position: relative;
-  min-height: 11in;
+.super-editor-container {
+  width: auto;
+  height: auto;
   min-width: 8in;
-  margin: 0;
-  padding: 0;
+  min-height: 11in;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
+
+.ruler {
+  margin-bottom: 2px;
+}
+
+.super-editor {
+  color: initial;
+}
+
 .placeholder-editor {
   position: absolute;
   top: 0;
   left: 0;
-  box-sizing: border-box;
   width: 100%;
   height: 100%;
   border-radius: 8px;
   padding: 1in;
   z-index: 5;
   background-color: white;
+  box-sizing: border-box;
 }
+
 .placeholder-title {
   display: flex;
   justify-content: center;

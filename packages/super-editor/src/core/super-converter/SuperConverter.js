@@ -1,8 +1,16 @@
 import xmljs from 'xml-js';
+import { v4 as uuidv4 } from 'uuid';
 
 import { DocxExporter, exportSchemaToJson } from './exporter';
-import { createDocumentJson } from './v2/importer/docxImporter.js';
-import { getArrayBufferFromUrl } from './helpers.js';
+import { createDocumentJson, addDefaultStylesIfMissing } from './v2/importer/docxImporter.js';
+import { deobfuscateFont, getArrayBufferFromUrl } from './helpers.js';
+import { baseNumbering } from './v2/exporter/helpers/base-list.definitions.js';
+import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
+import {
+  getCommentDefinition,
+  prepareCommentParaIds,
+  prepareCommentsXmlFilesForExport,
+} from './v2/exporter/commentsExporter.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -24,10 +32,10 @@ class SuperConverter {
     'w:sectPr': 'sectionProperties',
     'w:rPr': 'runProperties',
 
-    // // Comments
-    // 'w:commentRangeStart': 'commentRangeStart',
-    // 'w:commentRangeEnd': 'commentRangeEnd',
-    // 'w:commentReference': 'commentReference',
+    // Comments
+    'w:commentRangeStart': 'commentRangeStart',
+    'w:commentRangeEnd': 'commentRangeEnd',
+    'w:commentReference': 'commentReference',
   });
 
   static markTypes = [
@@ -46,6 +54,7 @@ class SuperConverter {
     { name: 'w:spacing', type: 'lineHeight', mark: 'textStyle', property: 'lineHeight' },
     { name: 'link', type: 'link', mark: 'link', property: 'href' },
     { name: 'w:highlight', type: 'highlight', mark: 'highlight', property: 'color' },
+    { name: 'w:shd', type: 'highlight', mark: 'highlight', property: 'color'}
   ];
 
   static propertyTypes = Object.freeze({
@@ -53,6 +62,7 @@ class SuperConverter {
     'w:rPr': 'runProperties',
     'w:sectPr': 'sectionProperties',
     'w:numPr': 'numberingProperties',
+    'w:tcPr': 'tableCellProperties',
   });
 
   static elements = new Set(['w:document', 'w:body', 'w:p', 'w:r', 'w:t', 'w:delText']);
@@ -69,12 +79,21 @@ class SuperConverter {
     this.convertedXml = {};
     this.docx = params?.docx || [];
     this.media = params?.media || {};
+    
+    this.fonts = params?.fonts || {};
 
     this.addedMedia = {};
+    this.comments = [];
+
+    // Store custom highlight colors
+    this.docHiglightColors = new Set([]);
 
     // XML inputs
     this.xml = params?.xml;
     this.declaration = null;
+
+    // List defs
+    this.numbering = {};
 
     // Processed additional content
     this.numbering = null;
@@ -89,11 +108,22 @@ class SuperConverter {
     this.footers = {};
     this.footerIds = { default: null, even: null, odd: null, first: null };
 
+    // Linked Styles
+    this.linkedStyles = [];
+
     // This is the JSON schema that we will be working with
     this.json = params?.json;
 
     this.tagsNotInSchema = ['w:body'];
     this.savedTagsToRestore = [];
+
+    // Initialize telemetry
+    this.telemetry = params?.telemetry || null;
+    this.documentInternalId = null;
+    
+    // Uploaded file
+    this.fileSource = params?.fileSource || null;
+    this.documentId = params?.documentId || null;
 
     // Parse the initial XML, if provided
     if (this.docx.length || this.xml) this.parseFromXml();
@@ -106,6 +136,10 @@ class SuperConverter {
       if (file.name === 'word/document.xml') {
         this.documentAttributes = this.convertedXml[file.name].elements[0]?.attributes;
       }
+
+      if (file.name === 'word/styles.xml') {
+        this.convertedXml[file.name] = addDefaultStylesIfMissing(this.convertedXml[file.name]);
+      }
     });
     this.initialJSON = this.convertedXml['word/document.xml'];
 
@@ -115,6 +149,51 @@ class SuperConverter {
 
   parseXmlToJson(xml) {
     return JSON.parse(xmljs.xml2json(xml, null, 2));
+  }
+
+  static getStoredSuperdocVersion(docx) {
+    try {
+      const customXml = docx.find((doc) => doc.name === 'docProps/custom.xml');
+      if (!customXml) return;
+
+      const converter = new SuperConverter();
+      const content = customXml.content;
+      const contentJson = converter.parseXmlToJson(content);
+      const properties = contentJson.elements.find((el) => el.name === 'Properties');
+      if (!properties.elements) return;
+
+      const superdocVersion = properties.elements.find((el) => el.name === 'property' && el.attributes.name === 'SuperdocVersion');
+      if (!superdocVersion) return;
+  
+      const version = superdocVersion.elements[0].elements[0].text;
+      return version;
+    } catch (e) {
+      console.warn('Error getting Superdoc version', e);
+      return;
+    };
+  }
+
+  static updateDocumentVersion(docx = this.convertedXml, version = __APP_VERSION__) {
+    const customLocation = 'docProps/custom.xml';
+    if (!docx[customLocation]) {
+      docx[customLocation] = generateCustomXml(__APP_VERSION__);
+    }
+
+    const customXml = docx['docProps/custom.xml'];
+    if (!customXml) return;
+  
+    const properties = customXml.elements.find((el) => el.name === 'Properties');
+    if (!properties.elements) properties.elements = [];
+
+    const superdocVersion = properties.elements.find((el) => el.name === 'property' && el.attributes.name === 'SuperdocVersion');
+    if (!superdocVersion) {
+      const newCustomXml = generateSuperdocVersion();
+      properties.elements.push(newCustomXml);
+    } else {
+      superdocVersion.elements[0].elements[0].elements[0].text = version;
+    }
+
+    return docx;
   }
 
   getDocumentDefaultStyles() {
@@ -127,32 +206,127 @@ class SuperConverter {
 
     // Get the run defaults for this document - this will include font, theme etc.
     const rDefault = defaults.elements.find((el) => el.name === 'w:rPrDefault');
+    if (!rDefault.elements) return {};
+    
     const rElements = rDefault.elements[0].elements;
     const rFonts = rElements?.find((el) => el.name === 'w:rFonts');
     if ('elements' in rDefault) {
       const fontThemeName = rElements.find((el) => el.name === 'w:rFonts')?.attributes['w:asciiTheme'];
-      let typeface, panose;
+      let typeface, panose, fontSizeNormal;
       if (fontThemeName) {
         const fontInfo = this.getThemeInfo(fontThemeName);
         typeface = fontInfo.typeface;
         panose = fontInfo.panose;
       } else if (rFonts) {
         typeface = rFonts?.attributes['w:ascii'];
-      } else {
-        const paragraphDefaults =
-          styles.elements[0].elements.filter((el) => {
-            return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
-          }) || [];
-        paragraphDefaults.forEach((el) => {
-          const rPr = el.elements.find((el) => el.name === 'w:rPr');
-          const fonts = rPr?.elements?.find((el) => el.name === 'w:rFonts');
-          typeface = fonts?.attributes['w:ascii'];
-        });
       }
 
-      const fontSizePt = Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2 || 12;
+      const paragraphDefaults =
+        styles.elements[0].elements.filter((el) => {
+          return el.name === 'w:style' && el.attributes['w:styleId'] === 'Normal';
+        }) || [];
+      paragraphDefaults.forEach((el) => {
+        const rPr = el.elements.find((el) => el.name === 'w:rPr');
+        const fonts = rPr?.elements?.find((el) => el.name === 'w:rFonts');
+        typeface = fonts?.attributes['w:ascii'];
+        fontSizeNormal = Number(rPr?.elements?.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2;
+      });
+
+      const fontSizePt = fontSizeNormal || Number(rElements.find((el) => el.name === 'w:sz')?.attributes['w:val']) / 2 || 12;
       const kern = rElements.find((el) => el.name === 'w:kern')?.attributes['w:val'];
       return { fontSizePt, kern, typeface, panose };
+    }
+  }
+  
+  getDocumentFonts() {
+    const fontTable = this.convertedXml['word/fontTable.xml'];
+    if (!fontTable || !Object.keys(this.fonts).length) return;
+    
+    const fonts = fontTable.elements.find((el) => el.name === 'w:fonts');
+    const embededFonts = fonts?.elements.filter(el => el.elements?.some(nested =>  nested?.attributes && nested.attributes['r:id'] && nested.attributes['w:fontKey']));
+    const fontsToInclude = embededFonts?.reduce((acc, cur) => {
+      const embedElements = cur.elements.filter((el) => el.name.startsWith('w:embed'))?.map(el => ({ ...el, fontFamily: cur.attributes['w:name'] }));
+      return [
+        ...acc,
+        ...embedElements,
+      ];
+    }, []);
+    
+    const rels = this.convertedXml['word/_rels/fontTable.xml.rels'];
+    const relationships = rels?.elements.find((el) => el.name === 'Relationships') || {};
+    const { elements } = relationships;
+    
+    let styleString = '';
+    for (const font of fontsToInclude) {
+      const filePath = elements.find((el) => el.attributes.Id === font.attributes['r:id'])?.attributes?.Target;
+      if (!filePath) return;
+
+      const fontUint8Array = this.fonts[`word/${filePath}`];
+      const fontBuffer = fontUint8Array?.buffer;
+      if (!fontBuffer) return;
+      
+      const ttfBuffer = deobfuscateFont(fontBuffer, font.attributes['w:fontKey']);
+      if (!ttfBuffer) return;
+      
+      // Convert to a blob and inject @font-face
+      const blob = new Blob([ttfBuffer], { type: 'font/ttf' });
+      const fontUrl = URL.createObjectURL(blob);
+      const isNormal = font.name.includes('Regular');
+      const isBold = font.name.includes('Bold');
+      const isItalic = font.name.includes('Italic');
+      const isLight = font.name.includes('Light');
+      const fontWeight = isNormal ? 'normal' : isBold ? 'bold' : isLight ? '200' : 'normal';
+      
+      styleString += `
+        @font-face {
+          font-style: ${isItalic ? 'italic' : 'normal'};
+          font-weight: ${fontWeight};
+          font-display: swap;
+          font-family: ${font.fontFamily};
+          src: url(${fontUrl}) format('truetype');
+        }
+      `;
+    }
+    
+    return styleString;
+  }
+  
+  getDocumentInternalId() {    
+    const settingsLocation = 'word/settings.xml'
+    if (!this.convertedXml[settingsLocation]) {
+      this.convertedXml[settingsLocation] = SETTINGS_CUSTOM_XML;
+    }
+
+    const settings = Object.assign({}, this.convertedXml[settingsLocation]);
+    if (!settings.elements[0]?.elements?.length) {
+      const idElement = this.createDocumentIdElement(settings);
+      
+      settings.elements[0].elements = [
+        idElement
+      ];
+      if (!settings.elements[0].attributes['xmlns:w15']) {
+        settings.elements[0].attributes['xmlns:w15'] = 'http://schemas.microsoft.com/office/word/2012/wordml';
+      }
+      this.convertedXml[settingsLocation] = settings;
+      return;
+    }
+
+    // New versions of Word will have w15:docId
+    // It's possible to have w14:docId as well but Word(2013 and later) will convert it automatically when document opened
+    const w15DocId = settings.elements[0].elements.find((el) => el.name === 'w15:docId');
+    this.documentInternalId = w15DocId?.attributes['w15:val'];
+  }
+
+  createDocumentIdElement() {
+    const docId = uuidv4().toUpperCase();
+    this.documentInternalId = docId;
+    
+    return {
+      type: 'element',
+      name: 'w15:docId',
+      attributes: {
+        'w15:val': `{${docId}}`
+      }
     }
   }
 
@@ -174,34 +348,51 @@ class SuperConverter {
     return { typeface, panose };
   }
 
-  getSchema() {
-    const result = createDocumentJson({...this.convertedXml, media: this.media }, this );
+  getSchema(editor) {
+    this.getDocumentInternalId();
+    const result = createDocumentJson({...this.convertedXml, media: this.media }, this, editor);
+  
     if (result) {
       this.savedTagsToRestore.push({ ...result.savedTagsToRestore });
       this.pageStyles = result.pageStyles;
+      this.numbering = result.numbering;
+      this.comments = result.comments;
+      this.linkedStyles = result.linkedStyles;
+
       return result.pmDoc;
     } else {
       return null;
     }
   }
 
-  schemaToXml(data) {
+  schemaToXml(data, debug = false) {
     const exporter = new DocxExporter(this);
-    return exporter.schemaToXml(data);
+    return exporter.schemaToXml(data, debug);
   }
 
-  async exportToDocx(jsonData, editorSchema, documentMedia, isFinalDoc = false) {
-    const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
-    const [result, params] = exportSchemaToJson({
-      node: jsonData,
-      bodyNode,
-      relationships: [],
-      documentMedia: {},
-      media: {},
-      isFinalDoc,
+  async exportToDocx(
+    jsonData,
+    editorSchema,
+    documentMedia,
+    isFinalDoc = false,
+    commentsExportType,
+    comments = [],
+    editor,
+  ) {
+    const commentsWithParaIds = comments.map((c) => prepareCommentParaIds(c));
+    const commentDefinitions = commentsWithParaIds
+      .map((c, index) => getCommentDefinition(c, index, commentsWithParaIds));
+
+    const { result, params } = this.exportToXmlJson({
+      data: jsonData,
       editorSchema,
-      pageStyles: this.pageStyles,
+      comments,
+      commentDefinitions,
+      commentsExportType,
+      isFinalDoc,
+      editor,
     });
+
     const exporter = new DocxExporter(this);
     const xml = exporter.schemaToXml(result);
 
@@ -212,21 +403,125 @@ class SuperConverter {
       ...this.media,
     });
 
+    // Update content types and comments files as needed
+    let updatedXml = { ...this.convertedXml };
+    let commentsRels = [];
+    if (comments.length) {
+      const { documentXml, relationships } = this.#prepareCommentsXmlFilesForExport({
+        defs: params.exportedCommentDefs,
+        exportType: commentsExportType,
+        commentsWithParaIds,
+      });
+      updatedXml = { ...documentXml };
+      commentsRels = relationships;
+    }
+
+    this.convertedXml = { ...this.convertedXml, ...updatedXml };
+    
     // Update the rels table
-    this.#exportProcessNewRelationships(params.relationships);
+    this.#exportProcessNewRelationships([...params.relationships, ...commentsRels]);
+
+    // Store the SuperDoc version
+    storeSuperdocVersion(this.convertedXml);
+    
+    // Update the numbering.xml
+    this.#exportNumberingFile(params);
 
     return xml;
+  };
+
+  exportToXmlJson({
+    data,
+    editorSchema,
+    comments,
+    commentDefinitions,
+    commentsExportType = 'clean',
+    isFinalDoc = false,
+    editor,
+  }) {
+    const bodyNode = this.savedTagsToRestore.find((el) => el.name === 'w:body');
+
+    const [result, params] = exportSchemaToJson({
+      node: data,
+      bodyNode,
+      relationships: [],
+      documentMedia: {},
+      media: {},
+      isFinalDoc,
+      editorSchema,
+      converter: this,
+      pageStyles: this.pageStyles,
+      comments,
+      commentsExportType,
+      exportedCommentDefs: commentDefinitions,
+      editor,
+    });
+
+    return { result, params };
+  }
+
+  #exportNumberingFile(params) {
+    const numberingPath = 'word/numbering.xml';
+    let numberingXml = this.convertedXml[numberingPath];
+
+    const newNumbering = this.numbering;
+
+    if (!numberingXml) numberingXml = baseNumbering;
+    const currentNumberingXml = numberingXml.elements[0];
+
+    const newAbstracts = Object.values(newNumbering.abstracts).map((entry) => entry);
+    const newNumDefs = Object.values(newNumbering.definitions).map((entry) => entry);
+    currentNumberingXml.elements = [...newAbstracts, ...newNumDefs];
+
+    // Update the numbering file
+    this.convertedXml[numberingPath] = numberingXml;
+  };
+
+  /**
+   * Update comments files and relationships depending on export type
+   */
+  #prepareCommentsXmlFilesForExport({ defs, exportType, commentsWithParaIds }) {
+    const { documentXml, relationships } = prepareCommentsXmlFilesForExport({
+      exportType,
+      convertedXml: this.convertedXml,
+      defs,
+      commentsWithParaIds,
+      converter: this,
+    });
+
+    return { documentXml, relationships };
   }
 
   #exportProcessNewRelationships(rels = []) {
     const relsData = this.convertedXml['word/_rels/document.xml.rels'];
     const relationships = relsData.elements.find((x) => x.name === 'Relationships');
-    relationships.elements.push(...rels);
-    relationships.elements.forEach((element) => {
-      element.attributes.Target = element.attributes?.Target?.replace(/&/g, '&amp;').replace(/-/g, '&#45;');
+    const newRels = [];
+    
+    const regex = /rId|mi/g;
+    let largestId = Math.max(...relationships.elements.map((el) => Number(el.attributes.Id.replace(regex, ''))));
+    
+    rels.forEach((rel) => {
+      const existingId = rel.attributes.Id;
+      const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
+      const isNewMedia = rel.attributes.Target?.startsWith('media/') && existingId.length > 6;
+      
+      if (existingTarget && !isNewMedia) {
+        return;
+      }
+      
+      // Update the target to escape ampersands
+      rel.attributes.Target = rel.attributes?.Target?.replace(/&/g, '&amp;');
+
+      // Update the ID. If we've assigned a long ID (ie: images) we leave it alone
+      rel.attributes.Id = existingId.length > 6 ? existingId : `rId${++largestId}`;
+
+      newRels.push(rel);
     });
+
+    relationships.elements = [...relationships.elements, ...newRels];
+
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
-  }
+  };
 
   async #exportProcessMediaFiles(media) {
     const processedData = {};
@@ -244,5 +539,59 @@ class SuperConverter {
     this.addedMedia = processedData;
   }
 }
+
+function storeSuperdocVersion(docx) {
+  const customLocation = 'docProps/custom.xml';
+  if (!docx[customLocation]) docx[customLocation] = generateCustomXml();
+
+  const customXml = docx[customLocation];
+  const properties = customXml.elements.find((el) => el.name === 'Properties');
+  if (!properties.elements) properties.elements = [];
+  const elements = properties.elements;
+
+  const cleanProperties = elements
+    .filter((prop) => (typeof prop === 'object' && prop !== null))
+    .filter((prop) => {
+      const { attributes } = prop;
+      return attributes.name !== 'SuperdocVersion';
+    });
+
+  let pid = 2;
+  try {
+    pid = cleanProperties.length ? Math.max(...elements.map(el => el.attributes.pid)) + 1 : 2;
+  } catch (error) {};
+
+  cleanProperties.push(generateSuperdocVersion(pid));
+  properties.elements = cleanProperties;
+  return docx;
+};
+
+function generateCustomXml() {
+  return DEFAULT_CUSTOM_XML;
+}
+
+function generateSuperdocVersion(pid = 2, version = __APP_VERSION__) {
+  return {
+    type: "element",
+    name: "property",
+    attributes: {
+      name: "SuperdocVersion",
+      fmtid: "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}",
+      pid,
+    },
+    elements: [
+      {
+        type: "element",
+        name: "vt:lpwstr",
+        elements: [
+          {
+            type: "text",
+            text: version
+          }
+        ]
+      }
+    ]
+  }
+};
 
 export { SuperConverter };

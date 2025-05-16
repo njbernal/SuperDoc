@@ -3,7 +3,8 @@ import { eigthPointsToPixels, halfPointToPoints, twipsToInches, twipsToPixels } 
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleAllTableNodes = (nodes, docx, nodeListHandler, insideTrackChange) => {
+export const handleAllTableNodes = (params) => {
+  const { nodes } = params;
   if (nodes.length === 0) {
     return { nodes: [], consumed: 0 };
   }
@@ -11,7 +12,7 @@ export const handleAllTableNodes = (nodes, docx, nodeListHandler, insideTrackCha
 
   switch (node.name) {
     case 'w:tbl':
-      return { nodes: [handleTableNode(node, docx, nodeListHandler)], consumed: 1 };
+      return { nodes: [handleTableNode(node, params)], consumed: 1 };
   }
 
   return { nodes: [], consumed: 0 };
@@ -33,7 +34,8 @@ export const tableNodeHandlerEntity = {
  * @param {boolean} insideTrackChange
  * @returns {{type: string, content: *, attrs: {borders: *, tableWidth: *, tableWidthType: *}}}
  */
-export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) {
+export function handleTableNode(node, params) {
+  const { docx, nodeListHandler } = params;
   // Table styles
   const tblPr = node.elements.find((el) => el.name === 'w:tblPr');
 
@@ -89,7 +91,7 @@ export function handleTableNode(node, docx, nodeListHandler, insideTrackChange) 
 
   const content = [];
   rows.forEach((row) => {
-    const result = handleTableRowNode(row, node, borderRowData, tblStyleTag, docx, nodeListHandler, insideTrackChange);
+    const result = handleTableRowNode(row, node, borderRowData, tblStyleTag, params);
     if (result.content?.length) content.push(result);
   });
 
@@ -115,10 +117,10 @@ export function handleTableCellNode(
   rowBorders,
   columnWidth = null,
   styleTag,
-  docx,
-  nodeListHandler,
-  insideTrackChange,
+  params,
+  cellIndex,
 ) {
+  const { docx, nodeListHandler } = params;
   const tcPr = node.elements.find((el) => el.name === 'w:tcPr');
   const borders = tcPr?.elements?.find((el) => el.name === 'w:tcBorders');
   const inlineBorders = processInlineCellBorders(borders, rowBorders);
@@ -126,7 +128,7 @@ export function handleTableCellNode(
   const gridColumnWidths = getGridColumnWidths(table);
 
   const tcWidth = tcPr?.elements?.find((el) => el.name === 'w:tcW');
-  let width = tcWidth ? twipsToInches(tcWidth.attributes['w:w']) : null;
+  let width = tcWidth ? twipsToPixels(tcWidth.attributes['w:w']) : null;
   const widthType = tcWidth?.attributes['w:type'];
 
   if (!width && columnWidth) width = columnWidth;
@@ -155,9 +157,36 @@ export function handleTableCellNode(
   const { fontSize, fonts = {} } = referencedStyles;
   const fontFamily = fonts['ascii'];
 
-  if (width) attributes['width'] = width;
+  if (width) {
+    attributes['colwidth'] = [width];
+    attributes['widthUnit'] = 'px';
+
+    const defaultColWidths = gridColumnWidths;
+    const hasDefaultColWidths = gridColumnWidths && gridColumnWidths.length > 0;
+    const colspanNum = parseInt(colspan, 10);
+
+    if (colspanNum && colspanNum > 1 && hasDefaultColWidths) {
+      let colwidth = [];
+
+      for (let i = 0; i < colspanNum; i++) {
+        let colwidthValue = defaultColWidths[cellIndex + i];
+        let defaultColwidth = 100;
+
+        if (typeof colwidthValue !== 'undefined') {
+          colwidth.push(colwidthValue);
+        } else {
+          colwidth.push(defaultColwidth);
+        }
+      }
+
+      if (colwidth.length) {
+        attributes['colwidth'] = [...colwidth];
+      }
+    }
+  }
+
   if (widthType) attributes['widthType'] = widthType;
-  if (colspan) attributes['colspan'] = colspan;
+  if (colspan) attributes['colspan'] = parseInt(colspan, 10);
   if (background) attributes['background'] = background;
   if (verticalAlign) attributes['verticalAlign'] = verticalAlign;
   if (fontSize) attributes['fontSize'] = fontSize;
@@ -166,7 +195,7 @@ export function handleTableCellNode(
   if (inlineBorders) attributes['borders'] = Object.assign(attributes['borders'] || {}, inlineBorders);
 
   // Tables can have vertically merged cells, indicated by the vMergeAttrs
-  if (vMerge) attributes['vMerge'] = vMergeAttrs || 'merged';
+  // if (vMerge) attributes['vMerge'] = vMergeAttrs || 'merged';
   if (vMergeAttrs && vMergeAttrs['w:val'] === 'restart') {
     const rows = table.elements.filter((el) => el.name === 'w:tr');
     const currentRowIndex = rows.findIndex((r) => r === row);
@@ -174,7 +203,6 @@ export function handleTableCellNode(
 
     const cellsInRow = row.elements.filter((el) => el.name === 'w:tc');
     let cellIndex = cellsInRow.findIndex((el) => el === node);
-    const mergedCells = [];
     let rowspan = 1;
 
     // Iterate through all remaining rows after the current cell, and find all cells that need to be merged
@@ -183,19 +211,6 @@ export function handleTableCellNode(
       const cellAtIndex = remainingRow.elements[firstCell + cellIndex];
 
       if (!cellAtIndex) break;
-
-      const convertedCell = handleTableCellNode(
-        cellAtIndex,
-        remainingRow,
-        table,
-        rowBorders,
-        gridColumnWidths[firstCell + cellIndex],
-        styleTag,
-        docx,
-        nodeListHandler,
-        insideTrackChange,
-      );
-      mergedCells.push(convertedCell);
 
       const vMerge = getTableCellMergeTag(cellAtIndex);
       const { attributes: currentCellMergeAttrs } = vMerge || {};
@@ -212,12 +227,11 @@ export function handleTableCellNode(
       remainingRow.elements.splice(firstCell + cellIndex, 1);
     }
     attributes['rowspan'] = rowspan;
-    attributes['mergedCells'] = rowspan > 1 ? mergedCells : [];
   }
 
   return {
     type: 'tableCell',
-    content: nodeListHandler.handler(node.elements, docx, insideTrackChange),
+    content: nodeListHandler.handler({ ...params, nodes: node.elements }),
     attrs: attributes,
   };
 }
@@ -275,7 +289,7 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
   if (!tblStyleTag) return null;
 
   const stylesToReturn = {};
-  const { attributes } = tblStyleTag;
+  const { attributes = {} } = tblStyleTag;
   const tableStyleReference = attributes['w:val'];
   if (!tableStyleReference) return null;
 
@@ -292,7 +306,7 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
   const uiPriotity = styleTag.elements.find((el) => el.name === 'w:uiPriority');
 
   let baseTblPr;
-  if (basedOn) {
+  if (basedOn?.attributes) {
     const baseStyles = styleElements.find((el) => el.attributes['w:styleId'] === basedOn.attributes['w:val']);
     baseTblPr = baseStyles ? baseStyles.elements.find((el) => el.name === 'w:tblPr') : {};
   }
@@ -300,7 +314,7 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
   const pPr = styleTag.elements.find((el) => el.name === 'w:pPr');
   if (pPr) {
     const justification = pPr.elements.find((el) => el.name === 'w:jc');
-    if (justification) stylesToReturn.justification = justification.attributes['w:val'];
+    if (justification?.attributes) stylesToReturn.justification = justification.attributes['w:val'];
   }
 
   const rPr = styleTag?.elements.find((el) => el.name === 'w:rPr');
@@ -312,7 +326,7 @@ function getReferencedTableStyles(tblStyleTag, docx, nodeListHandler) {
     }
 
     const fontSize = rPr.elements.find((el) => el.name === 'w:sz');
-    if (fontSize) stylesToReturn.fontSize = halfPointToPoints(fontSize.attributes['w:val']) + 'pt';
+    if (fontSize?.attributes) stylesToReturn.fontSize = halfPointToPoints(fontSize.attributes['w:val']) + 'pt';
   }
 
   const tblPr = styleTag.elements.find((el) => el.name === 'w:tblPr');
@@ -384,7 +398,7 @@ function processTableBorders(borderElements) {
  * @param {boolean} insideTrackChange
  * @returns {*}
  */
-export function handleTableRowNode(node, table, rowBorders, styleTag, docx, nodeListHandler, insideTrackChange) {
+export function handleTableRowNode(node, table, rowBorders, styleTag, params) {
   const attrs = {};
 
   const tPr = node.elements.find((el) => el.name === 'w:trPr');
@@ -407,7 +421,7 @@ export function handleTableRowNode(node, table, rowBorders, styleTag, docx, node
   const content =
     cellNodes?.map((n, index) => {
       const colWidth = cellNodes.length > 1 ? gridColumnWidths[index] : null;
-      return handleTableCellNode(n, node, table, borders, colWidth, styleTag, docx, nodeListHandler, insideTrackChange);
+      return handleTableCellNode(n, node, table, borders, colWidth, styleTag, params, index);
     }) || [];
 
   const newNode = {
@@ -457,7 +471,7 @@ const getGridColumnWidths = (tableNode) => {
   return (
     tblGrid?.elements?.flatMap((el) => {
       if (el.name !== 'w:gridCol') return [];
-      return twipsToInches(el.attributes['w:w']);
-    }) || {}
+      return twipsToPixels(el.attributes['w:w']);
+    }) || []
   );
 };

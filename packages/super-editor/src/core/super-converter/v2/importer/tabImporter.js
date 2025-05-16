@@ -1,13 +1,25 @@
-import { parseProperties } from './importerHelpers.js';
+import { twipsToPixels } from '../../helpers.js';
 
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-const handleTabNode = (nodes, docx, nodeListHandler, insideTrackChange = false) => {
+const handleTabNode = (params) => {
+  const { nodes, docx, parentStyleId } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:tab') {
     return { nodes: [], consumed: 0 };
   }
   const node = nodes[0];
+
+  const styles = docx['word/styles.xml'];
+  let stylePos;
+  if (styles && styles.elements?.length) {
+    const style = styles.elements[0]?.elements?.find((s) => s.attributes?.['w:styleId'] === parentStyleId);
+    const pPr = style?.elements?.find((s) => s.name === 'w:pPr');
+    const tabsDef = pPr?.elements?.find((s) => s.name === 'w:tabs');
+    const firstTab = tabsDef?.elements?.find((s) => s.name === 'w:tab');
+    stylePos = twipsToPixels(firstTab?.attributes?.['w:pos']);
+  }
+
   const { attributes = {} } = node;
   const processedNode = {
     type: 'tab',
@@ -23,6 +35,6 @@ const handleTabNode = (nodes, docx, nodeListHandler, insideTrackChange = false) 
  * @type {import("docxImporter").NodeHandlerEntry}
  */
 export const tabNodeEntityHandler = {
-  handlerName: 'runNodeHandler',
+  handlerName: 'tabNodeHandler',
   handler: handleTabNode,
 };

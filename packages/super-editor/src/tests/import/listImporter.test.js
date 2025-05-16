@@ -25,7 +25,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('bulletList');
     expect(result.nodes[0].content.length).toBe(1);
@@ -59,7 +59,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('orderedList');
     expect(result.nodes[0].content.length).toBe(1);
@@ -165,7 +165,7 @@ describe('table live xml test', () => {
       'word/numbering.xml': numbering,
     };
 
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
     expect(result.nodes.length).toBe(1);
     expect(result.nodes[0].type).toBe('bulletList');
     expect(result.nodes[0].content.length).toBe(3);
@@ -291,7 +291,7 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
 
     expect(result.nodes.length).toBe(1);
     const expectedResult = {
@@ -302,6 +302,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '007B64C8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
@@ -322,6 +326,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '007B64C8',
+                        textAlign: 'both'
+                      },
                       content: [
                         {
                           type: 'text',
@@ -343,6 +351,7 @@ describe('custom nested list tests', () => {
                         'w:rsidR': '00F20DE4',
                         'w:rsidRDefault': '00F20DE4',
                         'w:rsidP': '00F20DE4',
+                        textAlign: 'both',
                         paragraphProperties: {
                           type: 'element',
                           name: 'w:pPr',
@@ -403,8 +412,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                       marks: [],
                     },
@@ -420,15 +428,21 @@ describe('custom nested list tests', () => {
                     textStyle: {
                       type: 'textStyle',
                       attrs: {
-                        textIndent: 'undefinedin',
                         textAlign: 'both',
                       },
                     },
                     order: '1',
                     lvlText: '○',
-                    lvlJc: 'left',
+                    lvlJc: 'both',
+                    indent: { right: -8 },
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '057544FE',
@@ -436,6 +450,7 @@ describe('custom nested list tests', () => {
                         'w:rsidR': '00F20DE4',
                         'w:rsidRDefault': '007B64C8',
                         'w:rsidP': '00F20DE4',
+                        textAlign: 'both',
                         paragraphProperties: {
                           type: 'element',
                           name: 'w:pPr',
@@ -475,8 +490,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                     },
                     numId: '2',
@@ -486,6 +500,7 @@ describe('custom nested list tests', () => {
               ],
               attrs: {
                 'list-style-type': 'lowerLetter',
+                listId: '2',
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '057544FE',
@@ -493,6 +508,7 @@ describe('custom nested list tests', () => {
                     'w:rsidR': '00F20DE4',
                     'w:rsidRDefault': '007B64C8',
                     'w:rsidP': '00F20DE4',
+                    textAlign: 'both',
                     paragraphProperties: {
                       type: 'element',
                       name: 'w:pPr',
@@ -532,8 +548,7 @@ describe('custom nested list tests', () => {
                           },
                         },
                       ],
-                    },
-                    textIndent: 'undefinedin',
+                    }
                   },
                 },
               },
@@ -550,15 +565,21 @@ describe('custom nested list tests', () => {
             textStyle: {
               type: 'textStyle',
               attrs: {
-                textIndent: 'undefinedin',
                 textAlign: 'both',
               },
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
+            indent: { right: -8 },
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '3947758C',
@@ -566,6 +587,7 @@ describe('custom nested list tests', () => {
                 'w:rsidR': '00F20DE4',
                 'w:rsidRDefault': '007B64C8',
                 'w:rsidP': '00F20DE4',
+                textAlign: 'both',
                 paragraphProperties: {
                   type: 'element',
                   name: 'w:pPr',
@@ -605,8 +627,7 @@ describe('custom nested list tests', () => {
                       },
                     },
                   ],
-                },
-                textIndent: 'undefinedin',
+                }
               },
             },
             numId: '1',
@@ -618,6 +639,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '007B64C8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
@@ -638,6 +663,10 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '007B64C8',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -661,15 +690,20 @@ describe('custom nested list tests', () => {
                     },
                     textStyle: {
                       type: 'textStyle',
-                      attrs: {
-                        textIndent: 'undefinedin',
-                      },
+                      attrs: {},
                     },
                     order: '1',
                     lvlText: '○',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
+                    indent: { right: -8 },
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '437AE2E1',
@@ -727,8 +761,7 @@ describe('custom nested list tests', () => {
                               },
                             },
                           ],
-                        },
-                        textIndent: 'undefinedin',
+                        }
                       },
                     },
                     numId: '2',
@@ -738,6 +771,7 @@ describe('custom nested list tests', () => {
               ],
               attrs: {
                 'list-style-type': 'bullet',
+                listId: '2',
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '437AE2E1',
@@ -795,8 +829,7 @@ describe('custom nested list tests', () => {
                           },
                         },
                       ],
-                    },
-                    textIndent: 'undefinedin',
+                    }
                   },
                 },
               },
@@ -813,15 +846,21 @@ describe('custom nested list tests', () => {
             textStyle: {
               type: 'textStyle',
               attrs: {
-                textIndent: 'undefinedin',
                 textAlign: 'both',
               },
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
+            indent: { right: -8 },
             listLevel: [2],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '1F70BFCD',
@@ -829,6 +868,7 @@ describe('custom nested list tests', () => {
                 'w:rsidR': '00F20DE4',
                 'w:rsidRDefault': '007B64C8',
                 'w:rsidP': '00F20DE4',
+                textAlign: 'both',
                 paragraphProperties: {
                   type: 'element',
                   name: 'w:pPr',
@@ -868,8 +908,7 @@ describe('custom nested list tests', () => {
                       },
                     },
                   ],
-                },
-                textIndent: 'undefinedin',
+                }
               },
             },
             numId: '1',
@@ -879,6 +918,7 @@ describe('custom nested list tests', () => {
       ],
       attrs: {
         'list-style-type': 'bullet',
+        listId: '1',
         attributes: {
           parentAttributes: {
             'w14:paraId': '3947758C',
@@ -886,6 +926,7 @@ describe('custom nested list tests', () => {
             'w:rsidR': '00F20DE4',
             'w:rsidRDefault': '007B64C8',
             'w:rsidP': '00F20DE4',
+            textAlign: 'both',
             paragraphProperties: {
               type: 'element',
               name: 'w:pPr',
@@ -925,8 +966,7 @@ describe('custom nested list tests', () => {
                   },
                 },
               ],
-            },
-            textIndent: 'undefinedin',
+            }
           },
         },
       },
@@ -1116,7 +1156,7 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
     const expectedResult = {
       type: 'orderedList',
       content: [
@@ -1125,6 +1165,11 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1151,6 +1196,11 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '006B7646',
+                        styleId: 'ListParagraph',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1180,9 +1230,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '2F6FAED3',
@@ -1233,6 +1289,7 @@ describe('custom nested list tests', () => {
               ],
               attrs: {
                 'list-style-type': 'bullet',
+                listId: '1',
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '2F6FAED3',
@@ -1290,9 +1347,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '2D072E4D',
@@ -1345,6 +1408,11 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1365,6 +1433,11 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        styleId: 'ListParagraph',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1394,9 +1467,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '2DBCC378',
@@ -1446,6 +1525,7 @@ describe('custom nested list tests', () => {
               ],
               attrs: {
                 'list-style-type': 'bullet',
+                listId: '1',
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '2DBCC378',
@@ -1502,9 +1582,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [2],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '45FC6897',
@@ -1556,6 +1642,11 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '009F090C',
+                styleId: 'ListParagraph',
+                textAlign: null
+              },
               content: [
                 {
                   type: 'text',
@@ -1576,6 +1667,11 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        styleId: 'ListParagraph',
+                        textAlign: null
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1605,9 +1701,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '4F17D13D',
@@ -1659,6 +1761,11 @@ describe('custom nested list tests', () => {
                   content: [
                     {
                       type: 'paragraph',
+                      attrs: {
+                        rsidRDefault: '009F090C',
+                        textAlign: null,
+                        styleId: 'ListParagraph',
+                      },
                       content: [
                         {
                           type: 'text',
@@ -1688,9 +1795,15 @@ describe('custom nested list tests', () => {
                     },
                     order: '1',
                     lvlText: '',
-                    lvlJc: 'left',
+                    lvlJc: undefined,
                     listLevel: [],
                     listNumberingType: 'bullet',
+                    spacing: {
+                      line: 0,
+                      lineRule: null,
+                      lineSpaceAfter: 0,
+                      lineSpaceBefore: 0,
+                    },
                     attributes: {
                       parentAttributes: {
                         'w14:paraId': '01D254E6',
@@ -1740,6 +1853,7 @@ describe('custom nested list tests', () => {
               ],
               attrs: {
                 'list-style-type': 'lowerLetter',
+                listId: '1',
                 attributes: {
                   parentAttributes: {
                     'w14:paraId': '4F17D13D',
@@ -1796,9 +1910,15 @@ describe('custom nested list tests', () => {
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: undefined,
             listLevel: [3],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 0,
+              lineRule: null,
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '77BFBBFC',
@@ -1848,6 +1968,7 @@ describe('custom nested list tests', () => {
       ],
       attrs: {
         'list-style-type': 'decimal',
+        listId: '1',
         attributes: {
           parentAttributes: {
             'w14:paraId': '2D072E4D',
@@ -2070,10 +2191,8 @@ describe('custom nested list tests', () => {
     const docx = {
       'word/numbering.xml': numbering,
     };
-    const result = handleListNode(nodes, docx, defaultNodeListHandler(), false);
+    const result = handleListNode({ nodes, docx, nodeListHandler: defaultNodeListHandler(), lists: {} });
 
-    console.debug(result.nodes[0]);
-    console.debug(JSON.stringify(result.nodes[0]));
     const expectedResult = {
       type: 'orderedList',
       content: [
@@ -2082,6 +2201,10 @@ describe('custom nested list tests', () => {
           content: [
             {
               type: 'paragraph',
+              attrs: {
+                rsidRDefault: '00B266A8',
+                textAlign: 'both'
+              },
               content: [
                 {
                   type: 'text',
@@ -2127,7 +2250,7 @@ describe('custom nested list tests', () => {
                     },
                   ],
                 },
-                lineHeight: '0.19in',
+                lineHeight: '1.15',
               },
               marks: [],
             },
@@ -2140,15 +2263,21 @@ describe('custom nested list tests', () => {
             textStyle: {
               type: 'textStyle',
               attrs: {
-                lineHeight: '0.19in',
+                lineHeight: '1.15',
                 textAlign: 'both',
               },
             },
             order: '1',
             lvlText: '%1.',
-            lvlJc: 'left',
+            lvlJc: 'both',
             listLevel: [1],
             listNumberingType: 'decimal',
+            spacing: {
+              line: 1.15,
+              lineRule: 'auto',
+              lineSpaceAfter: 0,
+              lineSpaceBefore: 0,
+            },
             attributes: {
               parentAttributes: {
                 'w14:paraId': '2BEDC1A3',
@@ -2198,7 +2327,7 @@ describe('custom nested list tests', () => {
                     },
                   ],
                 },
-                lineHeight: '0.19in',
+                lineHeight: '1.15',
               },
             },
             numId: '2',
@@ -2208,6 +2337,7 @@ describe('custom nested list tests', () => {
       ],
       attrs: {
         'list-style-type': 'decimal',
+        listId: '2',
         attributes: {
           parentAttributes: {
             'w14:paraId': '2BEDC1A3',
@@ -2257,7 +2387,7 @@ describe('custom nested list tests', () => {
                 },
               ],
             },
-            lineHeight: '0.19in',
+            lineHeight: '1.15',
           },
         },
       },

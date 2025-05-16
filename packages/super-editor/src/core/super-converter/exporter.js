@@ -3,10 +3,24 @@ import { DOMParser as PMDOMParser } from 'prosemirror-model';
 import { EditorState } from 'prosemirror-state';
 import { SuperConverter } from './SuperConverter.js';
 import { toKebabCase } from '@harbour-enterprises/common';
-import { inchesToTwips, pixelsToEightPoints, pixelsToEmu, pixelsToTwips } from './helpers.js';
+import {
+  emuToPixels,
+  inchesToTwips,
+  linesToTwips,
+  pixelsToEightPoints,
+  pixelsToEmu,
+  pixelsToTwips, 
+  ptToTwips,
+  rgbToHex,
+} from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
+import { carbonCopy } from '../utilities/carbonCopy.js';
+import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
+import { translateCommentNode } from './v2/exporter/commentsExporter.js';
+import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
+
 
 /**
  * @typedef {Object} ExportParams
@@ -52,8 +66,7 @@ import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@
  * @returns {XmlReadyNode} The complete document node in XML-ready format
  */
 export function exportSchemaToJson(params) {
-  // console.debug('\nExporting schema to JSON:', params.node, '\n');
-  const { type } = params.node;
+  const { type } = params.node || {};
 
   // Node handlers for each node type that we can export
   const router = {
@@ -71,6 +84,13 @@ export function exportSchemaToJson(params) {
     fieldAnnotation: translateFieldAnnotation,
     tab: translateTab,
     image: translateImageNode,
+    hardBreak: translateHardBreak,
+    commentRangeStart: () => translateCommentNode(params, 'Start'),
+    commentRangeEnd: () => translateCommentNode(params, 'End'),
+    commentReference: () => null,
+    shapeContainer: translateShapeContainer,
+    shapeTextbox: translateShapeTextbox,
+    contentBlock: translateContentBlock,
   };
 
   if (!router[type]) {
@@ -91,6 +111,18 @@ export function exportSchemaToJson(params) {
  */
 function translateBodyNode(params) {
   const sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
+
+  if (params.converter) {
+    const newMargins = params.converter.pageStyles.pageMargins;
+    const sectPrMargins = sectPr.elements.find((n) => n.name === 'w:pgMar');
+    const { attributes } = sectPrMargins;
+    Object.entries(newMargins).forEach(([key, value]) => {
+      const convertedValue = inchesToTwips(value);
+      attributes[`w:${key}`] = convertedValue;
+    });
+    sectPrMargins.attributes = attributes;
+  };
+
   const elements = translateChildNodes(params);
   return {
     name: 'w:body',
@@ -104,7 +136,7 @@ function translateBodyNode(params) {
  * @param {ExportParams} node A prose mirror paragraph node
  * @returns {XmlReadyNode} JSON of the XML-ready paragraph node
  */
-function translateParagraphNode(params) {
+export function translateParagraphNode(params) {
   const elements = translateChildNodes(params);
 
   // Replace current paragraph with content of html annotation
@@ -112,14 +144,14 @@ function translateParagraphNode(params) {
   if (elements.length === 1 && htmlAnnotationChild) {
     return htmlAnnotationChild.elements;
   }
-
+  
   // Insert paragraph properties at the beginning of the elements array
   const pPr = generateParagraphProperties(params.node);
-  elements.unshift(pPr);
+  if (pPr) elements.unshift(pPr);
 
   let attributes = {};
-  if (params.node.attrs.rsidRDefault) {
-    attributes['rsidRDefault'] = params.node.attrs.rsidRDefault;
+  if (params.node.attrs?.rsidRDefault) {
+    attributes['w:rsidRDefault'] = params.node.attrs.rsidRDefault;
   }
 
   return {
@@ -136,23 +168,30 @@ function translateParagraphNode(params) {
  * @returns {XmlReadyNode} The paragraph properties node
  */
 function generateParagraphProperties(node) {
-  const { attrs } = node;
+  const { attrs = {} } = node;
 
   const pPrElements = [];
 
   const { styleId } = attrs;
   if (styleId) pPrElements.push({ name: 'w:pStyle', attributes: { 'w:val': styleId } });
-
-  const { spacing, indent, textAlign } = attrs;
+  
+  const { spacing, indent, textAlign, textIndent, lineHeight, marksAttrs, keepLines, keepNext, dropcap } = attrs;
   if (spacing) {
-    const { lineSpaceBefore, lineSpaceAfter, line } = spacing;
+    const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
 
     const attributes = {};
 
     // Zero values have to be considered in export to maintain accurate line height
     if (lineSpaceBefore >= 0) attributes['w:before'] = pixelsToTwips(lineSpaceBefore);
     if (lineSpaceAfter >= 0) attributes['w:after'] = pixelsToTwips(lineSpaceAfter);
-    if (line) attributes['w:line'] = pixelsToTwips(line);
+
+    if (lineRule === 'exact') {
+      if (lineHeight) attributes['w:line'] = ptToTwips(parseFloat(lineHeight));
+    } else {
+      if (lineHeight) attributes['w:line'] = linesToTwips(lineHeight);
+    }
+    
+    attributes['w:lineRule'] = lineRule || 'auto';
 
     const spacingElement = {
       name: 'w:spacing',
@@ -160,17 +199,40 @@ function generateParagraphProperties(node) {
     };
     pPrElements.push(spacingElement);
   }
-
+  
+  if (lineHeight && !spacing) {
+    const spacingElement = {
+      name: 'w:spacing',
+      attributes: {
+        'w:line': linesToTwips(lineHeight)
+      },
+    };
+    pPrElements.push(spacingElement);
+  }
+  
   if (indent) {
-    const { left, right, firstLine } = indent;
+    const { left, right, firstLine, hanging } = indent;
     const attributes = {};
     if (left || left === 0) attributes['w:left'] = pixelsToTwips(left);
     if (right || right === 0) attributes['w:right'] = pixelsToTwips(right);
     if (firstLine || firstLine === 0) attributes['w:firstLine'] = pixelsToTwips(firstLine);
+    if (hanging || hanging === 0) attributes['w:hanging'] = pixelsToTwips(hanging);
 
+    if (textIndent && !attributes['w:left']) {
+      attributes['w:left'] = inchesToTwips(textIndent);
+    }
+    
     const indentElement = {
       name: 'w:ind',
       attributes,
+    };
+    pPrElements.push(indentElement);
+  } else if (textIndent) {
+    const indentElement = {
+      name: 'w:ind',
+      attributes: { 
+        'w:left': inchesToTwips(textIndent), 
+      },
     };
     pPrElements.push(indentElement);
   }
@@ -182,6 +244,46 @@ function generateParagraphProperties(node) {
     };
     pPrElements.push(textAlignElement);
   }
+  
+  if (marksAttrs) {
+    const outputMarks = processOutputMarks(marksAttrs);
+    const rPrElement = generateRunProps(outputMarks);
+    pPrElements.push(rPrElement);
+  }
+  
+  if (keepLines) {
+    pPrElements.push({
+      name: 'w:keepLines',
+      attributes: { 'w:val': keepLines },
+    });
+  }
+
+  if (keepNext) {
+    pPrElements.push({
+      name: 'w:keepNext',
+      attributes: { 'w:val': keepNext },
+    });
+  }
+
+  if (dropcap) {
+    pPrElements.push({
+      name: 'w:framePr',
+      attributes: { 
+        'w:dropCap': dropcap.type,
+        'w:lines': dropcap.lines,
+        'w:wrap': dropcap.wrap,
+        'w:vAnchor': dropcap.vAnchor,
+        'w:hAnchor': dropcap.hAnchor,
+      },
+    });
+  }
+
+  const sectPr = node.attrs?.paragraphProperties?.sectPr;
+  if (sectPr) {
+    pPrElements.push(sectPr);
+  }
+
+  if (!pPrElements.length) return null;
 
   return {
     name: 'w:pPr',
@@ -246,7 +348,6 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     const translatedNode = exportSchemaToJson({ ...params, node });
-    console.debug('[translateChildNodes] Translated node:', node.type, translatedNode);
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
   });
@@ -264,19 +365,61 @@ function translateChildNodes(params) {
  * @returns {XmlReadyNode} The translated text node
  */
 
-function getTextNodeForExport(text, marks) {
+function getTextNodeForExport(text, marks, params) {
   const hasLeadingOrTrailingSpace = /^\s|\s$/.test(text);
   const space = hasLeadingOrTrailingSpace ? 'preserve' : null;
   const nodeAttrs = space ? { 'xml:space': space } : null;
+  const textNodes = [];
 
   const outputMarks = processOutputMarks(marks);
-  const textNode = {
+  textNodes.push({
     name: 'w:t',
     elements: [{ text, type: 'text' }],
     attributes: nodeAttrs,
-  };
+  });
 
-  return wrapTextInRun(textNode, outputMarks);
+  // For custom mark export, we need to add a bookmark start and end tag
+  // And store attributes in the bookmark name
+  if (params) {
+    const { editor } = params;
+    const customMarks = editor.extensionService.extensions.filter((e) => e.isExternal === true);
+
+    marks.forEach((mark) => {
+      const isCustomMark = customMarks.some((customMark) => {
+        const customMarkName = customMark.name;
+        return mark.type === customMarkName;
+      });
+
+      if (!isCustomMark) return;
+  
+      let attrsString = '';
+      Object.entries(mark.attrs).forEach(([key, value]) => {
+        if (value) {
+          attrsString += `${key}=${value};`;
+        }
+      }); 
+
+      if (isCustomMark) {
+        textNodes.unshift({
+          type: 'element',
+          name: 'w:bookmarkStart',
+          attributes: {
+            'w:id': '5000',
+            'w:name': mark.type + ';' + attrsString,
+          }
+        });
+        textNodes.push({
+          type: 'element',
+          name: 'w:bookmarkEnd',
+          attributes: {
+            'w:id': '5000',
+          }
+        });
+      };
+    });
+  }
+
+  return wrapTextInRun(textNodes, outputMarks);
 }
 
 /**
@@ -303,7 +446,7 @@ function translateTextNode(params) {
 
   const { text, marks = [] } = node;
 
-  return getTextNodeForExport(text, marks);
+  return getTextNodeForExport(text, marks, params);
 }
 
 function createTrackStyleMark(marks) {
@@ -318,7 +461,7 @@ function createTrackStyleMark(marks) {
         'w:authorEmail': trackStyleMark.attrs.authorEmail,
         'w:date': trackStyleMark.attrs.date,
       },
-      elements: trackStyleMark.attrs.before.map((mark) => processOutputMarks(mark)).filter((r) => r !== undefined),
+      elements: trackStyleMark.attrs.before.map((mark) => processOutputMarks([mark])).filter((r) => r !== undefined),
     };
     return markElement;
   }
@@ -368,8 +511,11 @@ function translateTrackedNode(params) {
  * @param {XmlReadyNode} node
  * @returns {XmlReadyNode} The wrapped run node
  */
-function wrapTextInRun(node, marks) {
-  const elements = [node];
+function wrapTextInRun(nodeOrNodes, marks) {
+  let elements = [];
+  if (Array.isArray(nodeOrNodes)) elements = nodeOrNodes;
+  else elements = [nodeOrNodes];
+
   if (marks && marks.length) elements.unshift(generateRunProps(marks));
   return {
     name: 'w:r',
@@ -386,7 +532,7 @@ function wrapTextInRun(node, marks) {
 function generateRunProps(marks = []) {
   return {
     name: 'w:rPr',
-    elements: marks,
+    elements: marks.filter((mark) => !!Object.keys(mark).length),
   };
 }
 
@@ -450,6 +596,8 @@ function translateLinkNode(params) {
  */
 function addNewLinkRelationship(params, link) {
   const newId = 'rId' + generateDocxRandomId();
+
+  if (!params.relationships || !Array.isArray(params.relationships)) params.relationships = [];
   params.relationships.push({
     type: 'element',
     name: 'Relationship',
@@ -472,7 +620,7 @@ function addNewLinkRelationship(params, link) {
  */
 function addNewImageRelationship(params, imagePath) {
   const newId = 'rId' + generateDocxRandomId();
-  params.relationships.push({
+  const newRel = {
     type: 'element',
     name: 'Relationship',
     attributes: {
@@ -480,7 +628,8 @@ function addNewImageRelationship(params, imagePath) {
       Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
       Target: imagePath,
     },
-  });
+  };
+  params.relationships.push(newRel);
   return newId;
 }
 
@@ -491,28 +640,114 @@ function addNewImageRelationship(params, imagePath) {
  * @returns {XmlReadyNode} The translated list node
  */
 function translateList(params) {
-  const { content, type } = params.node;
-  const flatContent = flattenContent(content);
+  const { type } = params.node;
+  const flatContent = flattenContent(params);
 
   const listNodes = [];
   flatContent.forEach((listNode) => {
-    const { content, level } = listNode;
-    content.forEach((contentNode) => {
-      const outputNode = exportSchemaToJson({ ...params, node: contentNode });
-      const pPr = getListParagraphProperties(listNode, level, type);
+    const { level, listType, pPrs: additionalPprs, content, attrs = {} } = listNode;
+    const attrsNumId = listNode.attrs.numId;
+
+    const actualNumId = attrsNumId || listNode.listId;
+    const listId = actualNumId ?? generateNewListDefinition(params, listType);  
+    const pPr = getListParagraphProperties(level, listId, additionalPprs);
+    
+    content.forEach((contentNode, index) => {
+      // Get paragraph attributes which were attached to list item node
+      const paragraphNode = Object.assign({}, contentNode);
+      paragraphNode.attrs = {
+        ...paragraphNode.attrs,
+        ...listNode.attrs
+      };
+
+      const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
+      if (!outputNode.elements) {
+        outputNode.elements = [];
+      }
+      const propsElementIndex = outputNode.elements.findIndex((e) => e.name === 'w:pPr');
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
       if (!content.length) {
-        const spacer = { name: 'w:p', elements: [] };
+        // Apply initial properties to the empty nodes
+        const elements = contentNode.attrs.paragraphProperties ? [contentNode.attrs.paragraphProperties] : [];
+        const spacer = { 
+          name: 'w:p',
+          type: 'element',
+          elements
+        };
         return listNodes.push(spacer);
       }
+      
+      // pPr processing
+      const { attributes: generalAttributes } = attrs;
+      const { originalInlineRunProps } = generalAttributes || {};
+      if (originalInlineRunProps) pPr.elements.push(originalInlineRunProps);
 
-      outputNode.elements.unshift(pPr);
+      if (propsElementIndex === -1) {
+        outputNode.elements.unshift(carbonCopy(pPr));
+      } else {
+        // Check if there is any properties processed by translateParagraphNode
+        const resultProps = carbonCopy(pPr).elements.map(item => {
+          const isChanged = outputNode.elements[propsElementIndex].elements.find((e) => e.name === item.name);
+          return isChanged ? isChanged : item;
+        });
+        outputNode.elements[propsElementIndex].elements = resultProps;
+      }
+
+      // Remove the numPr properties from content nodes
+      if (index !== 0) {
+        const currentpPr = outputNode.elements.find((e) => e.name === 'w:pPr');
+        const numPrIndex = currentpPr.elements.findIndex((e) => e.name === 'w:numPr');
+        if (numPrIndex !== -1) currentpPr.elements.splice(numPrIndex, 1);
+      }
       listNodes.push(outputNode);
     });
   });
-
+  
   return listNodes;
 }
+
+/**
+ * Generate a new list definition to be inserted into numbering.xml
+ * @param {Obect} param The parameters object
+ * @param {Number} param.abstractId The abstract number id
+ * @param {Number} param.listId The list id
+ * @returns {Object} The new abstract and num definitions
+ */
+function generateNewListDefinition(params, listType) {
+  // Generate a new numId to add to numbering.xml
+  const nextNumbering = getLargestListDefinitionIndex(params.converter?.numbering?.definitions);
+  const definition = listType === 'bullet' ? baseBulletList : baseOrderedListDef;
+  const listId = nextNumbering;
+  const abstractId = definition.attributes['w:abstractNumId'];
+
+  // Generate the new numId definition
+  const newNumDef = {
+    type: 'element',
+    name: 'w:num',
+    attributes: {
+      'w:numId': String(listId),
+      'w16cid:durableId': '485517411'
+    },
+    elements: [
+      { name: 'w:abstractNumId', attributes: { 'w:val': String(abstractId) } },
+    ]
+  };
+
+  params.converter.numbering.definitions[listId] = newNumDef;
+  return listId;
+};
+
+/**
+ * Get the largest list definition index
+ * 
+ * @param {Object} definitions The list definitions
+ * @returns {number} The largest list definition index
+ */
+const getLargestListDefinitionIndex = (definitions) => {
+  if (!definitions || !Object.keys(definitions).length) return 0;
+  const maxKey = Math.max(...Object.keys(definitions).map((key) => parseInt(key, 10)));
+  return maxKey + 1;
+};
 
 /**
  * Get the paragraph properties for a list
@@ -520,14 +755,10 @@ function translateList(params) {
  * @param {SchemaNode} node The list node
  * @param {number} level The list level
  * @param {string} type The list type
+ * @param {boolean} hasParentProps Does output node already have pPr
  * @returns {XmlReadyNode} The list paragraph properties node
  */
-function getListParagraphProperties(node, level, type) {
-  let listType = type === 'bulletList' ? 1 : 2;
-
-  // numbering.xml reference
-  if (node.attrs.numId) listType = node.attrs.numId;
-
+function getListParagraphProperties(level, numId, additionalPprs = []) {
   return {
     name: 'w:pPr',
     type: 'element',
@@ -544,31 +775,54 @@ function getListParagraphProperties(node, level, type) {
           {
             name: 'w:numId',
             type: 'element',
-            attributes: { 'w:val': listType },
+            attributes: { 'w:val': numId },
           },
         ],
       },
+      ...additionalPprs,
     ],
   };
 }
 
 /**
  * Flatten list nodes for processing.
- *
- * @param {SchemaNode[]} content List of list nodes
- * @returns {SchemaNode[]} The flattened list nodes
  */
-function flattenContent(content) {
+function flattenContent({ node }) {
+  const { content, attrs = {} } = node;
+  const { listId, syncId } = node.attrs || {};
+  const listType = node.attrs['list-style-type'];
+
+  const { attributes = {} } = attrs;
+  const pPrs = attributes?.parentAttributes?.paragraphProperties?.elements?.filter((el) => el.name !== 'w:numPr') || [];
   const flatContent = [];
 
   function recursiveFlatten(items, level = 0) {
     if (!items || !items.length) return;
     items.forEach((item) => {
-      const subList = item.content.filter((c) => c.type === 'bulletList' || c.type === 'orderedList');
-      const notLists = item.content.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList');
+      const indent = item.attrs?.indent;
+      if (indent) {
+        const { left, right, firstLine, hanging } = indent;
+        const indentAttrs = {};
+        if (left !== undefined) indentAttrs['w:left'] = pixelsToTwips(left);
+        if (right!== undefined) indentAttrs['w:right'] = pixelsToTwips(right);
+        if (firstLine !== undefined) indentAttrs['w:firstLine'] = pixelsToTwips(firstLine);
+        if (hanging !== undefined) indentAttrs['w:hanging'] = pixelsToTwips(hanging);
 
-      const newItem = { ...item, content: notLists };
-      newItem.level = level;
+        const indentElement = {
+          type: 'element',
+          name: 'w:ind',
+          attributes: indentAttrs,
+        };
+
+        const existingIndentIndex = pPrs.findIndex((el) => el.name === 'w:ind');
+        if (existingIndentIndex !== -1) {
+          pPrs[existingIndentIndex] = indentElement;
+        }
+      }
+
+      const subList = item.content?.filter((c) => c.type === 'bulletList' || c.type === 'orderedList') || [];
+      const notLists = item.content?.filter((c) => c.type !== 'bulletList' && c.type !== 'orderedList') || [];
+      const newItem = { ...item, content: notLists, listId, level, listType, syncId, pPrs };
       flatContent.push(newItem);
 
       if (subList.length) {
@@ -608,10 +862,10 @@ function translateLineBreak(params) {
  * @returns {XmlReadyNode} The translated table node
  */
 function translateTable(params) {
-  params.node = preProcessVerticalMergeCells(params.node);
+  params.node = preProcessVerticalMergeCells(params.node, params);
   const elements = translateChildNodes(params);
   const tableProperties = generateTableProperties(params.node);
-  const gridProperties = generateTableGrid(params.node);
+  const gridProperties = generateTableGrid(params.node, params);
 
   elements.unshift(tableProperties);
   elements.unshift(gridProperties);
@@ -626,19 +880,39 @@ function translateTable(params) {
  * @param {ExportParams.node} table The table node
  * @returns {ExportParams.node} The table node with merged cells restored
  */
-function preProcessVerticalMergeCells(table) {
+function preProcessVerticalMergeCells(table, { editorSchema }) {
   const { content } = table;
   for (let rowIndex = 0; rowIndex < content.length; rowIndex++) {
     const row = content[rowIndex];
     if (!row.content) continue;
     for (let cellIndex = 0; cellIndex < row.content?.length; cellIndex++) {
       const cell = row.content[cellIndex];
+      if (!cell) {
+        console.log('no cell');
+        continue;
+      }
       const { attrs } = cell;
       if (attrs.rowspan > 1) {
-        const { mergedCells } = attrs;
+        // const { mergedCells } = attrs;
         const rowsToChange = content.slice(rowIndex + 1, rowIndex + attrs.rowspan);
+        const mergedCell = {
+          type: cell.type,
+          content: [
+            // cells must end with a paragraph
+            editorSchema.nodes.paragraph.createAndFill().toJSON(),
+          ],
+          attrs: {
+            ...cell.attrs,
+            // reset colspan and rowspan
+            colspan: null,
+            rowspan: null,
+            // to add vMerge
+            continueMerge: true,
+          },
+        };
+
         rowsToChange.forEach((rowToChange, mergedIndex) => {
-          rowToChange.content.splice(cellIndex, 0, mergedCells[mergedIndex]);
+          rowToChange.content.splice(cellIndex, 0, mergedCell);
         });
       }
     }
@@ -741,14 +1015,24 @@ function generateTableBorders(node) {
   borderTypes.forEach((type) => {
     const border = borders[type];
     if (!border) return;
-    const borderElement = {
-      name: `w:${type}`,
-      attributes: {
+    
+    let attributes = {};
+    if (!Object.keys(border).length || !border.size) {
+      attributes = {
+        'w:val': 'nil',
+      };
+    } else {
+      attributes = {
         'w:val': 'single',
         'w:sz': pixelsToEightPoints(border.size),
         'w:space': border.space || 0,
         'w:color': border?.color?.substring(1) || '000000',
-      },
+      }
+    }
+    
+    const borderElement = {
+      name: `w:${type}`,
+      attributes
     };
     elements.push(borderElement);
   });
@@ -765,17 +1049,32 @@ function generateTableBorders(node) {
  * @param {SchemaNode} node
  * @returns {XmlReadyNode} The table grid properties node
  */
-function generateTableGrid(node) {
-  const { gridColumnWidths } = node.attrs;
+function generateTableGrid(node, params) {
+  const { editorSchema } = params;
+
+  let colgroup = [];
+
+  try {
+    const pmNode = editorSchema.nodeFromJSON(node);
+    const cellMinWidth = 25;
+    const { colgroupValues } = createColGroup(
+      pmNode,
+      cellMinWidth,
+    );
+
+    colgroup = colgroupValues;
+  } catch(err) {
+    colgroup = [];
+  }
 
   const elements = [];
-  gridColumnWidths?.forEach((width) => {
+  colgroup?.forEach((width) => {
     elements.push({
       name: 'w:gridCol',
-      attributes: { 'w:w': inchesToTwips(width) },
+      attributes: { 'w:w': pixelsToTwips(width) },
     });
   });
-
+  
   return {
     name: 'w:tblGrid',
     elements,
@@ -828,9 +1127,12 @@ function generateTableRowProperties(node) {
  * @returns {XmlReadyNode} The translated table cell node
  */
 function translateTableCell(params) {
-  const elements = translateChildNodes(params);
+  const elements = translateChildNodes({
+    ...params,
+    tableCell: params.node,
+  });
   const cellProps = generateTableCellProperties(params.node);
-
+  
   elements.unshift(cellProps);
   return {
     name: 'w:tc',
@@ -848,18 +1150,19 @@ function generateTableCellProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { width, cellWidthType = 'dxa', background = {}, colspan } = attrs;
+  const { colwidth = [], cellWidthType = 'dxa', background = {}, colspan, rowspan, widthUnit } = attrs;
+  const colwidthSum = colwidth.reduce((acc, curr) => acc + curr, 0);
 
   const cellWidthElement = {
     name: 'w:tcW',
-    attributes: { 'w:w': inchesToTwips(width), 'w:type': cellWidthType },
+    attributes: { 'w:w': widthUnit === 'px' ? pixelsToTwips(colwidthSum) : inchesToTwips(colwidthSum), 'w:type': cellWidthType },
   };
   elements.push(cellWidthElement);
 
   if (colspan) {
     const gridSpanElement = {
       name: 'w:gridSpan',
-      attributes: { 'w:val': colspan },
+      attributes: { 'w:val': `${colspan}` },
     };
     elements.push(gridSpanElement);
   }
@@ -890,12 +1193,20 @@ function generateTableCellProperties(node) {
     };
     elements.push(vertAlignElement);
   }
-
-  const { vMerge } = attrs;
-  if (vMerge) {
+  
+  // const { vMerge } = attrs;
+  // if (vMerge) {}
+   if (rowspan && rowspan > 1) {
     const vMergeElement = {
       name: 'w:vMerge',
-      attributes: { 'w:val': null },
+      type: 'element',
+      attributes: { 'w:val': 'restart' },
+    };
+    elements.push(vMergeElement);
+  } else if (attrs.continueMerge) {
+    const vMergeElement = {
+      name: 'w:vMerge',
+      type: 'element',
     };
     elements.push(vMergeElement);
   }
@@ -904,15 +1215,25 @@ function generateTableCellProperties(node) {
   if (!!borders && Object.keys(borders).length) {
     const cellBordersElement = {
       name: 'w:tcBorders',
-      elements: Object.entries(borders).map(([key, value]) => ({
-        name: `w:${key}`,
-        attributes: {
-          'w:val': 'single',
-          'w:color': value.color ? value.color.substring(1) : 'auto',
-          'w:sz': pixelsToEightPoints(value.size),
-          'w:space': value.space || 0,
-        },
-      })),
+      elements: Object.entries(borders).map(([key, value]) => {
+        if (!value.size) {
+          return {
+            name: `w:${key}`,
+            attributes: {
+              'w:val': 'nil',
+            }
+          };
+        }
+        return {
+          name: `w:${key}`,
+          attributes: {
+            'w:val': 'single',
+            'w:color': value.color ? value.color.substring(1) : 'auto',
+            'w:sz': pixelsToEightPoints(value.size),
+            'w:space': value.space || 0,
+          },
+        };
+      }),
     };
 
     elements.push(cellBordersElement);
@@ -962,10 +1283,15 @@ function translateBookmarkStart(params) {
  * Translate a mark to an XML ready attribute
  *
  * @param {MarkType} mark
- * @returns
+ * @returns {Object} The XML ready mark attribute
  */
 function translateMark(mark) {
   const xmlMark = SuperConverter.markTypes.find((m) => m.type === mark.type);
+  if (!xmlMark) {
+    // TODO: Telemetry
+    return {};
+  }
+
   const markElement = { name: xmlMark.name, attributes: {} };
 
   const { attrs } = mark;
@@ -998,6 +1324,9 @@ function translateMark(mark) {
 
     case 'color':
       let processedColor = attrs.color.replace(/^#/, '').replace(/;$/, ''); // Remove `#` and `;` if present
+      if (processedColor.startsWith('rgb')) {
+        processedColor = rgbToHex(processedColor);
+      }
       markElement.attributes['w:val'] = processedColor;
       break;
 
@@ -1010,85 +1339,222 @@ function translateMark(mark) {
       break;
 
     case 'lineHeight':
-      markElement.attributes['w:line'] = inchesToTwips(attrs.lineHeight);
+      markElement.attributes['w:line'] = linesToTwips(attrs.lineHeight);
       break;
 
     case 'highlight':
-      markElement.attributes['w:val'] = attrs.color;
+      markElement.attributes['w:fill'] = attrs.color?.substring(1);
+      markElement.attributes['w:color'] = 'auto';
+      markElement.attributes['w:val'] = 'clear';
+      markElement.name = 'w:shd';
       break;
 
     case 'link':
       break;
   }
-
+  
   return markElement;
 }
 
-function getMaxWidthInPixels(pageStyles) {
-  const { pageSize, pageMargins } = pageStyles;
-  const { width } = pageSize;
-  const { left, right } = pageMargins;
-  const margin = left + right;
-  return (width - margin) * 96;
-};
+function getPngDimensions(base64) {
+  if (!base64) return {};
+
+  const type = base64.split(';')[0].split('/')[1];
+  if (!base64 || type !== 'png') {
+    return {
+      originalWidth: undefined,
+      originalHeight: undefined,
+    }
+  }
+  
+  let header = base64.split(',')[1].slice(0, 50)
+  let uint8 = Uint8Array.from(atob(header), c => c.charCodeAt(0))
+  let dataView = new DataView(uint8.buffer, 0, 28)
+
+  return {
+    originalWidth: dataView.getInt32(16),
+    originalHeight: dataView.getInt32(20)
+  }
+}
+
+function getScaledSize(originalWidth, originalHeight, maxWidth, maxHeight) {
+  let scaledWidth = originalWidth;
+  let scaledHeight = originalHeight;
+
+  // Calculate aspect ratio
+  let ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight);
+
+  // Scale dimensions
+  scaledWidth = Math.round(scaledWidth * ratio);
+  scaledHeight = Math.round(scaledHeight * ratio);
+
+  return { scaledWidth, scaledHeight };
+}
 
 function translateImageNode(params, imageSize) {
   const {
     node: { attrs = {}, marks = [] },
+    tableCell,
   } = params;
 
   let imageId = attrs.rId;
-  let size = imageSize
-    ? Object.assign({}, imageSize)
-    : {
-        w: pixelsToEmu(attrs.size.width),
-        h: pixelsToEmu(attrs.size.height),
-      };
+  
+  const src = attrs.src || attrs.imageSrc;
+  const { originalWidth, originalHeight } = getPngDimensions(src);
+  
+  let size = attrs.size
+    ? {
+      w: pixelsToEmu(attrs.size.width),
+      h: pixelsToEmu(attrs.size.height),
+    } : imageSize;
 
+  if (originalWidth && originalHeight) {
+    const boxWidthPx = emuToPixels(size.w);
+    const boxHeightPx = emuToPixels(size.h);
+    const { scaledWidth, scaledHeight } = getScaledSize(originalWidth, originalHeight, boxWidthPx, boxHeightPx);
+    size = {
+      w: pixelsToEmu(scaledWidth),
+      h: pixelsToEmu(scaledHeight),
+    };
+  }
+  
+  if (tableCell) {
+    // Image inside tableCell
+    const colwidthSum = tableCell.attrs.colwidth.reduce((acc, curr) => acc + curr, 0);
+    const leftMargin = tableCell.attrs.cellMargins?.left || 8;
+    const rightMargin = tableCell.attrs.cellMargins?.right || 8;
+    const maxWidthEmu = pixelsToEmu(colwidthSum - (leftMargin + rightMargin));
+    const { width: w, height: h } = resizeKeepAspectRatio(size.w, size.h, maxWidthEmu);
+    if (w && h) size = { w, h };
+  }
+  
   if (params.node.type === 'image' && !imageId) {
-    const path = attrs.src?.split('word/')[1];
+    const path = src?.split('word/')[1];
     imageId = addNewImageRelationship(params, path);
   } else if (params.node.type === 'fieldAnnotation' && !imageId) {
-    const type = attrs.imageSrc?.split(';')[0].split('/')[1];
+    const type = src?.split(';')[0].split('/')[1];
     if (!type) {
       return prepareTextAnnotation(params);
     }
-
+    
     const hash = generateDocxRandomId(4);
-
     const cleanUrl = attrs.fieldId.replace('-', '_');
     const imageUrl = `media/${cleanUrl}_${hash}.${type}`;
 
     imageId = addNewImageRelationship(params, imageUrl);
-    params.media[`${cleanUrl}_${hash}.${type}`] = attrs.imageSrc;
+    params.media[`${cleanUrl}_${hash}.${type}`] = src;
   }
 
-  // Fields can receive 'extras' attrs which can contain different data.
-  // For images, we can place the correct height/width
-  if (attrs.extras?.width) {
-    const aspectRatio = attrs.extras.width / attrs.extras.height;
-    const maxWidth = getMaxWidthInPixels(params.pageStyles);
-    size.w = Math.min(pixelsToEmu(attrs.extras.width), pixelsToEmu(maxWidth));
-    size.h = size.w / aspectRatio;
-  }
-
-  const inlineAttrs = attrs.originalPadding || {
+  let inlineAttrs = attrs.originalPadding || {
     distT: 0,
     distB: 0,
     distL: 0,
     distR: 0,
   };
 
+  const anchorElements = [];
+  let wrapProp = [];
+  
+  // Handle anchor image export
+  if (attrs.isAnchor) {
+    inlineAttrs = {
+      ...inlineAttrs,
+      simplePos: attrs.originalAttributes?.simplePos,
+      relativeHeight: 1,
+      behindDoc: attrs.originalAttributes?.behindDoc,
+      locked: attrs.originalAttributes?.locked,
+      layoutInCell: attrs.originalAttributes?.layoutInCell,
+      allowOverlap: attrs.originalAttributes?.allowOverlap,
+    };
+    if (attrs.simplePos) {
+      anchorElements.push({
+        name: 'wp:simplePos',
+        attributes: {
+          x: 0,
+          y: 0,
+        }
+      });
+    }
+
+    if (attrs.anchorData) {
+      anchorElements.push({
+        name: 'wp:positionH',
+        attributes: {
+          relativeFrom: attrs.anchorData.hRelativeFrom,
+        },
+        ...(attrs.marginOffset.left && {
+          elements: [{
+            name: 'wp:posOffset',
+            elements: [{
+              type: 'text',
+              text: pixelsToEmu(attrs.marginOffset.left).toString(),
+            }],
+          }]
+        }),
+        ...(attrs.anchorData.alignH && {
+          elements: [{
+            name: 'wp:align',
+            elements: [{
+              type: 'text',
+              text: attrs.anchorData.alignH,
+            }],
+          }]
+        })
+      });
+      anchorElements.push({
+        name: 'wp:positionV',
+        attributes: {
+          relativeFrom: attrs.anchorData.vRelativeFrom,
+        },
+        ...(attrs.marginOffset.top && {
+          elements: [{
+            name: 'wp:posOffset',
+            elements: [{
+              type: 'text',
+              text: pixelsToEmu(attrs.marginOffset.top).toString(),
+            }],
+          }]
+        }),
+        ...(attrs.anchorData.alignV && {
+          elements: [{
+            name: 'wp:align',
+            elements: [{
+              type: 'text',
+              text: attrs.anchorData.alignV,
+            }],
+          }]
+        })
+      });
+    }
+    
+    if (attrs.wrapText) {
+      wrapProp.push({
+        name: 'wp:wrapSquare',
+        attributes: {
+          wrapText: attrs.wrapText,
+        }
+      });
+    }
+
+    if (attrs.wrapTopAndBottom) {
+      wrapProp.push({
+        name: 'wp:wrapTopAndBottom',
+      });
+    }
+  }
+
   const drawingXmlns = 'http://schemas.openxmlformats.org/drawingml/2006/main';
   const pictureXmlns = 'http://schemas.openxmlformats.org/drawingml/2006/picture';
-  return wrapTextInRun(
+  
+  const textNode =  wrapTextInRun(
     {
       name: 'w:drawing',
       elements: [
         {
-          name: 'wp:inline',
+          name: attrs.isAnchor ? 'wp:anchor' : 'wp:inline',
           attributes: inlineAttrs,
           elements: [
+            ...anchorElements,
             {
               name: 'wp:extent',
               attributes: {
@@ -1105,12 +1571,13 @@ function translateImageNode(params, imageSize) {
                 b: 0,
               },
             },
+            ...wrapProp,
             {
               name: 'wp:docPr',
               attributes: {
-                id: 0,
-                name: '',
-                descr: '',
+                id: attrs.id || 0,
+                name: attrs.alt,
+                descr: attrs.title,
               },
             },
             {
@@ -1143,9 +1610,8 @@ function translateImageNode(params, imageSize) {
                             {
                               name: 'pic:cNvPr',
                               attributes: {
-                                id: 0,
-                                name: '',
-                                desc: '',
+                                id: attrs.id || 0,
+                                name: attrs.title,
                               },
                             },
                             {
@@ -1169,11 +1635,7 @@ function translateImageNode(params, imageSize) {
                               name: 'a:blip',
                               attributes: {
                                 'r:embed': imageId,
-                                cstate: 'none',
                               },
-                            },
-                            {
-                              name: 'a:srcRect',
                             },
                             {
                               name: 'a:stretch',
@@ -1211,6 +1673,9 @@ function translateImageNode(params, imageSize) {
                               attributes: { prst: 'rect' },
                               elements: [{ name: 'a:avLst' }],
                             },
+                            {
+                              name: 'a:noFill'
+                            }
                           ],
                         },
                       ],
@@ -1225,6 +1690,8 @@ function translateImageNode(params, imageSize) {
     },
     [],
   );
+  
+  return textNode;
 }
 
 /**
@@ -1237,7 +1704,9 @@ function prepareTextAnnotation(params) {
   const {
     node: { attrs = {}, marks = [] },
   } = params;
-  return getTextNodeForExport(attrs.displayLabel, marks);
+
+  const marksFromAttrs = translateFieldAttrsToMarks(attrs);
+  return getTextNodeForExport(attrs.displayLabel, [...marks, ...marksFromAttrs], params);
 }
 
 /**
@@ -1251,7 +1720,7 @@ function prepareCheckboxAnnotation(params) {
     node: { attrs = {}, marks = [] },
   } = params;
   const content = he.decode(attrs.displayLabel);
-  return getTextNodeForExport(content, marks);
+  return getTextNodeForExport(content, marks, params);
 }
 
 /**
@@ -1266,7 +1735,7 @@ function prepareHtmlAnnotation(params) {
   } = params;
 
   const parser = new window.DOMParser();
-  const paragraphHtml = parser.parseFromString(attrs.rawHtml, 'text/html');
+  const paragraphHtml = parser.parseFromString(attrs.rawHtml || attrs.displayLabel, 'text/html');
 
   const state = EditorState.create({
     doc: PMDOMParser.fromSchema(params.editorSchema).parse(paragraphHtml),
@@ -1276,6 +1745,7 @@ function prepareHtmlAnnotation(params) {
   return {
     name: 'htmlAnnotation',
     elements: translateChildNodes({
+      ...params,
       node: htmlAnnotationNode,
     }),
   };
@@ -1303,7 +1773,7 @@ function prepareUrlAnnotation(params) {
   } = params;
   const newId = addNewLinkRelationship(params, attrs.linkUrl);
 
-  const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks);
+  const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks, params);
 
   return {
     name: 'w:hyperlink',
@@ -1345,6 +1815,24 @@ function getTranslationByAnnotationType(annotationType) {
   return dictionary[annotationType];
 }
 
+const translateFieldAttrsToMarks = (attrs = {}) => {
+  const {
+    fontFamily,
+    fontSize,
+    bold,
+    underline,
+    italic,
+  } = attrs;
+
+  const marks = [];
+  if (fontFamily) marks.push({ type: 'fontFamily', attrs: { fontFamily } });
+  if (fontSize) marks.push({ type: 'fontSize', attrs: { fontSize } });
+  if (bold) marks.push({ type: 'bold', attrs: {} });
+  if (underline) marks.push({ type: 'underline', attrs: {} });
+  if (italic) marks.push({ type: 'italic', attrs: {} });
+  return marks;
+};
+
 /**
  * Translate a field annotation node
  *
@@ -1354,19 +1842,21 @@ function getTranslationByAnnotationType(annotationType) {
 function translateFieldAnnotation(params) {
   const { node, isFinalDoc } = params;
   const { attrs = {} } = node;
-
   const annotationHandler = getTranslationByAnnotationType(attrs.type);
   if (!annotationHandler) return {};
 
-  const processedNode = annotationHandler(params);
-  let sdtContentElements = [processedNode];
-
-  if (attrs.type === 'html') {
-    sdtContentElements = [...processedNode.elements];
-  }
-
+  let processedNode;
+  let sdtContentElements;
+  
   if (isFinalDoc) {
     return annotationHandler(params);
+  } else {
+    processedNode = annotationHandler(params);
+    sdtContentElements = [processedNode];
+
+    if (attrs.type === 'html') {
+      sdtContentElements = [...processedNode.elements];
+    }
   }
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -1378,7 +1868,6 @@ function translateFieldAnnotation(params) {
         elements: [
           { name: 'w:tag', attributes: { 'w:val': attrs.fieldId } },
           { name: 'w:alias', attributes: { 'w:val': attrs.displayLabel } },
-          { name: 'w:lock', attributes: { 'w:val': 'sdtContentLocked' } },
           {
             name: 'w:fieldType',
             attributes: {
@@ -1415,6 +1904,114 @@ function translateFieldAnnotation(params) {
       },
     ],
   };
+};
+
+export function translateHardBreak(params) {
+  const { node = {} } = params;
+  const { attrs = {} } = node;
+  const { pageBreakSource } = attrs;
+  if (pageBreakSource === 'sectPr') return null;
+  return {
+    name: 'w:r',
+    elements: [{
+      name: 'w:br',
+      type: 'element',
+      attributes: { 'w:type': 'page' }
+    }]
+  };
+}
+
+function translateShapeContainer(params) {
+  const { node } = params;
+  const elements = translateChildNodes(params);
+
+  const shape = {
+    name: 'v:shape',
+    attributes: {
+      ...node.attrs.attributes,
+      fillcolor: node.attrs.fillcolor,
+    },
+    elements: [
+      ...elements,
+      ...(
+        node.attrs.wrapAttributes
+        ? [{
+            name: 'w10:wrap',
+            attributes: { ...node.attrs.wrapAttributes },
+          }] 
+        : []
+      ),
+    ],
+  };
+
+  const pict = {
+    name: 'w:pict',
+    attributes: {
+      'w14:anchorId':  Math.floor(Math.random() * 0xffffffff).toString(),
+    },
+    elements: [shape],
+  };
+
+  const par = {
+    name: 'w:p',
+    elements: [wrapTextInRun(pict)],
+  };
+  
+  return par;
+}
+
+function translateShapeTextbox(params) {
+  const { node } = params;
+  const elements = translateChildNodes(params);
+
+  const textboxContent = {
+    name: 'w:txbxContent',
+    elements,
+  };
+
+  const textbox = {
+    name: 'v:textbox',
+    attributes: {
+      ...node.attrs.attributes,
+    },
+    elements: [textboxContent],
+  };
+
+  return textbox;
+}
+
+function translateContentBlock(params) {
+  const { node } = params;
+  const { drawingContent } = node.attrs;
+
+  const drawing = {
+    name: 'w:drawing',
+    elements: [
+      ...(
+        drawingContent
+        ? [...(drawingContent.elements || [])]
+        : []
+      )
+    ],
+  };
+
+  const choice = {
+    name: 'mc:Choice',
+    attributes: { Requires: 'wps' },
+    elements: [drawing],
+  };
+
+  const alternateContent = {
+    name: 'mc:AlternateContent',
+    elements: [choice],
+  };
+
+  const par = {
+    name: 'w:p',
+    elements: [wrapTextInRun(alternateContent)],
+  };
+
+  return par;
 }
 
 export class DocxExporter {
@@ -1422,64 +2019,54 @@ export class DocxExporter {
     this.converter = converter;
   }
 
-  // Currently for hyperlinks but there will be other uses
-  #generateFldCharNode(type) {
-    return {
-      name: 'w:r',
-      type: 'element',
-      elements: [{ name: 'w:fldChar', attributes: { 'w:fldCharType': type } }],
-    };
-  }
-
-  // Used for generating hyperlinks
-  #generateInstrText(data) {
-    return {
-      name: 'w:r',
-      type: 'element',
-      elements: [{ name: 'w:instrText', elements: [{ type: 'text', text: data }] }],
-    };
-  }
-
-  schemaToXml(data) {
-    console.debug('[SuperConverter] schemaToXml:', data);
-    const result = this.#generate_xml_as_list(data);
-    // console.debug('[SuperConverter] schemaToXml result:', result.join(''));
+  schemaToXml(data, debug = false) {
+    const result = this.#generate_xml_as_list(data, debug);
     return result.join('');
   }
 
-  #generate_xml_as_list(data) {
+  #generate_xml_as_list(data, debug = falase) {
     const json = JSON.parse(JSON.stringify(data));
     const declaration = this.converter.declaration.attributes;
     const xmlTag = `<?xml${Object.entries(declaration)
       .map(([key, value]) => ` ${key}="${value}"`)
       .join('')}?>`;
-    const result = this.#generateXml(json);
+    const result = this.#generateXml(json, debug);
     const final = [xmlTag, ...result];
     return final;
   }
 
   #replaceSpecialCharacters(text) {
     if (!text) return;
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return text.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  #generateXml(node) {
+  #generateXml(node, debug = false) {
     if (!node) return null;
-    const { name, elements, attributes } = node;
+    let { name } = node;
+    const { elements, attributes } = node;
+
     let tag = `<${name}`;
 
     for (let attr in attributes) {
-      tag += ` ${attr}="${attributes[attr]}"`;
+      const parsedAttrName = typeof attributes[attr] === 'string' ? this.#replaceSpecialCharacters(attributes[attr]) : attributes[attr];
+      tag += ` ${attr}="${parsedAttrName}"`;
     }
 
-    const selfClosing = !elements || !elements.length;
+    const selfClosing = name && (!elements || !elements.length);
     if (selfClosing) tag += ' />';
     else tag += '>';
     let tags = [tag];
 
+    if (!name && node.type === 'text') {
+      return node.text;
+    }
+
     if (name === 'w:instrText') {
       tags.push(elements[0].text);
-    } else if (name === 'w:t' || name === 'w:delText') {
+    } else if (name === 'w:t' || name === 'w:delText' || name === 'wp:posOffset') {
       const text = this.#replaceSpecialCharacters(elements[0].text);
       tags.push(text);
     } else {
@@ -1487,16 +2074,32 @@ export class DocxExporter {
         for (let child of elements) {
           const newElements = this.#generateXml(child);
           if (!newElements) continue;
-          tags.push(...newElements);
+
+          if (typeof newElements === 'string') {
+            tags.push(newElements);
+            continue;
+          }
+
+          const removeUndefined = newElements.filter((el) => {
+            return el !== '<undefined>' && el !== '</undefined>'
+          });
+        
+          tags.push(...removeUndefined);
         }
       }
     }
 
     if (!selfClosing) tags.push(`</${name}>`);
-
-    if (name === 'w:instrText') {
-      console.debug('INSTR TEXT', tags);
-    }
     return tags;
   }
+}
+
+
+function resizeKeepAspectRatio(width, height, maxWidth) {
+  if (width > maxWidth) {
+    let scale = maxWidth / width;
+    let newHeight = Math.round(height * scale);
+    return { width: maxWidth, height: newHeight };
+  }
+  return { width, height };
 }

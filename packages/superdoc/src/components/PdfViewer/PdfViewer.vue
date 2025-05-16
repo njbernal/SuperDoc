@@ -1,20 +1,17 @@
 <script setup>
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?worker';
 import workerSrc from './worker.js?raw';
+import { range } from './helpers/range.js';
+import { NSpin } from 'naive-ui';
 
 import { storeToRefs } from 'pinia';
-import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue';
-import { useSuperdocStore } from '@/stores/superdoc-store';
-import useSelection from '@/helpers/use-selection';
+import { onMounted, onUnmounted, ref, getCurrentInstance } from 'vue';
+import { useSuperdocStore } from '@superdoc/stores/superdoc-store';
+import useSelection from '@superdoc/helpers/use-selection';
 
-window.pdfjsWorker = pdfjsWorker;
-pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(
-  new Blob([workerSrc], {
-    type: 'application/javascript',
-  }),
-);
+const workerUrl = URL.createObjectURL(new Blob([workerSrc], { type: 'text/javascript' }));
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const emit = defineEmits(['page-loaded', 'ready', 'selection-change', 'bypass-selection']);
 const superdocStore = useSuperdocStore();
@@ -22,6 +19,15 @@ const { proxy } = getCurrentInstance();
 const { activeZoom } = storeToRefs(superdocStore);
 const totalPages = ref(null);
 const viewer = ref(null);
+const isReady = ref(false);
+
+const pdfViewerConfig = proxy.$superdoc.config.pdfViewer;
+const textLayerMode = pdfViewerConfig.textLayerMode ?? 0;
+
+let pdfjsLoadingTask = null;
+let pdfjsDocument = null;
+let pdfPageViews = [];
+
 const props = defineProps({
   documentData: {
     type: Object,
@@ -31,7 +37,6 @@ const props = defineProps({
 
 const id = props.documentData.id;
 const pdfData = props.documentData.data;
-const selectionBounds = reactive({});
 
 const getOriginalPageSize = (page) => {
   const viewport = page.getViewport({ scale: 1 });
@@ -42,22 +47,20 @@ const getOriginalPageSize = (page) => {
 
 async function initPdfLayer(arrayBuffer) {
   const loadingTask = pdfjsLib.getDocument(arrayBuffer);
-  return await loadingTask.promise;
+  const document = await loadingTask.promise;
+  return { loadingTask, document };
 }
 
 async function loadPDF(fileObject) {
   const fileReader = new FileReader();
   fileReader.onload = async function (event) {
-    const pdfDocument = await initPdfLayer(event.target.result);
-    await renderPages(pdfDocument);
+    const { loadingTask, document } = await initPdfLayer(event.target.result);
+    pdfjsLoadingTask = loadingTask;
+    pdfjsDocument = document;
+    renderPages(document);
   };
   fileReader.readAsArrayBuffer(fileObject);
 }
-
-const enableTextLayer = (container, state) => {
-  const textLayer = container.querySelector('.textLayer');
-  if (textLayer) textLayer.style.pointerEvents = state ? 'auto' : 'none';
-};
 
 const renderPages = (pdfDocument) => {
   setTimeout(() => {
@@ -65,41 +68,55 @@ const renderPages = (pdfDocument) => {
   }, 150);
 };
 
+async function getPdfjsPages(pdf, firstPage, lastPage) {
+  const allPagesPromises = range(firstPage, lastPage + 1).map((num) => pdf.getPage(num));
+  return await Promise.all(allPagesPromises);
+}
+
 async function _renderPages(pdfDocument) {
   try {
     const numPages = pdfDocument.numPages;
     totalPages.value = numPages;
 
-    for (let i = 1; i <= numPages; i++) {
-      const page = await pdfDocument.getPage(i);
+    const firstPage = 1;
+    const pdfjsPages = await getPdfjsPages(pdfDocument, firstPage, numPages);
+
+    const pageContainers = [];
+    for (const [index, page] of pdfjsPages.entries()) {
       const container = document.createElement('div');
       container.className = 'pdf-page';
-      container.dataset.pageNumber = i;
-      container.id = `${id}-page-${i}`;
-      viewer.value.appendChild(container);
+      container.dataset.pageNumber = index + 1;
+      container.id = `${id}-page-${index + 1}`;
+
+      pageContainers.push(container);
 
       const { width, height } = getOriginalPageSize(page);
       const scale = 1;
       const eventBus = new pdfjsViewer.EventBus();
       const pdfPageView = new pdfjsViewer.PDFPageView({
         container,
-        id: i,
+        id: index + 1,
         scale,
         defaultViewport: page.getViewport({ scale }),
         eventBus,
+        textLayerMode,
       });
+      pdfPageViews.push(pdfPageView);
 
-      const viewport = page.getViewport({ scale });
       const containerBounds = container.getBoundingClientRect();
       containerBounds.originalWidth = width;
       containerBounds.originalHeight = height;
+
       pdfPageView.setPdfPage(page);
       await pdfPageView.draw();
 
       // Emit page information
-      emit('page-loaded', id, i, containerBounds);
+      emit('page-loaded', id, index, containerBounds);
     }
 
+    viewer.value.append(...pageContainers);
+
+    isReady.value = true;
     emit('ready', id, viewer);
   } catch (error) {
     console.error('Error loading PDF:', error);
@@ -144,17 +161,13 @@ function getSelectedTextBoundingBox(container) {
   const viewerRect = viewer.value.getBoundingClientRect();
 
   // Adjust the bounding box relative to the page
-  boundingBox.top = (boundingBox.top - containerRect.top) / activeZoom.value + container.scrollTop;
-  boundingBox.left = (boundingBox.left - containerRect.left) / activeZoom.value + container.scrollLeft;
-  boundingBox.bottom = (boundingBox.bottom - containerRect.top) / activeZoom.value + container.scrollTop;
-  boundingBox.right = (boundingBox.right - containerRect.left) / activeZoom.value + container.scrollLeft;
+  boundingBox.top = (boundingBox.top - containerRect.top) / (activeZoom.value / 100) + container.scrollTop;
+  boundingBox.left = (boundingBox.left - containerRect.left) / (activeZoom.value / 100) + container.scrollLeft;
+  boundingBox.bottom = (boundingBox.bottom - containerRect.top) / (activeZoom.value / 100) + container.scrollTop;
+  boundingBox.right = (boundingBox.right - containerRect.left) / (activeZoom.value / 100) + container.scrollLeft;
 
   return boundingBox;
 }
-
-onMounted(async () => {
-  const doc = await loadPDF(pdfData);
-});
 
 const handlePdfClick = (e) => {
   const { target } = e;
@@ -174,50 +187,91 @@ const handleMouseUp = (e) => {
     emit('selection-change', sel);
   }
 };
+
+const destroy = () => {
+  pdfPageViews.forEach((view) => view.destroy()); // will cleanup page resources
+
+  pdfjsDocument.cleanup();
+  pdfjsDocument.destroy();
+
+  pdfPageViews = [];
+  pdfjsDocument = null;
+  pdfjsLoadingTask = null;
+
+  URL.revokeObjectURL(workerUrl);
+};
+
+onMounted(async () => {
+  await import('pdfjs-dist/web/pdf_viewer.css');
+  await loadPDF(pdfData);
+});
+
+onUnmounted(() => {
+  destroy();
+});
 </script>
 
 <template>
-  <div @mousedown="handlePdfClick" @mouseup="handleMouseUp">
-    <div class="superdoc-viewer" ref="viewer" id="viewerId"></div>
+  <div class="superdoc-pdf-viewer-container" @mousedown="handlePdfClick" @mouseup="handleMouseUp">
+    <div class="superdoc-pdf-viewer" ref="viewer" id="viewerId"></div>
+
+    <div v-if="!isReady" class="superdoc-pdf-viewer__loader">
+      <n-spin class="superdoc-pdf-viewer__spin" size="large" />
+    </div>
   </div>
 </template>
 
-<style lang="postcss">
-.superdoc-viewer {
-  @nested-import 'pdfjs-dist/web/pdf_viewer.css';
+<style lang="postcss" scoped>
+.superdoc-pdf-viewer-container {
+  width: 100%;
+}
 
-  position: relative;
+.superdoc-pdf-viewer {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  position: relative;
 
-  .pdf-page {
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 150px;
+    min-height: 150px;
+    
+    :deep(.n-spin) {
+      --n-color: #1354ff !important;
+      --n-text-color: #1354ff !important;
+    }
+  }
+
+  :deep(.pdf-page) {
     border-top: 1px solid #dfdfdf;
     border-bottom: 1px solid #dfdfdf;
     margin: 0 0 20px 0;
     position: relative;
     overflow: hidden;
+
+    &:first-child {
+      border-radius: 16px 16px 0 0;
+      border-top: none;
+    }
+
+    &:last-child {
+      border-radius: 0 0 16px 16px;
+      border-bottom: none;
+    }
   }
 
-  .pdf-page:first-child {
-    border-radius: 16px 16px 0 0;
-    border-top: none;
-  }
-  .pdf-page:last-child {
-    border-radius: 0 0 16px 16px;
-    border-bottom: none;
-  }
-  .pdf-page:first-child:last-child {
-    border-radius: 16px;
-  }
-
-  .textLayer {
+  :deep(.textLayer) {
     z-index: 2;
     position: absolute;
-  }
 
-  .textLayer ::selection {
-    background-color: #1355ff66;
-    mix-blend-mode: difference;
+    &::selection {
+      background-color: #1355ff66;
+      mix-blend-mode: difference;
+    }
   }
 }
 </style>

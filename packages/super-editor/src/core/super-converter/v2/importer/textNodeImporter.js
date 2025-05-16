@@ -3,7 +3,8 @@ import { getElementName, parseProperties } from './importerHelpers.js';
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleTextNode = (nodes, docx, nodeListHandler, insideTrackChange = false) => {
+export const handleTextNode = (params) => {
+  const { nodes, insideTrackChange } = params;
   if (nodes.length === 0 || !(nodes[0].name === 'w:t' || (insideTrackChange && nodes[0].name === 'w:delText'))) {
     return { nodes: [], consumed: 0 };
   }

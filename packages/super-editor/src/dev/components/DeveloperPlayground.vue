@@ -1,21 +1,23 @@
 <script setup>
+import '@/style.css';
 import '@harbour-enterprises/common/styles/common-styles.css';
-import '@harbour-enterprises/common/icons/icons.css';
-import { ref, computed, onMounted } from 'vue';
 
-import { SuperEditor } from '@/index';
+import { ref, shallowRef, computed, onMounted } from 'vue';
+import { SuperEditor } from '@/index.js';
 import { getFileObject } from '@harbour-enterprises/common/helpers/get-file-object';
 import { DOCX } from '@harbour-enterprises/common';
-import { INPUTS } from '../config/agreement-editor.js';
 import { SuperToolbar } from '@components/toolbar/super-toolbar';
-import { fieldAnnotationHelpers } from '@extensions/index.js';
+import { PaginationPluginKey } from '@extensions/pagination/pagination-helpers.js';
 import BasicUpload from './BasicUpload.vue';
 import BlankDOCX from '@harbour-enterprises/common/data/blank.docx?url';
-import EditorInputs from './EditorInputs/EditorInputs.vue';
+import { Telemetry } from '@harbour-enterprises/common/Telemetry.js';
 
 // Import the component the same you would in your app
 let activeEditor;
 const currentFile = ref(null);
+const pageStyles = ref(null);
+const isDebuggingPagination = ref(false);
+const telemetry = shallowRef(null);
 
 const handleNewFile = async (file) => {
   currentFile.value = null;
@@ -28,6 +30,7 @@ const onCreate = ({ editor }) => {
   console.debug('[Dev] Page styles (pixels)', editor.getPageStyles());
   console.debug('[Dev] document styles', editor.converter?.getDocumentDefaultStyles());
 
+  pageStyles.value = editor.converter?.pageStyles;
   activeEditor = editor;
   window.editor = editor;
 
@@ -39,6 +42,9 @@ const onCreate = ({ editor }) => {
     }
   });
   attachAnnotationEventHandlers();
+
+  // Set debugging pagination value from editor plugin state
+  isDebuggingPagination.value = PaginationPluginKey.getState(editor.state)?.isDebugging;
 };
 
 const onCommentClicked = ({ conversation }) => {
@@ -54,13 +60,20 @@ const editorOptions = computed(() => {
   return {
     documentId: 'dev-123',
     user,
+    rulers: true,
     onCreate,
     onCommentClicked,
+    onCommentsLoaded,
     suppressSkeletonLoader: true,
     users: [], // For comment @-mentions, only users that have access to the document
     pagination: true,
+    telemetry: telemetry.value,
   }
 });
+
+const onCommentsLoaded = ({ comments }) => {
+  console.debug('💬 [Dev] Comments loaded', comments);
+};
 
 const exportDocx = async () => {
   const result = await activeEditor?.exportDocx();
@@ -72,70 +85,7 @@ const exportDocx = async () => {
   a.click();
 };
 
-/* Inputs pane and field annotations */
-const draggedInputId = ref(null);
-const activeSigner = ref(null);
-const signersListInfo = ref([
-  {
-    signerindex: 0,
-    signername: 'Signer 1',
-    signeremail: 'signer1@harbourshare.com',
-    isactive: true,
-    signercolor: '#016c59',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 0,
-    signerid: 'signerid-1723657655732-7x1vne6lq1r',
-    iscreator: false,
-  },
-  {
-    signerindex: 1,
-    signername: 'Signer 2',
-    signeremail: 'signer2@harbourshare.com',
-    isactive: true,
-    signercolor: '#6943d0',
-    iselementvisible: true,
-    signeriseditable: true,
-    sortorder: 1,
-    signerid: 'signerid-1723657671736-msk8e5qpd0c',
-    iscreator: false,
-  },
-]);
-
-const updateDraggedInputId = (inputId) => {
-  draggedInputId.value = inputId;
-};
-
-const updateActiveSigner = (signerIdx) => {
-  activeSigner.value = signerIdx;
-};
-
 const attachAnnotationEventHandlers = () => {
-  // Handle field drop outside editor.
-  activeEditor?.on('fieldAnnotationDropped', ({ sourceField, editor, coordinates, pos }) => {
-    console.log('fieldAnnotationDropped', { sourceField });
-
-    let signer = signersListInfo.value.find((signer) => signer.signerindex === activeSigner.value);
-
-    editor.commands.addFieldAnnotation(pos, {
-      displayLabel: 'Enter your info',
-      fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-      // fieldId: `222`,
-      fieldType: 'TEXTINPUT',
-      fieldColor: signer?.signercolor,
-    });
-
-    // To test link field.
-    // editor.commands.addFieldAnnotation(pos, {
-    //   displayLabel: 'Enter your link',
-    //   fieldId: `agreementinput-${Date.now()}-${Math.floor(Math.random() * 1000000000000)}`,
-    //   fieldType: 'URLTEXTINPUT',
-    //   fieldColor: signer?.signercolor,
-    //   linkUrl: 'https://google.com',
-    //   type: 'link',
-    // });
-  });
-
   activeEditor?.on('fieldAnnotationClicked', (params) => {
     console.log('fieldAnnotationClicked', { params });
   });
@@ -148,15 +98,26 @@ const attachAnnotationEventHandlers = () => {
     console.log('fieldAnnotationDeleted', { params });
   });
 };
-/* Inputs pane and field annotations */
 
 const initToolbar = () => {
-  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true });
+  return new SuperToolbar({ element: 'toolbar', editor: activeEditor, isDev: true, pagination: true, });
 };
+
+/* For pagination debugging / visual cues */
+const debugPageStyle = computed(() => {
+  return {
+    height: pageStyles.value?.pageSize.height + 'in',
+  }
+});
 
 onMounted(async () => {
   // set document to blank
   currentFile.value = await getFileObject(BlankDOCX, 'blank_document.docx', DOCX);
+
+  telemetry.value = new Telemetry({
+    enabled: false,
+    superdocId: 'dev-playground',
+  });
 });
 </script>
 
@@ -181,7 +142,14 @@ onMounted(async () => {
       <div id="toolbar" class="sd-toolbar"></div>
 
       <div class="dev-app__main">
-        <div class="dev-app__view">
+        <div class="dev-app__view" id="dev-parent">
+          <!-- temporary - debugging pagination -->
+          <div style="display: flex; flex-direction: column; margin-right: 10px;" v-if="isDebuggingPagination">
+            <div v-for="i in 100" class="page-spacer" :style="debugPageStyle">
+              page: {{ i }}
+            </div>
+          </div>
+
           <div class="dev-app__content" v-if="currentFile">
             <SuperEditor
               :file-source="currentFile" 
@@ -194,7 +162,25 @@ onMounted(async () => {
   </div>
 </template>
 
+<style>
+.super-editor {
+  border: 1px solid black;
+}
+</style>
+
 <style scoped>
+.page-spacer {
+  height: 11in;
+  width: 60px;
+  background-color: #0000AA55;
+  border: 1px solid black;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: center;
+}
+.page-spacer:nth-child(odd) {
+  background-color: #AA000055;
+}
 .dev-app {
   --header-height: 154px;
   --toolbar-height: 39px;
@@ -232,6 +218,7 @@ onMounted(async () => {
 }
 
 .dev-app__view {
+  width: 100%;
   display: flex;
   padding-top: 20px;
   padding-left: 20px;

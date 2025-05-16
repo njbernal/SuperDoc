@@ -14,8 +14,8 @@ export const initPaginationData = async (editor) => {
   if (!editor.converter) return;
 
   const sectionData = { headers: {}, footers: {} };
-  const headerIds = editor.converter.headerIds;
-  const footerIds = editor.converter.footerIds;
+  const headerIds = editor.converter.headerIds.ids;
+  const footerIds = editor.converter.footerIds.ids;
 
   for (let key in headerIds) {
     const sectionId = headerIds[key];
@@ -55,8 +55,10 @@ export const initPaginationData = async (editor) => {
  * @returns {Promise<Object>} An object containing the height of the section, the section editor and the section container
  */
 const getSectionHeight = async (editor, data) => {
+  if (!data) return {};
   return new Promise((resolve) => {
     const editorContainer = document.createElement('div');
+    editorContainer.className = 'super-editor';
     editorContainer.style.padding = 0;
     editorContainer.style.margin = 0;
 

@@ -1,3 +1,5 @@
+import path from 'path';
+import copy from 'rollup-plugin-copy'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -14,60 +16,107 @@ const visualizerConfig = {
   open: true
 }
 
+export const getAliases = (isDev) => {
+  const aliases = {
+    '@superdoc': fileURLToPath(new URL('./src', import.meta.url)),
+    '@stores': fileURLToPath(new URL('./src/stores', import.meta.url)),
+    '@packages': fileURLToPath(new URL('../', import.meta.url)),
+
+    // Super Editor aliases
+    '@': fileURLToPath(new URL('../super-editor/src', import.meta.url)),
+    '@core': fileURLToPath(new URL('../super-editor/src/core', import.meta.url)),
+    '@extensions': fileURLToPath(new URL('../super-editor/src/extensions', import.meta.url)),
+    '@features': fileURLToPath(new URL('../super-editor/src/features', import.meta.url)),
+    '@components': fileURLToPath(new URL('../super-editor/src/components', import.meta.url)),
+    '@helpers': fileURLToPath(new URL('../super-editor/src/core/helpers', import.meta.url)),
+    '@converter': fileURLToPath(new URL('../super-editor/src/core/super-converter', import.meta.url)),
+    '@tests': fileURLToPath(new URL('../super-editor/src/tests', import.meta.url)),
+  };
+
+  if (isDev) {
+    aliases['@harbour-enterprises/super-editor'] = path.resolve(__dirname, '../super-editor/src');
+  };
+
+  return aliases;
+};
+
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command}) => {
   const plugins = [
     vue(),
+    copy({
+      targets: [
+        {
+          src: path.resolve(__dirname, '../super-editor/dist/*'),
+          dest: 'dist/super-editor',
+        },
+        { 
+          src: path.resolve(__dirname, '../../node_modules/pdfjs-dist/web/images/*'), 
+          dest: 'dist/images',
+        },
+      ],
+      hook: 'writeBundle'
+    }),
     // visualizer(visualizerConfig)
   ];
   if (mode !== 'test') plugins.push(nodePolyfills());
+  const isDev = command === 'serve';
 
   return {
     define: {
       __APP_VERSION__: JSON.stringify(version),
+      __IS_DEBUG__: true,
     },
     plugins,
     build: {
       target: 'es2022',
+      cssCodeSplit: false,
       lib: {
         entry: "src/index.js",
-        formats: ['es'],
         name: "SuperDoc",
-        fileName: (format) => `superdoc.${format}.js`
       },
-      minify: false,
+      minify: true,
       sourcemap: false,
       rollupOptions: {
         input: {
           'superdoc': 'src/index.js',
-          'super-editor': '@harbour-enterprises/super-editor',
-          'super-converter': '@harbour-enterprises/super-editor/super-converter',
-          'docx-zipper': '@harbour-enterprises/super-editor/docx-zipper',
-          'toolbar': '@harbour-enterprises/super-editor/toolbar',
-          'super-input': '@harbour-enterprises/super-editor/super-input',
-          'common': '@harbour-enterprises/common',
-          'zipper': '@harbour-enterprises/super-editor/zipper',
+          'super-editor': 'src/super-editor.js',
         },
         external: [
           'yjs',
           '@hocuspocus/provider',
           'pdfjs-dist',
-          'vite-plugin-node-polyfills'
+          'vite-plugin-node-polyfills',
         ],
-        output: {
-          manualChunks: {
-            'vue': ['vue'],
-            'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
-            'super-editor': ['@harbour-enterprises/super-editor'],
-            'jszip': ['jszip'],
-            'eventemitter3': ['eventemitter3'],
-            'uuid': ['uuid'],
-            'xml-js': ['xml-js'],
-            'super-input': ['@harbour-enterprises/super-editor/super-input'],
+        output: [
+          {
+            format: 'es',
+            entryFileNames: '[name].es.js',
+            chunkFileNames: 'chunks/[name]-[hash].es.js',
+            manualChunks: {
+              'vue': ['vue'],
+              'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
+              'jszip': ['jszip'],
+              'eventemitter3': ['eventemitter3'],
+              'uuid': ['uuid'],
+              'xml-js': ['xml-js'],
+            }
           },
-          entryFileNames: '[name].es.js',
-          chunkFileNames: 'chunks/[name]-[hash].js'
-        },
+          {
+            format: 'cjs',
+            entryFileNames: '[name].cjs',
+            chunkFileNames: 'chunks/[name]-[hash].cjs',
+            manualChunks: {
+              'vue': ['vue'],
+              'blank-docx': ['@harbour-enterprises/common/data/blank.docx?url'],
+              'jszip': ['jszip'],
+              'eventemitter3': ['eventemitter3'],
+              'uuid': ['uuid'],
+              'xml-js': ['xml-js'],
+            }
+          }
+        ],        
       }
     },
     optimizeDeps: {
@@ -77,11 +126,7 @@ export default defineConfig(({ mode, command}) => {
       },
     },
     resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
-        '@core': fileURLToPath(new URL('./src/core', import.meta.url)),
-        '@stores': fileURLToPath(new URL('./src/stores', import.meta.url)),
-      },
+      alias: getAliases(isDev),
       extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     },
     css: {
@@ -91,7 +136,11 @@ export default defineConfig(({ mode, command}) => {
       port: 9094,
       host: '0.0.0.0',
       fs: {
-        allow: ['../', '../../'],
+        allow: [
+          path.resolve(__dirname, '../super-editor'),
+          '../',
+          '../../',
+        ],
       },
     },
   }

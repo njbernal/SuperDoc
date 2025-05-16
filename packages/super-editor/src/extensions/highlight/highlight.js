@@ -13,7 +13,7 @@ export const Highlight = Mark.create({
     return {
       color: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-color') || element.style.backgroundColor,
+        parseDOM: (element) => element.getAttribute('data-color') || element.style.backgroundColor,
         renderDOM: (attributes) => {
           if (!attributes.color) {
             return {};
@@ -39,7 +39,7 @@ export const Highlight = Mark.create({
   //prettier-ignore
   addCommands() {
     return {
-      setHighlight: () => ({ commands }) => commands.setMark(this.name),
+      setHighlight: (color) => ({ commands }) => commands.setMark(this.name, { color }),
       unsetHighlight: () => ({ commands }) => commands.unsetMark(this.name),
       toggleHighlight: () => ({ commands }) => commands.toggleMark(this.name),
     };

@@ -18,15 +18,18 @@ const props = defineProps({
 
 const getBarColor = computed(() => {
   if (props.name === 'color') return { backgroundColor: props.color || '#111111' };
+  if (props.name === 'highlight') return { backgroundColor: props.color || '#D6D6D6' };
+});
+
+const hasColorBar = computed(() => {
+  return ['color', 'highlight'].includes(props.name);
 });
 </script>
 
 <template>
   <div class="toolbar-icon">
-    <i :class="icon" v-if="props.name !== 'color'"></i>
-    <i :class="icon" size="xs" v-else class="font-icon"></i>
-
-    <div class="color-bar" v-if="props.name === 'color'" :style="getBarColor"></div>
+    <div class="toolbar-icon__icon" :class="[`toolbar-icon__icon--${props.name}`]" v-html="icon"></div>
+    <div class="color-bar" v-if="hasColorBar" :style="getBarColor"></div>
   </div>
 </template>
 
@@ -34,10 +37,33 @@ const getBarColor = computed(() => {
 .toolbar-icon {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-.toolbar-button-icon {
-  max-height: 100%;
+
+.toolbar-icon__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 16px;
+  &--highlight {
+    width: 16px;
+    margin-left: 3px;
+    margin-bottom: 1px;
+  }
 }
+
+.toolbar-icon__icon :deep(svg) {
+  width: auto; /* needed for safari */
+  max-height: 16px;
+}
+
+.toolbar-icon__icon--color :deep(svg) {
+  max-height: 14px;
+  margin-top: -3px;
+}
+
 .toolbar-button:hover {
   color: black;
   background-color: #d8dee5;
@@ -56,8 +82,5 @@ const getBarColor = computed(() => {
   bottom: 6px;
   transform: translateX(-50%);
   width: 16px;
-}
-.font-icon {
-  margin-top: -3px;
 }
 </style>

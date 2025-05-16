@@ -3,7 +3,7 @@ import { ref, reactive, toRaw } from 'vue';
 export default function useSelection(params) {
   const documentId = ref(params.documentId);
   const page = ref(params.page);
-  const selectionBounds = reactive(params.selectionBounds);
+  const selectionBounds = reactive(params.selectionBounds || {});
   const source = ref(params.source);
 
   /* Get the ID of the container */
@@ -32,6 +32,7 @@ export default function useSelection(params) {
       documentId: documentId.value,
       page: page.value,
       selectionBounds: toRaw(selectionBounds),
+      source: source.value,
     };
   };
 

@@ -64,7 +64,7 @@ Documentation is crucial for our project. You can help by:
 1. **Fork and Clone**:
 
    ```bash
-   git clone https://github.com/your-username/SuperDoc.git
+   git clone https://github.com/Harbour-Enterprises/SuperDoc.git
    cd SuperDoc
    ```
 

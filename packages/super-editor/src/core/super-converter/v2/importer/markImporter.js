@@ -1,13 +1,13 @@
 import { SuperConverter } from '../../SuperConverter.js';
 import { TrackFormatMarkName } from '@extensions/track-changes/constants.js';
-import { twipsToInches } from '../../helpers.js';
+import { getHexColorFromDocxSystem, isValidHexColor, twipsToInches, twipsToLines, twipsToPt } from '../../helpers.js';
 
 /**
  *
  * @param property
  * @returns {PmMarkJson[]}
  */
-export function parseMarks(property, unknownMarks = []) {
+export function parseMarks(property, unknownMarks = [], docx = null) {
   const marks = [];
   const seen = new Set();
 
@@ -49,7 +49,11 @@ export function parseMarks(property, unknownMarks = []) {
 
       // Marks with attrs: we need to get their values
       if (Object.keys(attributes).length) {
-        const value = getMarkValue(m.type, attributes);
+        const value = getMarkValue(m.type, attributes, docx);
+        
+        // If there is no value for mark it can't be applied
+        if (value === null || value === undefined) return;
+        
         newMark.attrs = {};
         newMark.attrs[m.property] = value;
       }
@@ -113,21 +117,21 @@ export function createImportMarks(marks) {
  * @param attributes
  * @returns {*}
  */
-function getMarkValue(markType, attributes) {
+function getMarkValue(markType, attributes, docx) {
   if (markType === 'tabs') markType = 'textIndent';
 
   const markValueMapper = {
     color: () => `#${attributes['w:val']}`,
     fontSize: () => `${attributes['w:val'] / 2}pt`,
     textIndent: () => getIndentValue(attributes),
-    fontFamily: () => attributes['w:ascii'],
+    fontFamily: () => getFontFamilyValue(attributes, docx),
     lineHeight: () => getLineHeightValue(attributes),
     textAlign: () => attributes['w:val'],
     link: () => attributes['href'],
     underline: () => attributes['w:val'],
     bold: () => attributes?.['w:val'] || null,
     italic: () => attributes?.['w:val'] || null,
-    highlight: () => attributes?.['w:val'] || null,
+    highlight: () => getHighLightValue(attributes),
   };
 
   if (!(markType in markValueMapper)) {
@@ -141,19 +145,49 @@ function getMarkValue(markType, attributes) {
   }
 }
 
+function getFontFamilyValue(attributes, docx) {
+  const ascii = attributes['w:ascii'];
+  const themeAscii = attributes['w:asciiTheme'];
+
+  if (!docx || !themeAscii) return ascii;
+  const theme = docx['word/theme/theme1.xml'];
+  if (!theme) return ascii;
+
+  const { elements: topElements } = theme;
+  const { elements } = topElements[0];
+  const themeElements = elements.find((el) => el.name === 'a:themeElements');
+  const fontScheme = themeElements.elements.find((el) => el.name === 'a:fontScheme');
+  const majorFont = fontScheme.elements.find((el) => el.name === 'a:majorFont');
+
+  const latin = majorFont.elements.find((el) => el.name === 'a:latin');
+  const typeface = latin.attributes['typeface'];
+  return typeface;
+
+}
+
 function getIndentValue(attributes) {
   let value = attributes['w:left'];
-  if (!value) value = attributes['w:firstLine'];
+  if (!value) return null;
   return `${twipsToInches(value)}in`;
 }
 
 function getLineHeightValue(attributes) {
-  let value = attributes['w:line'];
+  const value = attributes['w:line'];
+  const lineRule = attributes['w:lineRule'];
 
   // TODO: Figure out handling of additional line height attributes from docx
   // if (!value) value = attributes['w:lineRule'];
   // if (!value) value = attributes['w:after'];
   // if (!value) value = attributes['w:before'];
   if (!value || value === '0') return null;
-  return `${twipsToInches(value)}in`;
+  
+  if (lineRule === 'exact') return `${twipsToPt(value)}pt`;
+  return `${twipsToLines(value)}`;
+}
+
+function getHighLightValue(attributes) {
+  const fill = attributes['w:fill'];
+  if (fill && fill !== 'auto') return `#${fill}`;
+  if (isValidHexColor(attributes?.['w:val'])) return `#${attributes['w:val']}`;
+  return getHexColorFromDocxSystem(attributes?.['w:val']) || null;
 }

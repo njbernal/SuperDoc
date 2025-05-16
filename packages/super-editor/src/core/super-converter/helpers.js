@@ -1,3 +1,5 @@
+import { parseSizeUnit } from '../utilities/index.js';
+
 function inchesToTwips(inches) {
   if (inches == null) return;
   if (typeof inches === 'string') inches = parseFloat(inches);
@@ -20,6 +22,16 @@ function pixelsToTwips(pixels) {
   if (pixels == null) return;
   pixels = pixels / 96;
   return inchesToTwips(pixels);
+}
+
+function twipsToLines(twips) {
+  if (twips == null) return;
+  return twips / 240;
+}
+
+function linesToTwips(lines) {
+  if (lines == null) return;
+  return lines * 240;
 }
 
 function halfPointToPixels(halfPoints) {
@@ -62,10 +74,38 @@ function pixelsToEightPoints(pixels) {
   return Math.round(pixels * 6);
 }
 
-const getArrayBufferFromUrl = async (url) => {
-  const res = await fetch(url);
-  const buffer = await res.arrayBuffer();
-  return buffer;
+function twipsToPt(twips) {
+  if (twips == null) return;
+  return twips / 20;
+}
+
+function ptToTwips(pt) {
+  if (pt == null) return;
+  return pt * 20;
+}
+
+const getArrayBufferFromUrl = async (dataUrlOrBase64) => {
+  const base64 = dataUrlOrBase64.includes(',') 
+    ? dataUrlOrBase64.split(',', 2)[1] 
+    : dataUrlOrBase64;
+
+  // browser and newer node: atob exists
+  if (typeof globalThis.atob === 'function') {
+    const binary = globalThis.atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  // Node.js: Buffer exists
+  const buf = Buffer.from(base64, 'base64');
+  return buf.buffer.slice(
+    buf.byteOffset, 
+    buf.byteOffset + buf.byteLength
+  );
 };
 
 const getContentTypesFromXml = (contentTypesXml) => {
@@ -75,11 +115,96 @@ const getContentTypesFromXml = (contentTypesXml) => {
   return Array.from(defaults).map((item) => item.getAttribute('Extension'));
 };
 
+const getHexColorFromDocxSystem = (docxColor) => {
+  const colorMap = new Map([
+    ['yellow', '#ffff00'],
+    ['green', '#00ff00'],
+    ['blue', '#0000FFFF'],
+    ['cyan', '#00ffff'],
+    ['magenta', '#ff00ff'],
+    ['red', '#ff0000'],
+    ['darkYellow', '#808000FF'],
+    ['darkGreen', '#008000FF'],
+    ['darkBlue', '#000080'],
+    ['darkCyan', '#008080FF'],
+    ['darkMagenta', '#800080FF'],
+    ['darkGray', '#808080FF'],
+    ['darkRed', '#800000FF'],
+    ['lightGray', '#C0C0C0FF'],
+    ['black', '#000'],
+  ]);
+
+  return colorMap.get(docxColor) || null;
+}
+
+function isValidHexColor(color) {
+  if (!color || typeof color !== 'string') return false;
+
+  switch(color.length) {
+    case 3: return /^[0-9A-F]{3}$/i.test(color);
+    case 6: return /^[0-9A-F]{6}$/i.test(color);
+    case 8: return /^[0-9A-F]{8}$/i.test(color);
+    default: return false;
+  }
+}
+
+const componentToHex = (val) => {
+  const a = Number(val).toString(16);
+  return a.length === 1 ? '0' + a : a;
+}
+
+const rgbToHex = (rgb) => {
+  return '#' + rgb
+    .match(/\d+/g)
+    .map(componentToHex)
+    .join('');
+}
+
+const getLineHeightValueString = (lineHeight, defaultUnit, lineRule = '', isObject = false) => {
+  let [value, unit] = parseSizeUnit(lineHeight);
+  if (Number.isNaN(value) || value === 0) return {};
+  if (lineRule === 'atLeast' && value < 1) return {};
+  
+  unit = unit ? unit : defaultUnit;
+
+  // MS Word has a slightly bigger gap with line spacing equal to Superdoc's
+  value += unit ? 4 : 0.2;
+  return isObject ? { ['line-height']: `${value}${unit}` } : `line-height: ${value}${unit}`;
+}
+
+const deobfuscateFont = (arrayBuffer, guidHex) => {
+  const dta = new Uint8Array(arrayBuffer);
+
+  const guidStr = guidHex.replace(/[-{}]/g, '');
+  if (guidStr.length !== 32) {
+    console.error('Invalid GUID');
+    return;
+  }
+  
+
+  // Convert GUID hex string to byte array
+  const guidBytes = new Uint8Array(16);
+  for (let i = 0, j = 0; i < 32; i += 2, j++) {
+    const hexByte = guidStr[i] + guidStr[i + 1];
+    guidBytes[j] = parseInt(hexByte, 16);
+  }
+
+  // XOR the first 32 bytes using the reversed-index pattern
+  for (let i = 0; i < 32; i++) {
+    const gi = 15 - (i % 16); // guidBytes.length - (i % guidBytes.length) - 1
+    dta[i] ^= guidBytes[gi];
+  }
+
+  return dta.buffer;
+}
+
 export {
   inchesToTwips,
   twipsToInches,
   twipsToPixels,
   pixelsToTwips,
+  twipsToLines,
+  linesToTwips,
   halfPointToPixels,
   emuToPixels,
   pixelsToEmu,
@@ -89,4 +214,11 @@ export {
   pixelsToEightPoints,
   getArrayBufferFromUrl,
   getContentTypesFromXml,
+  getHexColorFromDocxSystem,
+  isValidHexColor,
+  rgbToHex,
+  ptToTwips,
+  twipsToPt,
+  getLineHeightValueString,
+  deobfuscateFont
 };

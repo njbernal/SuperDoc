@@ -47,39 +47,37 @@ function createProvider({ config, user, documentId, socket, superdocInstance }) 
  */
 function createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }) {
   const ydoc = new YDoc({ gc: false });
-  const provider = new HocuspocusProvider({
+  const options = {
     websocketProvider: socket,
-    name: documentId,
     document: ydoc,
+    name: documentId,
     token: config.token || '',
-    onAuthenticationFailed,
-    onConnect: () => onConnect(superdocInstance),
-    onDisconnect: () => onDisconnect(superdocInstance),
-  });
+    preserveConnection: false,
+    onAuthenticationFailed: () => onAuthenticationFailed(documentId),
+    onConnect: () => onConnect(superdocInstance, documentId),
+    onDisconnect: () => onDisconnect(superdocInstance, documentId),
+    onDestroy: () => onDestroy(superdocInstance, documentId),
+  };
 
+  const provider = new HocuspocusProvider(options);
   provider.setAwarenessField('user', user);
   return { provider, ydoc };
 }
 
-const onAuthenticationFailed = (data) => {
-  console.warn('🔒 [superdoc] Authentication failed', data);
+const onAuthenticationFailed = (data, documentId) => {
+  console.warn('🔒 [superdoc] Authentication failed', data, 'document', documentId);
 };
 
-const getEditor = (superdocInstance) => {
-  return superdocInstance.superdocStore.documents[0].getEditor();
+const onConnect = (superdocInstance, documentId) => {
+  console.warn('🔌 [superdoc] Connected -- ', documentId);
 };
 
-const onConnect = (superdocInstance) => {
-  const editor = getEditor(superdocInstance);
-  console.warn('🔌 [superdoc] Connected -- ', superdocInstance.config.documents[0]);
-  if (superdocInstance.config.documents[0]?.hasDisconnected) editor?.view?.destroy();
+const onDisconnect = (superdocInstance, documentId) => {
+  console.warn('🔌 [superdoc] Disconnected', documentId);
 };
 
-const onDisconnect = (superdocInstance) => {
-  console.warn('🔌 [superdoc] Disconnected', superdocInstance.config.documents[0]);
-  const editor = getEditor(superdocInstance);
-  superdocInstance.config.documents[0].hasDisconnected = true;
-  editor?.view?.destroy();
+const onDestroy = (superdocInstance, documentId) => {
+  console.warn('🔌 [superdoc] Destroyed', documentId);
 };
 
 export { createAwarenessHandler, createProvider };

@@ -3,6 +3,7 @@ import { Decoration, DecorationSet } from 'prosemirror-view';
 import { Attribute } from '@core/index.js';
 import { findChildren, getMarkType } from '@core/helpers/index.js';
 import { parseSizeUnit } from '@core/utilities/index.js';
+import { getLineHeightValueString } from '@core/super-converter/helpers.js';
 
 export function styledListMarker(options = {}) {
   return new Plugin({
@@ -10,13 +11,24 @@ export function styledListMarker(options = {}) {
 
     state: {
       init(_, state) {
-        let decorations = getListMarkerDecorations(state);
+        const decorations = [
+          ...getListMarkerDecorations(state),
+          ...getListItemStylingFromParagraphProps(state),
+        ];
         return DecorationSet.create(state.doc, decorations);
       },
 
       apply(tr, oldDecorationSet, oldState, newState) {
         if (!tr.docChanged) return oldDecorationSet;
-        const decorations = getListMarkerDecorations(newState);
+
+        const isOrderedListPlugin = tr.getMeta('orderedListMarker');
+        if (isOrderedListPlugin) return oldDecorationSet;
+
+        const marks = tr.getMeta('splitListItem');
+        const decorations = [
+          ...getListMarkerDecorations(newState, marks),
+          ...getListItemStylingFromParagraphProps(newState, marks),
+        ];
         return DecorationSet.create(newState.doc, decorations);
       },
     },
@@ -29,9 +41,11 @@ export function styledListMarker(options = {}) {
   });
 }
 
-function getListMarkerDecorations(state) {
+function getListMarkerDecorations(state, marks = []) {
   let { doc, storedMarks } = state;
   let decorations = [];
+
+  if (Array.isArray(storedMarks)) marks.push(...storedMarks);
 
   let listItems = findChildren(doc, (node) => node.type.name === 'listItem');
 
@@ -40,16 +54,16 @@ function getListMarkerDecorations(state) {
   }
 
   listItems.forEach(({ node, pos }) => {
-    let textStyleMarks = [];
     let textStyleType = getMarkType('textStyle', doc.type.schema);
+    let textStyleMarks = [...marks.filter((m) => m.type === textStyleType)];
     let isEmptyListItem = checkListItemEmpty(node);
 
-    if (isEmptyListItem && storedMarks) {
-      let marks = storedMarks.filter((mark) => mark.type === textStyleType);
-      textStyleMarks.push(...marks);
+    if (isEmptyListItem && marks.length) {
+      const textMarks = marks.filter((mark) => mark.type === textStyleType);
+      textStyleMarks.push(...textMarks);
     } else {
-      let marks = getListItemTextStyleMarks(node, doc, textStyleType);
-      textStyleMarks.push(...marks);
+      const itemMarks = getListItemTextStyleMarks(node, doc, textStyleType);
+      textStyleMarks.push(...itemMarks);
     }
 
     let fontSize = null;
@@ -79,10 +93,42 @@ function getListMarkerDecorations(state) {
     let fontFamilyAttrs = {
       style: `--marker-font-family: ${fontFamily ?? 'initial'}`,
     };
-
+    
     let attrs = Attribute.mergeAttributes(fontSizeAttrs, fontFamilyAttrs);
 
     let dec = Decoration.node(pos, pos + node.nodeSize, attrs);
+    decorations.push(dec);
+  });
+
+  return decorations;
+}
+
+function getListItemStylingFromParagraphProps(state) {
+  let { doc } = state;
+  let decorations = [];
+  let listItems = findChildren(doc, (node) => node.type.name === 'listItem');
+
+  if (!listItems.length) {
+    return decorations;
+  }
+
+  listItems.forEach(({ node, pos }) => {
+    let spacingAttrs = {};
+    
+    if (node.attrs.spacing) {
+      const { lineSpaceBefore, lineSpaceAfter, line } = node.attrs.spacing;
+      const style = `
+            ${lineSpaceBefore ? `margin-top: ${lineSpaceBefore}px;` : ''}
+            ${lineSpaceAfter ? `margin-bottom: ${lineSpaceAfter}px;` : ''}
+            ${line ? getLineHeightValueString(line, '') : ''}
+          `.trim();
+      
+      spacingAttrs = {
+        style
+      };
+    }
+
+    let dec = Decoration.node(pos, pos + node.nodeSize, spacingAttrs);
     decorations.push(dec);
   });
 

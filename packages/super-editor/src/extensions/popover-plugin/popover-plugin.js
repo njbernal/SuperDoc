@@ -3,7 +3,6 @@ import { Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 import tippy from 'tippy.js';
 
-import LinkInput from '@/components/toolbar/LinkInput.vue';
 import Mentions from '@/components/popovers/Mentions.vue';
 
 const popoverPluginKey = new PluginKey('popoverPlugin');
@@ -59,6 +58,7 @@ class Popover {
       placement: 'bottom-start',
       interactive: true,
       appendTo: document.body,
+      arrow: false,
       onShow: (instance) => {
         instance.setProps({ getReferenceClientRect: () => this.popoverRect });
         this.bindKeyDownEvents();
@@ -110,7 +110,7 @@ class Popover {
             const { $from } = this.state.selection;
             const length = atMention.length;
             const attributes = { ...user };
-            const mentionNode = this.editor.schema.nodes.mention.create({ name: user.name });
+            const mentionNode = this.editor.schema.nodes.mention.create(attributes);
             const tr = this.state.tr.replaceWith($from.pos - length, $from.pos, mentionNode);
             this.editor.view.dispatch(tr);
             this.editor.view.focus();
