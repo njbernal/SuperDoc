@@ -31,7 +31,7 @@ const SYSTEM_PROMPT =
  */
 async function baseInsightsFetch(payload, options = {}) {
   const apiKey = options.apiKey;
-  
+
   // Use the provided endpoint from config, or fall back to the default
   const apiEndpoint = options.endpoint || DEFAULT_API_ENDPOINT;
 
@@ -294,4 +294,116 @@ export async function rewrite(text, prompt = '', options = {}) {
 
   const response = await baseInsightsFetch(payload, options.config || {});
   return returnNonStreamingJson(response);
+}
+
+/**
+ * Format registry to manage text formatting rules
+ * Each rule has a name, pattern, and transform function
+ * Extend this for more rules
+ */
+const formatRegistry = {
+  rules: [
+    {
+      name: 'bold',
+      pattern: /\*\*(.*?)\*\*/g,
+      transform: (match, content, editor) => ({
+        type: 'text',
+        marks: [{ type: 'bold' }],
+        text: content,
+      }),
+    },
+  ],
+};
+
+/**
+ * Converts markdown-style formatting in the document text to ProseMirror's native formatting.
+ * Use a node-aware approach that safely handles formatting across node boundaries.
+ *
+ * @param {Object} editor - The ProseMirror editor instance
+ */
+export function formatDocument(editor) {
+  try {
+    const doc = editor.state.doc;
+    const docText = doc.textContent || '';
+    if (!docText) return;
+
+    // Process each formatting rule
+    // Registry is defined above
+    formatRegistry.rules.forEach((rule) => {
+      rule.pattern.lastIndex = 0;
+      const matches = [];
+      let match;
+
+      while ((match = rule.pattern.exec(docText)) !== null) {
+        matches.push({
+          rule,
+          startPos: match.index,
+          endPos: match.index + match[0].length,
+          originalText: match[0],
+          contentText: match[1],
+        });
+      }
+
+      // We may have 0, 1, or more matches for a single rule in a chunk of text
+      // Need to handle each match individually but preserve positions of the matches
+      // Process matches from end to start to avoid position shifts
+      matches.sort((a, b) => b.startPos - a.startPos);
+
+      for (const match of matches) {
+        const { startPos, endPos, originalText, contentText } = match;
+
+        try {
+          // Create transaction
+          let tr = editor.state.tr;
+          const replacement = rule.transform(originalText, contentText, editor);
+
+          // Gather nodes needed to replace the match
+          const nodesInRange = [];
+          doc.nodesBetween(startPos, Math.min(endPos, doc.content.size), (node, pos) => {
+            if (node.isText) {
+              nodesInRange.push({ node, pos });
+            }
+            return true;
+          });
+
+          if (nodesInRange.length > 0) {
+            // Reconstruct the actual text we're working with
+            let actualText = '';
+            for (const nodeInfo of nodesInRange) {
+              actualText += nodeInfo.node.text;
+            }
+
+            // Find the actual pattern in the reconstructed text
+            const exactPattern = new RegExp(rule.pattern.source, rule.pattern.flags);
+            exactPattern.lastIndex = 0;
+
+            const actualMatch = exactPattern.exec(actualText);
+            if (actualMatch) {
+              // Calculate actual positions relative to document
+              const firstNodePos = nodesInRange[0].pos;
+              const actualStartPos = firstNodePos + actualMatch.index;
+              const actualEndPos = actualStartPos + actualMatch[0].length;
+
+              // Create the marks
+              const marks = replacement.marks
+                ? replacement.marks.map((mark) => editor.schema.marks[mark.type].create(mark.attrs))
+                : [];
+
+              // Create and dispatch the transaction
+              tr = tr.delete(actualStartPos, actualEndPos);
+              tr = tr.insert(actualStartPos, editor.schema.text(replacement.text, marks));
+
+              if (tr.docChanged) {
+                editor.view.dispatch(tr);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error processing match:', error);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error formatting document:', error);
+  }
 }
