@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.11.21...v0.11.22) (2025-05-19)
+
+
+### Bug Fixes
+
+* revert back to main ai writer ([02e86e9](https://github.com/Harbour-Enterprises/SuperDoc/commit/02e86e90589bedbeec9b41ce8275dd778714764c))
+
+
+### Features
+
+* enhance AI highlight functionality with custom styling and animation controls ([293a577](https://github.com/Harbour-Enterprises/SuperDoc/commit/293a5776891fe3ab3e288b1dd461ebf0723c1691))
+* loading and other ai writer enhancements ([325f210](https://github.com/Harbour-Enterprises/SuperDoc/commit/325f210f80e0e278b9d23e116a54ce13c9b5c6ee))
+* new dark purple loading dots ([60bdc0b](https://github.com/Harbour-Enterprises/SuperDoc/commit/60bdc0b00de2eb3cc6586daa2b2f41ecd95d8363))
+
 ## [0.11.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.11.20...v0.11.21) (2025-05-19)
 
 ## [0.11.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.11.19...v0.11.20) (2025-05-19)
