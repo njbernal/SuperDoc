@@ -13,6 +13,7 @@ import { createCellBorders } from '../table-cell/helpers/createCellBorders.js';
 import { findParentNode } from '@helpers/findParentNode.js';
 import { TextSelection } from 'prosemirror-state';
 import { getFieldAttrs } from '@helpers/annotator.js';
+import { getNodeType } from '@core/helpers/getNodeType.js';
 import {
   addColumnBefore,
   addColumnAfter,
@@ -151,7 +152,9 @@ export const Table = Node.create({
     return {
       insertTable:
         ({ rows = 3, cols = 3, withHeaderRow = false } = {}) => ({ tr, dispatch, editor }) => {
-          const node = createTable(editor.schema, rows, cols, withHeaderRow);
+          const zeroWidthText = editor.schema.text('\u200B');
+          const emptyPar = getNodeType('paragraph', editor.schema).create(null, zeroWidthText);
+          const node = createTable(editor.schema, rows, cols, withHeaderRow, emptyPar);
 
           if (dispatch) {
             const offset = tr.selection.from + 1;
