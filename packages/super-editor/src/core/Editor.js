@@ -136,7 +136,7 @@ export class Editor extends EventEmitter {
       if (textModes.includes(options.mode) && options.element) {
         options.element.classList.add('sd-super-editor-html');
       }
-    };
+    }
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
   }
 
