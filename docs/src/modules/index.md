@@ -217,3 +217,13 @@ Example:
     superdoc.activeEditor.commands.addFieldAnnotationAtSelection(sourceField);
   });
 ```
+
+## Fields docx export
+SuperDoc supports full export and re-import of fields. By default, SuperDoc will not re-import document fields and will convert them to mustache style templates only.
+
+To enable fields import simply add:
+```
+annotations: true
+```
+
+To your SuperDoc config when instantiating with `new SuperDoc`
