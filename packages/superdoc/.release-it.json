@@ -18,7 +18,10 @@
     "skipChecks": true
   },
   "plugins": {
-    "@release-it/conventional-changelog": false
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "CHANGELOG.md"
+    }
   },
   "hooks": {
     "after:bump": [
