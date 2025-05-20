@@ -78,15 +78,16 @@ function sidebar() {
         items: [
           { text: 'SuperDoc', link: '/components/#superdoc' },
           { text: 'SuperEditor', link: '/components/#supereditor' },
-          { text: 'Search', link: '/components/#search' },
-          { text: 'Toolbar', link: '/components/#superdoc-toolbar' },
         ],
       },
       {
         text: 'Modules',
         link: '/modules',
         items: [
+          { text: 'Toolbar', link: '/modules/#superdoc-toolbar' },
           { text: 'Comments', link: '/modules/#comments' },
+          { text: 'Search', link: '/modules/#search' },
+          { text: 'Fields', link: '/modules/#fields' },
         ]
       },
       {
