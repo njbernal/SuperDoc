@@ -115,7 +115,11 @@ const addField = (field) => {
 }
 
 const exportDocx = () => {
-  superdoc.value?.export();
+  superdoc.value?.export({ isFinalDoc: true });
+
+  // Or use superdoc.value?.export({ isFinalDoc: true }); 
+  // If you want to fully remove all fields and replace them with their values
+
 };
 
 const onDragStart = (event) => {
