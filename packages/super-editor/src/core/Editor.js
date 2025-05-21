@@ -17,6 +17,7 @@ import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/
 import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import { getRichTextExtensions } from '../extensions/index.js';
+import { AnnotatorServices } from '@helpers/annotator.js';
 import {
   prepareCommentsForExport,
   prepareCommentsForImport,
@@ -24,7 +25,16 @@ import {
 import DocxZipper from '@core/DocxZipper.js';
 
 /**
+ * @typedef {Object} FieldValue
+ * @property {string} input_id The id of the input field
+ * @property {string} input_value The value to insert into the field
+ */
+
+/**
  * Editor main class.
+ * 
+ * Expects a config object.
+ * @class
  */
 /**
  * @typedef {Object} EditorOptions
@@ -237,7 +247,7 @@ export class Editor extends EventEmitter {
       if (textModes.includes(options.mode) && options.element) {
         options.element.classList.add('sd-super-editor-html');
       }
-    };
+    }
     options.element = options.isHeadless ? null : options.element || document.createElement('div');
   }
 
@@ -1491,6 +1501,45 @@ export class Editor extends EventEmitter {
     const htmlNode = this.#createDocFromHTML(html);
     tr.replaceWith(start, end, htmlNode);
     dispatch(tr);
+  }
+
+  /**
+   * A command to prepare the editor to receive annotations. This will 
+   * pre-process the document as needed prior to running in the annotator.
+   * 
+   * Currently this is only used for table generation but additional pre-processing can be done here.
+   * 
+   * @param {FieldValue[]} annotationValues 
+   * @returns {void}
+   */
+  prepareForAnnotations(annotationValues = []) {
+    const { tr } = this.state;
+    const { dispatch } = this.view;
+    const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
+    this.view.dispatch(newTr);
+  }
+
+  /**
+   * Annotate the document with the given annotation values.
+   * 
+   * @param {FieldValue[]} annotationValues List of field values to apply.
+   * @param {String[]} hiddenIds List of field ids to remove from the document.
+   * @returns {void}
+   */
+  annotate(annotationValues = [], hiddenIds = []) {
+    const { state, view, schema } = this;
+    let tr = state.tr;
+
+    tr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
+    tr = AnnotatorServices.annotateDocument({
+      tr,
+      schema,
+      annotationValues,
+      hiddenFieldIds: hiddenIds
+    });
+
+    // Dispatch everything in a single transaction, which makes this undo-able in a single undo
+    if (tr.docChanged) view.dispatch(tr.scrollIntoView());
   }
 
 }

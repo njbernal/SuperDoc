@@ -228,7 +228,9 @@ export class SuperToolbar extends EventEmitter {
      * @returns {void}
      */
     setColor: ({ item, argument }) => {
-      this.#runCommandWithArgumentOnly({ item, argument });
+      this.#runCommandWithArgumentOnly({ item, argument }, () => {
+        this.activeEditor?.commands.setFieldAnnotationsTextColor(argument, true);
+      });
     },
 
     /**
@@ -239,7 +241,11 @@ export class SuperToolbar extends EventEmitter {
      * @returns {void}
      */
     setHighlight: ({ item, argument }) => {
-      this.#runCommandWithArgumentOnly({ item, argument });
+      this.#runCommandWithArgumentOnly({ item, argument, noArgumentCallback: true }, () => {
+        let arg = argument !== 'none' ? argument : null;
+        this.activeEditor?.commands.setFieldAnnotationsTextHighlight(arg, true);
+        this.activeEditor?.commands.setCellBackground(arg);
+      });
     },
 
     /**
@@ -709,10 +715,11 @@ export class SuperToolbar extends EventEmitter {
    * @param {CommandItem} params - Command parameters
    * @param {ToolbarItem} params.item - The toolbar item
    * @param {*} params.argument - The argument for the command
+   * @param {boolean} params.noArgumentCallback - Whether to call callback even if argument === 'none'
    * @param {Function} [callback] - Optional callback to run after the command
    * @returns {void}
    */
-  #runCommandWithArgumentOnly({ item, argument }, callback) {
+  #runCommandWithArgumentOnly({ item, argument, noArgumentCallback = false }, callback) {
     if (!argument || !this.activeEditor) return;
 
     let command = item.command;
@@ -720,6 +727,7 @@ export class SuperToolbar extends EventEmitter {
 
     if (argument === 'none' && noArgumentCommand in this.activeEditor?.commands) {
       this.activeEditor.commands[noArgumentCommand]();
+      if (typeof callback === 'function' && noArgumentCallback) callback(argument);
       this.updateToolbarState();
       return;
     }

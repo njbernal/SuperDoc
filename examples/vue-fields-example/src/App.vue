@@ -96,7 +96,6 @@ const getHTMLField = () => {
     displayLabel: 'My placeholder field',
     fieldId: SAMPLE_HTML_FIELD_ID,
     type: 'html',
-    fieldType: 'HTMLINPUT',
     fieldColor: '#000099',
   };
 };
@@ -106,7 +105,6 @@ const getTextField = () => {
     displayLabel: 'My text field',
     fieldId: SAMPLE_TEXT_FIELD_ID,
     type: 'text',
-    fieldType: 'TEXTINPUT',
     fieldColor: '#990000',
   };
 };
@@ -117,7 +115,11 @@ const addField = (field) => {
 }
 
 const exportDocx = () => {
-  superdoc.value?.export();
+  superdoc.value?.export({ isFinalDoc: true });
+
+  // Or use superdoc.value?.export({ isFinalDoc: true }); 
+  // If you want to fully remove all fields and replace them with their values
+
 };
 
 const onDragStart = (event) => {

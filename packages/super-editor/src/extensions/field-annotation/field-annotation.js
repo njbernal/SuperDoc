@@ -273,7 +273,37 @@ export const FieldAnnotation = Node.create({
           };
         },
       },
+
+      textHighlight: {
+        default: null,
+        parseDOM: (element) => element.getAttribute('data-text-highlight'),
+        renderDOM: (attrs) => {
+          if (!attrs.textHighlight)  return {};
+          return {
+            'data-text-highlight': attrs.textHighlight,
+            // takes precedence over the fieldColor.
+            style: `background-color: ${attrs.textHighlight} !important`,
+          };
+        },
+      },
+
+      textColor: {
+        default: null,
+        parseDOM: (element) => element.getAttribute('data-text-color'),
+        renderDOM: (attrs) => {
+          if (!attrs.textColor)  return {};
+          return {
+            'data-text-color': attrs.textColor,
+            style: `color: ${attrs.textColor}`,
+          };
+        },
+      },
       /// Formatting attrs - end.
+
+      generatorIndex: {
+        rendered: false,
+        default: null,
+      }
     };
   },
 
@@ -829,6 +859,56 @@ export const FieldAnnotation = Node.create({
               annotations.forEach((annotation) => {
                 commands.updateFieldAnnotationsAttributes([annotation], {
                   fontSize: `${value}${unit}`,
+                });
+              });
+
+              if (setSelection && node?.type.name === this.name) {
+                tr.setSelection(NodeSelection.create(tr.doc, from));
+              }
+            }
+
+            return true;
+          },
+
+        setFieldAnnotationsTextHighlight: 
+          (color, setSelection = false) =>
+          ({ dispatch, tr, state, commands }) => {
+            let { from, to, node } = state.selection;
+            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+            if (!annotations.length) {
+              return true;
+            }
+
+            if (dispatch) {
+              annotations.forEach((annotation) => {
+                commands.updateFieldAnnotationsAttributes([annotation], {
+                  textHighlight: color,
+                });
+              });
+
+              if (setSelection && node?.type.name === this.name) {
+                tr.setSelection(NodeSelection.create(tr.doc, from));
+              }
+            }
+
+            return true;
+          },
+        
+        setFieldAnnotationsTextColor: 
+          (color, setSelection = false) =>
+          ({ dispatch, tr, state, commands }) => {
+            let { from, to, node } = state.selection;
+            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+            if (!annotations.length) {
+              return true;
+            }
+
+            if (dispatch) {
+              annotations.forEach((annotation) => {
+                commands.updateFieldAnnotationsAttributes([annotation], { 
+                  textColor: color,
                 });
               });
 

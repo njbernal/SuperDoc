@@ -1,6 +1,8 @@
 {
-    "title": "HTML Editor",
-    "tags": ["editing", "viewing"],
-    "slug": "html-editor",
-    "demo_type": "interactive"
+    "dirname": "vue-html-editor",
+    "tags": [
+        "editing",
+        "viewing"
+    ],
+    "title": "HTML Editor"
 }
