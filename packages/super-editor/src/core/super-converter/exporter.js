@@ -351,7 +351,7 @@ function translateChildNodes(params) {
     translatedNode = isolateAnnotations(translatedNode);
 
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
-    else if (translatedNode.name === 'htmlAnnotation') {
+    else if (translatedNode?.name === 'htmlAnnotation') {
       // Unwrap html annotation
       translatedNodes.push(...translatedNode.elements[0].elements);
     }
@@ -368,6 +368,7 @@ function translateChildNodes(params) {
  * can lead to export issues
  */
 const isolateAnnotations = (node) => {
+  if (!node) return node;
   const hasTextRun = node.elements?.some(item => item.name === 'w:r');
   const hasSdtContent = node.elements?.some(item => item.name === 'w:sdt');
   let result = node;
