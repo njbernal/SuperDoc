@@ -21,7 +21,7 @@
     },
     "./super-editor": {
       "import": "./dist/super-editor.es.js",
-      "types": "./dist/super-editor/src/index.d.ts"
+      "types": "./dist/super-editor/index.d.ts"
     },
     "./super-editor/style.css": {
       "import": "./dist/super-editor/style.css"
