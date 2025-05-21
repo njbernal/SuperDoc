@@ -25,7 +25,16 @@ import {
 import DocxZipper from '@core/DocxZipper.js';
 
 /**
+ * @typedef {Object} FieldValue
+ * @property {string} input_id The id of the input field
+ * @property {string} input_value The value to insert into the field
+ */
+
+/**
  * Editor main class.
+ * 
+ * Expects a config object.
+ * @class
  */
 export class Editor extends EventEmitter {
   #commandService;
@@ -1213,21 +1222,23 @@ export class Editor extends EventEmitter {
    * pre-process the document as needed prior to running in the annotator.
    * 
    * Currently this is only used for table generation but additional pre-processing can be done here.
-   * @param {Array[Object]} annotationValues 
+   * 
+   * @param {FieldValue[]} annotationValues 
    * @returns {void}
    */
-  prepareForAnnotations(annotationValues = [], hiddenIds = []) {
+  prepareForAnnotations(annotationValues = []) {
     const { tr } = this.state;
     const { dispatch } = this.view;
-    const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues, hiddenIds });
+    const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
     this.view.dispatch(newTr);
   }
 
   /**
    * Annotate the document with the given annotation values.
    * 
-   * @param {Array[Object]} annotationValues 
-   * @param {Array[String]} hiddenIds 
+   * @param {FieldValue[]} annotationValues List of field values to apply.
+   * @param {String[]} hiddenIds List of field ids to remove from the document.
+   * @returns {void}
    */
   annotate(annotationValues = [], hiddenIds = []) {
     const { state, view, schema } = this;
@@ -1241,10 +1252,8 @@ export class Editor extends EventEmitter {
       hiddenFieldIds: hiddenIds
     });
 
-    // 3) Finally dispatch *once*:
-    if (tr.docChanged) {
-      view.dispatch(tr.scrollIntoView());
-    }
+    // Dispatch everything in a single transaction, which makes this undo-able in a single undo
+    if (tr.docChanged) view.dispatch(tr.scrollIntoView());
   }
 
 }

@@ -8,7 +8,8 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/super-editor.es.js"
+      "import": "./dist/super-editor.es.js",
+      "types": "./dist/index.d.ts"
     },
     "./converter": {
       "import": "./dist/converter.es.js"
