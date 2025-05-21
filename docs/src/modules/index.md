@@ -270,6 +270,13 @@ editor.annotate(
   ],
   ["obsolete-field-id"]
 )
+
+// If you want to undo the annotation
+editor.commands.undo()
+
+// You can also redo it
+editor.commands.redo()
+
 ```
 
 ## Exporting after annotate()
