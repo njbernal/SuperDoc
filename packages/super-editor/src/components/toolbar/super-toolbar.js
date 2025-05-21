@@ -30,26 +30,82 @@ import { isInTable } from '@helpers/isInTable.js';
 
 /**
  * @typedef {Object} ToolbarItem
+ * @property {Object} id - The unique ID of the toolbar item
+ * @property {string} id.value - The value of the ID
  * @property {Object} name - The name of the toolbar item
  * @property {string} name.value - The value of the name
+ * @property {string} type - The type of toolbar item (button, options, separator, dropdown, overflow)
  * @property {Object} group - The group the item belongs to
  * @property {string} group.value - The value of the group
- * @property {Object} selectedValue - The selected value for the item
- * @property {*} selectedValue.value - The value of the selected value
- * @property {Object} disabled - Whether the item is disabled
- * @property {boolean} disabled.value - The value of disabled
- * @property {Object} allowWithoutEditor - Whether the item can be used without an editor
- * @property {boolean} allowWithoutEditor.value - The value of allowWithoutEditor
- * @property {Object} defaultLabel - The default label for the item
- * @property {*} defaultLabel.value - The value of the default label
- * @property {Object} nestedOptions - Nested options for the item
- * @property {Array} nestedOptions.value - The array of nested options
  * @property {string} command - The command to execute
  * @property {string} [noArgumentCommand] - The command to execute when no argument is provided
+ * @property {Object} icon - The icon for the item
+ * @property {*} icon.value - The value of the icon
+ * @property {Object} tooltip - The tooltip for the item
+ * @property {*} tooltip.value - The value of the tooltip
+ * @property {Object} attributes - Additional attributes for the item
+ * @property {Object} attributes.value - The value of the attributes
+ * @property {Object} disabled - Whether the item is disabled
+ * @property {boolean} disabled.value - The value of disabled
+ * @property {Object} active - Whether the item is active
+ * @property {boolean} active.value - The value of active
+ * @property {Object} expand - Whether the item is expanded
+ * @property {boolean} expand.value - The value of expand
+ * @property {Object} nestedOptions - Nested options for the item
+ * @property {Array} nestedOptions.value - The array of nested options
+ * @property {Object} style - Custom style for the item
+ * @property {*} style.value - The value of the style
+ * @property {Object} isNarrow - Whether the item has narrow styling
+ * @property {boolean} isNarrow.value - The value of isNarrow
+ * @property {Object} isWide - Whether the item has wide styling
+ * @property {boolean} isWide.value - The value of isWide
+ * @property {Object} minWidth - Minimum width of the item
+ * @property {*} minWidth.value - The value of minWidth
+ * @property {Object} argument - The argument to pass to the command
+ * @property {*} argument.value - The value of the argument
+ * @property {Object} parentItem - The parent of this item if nested
+ * @property {*} parentItem.value - The value of parentItem
+ * @property {Object} childItem - The child of this item if it has one
+ * @property {*} childItem.value - The value of childItem
+ * @property {Object} iconColor - The color of the icon
+ * @property {*} iconColor.value - The value of iconColor
+ * @property {Object} hasCaret - Whether the item has a dropdown caret
+ * @property {boolean} hasCaret.value - The value of hasCaret
+ * @property {Object} dropdownStyles - Custom styles for dropdown
+ * @property {*} dropdownStyles.value - The value of dropdownStyles
+ * @property {Object} tooltipVisible - Whether the tooltip is visible
+ * @property {boolean} tooltipVisible.value - The value of tooltipVisible
+ * @property {Object} tooltipTimeout - Timeout for the tooltip
+ * @property {*} tooltipTimeout.value - The value of tooltipTimeout
+ * @property {Object} defaultLabel - The default label for the item
+ * @property {*} defaultLabel.value - The value of the default label
+ * @property {Object} label - The label for the item
+ * @property {*} label.value - The value of the label
+ * @property {Object} hideLabel - Whether to hide the label
+ * @property {boolean} hideLabel.value - The value of hideLabel
+ * @property {Object} inlineTextInputVisible - Whether inline text input is visible
+ * @property {boolean} inlineTextInputVisible.value - The value of inlineTextInputVisible
+ * @property {Object} hasInlineTextInput - Whether the item has inline text input
+ * @property {boolean} hasInlineTextInput.value - The value of hasInlineTextInput
+ * @property {Object} markName - The name of the mark
+ * @property {*} markName.value - The value of markName
+ * @property {Object} labelAttr - The attribute for the label
+ * @property {*} labelAttr.value - The value of labelAttr
+ * @property {Object} allowWithoutEditor - Whether the item can be used without an editor
+ * @property {boolean} allowWithoutEditor.value - The value of allowWithoutEditor
+ * @property {Object} dropdownValueKey - The key for dropdown value
+ * @property {*} dropdownValueKey.value - The value of dropdownValueKey
+ * @property {Object} selectedValue - The selected value for the item
+ * @property {*} selectedValue.value - The value of the selected value
+ * @property {Object} inputRef - Reference to an input element
+ * @property {*} inputRef.value - The value of inputRef
+ * @property {Function} unref - Function to get unreferenced values
  * @property {Function} activate - Function to activate the item
  * @property {Function} deactivate - Function to deactivate the item
  * @property {Function} setDisabled - Function to set the disabled state
  * @property {Function} resetDisabled - Function to reset the disabled state
+ * @property {Function} onActivate - Function called when the item is activated
+ * @property {Function} onDeactivate - Function called when the item is deactivated
  */
 
 /**
