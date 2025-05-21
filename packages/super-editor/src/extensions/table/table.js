@@ -2,8 +2,6 @@ import { Node, Attribute } from '@core/index.js';
 import { callOrGet } from '@core/utilities/callOrGet.js';
 import { getExtensionConfigField } from '@core/helpers/getExtensionConfigField.js';
 import { /* TableView */ createTableView } from './TableView.js';
-import { findParentNodeClosestToPos } from '@helpers/index.js';
-import { Fragment } from "prosemirror-model";
 import { createTable } from './tableHelpers/createTable.js';
 import { createColGroup } from './tableHelpers/createColGroup.js';
 import { deleteTableWhenSelected } from './tableHelpers/deleteTableWhenSelected.js';
@@ -12,8 +10,8 @@ import { createTableBorders } from './tableHelpers/createTableBorders.js';
 import { createCellBorders } from '../table-cell/helpers/createCellBorders.js';
 import { findParentNode } from '@helpers/findParentNode.js';
 import { TextSelection } from 'prosemirror-state';
-import { getFieldAttrs } from '@helpers/annotator.js';
 import { getNodeType } from '@core/helpers/getNodeType.js';
+import { isCellSelection } from './tableHelpers/isCellSelection.js';
 import {
   addColumnBefore,
   addColumnAfter,
@@ -267,6 +265,23 @@ export const Table = Node.create({
 
           return true;
         },
+
+        setCellBackground:
+          (value) => ({ editor, commands, dispatch }) => {
+            const { selection } = editor.state;
+
+            if (!isCellSelection(selection)) {
+              return false;
+            }
+            
+            const color = value?.startsWith('#') ? value.slice(1) : value;
+
+            if (dispatch) {
+              return commands.setCellAttr('background', { color });
+            }
+
+            return true;
+          },
 
         deleteCellAndTableBorders:
           () => ({ chain, state, tr }) => {

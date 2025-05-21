@@ -47,12 +47,11 @@ const onCreate = ({ editor }) => {
   isDebuggingPagination.value = PaginationPluginKey.getState(editor.state)?.isDebugging;
 
   // editor.commands.addFieldAnnotation(0, {
-  //   type: 'html',
-  //   displayLabel: 'Paragraph',
-  //   fieldId: `123`,
+  //   type: 'text',
+  //   displayLabel: 'Some text',
+  //   fieldId: '123',
   //   fieldType: 'TEXTINPUT',
   //   fieldColor: '#980043',
-  //   rawHtml: '<p><span style="font-family: Courier New; font-size: 8pt;">Par 1</span></p><p>Par 2</p>',
   // });
 };
 
