@@ -1216,8 +1216,35 @@ export class Editor extends EventEmitter {
    * @param {Array[Object]} annotationValues 
    * @returns {void}
    */
-  prepareForAnnotations(annotationValues = []) {
-    AnnotatorServices.processTables({ editor: this, annotationValues });
+  prepareForAnnotations(annotationValues = [], hiddenIds = []) {
+    const { tr } = this.state;
+    const { dispatch } = this.view;
+    const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues, hiddenIds });
+    this.view.dispatch(newTr);
+  }
+
+  /**
+   * Annotate the document with the given annotation values.
+   * 
+   * @param {Array[Object]} annotationValues 
+   * @param {Array[String]} hiddenIds 
+   */
+  annotate(annotationValues = [], hiddenIds = []) {
+    const { state, view, schema } = this;
+    let tr = state.tr;
+
+    tr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
+    tr = AnnotatorServices.annotateDocument({
+      tr,
+      schema,
+      annotationValues,
+      hiddenFieldIds: hiddenIds
+    });
+
+    // 3) Finally dispatch *once*:
+    if (tr.docChanged) {
+      view.dispatch(tr.scrollIntoView());
+    }
   }
 
 }
