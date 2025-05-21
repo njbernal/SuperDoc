@@ -28,6 +28,8 @@ export const handleAnnotationNode = (params) => {
   const isMultipleImage = sdtPr?.elements.find((el) => el.name === 'w:fieldMultipleImage')?.attributes['w:val'];
   const fontFamily = sdtPr?.elements.find((el) => el.name === 'w:fieldFontFamily')?.attributes['w:val'];
   const fontSize = sdtPr?.elements.find((el) => el.name === 'w:fieldFontSize')?.attributes['w:val'];
+  const textColor = sdtPr?.elements.find((el) => el.name === 'w:fieldTextColor')?.attributes['w:val'];
+  const textHighlight = sdtPr?.elements.find((el) => el.name === 'w:fieldTextHighlight')?.attributes['w:val'];
 
   const attrs = {
     type,
@@ -38,6 +40,8 @@ export const handleAnnotationNode = (params) => {
     multipleImage: isMultipleImage === 'true',
     fontFamily: fontFamily !== 'null' ? fontFamily : null,
     fontSize: fontSize !== 'null' ? fontSize : null,
+    textColor: textColor !== 'null' ? textColor : null,
+    textHighlight: textHighlight !== 'null' ? textHighlight : null,
   };
 
   const allAttrs = { ...attrs, ...marksAsAttrs };
