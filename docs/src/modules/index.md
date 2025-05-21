@@ -18,6 +18,8 @@ const config {
 }
 ```
 
+
+
 # Search
 
 SuperDoc 0.11 adds a new .docx search feature.
@@ -62,6 +64,8 @@ You can customize the color of the highlights from these styles:
 .ProseMirror-search-match
 .ProseMirror-active-search-match
 ```
+
+
 
 # Comments
 
@@ -171,6 +175,8 @@ const config = {
 ### Default toolbar buttons
 See all buttons in defaultItems.js
 
+
+
 # Fields
 
 SuperDoc by default has the **fields** extension enabled.  You can learn more about the [**Field Annotation** node here](https://github.com/Harbour-Enterprises/SuperDoc/blob/main/packages/super-editor/src/extensions/field-annotation/field-annotation.js)
@@ -221,9 +227,54 @@ Example:
 ## Fields docx export
 SuperDoc supports full export and re-import of fields. By default, SuperDoc will not re-import document fields and will convert them to mustache style templates only.
 
-To enable fields import simply add:
+To enable fields import simply add the below to your config when instantiating `new SuperDoc`
 ```
 annotations: true
 ```
 
-To your SuperDoc config when instantiating with `new SuperDoc`
+
+
+
+# Annotate
+
+SuperDoc's editor instance (`superdoc.activeEditor`) exposes the `annotate()` function, allowing you to insert values into the Field nodes, either for preview or final document export.
+
+### Usage
+
+```ts
+type FieldValue = {
+  input_id: string                // The ID of the input field being annotated
+  input_value: string             // The value to insert into that field
+}
+
+editor.annotate(
+  fieldValues: FieldValue[],      // Array of field annotations to insert or update
+  hiddenFieldIds?: string[],      // Optional array of field IDs to hide from the annotated view
+): void
+```
+
+## Example use
+```
+editor.annotate(
+  [
+    {
+      input_id: "name-123",
+      input_value: "Alice Smith"
+    },
+    {
+      input_id: "image-field-456",
+      input_value: "http://some-image-url.jpg" // Images should be Object URLs (URL.createObjectURL) or base64
+    }
+  ],
+  ["obsolete-field-id"]
+)
+```
+
+## Exporting after annotate()
+If using annotate() to do field value replacement, and then exporting the `.docx` document via `superdoc.export()` the `.docx` file will be exported with the fields still in the document (rather than replacing the fields with their expected values, ie: for final document export).
+
+You can pass in the `isFinalDoc` flag to export() in order to actually replace fields with their values, creating a seamless final document that contains no field objects.
+```
+Example:
+superdoc.export({ isFinalDoc: true })
+```

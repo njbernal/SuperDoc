@@ -88,6 +88,7 @@ function sidebar() {
           { text: 'Comments', link: '/modules/#comments' },
           { text: 'Search', link: '/modules/#search' },
           { text: 'Fields', link: '/modules/#fields' },
+          { text: 'Annotate', link: '/modules/#annotate' },
         ]
       },
       {
