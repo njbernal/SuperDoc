@@ -121,7 +121,7 @@ function translateBodyNode(params) {
       attributes[`w:${key}`] = convertedValue;
     });
     sectPrMargins.attributes = attributes;
-  };
+  }
 
   const elements = translateChildNodes(params);
   return {
@@ -141,7 +141,7 @@ export function translateParagraphNode(params) {
 
   // Replace current paragraph with content of html annotation
   const htmlAnnotationChild = elements.find((element) => element.name === 'htmlAnnotation');
-  if (elements.length === 1 && htmlAnnotationChild) {
+  if (htmlAnnotationChild) {
     return htmlAnnotationChild.elements;
   }
   
@@ -240,7 +240,7 @@ function generateParagraphProperties(node) {
   if (textAlign) {
     const textAlignElement = {
       name: 'w:jc',
-      attributes: { 'w:val': textAlign },
+      attributes: { 'w:val': textAlign === 'justify' ? 'both' : textAlign },
     };
     pPrElements.push(textAlignElement);
   }
@@ -351,10 +351,6 @@ function translateChildNodes(params) {
     translatedNode = isolateAnnotations(translatedNode);
 
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
-    else if (translatedNode?.name === 'htmlAnnotation') {
-      // Unwrap html annotation
-      translatedNodes.push(...translatedNode.elements[0].elements);
-    }
     else translatedNodes.push(translatedNode);
   });
 
@@ -1356,7 +1352,8 @@ function translateMark(mark) {
     case 'fontFamily':
       value = attrs.fontFamily;
       ['w:ascii', 'w:eastAsia', 'w:hAnsi', 'w:cs'].forEach((attr) => {
-        markElement.attributes[attr] = value;
+        const parsedValue = value.split(', ');
+        markElement.attributes[attr] = parsedValue[0] ? parsedValue[0] : value;
       });
       break;
 
