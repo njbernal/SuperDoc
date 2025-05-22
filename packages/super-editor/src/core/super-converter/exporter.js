@@ -9,13 +9,13 @@ import {
   linesToTwips,
   pixelsToEightPoints,
   pixelsToEmu,
-  pixelsToTwips, 
+  pixelsToTwips,
   ptToTwips,
   rgbToHex,
 } from './helpers.js';
 import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
-import { TrackDeleteMarkName, TrackInsertMarkName, TrackFormatMarkName } from '@extensions/track-changes/constants.js';
+import { TrackDeleteMarkName, TrackFormatMarkName, TrackInsertMarkName } from '@extensions/track-changes/constants.js';
 import { carbonCopy } from '../utilities/carbonCopy.js';
 import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
@@ -121,7 +121,7 @@ function translateBodyNode(params) {
       attributes[`w:${key}`] = convertedValue;
     });
     sectPrMargins.attributes = attributes;
-  };
+  }
 
   const elements = translateChildNodes(params);
   return {
@@ -141,7 +141,7 @@ export function translateParagraphNode(params) {
 
   // Replace current paragraph with content of html annotation
   const htmlAnnotationChild = elements.find((element) => element.name === 'htmlAnnotation');
-  if (elements.length === 1 && htmlAnnotationChild) {
+  if (htmlAnnotationChild) {
     return htmlAnnotationChild.elements;
   }
   
@@ -240,7 +240,7 @@ function generateParagraphProperties(node) {
   if (textAlign) {
     const textAlignElement = {
       name: 'w:jc',
-      attributes: { 'w:val': textAlign },
+      attributes: { 'w:val': textAlign === 'justify' ? 'both' : textAlign },
     };
     pPrElements.push(textAlignElement);
   }
@@ -347,13 +347,46 @@ function translateChildNodes(params) {
 
   const translatedNodes = [];
   nodes.forEach((node) => {
-    const translatedNode = exportSchemaToJson({ ...params, node });
+    let translatedNode = exportSchemaToJson({ ...params, node });
+    translatedNode = isolateAnnotations(translatedNode);
+
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
   });
 
   // Filter out any null nodes
   return translatedNodes.filter((n) => n);
+}
+
+/**
+ * Process nodes to isolate sdt annotations from simple text nodes
+ * since having sdt annotation with text run in one paragraph inside table cell
+ * can lead to export issues
+ */
+const isolateAnnotations = (node) => {
+  if (!node) return node;
+  const hasTextRun = node.elements?.some(item => item.name === 'w:r');
+  const hasSdtContent = node.elements?.some(item => item.name === 'w:sdt');
+  let result = node;
+  if (hasTextRun && hasSdtContent) {
+    const sdtNodes = node.elements.filter(item => item.name === 'w:sdt');
+    const otherNodes = node.elements.filter(item => item.name !== 'w:sdt');
+    const hasText = otherNodes.filter(item => item.name === 'w:r').every(item => {
+      const textElements = item.elements.filter(item => item.name === 'w:t');
+      return textElements?.every(item => item.elements[0].text.trim().length > 0);
+    });
+    result = [
+      ...(hasText ? [{
+        ...node,
+        elements: otherNodes,
+      }] : []),
+      {
+        name: 'w:p',
+        elements: sdtNodes,
+      }
+    ];
+  }
+  return result;
 }
 
 /**
@@ -1131,6 +1164,7 @@ function translateTableCell(params) {
     ...params,
     tableCell: params.node,
   });
+  
   const cellProps = generateTableCellProperties(params.node);
   
   elements.unshift(cellProps);
@@ -1318,7 +1352,8 @@ function translateMark(mark) {
     case 'fontFamily':
       value = attrs.fontFamily;
       ['w:ascii', 'w:eastAsia', 'w:hAnsi', 'w:cs'].forEach((attr) => {
-        markElement.attributes[attr] = value;
+        const parsedValue = value.split(', ');
+        markElement.attributes[attr] = parsedValue[0] ? parsedValue[0] : value;
       });
       break;
 
@@ -1749,7 +1784,7 @@ function prepareHtmlAnnotation(params) {
   }
 
   const htmlAnnotationNode = state.doc.toJSON();
-  
+
   return {
     name: 'htmlAnnotation',
     elements: translateChildNodes({
