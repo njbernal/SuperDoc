@@ -32,10 +32,16 @@ import DocxZipper from '@core/DocxZipper.js';
 
 /**
  * Editor main class.
- * 
+ *
  * Expects a config object.
  * @class
  */
+/**
+* @typedef {Object} User The current user of this superdoc
+* @property {string} name The user's name
+* @property {string} email The user's email
+* @property {string | null} image The user's photo
+*/
 /**
  * @typedef {Object} EditorOptions
  * @property {HTMLElement} [element] - The container element for the editor
@@ -44,8 +50,8 @@ import DocxZipper from '@core/DocxZipper.js';
  * @property {Document} [mockDocument] - Mock document for testing
  * @property {Window} [mockWindow] - Mock window for testing
  * @property {string} [content=''] - XML content
- * @property {Object} [user] - Current user information
- * @property {Array} [users=[]] - List of users for collaboration
+ * @property {User} [user] - Current user information
+ * @property {Array.<User>} [users=[]] - List of users for collaboration
  * @property {Object} [media={}] - Media configuration
  * @property {Object} [mediaFiles={}] - Media files
  * @property {Object} [fonts={}] - Font configuration
@@ -448,7 +454,7 @@ export class Editor extends EventEmitter {
 
   /**
    * Get possible users of the editor.
-   * @returns {Array.<Object>} List of users
+   * @returns {Array.<User>} List of users
    */
   get users() {
     return this.options.users;
@@ -1504,12 +1510,12 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * A command to prepare the editor to receive annotations. This will 
+   * A command to prepare the editor to receive annotations. This will
    * pre-process the document as needed prior to running in the annotator.
-   * 
+   *
    * Currently this is only used for table generation but additional pre-processing can be done here.
-   * 
-   * @param {FieldValue[]} annotationValues 
+   *
+   * @param {FieldValue[]} annotationValues
    * @returns {void}
    */
   prepareForAnnotations(annotationValues = []) {
@@ -1521,7 +1527,7 @@ export class Editor extends EventEmitter {
 
   /**
    * Annotate the document with the given annotation values.
-   * 
+   *
    * @param {FieldValue[]} annotationValues List of field values to apply.
    * @param {String[]} hiddenIds List of field ids to remove from the document.
    * @returns {void}
