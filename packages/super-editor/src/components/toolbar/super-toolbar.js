@@ -306,24 +306,20 @@ export class SuperToolbar extends EventEmitter {
 
     /**
      * Toggles the ruler visibility
-     * @param {Object} params - Command parameters
-     * @param {CommandItem} params.item - The command item
-     * @param {*} params.argument - Not used
+     * @param {Object} _params - Command parameters (not used)
      * @returns {void}
      */
-    toggleRuler: ({ item, argument }) => {
+    toggleRuler: (_params) => {
       this.superdoc.toggleRuler();
     },
 
     /**
      * Initiates the image upload process
      * @async
-     * @param {Object} params - Command parameters
-     * @param {CommandItem} params.item - The command item
-     * @param {*} params.argument - Not used
+     * @param {Object} _params - Command parameters (not used)
      * @returns {Promise<void>}
      */
-    startImageUpload: async ({ item, argument }) => {
+    startImageUpload: async (_params) => {
       let open = getFileOpener();
       let result = await open();
 
