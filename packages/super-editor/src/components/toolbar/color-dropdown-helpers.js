@@ -106,7 +106,7 @@ const icons = [
     makeColorOption('#6CA0DC'),
     makeColorOption('#9DBFE8'),
     makeColorOption('#CEDFF3'),
-    makeColorOption('#00E0FF'),
+    makeColorOption('#21c8ce'),
   ],
 
   [
