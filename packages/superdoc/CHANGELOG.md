@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.33](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.11.32...v0.11.33) (2025-05-23)
+
+
+### Bug Fixes
+
+* **docs:** update favicon and webmanifest paths ([60cea5d](https://github.com/Harbour-Enterprises/SuperDoc/commit/60cea5d7e4948602e394b8c970d06474ba98d9fa))
+
 ## [0.11.32](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.11.31...v0.11.32) (2025-05-21)
 
 
