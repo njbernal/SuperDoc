@@ -33,7 +33,7 @@
 
 ## ✨ Features
 
-- **📝 Microsoft Word compatible**: View and edit DOCX documents (and view PDFs too) with great import/export, advanced formatting, comments, and tracked changes
+- **📝 Microsoft Word compatible**: View and edit DOCX documents with great import/export, advanced formatting, comments, and tracked changes
 - **🛠️ Easy to integrate**: Open source, can be self-hosted, seamlessly integrates with React, Vue, vanilla JavaScript, and more
 - **👥 Real-time collaboration**: Features multiplayer editing, live updates, commenting, sharing, and revision history
 - **📐 Extensible architecture**: Modular design makes it easy to extend, brand, and customize
@@ -47,22 +47,37 @@
 npm install @harbour-enterprises/superdoc
 ```
 
+Or install with CDN
+
+```html
+<link rel="stylesheet" href="https://unpkg.com/@harbour-enterprises/superdoc/dist/style.css">
+<script type="module" src="https://unpkg.com/@harbour-enterprises/superdoc/dist/superdoc.umd.js"></script>
+```
+
 ### Basic usage
 
 ```javascript
 import '@harbour-enterprises/superdoc/style.css';
 import { SuperDoc } from '@harbour-enterprises/superdoc';
 
-const url = '...'; // The URL to your document
+// For CDN use - `SuperDocLibrary.SuperDoc`
 const superdoc = new SuperDoc({
   selector: '#superdoc',
-  documents: [{
-    id: 'my-doc-id',
-    type: 'docx',
-    url  // *JS file object or file URL
-  }]
+  toolbar: '#superdoc-toolbar',
+  document: '/sample.docx', // URL, File or document config
+  documentMode: 'editing',
+  pagination: true,
+  rulers: true,
+  onReady: (event) => {
+    console.log('SuperDoc is ready', event);
+  },
+  onEditorCreate: (event) => {
+    console.log('Editor is created', event);
+  },
 });
 ```
+
+For a list of all available properties and events, see the documentation or refer to [SuperDoc.js](packages/superdoc/src/core/SuperDoc.js)
 
 ## 📖 Documentation
 
