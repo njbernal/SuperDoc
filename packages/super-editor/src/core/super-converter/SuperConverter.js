@@ -401,7 +401,7 @@ class SuperConverter {
       ...documentMedia,
       ...params.media,
       ...this.media,
-    });
+    }, editor);
 
     // Update content types and comments files as needed
     let updatedXml = { ...this.convertedXml };
@@ -523,12 +523,12 @@ class SuperConverter {
     this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   };
 
-  async #exportProcessMediaFiles(media) {
+  async #exportProcessMediaFiles(media, editor) {
     const processedData = {};
     for (const filePath in media) {
       if (typeof media[filePath] !== 'string') return;
       const name = filePath.split('/').pop();
-      processedData[name] = await getArrayBufferFromUrl(media[filePath]);
+      processedData[name] = await getArrayBufferFromUrl(media[filePath], editor.options.isHeadless);
     }
 
     this.convertedXml.media = {

@@ -84,28 +84,35 @@ function ptToTwips(pt) {
   return pt * 20;
 }
 
-const getArrayBufferFromUrl = async (dataUrlOrBase64) => {
-  const base64 = dataUrlOrBase64.includes(',') 
-    ? dataUrlOrBase64.split(',', 2)[1] 
-    : dataUrlOrBase64;
+const getArrayBufferFromUrl = async (input, isHeadless) => {
+  // Check if it's a full URL or blob/file/data URI
+  const isLikelyUrl = /^https?:|^blob:|^file:|^data:/i.test(input);
 
-  // browser and newer node: atob exists
-  if (typeof globalThis.atob === 'function') {
-    const binary = globalThis.atob(base64);
-    const len = binary.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes.buffer;
+  if (isHeadless && isLikelyUrl && typeof fetch === 'function') {
+    // Handle as fetchable resource
+    const res = await fetch(input);
+    if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+    return await res.arrayBuffer();
   }
 
-  // Node.js: Buffer exists
+  // Otherwise, assume it's a base64 string or Data URI
+  const base64 = input.includes(',') ? input.split(',', 2)[1] : input.trim().replace(/\s/g, '');
+
+  try {
+    if (typeof globalThis.atob === 'function') {
+      const binary = globalThis.atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+  } catch (err) {
+    console.warn('atob failed, falling back to Buffer:', err);
+  }
+
   const buf = Buffer.from(base64, 'base64');
-  return buf.buffer.slice(
-    buf.byteOffset, 
-    buf.byteOffset + buf.byteLength
-  );
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 };
 
 const getContentTypesFromXml = (contentTypesXml) => {
