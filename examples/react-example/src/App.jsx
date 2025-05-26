@@ -3,15 +3,12 @@ import DocumentEditor from './components/DocumentEditor';
 
 function App() {
   const [documentFile, setDocumentFile] = useState(null);
-  const [documentId, setDocumentId] = useState('example-doc');
   const fileInputRef = useRef(null);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       setDocumentFile(file);
-      // Optional: Generate new document ID when file changes
-      setDocumentId(`doc-${Date.now()}`);
     }
   };
 
@@ -29,7 +26,7 @@ function App() {
         <input
           type="file"
           ref={fileInputRef}
-          accept=".docx,.pdf,.html"
+          accept=".docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           onChange={handleFileChange}
           style={{ display: 'none' }}
         />
@@ -37,7 +34,6 @@ function App() {
 
       <main>
         <DocumentEditor
-          documentId={documentId}
           initialData={documentFile}
           onEditorReady={handleEditorReady}
         />
@@ -69,7 +65,7 @@ function App() {
         }
         main {
           flex: 1;
-          padding: 1rem;
+          min-height: 0;
         }
       `}</style>
     </div>
