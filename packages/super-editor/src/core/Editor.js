@@ -1308,7 +1308,7 @@ export class Editor extends EventEmitter {
    * @param {Array} [options.comments=[]] - Array of comments to include in the document
    * @returns {Promise<Blob|ArrayBuffer>} The exported DOCX file
    */
-  async exportDocx({ isFinalDoc = false, commentsType, comments = [] } = {}) {
+  async exportDocx({ isFinalDoc = false, commentsType = 'external', comments = [] } = {}) {
 
     // Pre-process the document state to prepare for export
     const json = this.#prepareDocumentForExport(comments);
