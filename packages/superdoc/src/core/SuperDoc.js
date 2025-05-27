@@ -686,7 +686,7 @@ export class SuperDoc extends EventEmitter {
    */
   async export({
     exportType = ['docx'],
-    commentsType,
+    commentsType = 'external',
     exportedName,
     additionalFiles = [],
     additionalFileNames = [],
