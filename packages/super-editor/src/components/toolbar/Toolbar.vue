@@ -46,8 +46,8 @@ const onWindowResized = async () => {
 };
 const onResizeThrottled = throttle(onWindowResized, 300);
 
-const handleCommand = ({ item, argument }) => {
-  proxy.$toolbar.emitCommand({ item, argument });
+const handleCommand = ({ item, argument, option }) => {
+  proxy.$toolbar.emitCommand({ item, argument, option });
 };
 </script>
 

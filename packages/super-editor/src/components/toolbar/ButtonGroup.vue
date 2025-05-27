@@ -71,7 +71,7 @@ const closeDropdowns = () => {
 const handleSelect = (item, option) => {
   closeDropdowns();
   const value = item.dropdownValueKey.value ? option[item.dropdownValueKey.value] : option.label;
-  emit('command', { item, argument: value });
+  emit('command', { item, argument: value, option });
 };
 
 const handleClickOutside = (e) => {

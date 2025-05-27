@@ -12,6 +12,7 @@ import { toolbarIcons } from './toolbarIcons.js';
 import { getQuickFormatList } from '@extensions/linked-styles/linked-styles.js';
 import { getAvailableColorOptions, makeColorOption, renderColorOptions } from './color-dropdown-helpers.js';
 import { isInTable } from '@helpers/isInTable.js';
+import { useToolbarItem } from '@components/toolbar/use-toolbar-item';
 
 /**
  * @typedef {Object} ToolbarConfig
@@ -26,6 +27,7 @@ import { isInTable } from '@helpers/isInTable.js';
  * @property {Object} [editor=null] - The editor instance
  * @property {string} [aiApiKey=null] - API key for AI integration
  * @property {string} [aiEndpoint=null] - Endpoint for AI integration
+ * @property {ToolbarItem[]} [customButtons=[]] - Custom buttons to add to the toolbar
  */
 
 /**
@@ -136,6 +138,7 @@ export class SuperToolbar extends EventEmitter {
     editor: null,
     aiApiKey: null,
     aiEndpoint: null,
+    customButtons: [],
   };
 
   /**
@@ -526,7 +529,7 @@ export class SuperToolbar extends EventEmitter {
    * @returns {ToolbarItem[]} An array of toolbar items in the specified group
    */
   getToolbarItemByGroup(groupName) {
-    return this.toolbarItems.filter((item) => item.group.value === groupName);
+    return this.toolbarItems.filter((item) => (item.group?.value || 'center') === groupName);
   }
 
   /**
@@ -549,6 +552,10 @@ export class SuperToolbar extends EventEmitter {
   #makeToolbarItems(superToolbar, icons, isDev = false) {
     const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar
     const { defaultItems, overflowItems } = makeDefaultItems(superToolbar, isDev, documentWidth, this.role, icons);
+    const customItems = this.config.customButtons || [];
+    if (customItems.length) {
+      defaultItems.push(...customItems.map((item) => useToolbarItem({...item})));
+    };
 
     let allConfigItems = [
       ...defaultItems.map((item) => item.name.value),
@@ -738,7 +745,7 @@ export class SuperToolbar extends EventEmitter {
    * @param {*} [params.argument] - The argument passed to the command
    * @returns {*} The result of the executed command, undefined if no result is returned
   */
-  emitCommand({ item, argument }) {
+  emitCommand({ item, argument, option }) {
     this.activeEditor?.focus();
     const { command } = item;
 
@@ -746,7 +753,7 @@ export class SuperToolbar extends EventEmitter {
       return;
     }
 
-    this.log('(emmitCommand) Command:', command, item, argument);
+    this.log('(emmitCommand) Command:', command, '\n\titem:', item, '\n\targument:', argument, '\n\toption:', option);
 
     // Check if we have a custom or overloaded command defined
     if (command in this.#interceptedCommands) {
@@ -755,10 +762,19 @@ export class SuperToolbar extends EventEmitter {
 
     if (command in this.activeEditor?.commands) {
       this.activeEditor.commands[command](argument);
-      this.updateToolbarState();
-    } else {
+    }
+
+    // If the command is a function, call it with the argument
+    else if (typeof command === 'function') {
+      command({ item, argument, option });
+    }
+
+    // If we don't know what to do with this command, throw an error
+    else {
       throw new Error(`[super-toolbar 🎨] Command not found: ${command}`);
     }
+
+    this.updateToolbarState();
   }
 
   /**

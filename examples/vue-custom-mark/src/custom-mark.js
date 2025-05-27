@@ -35,7 +35,7 @@ export const CustomMark = Extensions.Mark.create({
   addCommands() {
     return {
       setMyCustomMark: (id) => ({ commands, tr }) => {
-        if (!id) throw new Error('id is required for my custom mark');
+        if (!id) id = Math.random().toString(36).substring(2, 7);
         
         // set Mark accepts the attributes that are defined in the addAttributes method
         commands.setMark(this.name, { 'data-custom-id': id });
