@@ -585,7 +585,7 @@ export class Editor extends EventEmitter {
       }
     }
 
-    if (this.options.isNewFile && this.options.isCommentsEnabled) {
+    if ((this.options.isNewFile || !this.options.ydoc) && this.options.isCommentsEnabled) {
       this.options.shouldLoadComments = true;
     }
 
