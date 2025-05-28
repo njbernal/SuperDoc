@@ -91,6 +91,7 @@ export function exportSchemaToJson(params) {
     shapeContainer: translateShapeContainer,
     shapeTextbox: translateShapeTextbox,
     contentBlock: translateContentBlock,
+    structuredContent: translateStructuredContent,
   };
 
   if (!router[type]) {
@@ -348,7 +349,9 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     let translatedNode = exportSchemaToJson({ ...params, node });
-    translatedNode = isolateAnnotations(translatedNode);
+
+    const nodeType = translatedNode?.name || translatedNode?.type;
+    if (nodeType !== 'w:sdt') translatedNode = isolateAnnotations(translatedNode);
 
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
@@ -367,6 +370,12 @@ const isolateAnnotations = (node) => {
   if (!node) return node;
   const hasTextRun = node.elements?.some(item => item.name === 'w:r');
   const hasSdtContent = node.elements?.some(item => item.name === 'w:sdt');
+
+  const sdtNode = node.elements?.find(item => item.name === 'w:sdt');
+  const sdtPr = sdtNode?.elements?.find(item => item.name === 'w:sdtPr');
+  const hasAlias = sdtPr?.elements?.some(item => item.name === 'w:alias');
+  if (!hasAlias) return node;
+
   let result = node;
   if (hasTextRun && hasSdtContent) {
     const sdtNodes = node.elements.filter(item => item.name === 'w:sdt');
@@ -2278,4 +2287,25 @@ function applyMarksToHtmlAnnotation(state, marks) {
   });
 
   return state.apply(tr);
+};
+
+function translateStructuredContent(params) {
+  const { node } = params;
+  const { attrs = {} } = node;
+
+  const childContent = translateChildNodes({ ...params, nodes: node.content });
+
+  // We build the sdt node elements here, and re-add passthrough sdtPr node
+  const nodeElements = [
+    {
+      name: 'w:sdtContent',
+      elements: childContent,
+    },
+  ];
+  nodeElements.unshift(attrs.sdtPr)
+
+  return {
+    name: 'w:sdt',
+    elements: nodeElements,
+  };
 };
