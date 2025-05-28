@@ -12,13 +12,14 @@ const init = () => {
 
     pagination: true,
 
+    rulers: true,
+
     // Initialize the toolbar
     toolbar: '#toolbar',
     toolbarGroups: ['center'],
 
     // Optional, pass in an initial docx document to use your own template rather than a blank doc
     document: '/sample-document.docx',
-
   });
 };
 

@@ -14,7 +14,6 @@
     
     <main>
       <DocumentEditor
-        :document-id="documentId"
         :initial-data="documentFile"
         @editor-ready="handleEditorReady"
       />
@@ -26,7 +25,6 @@
 import { ref } from 'vue';
 import DocumentEditor from './components/DocumentEditor.vue';
 
-const documentId = ref('example-doc');
 const documentFile = ref(null);
 const fileInput = ref(null);
 
@@ -34,7 +32,6 @@ const handleFileChange = (event) => {
   const file = event.target.files?.[0];
   if (file) {
     documentFile.value = file;
-    documentId.value = `doc-${Date.now()}`;
   }
 };
 

@@ -1,23 +1,15 @@
 import { useRef, useState, ChangeEvent } from 'react';
 import DocumentEditor from './components/DocumentEditor';
-import { SuperDoc } from '@harbour-enterprises/superdoc';
 
 function App() {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
-  const [documentId, setDocumentId] = useState('example-doc');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setDocumentFile(file);
-      // Optional: Generate new document ID when file changes
-      setDocumentId(`doc-${Date.now()}`);
     }
-  };
-
-  const handleEditorReady = (editor: { superdoc: SuperDoc }) => {
-    console.log('SuperDoc editor is ready', editor);
   };
 
   return (
@@ -38,9 +30,7 @@ function App() {
 
       <main>
         <DocumentEditor
-          documentId={documentId}
           initialData={documentFile}
-          onEditorReady={handleEditorReady}
         />
       </main>
 
