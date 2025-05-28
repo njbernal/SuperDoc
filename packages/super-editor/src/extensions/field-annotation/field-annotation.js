@@ -449,6 +449,39 @@ export const FieldAnnotation = Node.create({
         },
 
       /**
+       * Replace field annotation.
+       * @param fieldsArray array of fields with attrs to add as annotation.
+       * @example
+       * editor.commands.replaceWithFieldAnnotation([
+       *  from: 20,
+       *  to: 45,
+       *  attrs: {
+       *  fieldType: 'TEXTINPUT'
+       *  fieldColor: '#980043'
+       *  }
+       * ])
+       */
+      replaceWithFieldAnnotation:
+          (fieldsArray) =>
+          ({editor, dispatch, state, tr}) => {
+             if (!dispatch) return true;
+             tr.setMeta('fieldAnnotationReplace', true);
+
+            fieldsArray.forEach((annotation) => {
+               let {from, to, attrs} = annotation;
+               let {schema} = editor;
+
+               let newPosFrom = tr.mapping.map(from);
+               let newPosTo = tr.mapping.map(to);
+               let node = schema.nodes[this.name].create({...attrs}, null, null);
+
+               tr.replaceWith(newPosFrom, newPosTo, node);
+             });
+
+             return true;
+          },
+
+      /**
        * Update annotations associated with a field.
        * @param fieldIdOrArray The field ID or array of field IDs.
        * @param attrs The attributes.
