@@ -46,7 +46,10 @@ describe('AnnotationNodeExporter for final doc', async () => {
 
   it('export url annotation correctly', async() => {
     const hyperLinkNode = body.elements[10].elements[1];
-    const text = getTextFromNode(hyperLinkNode);
+
+    const run = hyperLinkNode.elements.find((el) => el.name === 'w:r');
+    const text = run?.elements[1].elements[0].text;
+
     expect(text).toBe('https://vitest.dev/guide/coverage');
     expect(hyperLinkNode.attributes['r:id']).toBe(params.relationships[2].attributes.Id);
   });

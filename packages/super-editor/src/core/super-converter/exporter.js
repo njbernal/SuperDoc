@@ -601,23 +601,67 @@ function translateLinkNode(params) {
 
   const linkMark = node.marks.find((m) => m.type === 'link');
   const link = linkMark.attrs.href;
+
   let rId = linkMark.attrs.rId;
   if (!rId) {
     rId = addNewLinkRelationship(params, link);
   }
 
   node.marks = node.marks.filter((m) => m.type !== 'link');
+  
   const outputNode = exportSchemaToJson({ ...params, node });
+  const contentNode = processLinkContentNode(outputNode);
+
   const newNode = {
     name: 'w:hyperlink',
     type: 'element',
     attributes: {
       'r:id': rId,
     },
-    elements: [outputNode],
+    elements: [contentNode],
   };
 
   return newNode;
+}
+
+function processLinkContentNode(node) {
+  if (!node) return node;
+
+  const contentNode = carbonCopy(node);
+  if (!contentNode) return contentNode;
+
+  const hyperlinkStyle = {
+    name: 'w:rStyle',
+    attributes: { 'w:val': 'Hyperlink' },
+  };
+  const color = {
+    name: 'w:color',
+    attributes: { 'w:val': '467886' },
+  };
+
+  if (contentNode.name === 'w:r') {
+    const runProps = contentNode.elements.find((el) => el.name === 'w:rPr');
+
+    if (runProps) {
+      const foundColor = runProps.elements.find((el) => el.name === 'w:color');
+      const foundHyperlinkStyle = runProps.elements.find((el) => el.name === 'w:rStyle');
+      if (!foundColor) runProps.elements.unshift(color);
+      if (!foundHyperlinkStyle) runProps.elements.unshift(hyperlinkStyle);
+    } else {
+      // we don't add underline by default
+      const runProps = {
+        name: 'w:rPr',
+        elements: [
+          hyperlinkStyle,
+          color,
+        ],
+      };
+
+      contentNode.elements.unshift(runProps);
+    }
+  }
+
+  return contentNode;
 }
 
 /**
@@ -630,7 +674,10 @@ function translateLinkNode(params) {
 function addNewLinkRelationship(params, link) {
   const newId = 'rId' + generateDocxRandomId();
 
-  if (!params.relationships || !Array.isArray(params.relationships)) params.relationships = [];
+  if (!params.relationships || !Array.isArray(params.relationships)) {
+    params.relationships = [];
+  }
+
   params.relationships.push({
     type: 'element',
     name: 'Relationship',
@@ -641,6 +688,7 @@ function addNewLinkRelationship(params, link) {
       TargetMode: 'External',
     },
   });
+
   return newId;
 }
 
@@ -1817,6 +1865,7 @@ function prepareUrlAnnotation(params) {
   const newId = addNewLinkRelationship(params, attrs.linkUrl);
 
   const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks, params);
+  const contentNode = processLinkContentNode(linkTextNode);
 
   return {
     name: 'w:hyperlink',
@@ -1825,7 +1874,7 @@ function prepareUrlAnnotation(params) {
       'r:id': newId,
       'w:history': 1,
     },
-    elements: [linkTextNode],
+    elements: [contentNode],
   };
 }
 
