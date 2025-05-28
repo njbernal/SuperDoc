@@ -11,6 +11,7 @@ import {
   prepareCommentParaIds,
   prepareCommentsXmlFilesForExport,
 } from './v2/exporter/commentsExporter.js';
+import { HYPERLINK_RELATIONSHIP_TYPE } from './constants.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -504,15 +505,16 @@ class SuperConverter {
       const existingId = rel.attributes.Id;
       const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
       const isNewMedia = rel.attributes.Target?.startsWith('media/') && existingId.length > 6;
-      
-      if (existingTarget && !isNewMedia) {
+      const isNewHyperlink = rel.attributes.Type === HYPERLINK_RELATIONSHIP_TYPE && existingId.length > 6;
+
+      if (existingTarget && !isNewMedia && !isNewHyperlink) {
         return;
       }
       
       // Update the target to escape ampersands
       rel.attributes.Target = rel.attributes?.Target?.replace(/&/g, '&amp;');
 
-      // Update the ID. If we've assigned a long ID (ie: images) we leave it alone
+      // Update the ID. If we've assigned a long ID (ie: images, links) we leave it alone
       rel.attributes.Id = existingId.length > 6 ? existingId : `rId${++largestId}`;
 
       newRels.push(rel);
