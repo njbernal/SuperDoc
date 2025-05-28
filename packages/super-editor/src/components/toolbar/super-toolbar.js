@@ -671,7 +671,7 @@ export class SuperToolbar extends EventEmitter {
           textAlign: 'textAlign',
         };
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
-        if (markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
+        if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
           const value = {
             [item.name.value]: linkedStyles?.definition.styles[markToStyleMap[item.name.value]]
           };

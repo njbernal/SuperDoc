@@ -128,29 +128,26 @@ export const createHeaderFooterEditor = ({
     content: data,
     extensions: getStarterExtensions(),
     documentId: sectionId || 'sectionId',
+    media: editor.options.media,
+    mediaFiles: editor.options.mediaFiles,
+    fonts: editor.options.fonts,
     onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
+    onFocus: (evt) => onHeaderFooterFocus(evt, editor),
   });
 };
 
 export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditMode) => {
-  const footers = editor.view.dom.querySelectorAll('.pagination-section-footer');
-  const headers = editor.view.dom.querySelectorAll('.pagination-section-header');
-
-  headers.forEach(header => {
-    header.style.display = isEditMode ? 'none' : 'block';
-  });
   editor.converter.headerEditors.forEach(item => {
-    item.editor.options.element.style.display = isEditMode ? 'block' : 'none';
+    item.editor.setEditable(isEditMode, false);
   });
   
-  footers.forEach(footer => {
-    footer.style.display = isEditMode ? 'none' : 'block';
-  });
   editor.converter.footerEditors.forEach(item => {
-    item.editor.options.element.style.display = isEditMode ? 'block' : 'none';
+    item.editor.setEditable(isEditMode, false);
   });
-
-  if (focusedSectionEditor) focusedSectionEditor.view.focus();
+  
+  if (focusedSectionEditor) {
+    focusedSectionEditor.view.focus();
+  }
 };
 
 const onHeaderFooterDataUpdate = ({ editor }, mainEditor, sectionId, type) => {
@@ -158,7 +155,17 @@ const onHeaderFooterDataUpdate = ({ editor }, mainEditor, sectionId, type) => {
   
   const updatedData = editor.getUpdatedJson();
   mainEditor.converter[`${type}Editors`].forEach(item => {
-    if (item.id === sectionId) item.editor.replaceContent(updatedData);
+    if (item.id === sectionId) {
+      item.editor.setOptions({
+        media: editor.options.media,
+        mediaFiles: editor.options.mediaFiles,
+      });
+      item.editor.replaceContent(updatedData);
+    }
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
 };
+
+const onHeaderFooterFocus = ({ editor }, mainEditor) => {
+  mainEditor.toolbar?.setActiveEditor(editor);
+}

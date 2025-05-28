@@ -540,6 +540,9 @@ export class Editor extends EventEmitter {
 
     this.#createConverter();
     this.initDefaultStyles();
+
+    this.#createConverter();
+    this.#initMedia();
     
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
@@ -897,18 +900,15 @@ export class Editor extends EventEmitter {
         }
         event.stopPropagation();
         if (!this.options.editable) {
+          // ToDo don't need now but consider to update pagination when recalculate header/footer height
+          // this.storage.pagination.sectionData = await initPaginationData(this);
+          //
+          // const newTr = this.view.state.tr;
+          // newTr.setMeta('forceUpdatePagination', true);
+          // this.view.dispatch(newTr);
+
           this.setEditable(true, false);
           toggleHeaderFooterEditMode(this, null, false);
-
-          const sectionData = await initPaginationData(this);
-          this.storage.pagination.sectionData = sectionData;
-
-          const newTr = this.view.state.tr;
-          setTimeout(() => {
-            newTr.setMeta('forceUpdatePagination', true);
-            this.view.dispatch(newTr);
-          }, 300);
-          
         }
       }
     });
@@ -1382,6 +1382,14 @@ export class Editor extends EventEmitter {
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
     const rels = this.converter.schemaToXml(this.converter.convertedXml['word/_rels/document.xml.rels'].elements[0]);
     const media = this.converter.addedMedia;
+    
+    const updatedHeadersFooters = {};
+    Object.entries(this.converter.convertedXml).forEach(([name, json]) => {
+      if (name.includes('header') || name.includes('footer')) {
+        const resultXml = this.converter.schemaToXml(json.elements[0]);
+        updatedHeadersFooters[name] = String(resultXml);
+      }
+    });
 
     const numberingData = this.converter.convertedXml['word/numbering.xml'];
     const numbering = this.converter.schemaToXml(numberingData.elements[0]);
@@ -1394,6 +1402,7 @@ export class Editor extends EventEmitter {
 
       // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
       'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
+      ...updatedHeadersFooters
     };
 
     if (comments.length) {

@@ -98,7 +98,7 @@ export const Pagination = Extension.create({
             if (isDebugging) console.debug('🦋 RETURN META DECORATIONS')
             return {
               ...oldState,
-              decorations: meta.decorations.map(tr.mapping, newEditorState.doc),
+              decorations: meta.decorations.map(tr.mapping, tr.doc),
             }
           }
 
@@ -115,7 +115,7 @@ export const Pagination = Extension.create({
           shouldUpdate = true;
           if (isDebugging) console.debug('🚀 UPDATE DECORATIONS')
           if (isForceUpdate) shouldUpdate = true;
-
+          
           return {
             ...oldState,
             isReadyToInit: shouldInitialize,
@@ -147,7 +147,7 @@ export const Pagination = Extension.create({
       },
       props: {
         decorations(state) {
-        return PaginationPluginKey.getState(state).decorations;
+          return PaginationPluginKey.getState(state).decorations;
         },
       },
     });
@@ -226,6 +226,7 @@ const performUpdate = (editor, view, previousDecorations) => {
       PaginationPluginKey,
       { decorations: newDecorations }
     );
+
     view.dispatch(updateTransaction);
   }
 
@@ -286,7 +287,7 @@ const calculatePageBreaks = (view, editor, sectionData) => {
   // Clean up
   tempView.destroy();
   document.body.removeChild(tempContainer);
-
+  
   // Return a list of page break decorations
   return DecorationSet.create(view.state.doc, decorations);
 };
@@ -488,19 +489,6 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
   const hasHeaderOffset = headerDef?.height > (minHeaderHeight - headerMargin);
   const headerOffset = hasHeaderOffset ? headerMargin : 0;
   const headerHeight = Math.max(headerDef?.height || 0, minHeaderHeight) + headerOffset;
-  
-  // Create the header element
-  let sectionContainer = headerDef?.sectionContainer?.cloneNode(true);
-  if (!sectionContainer) sectionContainer = document.createElement('div');
-
-  sectionContainer.className = 'pagination-section-header'
-  sectionContainer.style.paddingTop = headerMargin + 'px';
-  sectionContainer.style.paddingLeft = pageMargins.left * 96 + 'px';
-  sectionContainer.style.paddingRight = pageMargins.right * 96 + 'px';
-  sectionContainer.style.height = headerHeight + 'px';
-  sectionContainer.style.width = pageSize.width * 96 + 'px';
-
-  if (isDebugging) sectionContainer.style.backgroundColor = '#00ff00';
 
   const editorContainer = document.createElement('div');
   const data = editor.converter.headers[headerId];
@@ -514,25 +502,26 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
       sectionId: headerId,
       type: 'header'
     });
+    editorSection.setEditable(false, false);
     editor.converter.headerEditors.push({
       id: headerId,
       editor: editorSection,
     });
   }
-  editorContainer.className = 'pagination-section-header-editor';
+  editorContainer.className = 'pagination-section-header';
   editorContainer.style.paddingTop = headerMargin + 'px';
   editorContainer.style.paddingLeft = pageMargins.left * 96 + 'px';
   editorContainer.style.paddingRight = pageMargins.right * 96 + 'px';
   editorContainer.style.height = headerHeight + 'px';
   editorContainer.style.width = pageSize.width * 96 + 'px';
   editorContainer.style.position = 'static';
-  editorContainer.style.display = 'none';
 
-  sectionContainer.addEventListener('dblclick', () => onHeaderFooterDblClick(editor, editorSection));
+  if (isDebugging) editorContainer.style.backgroundColor = '#00aaaa55';
+
+  editorContainer.addEventListener('dblclick', () => onHeaderFooterDblClick(editor, editorSection));
   
   return {
-    section: sectionContainer,
-    editorContainer,
+    section: editorContainer,
     headerHeight: headerHeight,
   };
 }
@@ -554,26 +543,15 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   const footerPaddingFromEdge = pageMargins.footer * 96;
   const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight - footerPaddingFromEdge);
   
-  let sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
-
-  if (!sectionContainer) sectionContainer = document.createElement('div');
-
-  const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
-  if (autoPageNumber) {
-    const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
-      autoPageNumber.nextElementSibling?.style?.fontSize;
-    if (fontSize) autoPageNumber.style.fontSize = fontSize;
-    autoPageNumber.innerText = currentPageNumber;
-  }
-
-  sectionContainer.className = 'pagination-section-footer';
-  sectionContainer.style.height = footerHeight + 'px';
-  sectionContainer.style.marginBottom = footerPaddingFromEdge + 'px';
-  sectionContainer.style.paddingLeft = pageMargins.left * 96 + 'px';
-  sectionContainer.style.paddingRight = pageMargins.right * 96 + 'px';
-  sectionContainer.style.width = pageSize.width * 96 + 'px';
-  if (isDebugging) sectionContainer.style.backgroundColor = '#00aaaa55';
-
+  // const sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
+  // const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
+  // if (autoPageNumber) {
+  //   const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
+  //     autoPageNumber.nextElementSibling?.style?.fontSize;
+  //   if (fontSize) autoPageNumber.style.fontSize = fontSize;
+  //   autoPageNumber.innerText = currentPageNumber;
+  // }
+  
   const editorContainer = document.createElement('div');
   const data = editor.converter.footers[footerId];
   let editorSection;
@@ -590,21 +568,22 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
       id: footerId,
       editor: editorSection,
     });
+    editorSection.setEditable(false, false);
   }
-  editorContainer.className = 'pagination-section-footer-editor';
+  editorContainer.className = 'pagination-section-footer';
   editorContainer.style.height = footerHeight + 'px';
   editorContainer.style.marginBottom = footerPaddingFromEdge + 'px';
   editorContainer.style.paddingLeft = pageMargins.left * 96 + 'px';
   editorContainer.style.paddingRight = pageMargins.right * 96 + 'px';
   editorContainer.style.width = pageSize.width * 96 + 'px';
   editorContainer.style.position = 'static';
-  editorContainer.style.display = 'none';
 
-  sectionContainer.addEventListener('dblclick', () => onHeaderFooterDblClick(editor, editorSection));
+  if (isDebugging) editorContainer.style.backgroundColor = '#00aaaa55';
+
+  editorContainer.addEventListener('dblclick', () => onHeaderFooterDblClick(editor, editorSection));
 
   return {
-    section: sectionContainer,
-    editorContainer,
+    section: editorContainer,
     footerHeight: footerHeight + footerPaddingFromEdge,
   };
 }
@@ -641,10 +620,9 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
   if (isFirstHeader) innerDiv.style.borderRadius = '8px 8px 0 0';
   else if (isLastFooter) innerDiv.style.borderRadius = '0 0 8px 8px';
   paginationDiv.appendChild(innerDiv);
-
+  
   if (footer) {
     innerDiv.appendChild(footer.section);
-    innerDiv.appendChild(footer.editorContainer);
     sectionHeight += footer.footerHeight;
   }
 
@@ -660,7 +638,6 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
 
   if (header) {
     innerDiv.appendChild(header.section);
-    innerDiv.appendChild(header.editorContainer);
     sectionHeight += header.headerHeight;
   }
 
