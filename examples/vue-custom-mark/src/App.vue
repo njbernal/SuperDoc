@@ -76,6 +76,8 @@ const init = (fileToLoad) => {
 
     pagination: true,
 
+    rulers: true,
+
     // Load the document if provided, otherwise load the sample document
     document: fileToLoad ? { data: fileToLoad } : sampleDocument,
 

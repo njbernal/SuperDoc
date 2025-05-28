@@ -37,6 +37,9 @@
   }
   
   #superdoc {
+    display: flex;
+    justify-content: center;
     flex: 1;
     overflow: auto;
   }
+  

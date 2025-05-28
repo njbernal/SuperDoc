@@ -21,6 +21,8 @@ const init = (fileToLoad) => {
     // Enable pagination
     pagination: true,
 
+    rulers: true,
+
     // Enable annotation import
     annotations: true,
 

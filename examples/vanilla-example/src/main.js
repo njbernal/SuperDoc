@@ -1,5 +1,6 @@
 import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
+import './style.css';
 
 // Initialize SuperDoc
 let editor = null;
@@ -12,16 +13,17 @@ function initializeEditor(file = null) {
 
   editor = new SuperDoc({
     selector: '#superdoc',
-    toolbar: 'superdoc-toolbar',
+    toolbar: '#superdoc-toolbar',
+    document: file, // URL, File or document config
     documentMode: 'editing',
-    documents: [{
-      id: `doc-${Date.now()}`,
-      type: 'docx',
-      data: file
-    }],
-    onReady: () => {
-      console.log('Editor is ready');
-    }
+    pagination: true,
+    rulers: true,
+    onReady: (event) => {
+      console.log('SuperDoc is ready', event);
+    },
+    onEditorCreate: (event) => {
+      console.log('Editor is created', event);
+    },
   });
 }
 
