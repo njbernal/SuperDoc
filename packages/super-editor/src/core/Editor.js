@@ -184,6 +184,7 @@ export class Editor extends EventEmitter {
     externalExtensions: [],
     numbering: {},
     isHeaderOrFooter: false,
+    lastSelection: null,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,

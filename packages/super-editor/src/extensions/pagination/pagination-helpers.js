@@ -160,7 +160,7 @@ export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditM
   }
 };
 
-const onHeaderFooterDataUpdate = ({ editor }, mainEditor, sectionId, type) => {
+const onHeaderFooterDataUpdate = ({ editor, transaction }, mainEditor, sectionId, type) => {
   if (!type || !sectionId) return;
   
   const updatedData = editor.getUpdatedJson();
@@ -172,6 +172,9 @@ const onHeaderFooterDataUpdate = ({ editor }, mainEditor, sectionId, type) => {
       });
       item.editor.replaceContent(updatedData);
     }
+    item.editor.setOptions({
+      lastSelection: transaction.selection,
+    });
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
 };

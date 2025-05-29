@@ -545,6 +545,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   const footerPaddingFromEdge = pageMargins.footer * 96;
   const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight - footerPaddingFromEdge);
   
+  
   // const sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
   // const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
   // if (autoPageNumber) {
