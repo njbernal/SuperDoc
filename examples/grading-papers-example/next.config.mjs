@@ -10,6 +10,16 @@ const nextConfig = {
     unoptimized: true,
   },
   trailingSlash: true,
+  
+  webpack(cfg) {
+    cfg.module.rules.push({
+      test: /\.docx$/i,
+      type: 'asset/resource',
+      generator: { filename: 'static/docs/[hash][ext]' },
+    });
+    return cfg;
+  },
+
 
   async headers() {
     return [

@@ -1,7 +1,6 @@
 "use client"
 
 import '@harbour-enterprises/superdoc/style.css'
-import axios from 'axios';
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Save, Send, Download, Printer, Menu, Bell, Search } from "lucide-react"
@@ -15,6 +14,7 @@ import { Slider } from "@/components/ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SuperDoc } from "@harbour-enterprises/superdoc"
 import { use } from 'react';
+import { docMap } from './_doc-links';
 
 export default function GradingPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -121,18 +121,10 @@ export default function GradingPage({ params }: { params: Promise<{ id: string }
   const initSuperDoc = async (fileToLoad = null) => {
     const { SuperDoc } = await import('@harbour-enterprises/superdoc');
   
-    const { data } = await axios.get('./document', {
-      responseType: 'arraybuffer',
-    });
-    console.debug('Fetched document:', data);
-
     superDocRef.current = new SuperDoc({
       selector: '#superdoc',
       pagination: true,
-      document: {
-        data: data,
-        type: 'docx',
-      },
+      document: docMap[asyncParams.id],
       user: {
         name: 'Grading user',
         email: 'grader@school.com'
