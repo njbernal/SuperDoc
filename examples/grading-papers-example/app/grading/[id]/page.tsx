@@ -122,7 +122,7 @@ export default function GradingPage({ params }: { params: Promise<{ id: string }
     superDocRef.current = new SuperDoc({
       selector: '#superdoc',
       pagination: true,
-      document: `/${asyncParams.id}.docx`,
+      document: `../../${asyncParams.id}.docx`,
       user: {
         name: 'Grading user',
         email: 'grader@school.com'
