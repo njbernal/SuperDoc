@@ -2,6 +2,7 @@ import { PluginKey } from 'prosemirror-state';
 import { Editor as SuperEditor } from '@core/Editor.js';
 import { getStarterExtensions } from '@extensions/index.js';
 
+
 export const PaginationPluginKey = new PluginKey('paginationPlugin');
 
 /**
@@ -70,21 +71,6 @@ const getSectionHeight = async (editor, data) => {
       requestAnimationFrame(() => {
         const height = editorContainer.offsetHeight;
         document.body.removeChild(editorContainer);
-        
-        Object.assign(editorContainer.style, {
-          padding: "0",
-          margin: "0",
-          border: "none",
-          boxSizing: "border-box",
-          position: "relative",
-          top: "initial",
-          left: "initial",
-          width: "initial",
-          maxWidth: "initial",
-          fontFamily: "initial",
-          fontSize: "initial",
-          lineHeight: "initial",
-        });
         resolve({ height, sectionEditor, sectionContainer: editorContainer });
       })
     });
@@ -97,7 +83,8 @@ export const createHeaderFooterEditor = ({
   editorContainer, 
   appendToBody = true,
   sectionId,
-  type
+  type,
+  availableHeight
 }) => {
   const parentStyles = editor.converter.getDocumentDefaultStyles();
   const { fontSizePt, typeface } = parentStyles;
@@ -119,9 +106,17 @@ export const createHeaderFooterEditor = ({
     lineHeight: `${lineHeight}px`,
   });
 
+  Object.assign(editorContainer.style, {
+    padding: '0',
+    margin: '0',
+    border: 'none',
+    boxSizing: 'border-box',
+    height: availableHeight + 'px',
+    overflow: 'hidden',
+  });
   if (appendToBody) document.body.appendChild(editorContainer);
-  
-  return new SuperEditor({
+
+  const headerFooterEditor = new SuperEditor({
     loadFromSchema: true,
     mode: 'docx',
     element: editorContainer,
@@ -131,9 +126,19 @@ export const createHeaderFooterEditor = ({
     media: editor.options.media,
     mediaFiles: editor.options.mediaFiles,
     fonts: editor.options.fonts,
+    isHeaderOrFooter: true,
     onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
     onFocus: (evt) => onHeaderFooterFocus(evt, editor),
   });
+
+  const pm = editorContainer.querySelector('.ProseMirror');
+  pm.style.maxHeight = '100%';
+  pm.style.minHeight = '100%';
+  pm.style.overflow = 'auto';
+  pm.style.outline = 'none';
+  pm.style.border = 'none';
+
+  return headerFooterEditor;
 };
 
 export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditMode) => {

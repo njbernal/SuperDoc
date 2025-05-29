@@ -490,6 +490,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
   const headerOffset = hasHeaderOffset ? headerMargin : 0;
   const headerHeight = Math.max(headerDef?.height || 0, minHeaderHeight) + headerOffset;
 
+  const availableHeight = headerHeight - headerMargin;
   const editorContainer = document.createElement('div');
   const data = editor.converter.headers[headerId];
   let editorSection;
@@ -500,7 +501,8 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
       editorContainer, 
       appendToBody: false,
       sectionId: headerId,
-      type: 'header'
+      type: 'header',
+      availableHeight,
     });
     editorSection.setEditable(false, false);
     editor.converter.headerEditors.push({
@@ -554,6 +556,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   
   const editorContainer = document.createElement('div');
   const data = editor.converter.footers[footerId];
+
   let editorSection;
   if (data) {
     editorSection = createHeaderFooterEditor({ 
@@ -562,7 +565,8 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
       editorContainer, 
       appendToBody: false,
       sectionId: footerId,
-      type: 'footer'
+      type: 'footer',
+      availableHeight: footerHeight,
     });
     editor.converter.footerEditors.push({
       id: footerId,

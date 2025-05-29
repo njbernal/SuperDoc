@@ -77,6 +77,7 @@ import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-
  * @property {boolean} [isInternal=false] - Whether this is an internal editor
  * @property {Array} [externalExtensions=[]] - External extensions
  * @property {Object} [numbering={}] - Numbering configuration
+ * @property {boolean} [isHeaderOrFooter=false] - Whether this is a header or footer editor
  * @property {Function} [onBeforeCreate] - Called before editor creation
  * @property {Function} [onCreate] - Called after editor creation
  * @property {Function} [onUpdate] - Called when editor content updates
@@ -181,6 +182,7 @@ export class Editor extends EventEmitter {
     isInternal: false,
     externalExtensions: [],
     numbering: {},
+    isHeaderOrFooter: false,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
