@@ -115,7 +115,7 @@ export const createHeaderFooterEditor = ({
     overflow: 'hidden',
   });
   if (appendToBody) document.body.appendChild(editorContainer);
-
+  
   const headerFooterEditor = new SuperEditor({
     loadFromSchema: true,
     mode: 'docx',
@@ -127,8 +127,8 @@ export const createHeaderFooterEditor = ({
     mediaFiles: editor.options.mediaFiles,
     fonts: editor.options.fonts,
     isHeaderOrFooter: true,
+    onCreate: (evt) => setEditorToolbar(evt, editor),
     onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
-    onFocus: (evt) => onHeaderFooterFocus(evt, editor),
   });
 
   const pm = editorContainer.querySelector('.ProseMirror');
@@ -149,6 +149,11 @@ export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditM
   editor.converter.footerEditors.forEach(item => {
     item.editor.setEditable(isEditMode, false);
   });
+  
+  if (isEditMode) {
+    const pm = document.querySelector('.ProseMirror');
+    pm.classList.add('header-footer-edit');
+  }
   
   if (focusedSectionEditor) {
     focusedSectionEditor.view.focus();
@@ -171,6 +176,6 @@ const onHeaderFooterDataUpdate = ({ editor }, mainEditor, sectionId, type) => {
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
 };
 
-const onHeaderFooterFocus = ({ editor }, mainEditor) => {
-  mainEditor.toolbar?.setActiveEditor(editor);
-}
+const setEditorToolbar = ({ editor }, mainEditor) => {
+  editor.setToolbar(mainEditor.toolbar);
+};

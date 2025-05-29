@@ -24,6 +24,7 @@ import {
 } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
+import { hasSomeParentWithClass } from './super-converter/helpers.js';
 
 /**
  * @typedef {Object} FieldValue
@@ -494,6 +495,7 @@ export class Editor extends EventEmitter {
       // this.unregisterPlugin('comments');
       this.commands.toggleTrackChangesShowOriginal();
       this.setEditable(false, false);
+      toggleHeaderFooterEditMode(this, null, false);
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
@@ -512,6 +514,7 @@ export class Editor extends EventEmitter {
       this.commands.disableTrackChangesShowOriginal();
       this.commands.disableTrackChanges();
       this.setEditable(true, false);
+      toggleHeaderFooterEditMode(this, null, false);
     }
   }
 
@@ -534,7 +537,14 @@ export class Editor extends EventEmitter {
     // If we are not sync'd yet, wait for the event then insert the data
     else provider.on('synced', postSyncInit);
   }
-  
+
+  /**
+   * Replace content of editor that was created with loadFromSchema option
+   * Used to replace content of other header/footer when one of it was edited
+   * 
+   * @param {object} content - new editor content json (retrieved from editor.getUpdatedJson)
+   * @returns {void}
+   */
   replaceContent(content) {
     this.setOptions({
       content,
@@ -893,6 +903,7 @@ export class Editor extends EventEmitter {
       dispatchTransaction: this.#dispatchTransaction.bind(this),
       state: EditorState.create(state),
       handleDoubleClick: async (view, pos, event) => {
+        // Deactivates header/footer editing mode when double-click on main editor
         const isHeader = hasSomeParentWithClass(event.target, 'pagination-section-header');
         const isFooter = hasSomeParentWithClass(event.target, 'pagination-section-footer');
         if (isHeader || isFooter) {
@@ -901,6 +912,7 @@ export class Editor extends EventEmitter {
           return;
         }
         event.stopPropagation();
+        
         if (!this.options.editable) {
           // ToDo don't need now but consider to update pagination when recalculate header/footer height
           // this.storage.pagination.sectionData = await initPaginationData(this);
@@ -911,14 +923,11 @@ export class Editor extends EventEmitter {
 
           this.setEditable(true, false);
           toggleHeaderFooterEditMode(this, null, false);
+          const pm = document.querySelector('.ProseMirror');
+          pm.classList.remove('header-footer-edit');
         }
       }
     });
-
-    const hasSomeParentWithClass = (element, classname) => {
-      if (element.className?.split(' ')?.indexOf(classname) >= 0) return true;
-      return element.parentNode && hasSomeParentWithClass(element.parentNode, classname);
-    }
     
     const newState = this.state.reconfigure({
       plugins: [...this.extensionService.plugins],
