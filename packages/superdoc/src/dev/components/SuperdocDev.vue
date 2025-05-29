@@ -90,6 +90,9 @@ const init = async () => {
         //   center: ['bold'],
         //   right: ['documentMode']
         // },
+        // fonts: null,
+        // hideButtons: false,
+        // responsiveToContainer: true,
         excludeItems: [], // ['italic', 'bold'],
       },
       // 'hrbr-fields': {},
