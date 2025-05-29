@@ -15,6 +15,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SuperDoc } from "@harbour-enterprises/superdoc"
 import { use } from 'react';
 
+import assign1 from './assign-1.docx';
+import assign2 from './assign-2.docx';
+import assign3 from './assign-3.docx';
+import assign4 from './assign-4.docx';
+import assign5 from './assign-5.docx';
+const assignments = {
+  'assign-1': assign1,
+  'assign-2': assign2,
+  'assign-3': assign3,
+  'assign-4': assign4,
+  'assign-5': assign5,
+}
+
 export default function GradingPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -122,7 +135,7 @@ export default function GradingPage({ params }: { params: Promise<{ id: string }
     superDocRef.current = new SuperDoc({
       selector: '#superdoc',
       pagination: true,
-      document: `../../${asyncParams.id}.docx`,
+      document: assignments[asyncParams.id],
       user: {
         name: 'Grading user',
         email: 'grader@school.com'
