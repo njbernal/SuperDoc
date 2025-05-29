@@ -65,7 +65,7 @@ const getSectionHeight = async (editor, data) => {
     editorContainer.style.margin = '0';
     
     const sectionEditor = createHeaderFooterEditor({ editor, data, editorContainer });
-
+    
     sectionEditor.on('create', () => {
       sectionEditor.setEditable(false, false);
       requestAnimationFrame(() => {
@@ -139,6 +139,23 @@ export const createHeaderFooterEditor = ({
   pm.style.border = 'none';
 
   return headerFooterEditor;
+};
+
+export const broadcastEditorEvents = (editor, sectionEditor) => {
+  const eventNames = [
+    'fieldAnnotationDropped',
+    'fieldAnnotationPaste',
+    'fieldAnnotationSelected',
+    'fieldAnnotationClicked',
+    'fieldAnnotationDoubleClicked',
+    'fieldAnnotationDeleted',
+  ];
+  eventNames.forEach((eventName) => {
+    sectionEditor.on(eventName, (...args) => {
+      editor.emit(eventName, ...args);
+      console.debug('broadcastEditorEvents', { eventName, args });
+    });
+  });
 };
 
 export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditMode) => {
