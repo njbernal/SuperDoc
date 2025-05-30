@@ -23,6 +23,7 @@ import {
   prepareCommentsForImport,
 } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
+import { generateCollaborationData } from '@extensions/collaboration/collaboration.js';
 
 /**
  * @typedef {Object} FieldValue
@@ -97,6 +98,8 @@ import DocxZipper from '@core/DocxZipper.js';
  * @property {Function} [onException] - Called when an exception occurs
  * @property {Function} [handleImageUpload] - Handler for image uploads
  * @property {Object} [telemetry] - Telemetry configuration
+ * @property {boolean} [htmlOverride] - Whether to override content with provided html
+ * @property {string} [html] - HTML content to initialize the editor with
  */
 
 /**
@@ -180,6 +183,7 @@ export class Editor extends EventEmitter {
     isInternal: false,
     externalExtensions: [],
     numbering: {},
+    htmlOverride: false,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -510,6 +514,14 @@ export class Editor extends EventEmitter {
       this.commands.disableTrackChanges();
       this.setEditable(true, false);
     }
+  }
+
+  /**
+   * Export the yjs binary from the current state.
+   * @returns {Uint8Array} The exported yjs binary
+   */
+  generateCollaborationUpdate() {
+    return generateCollaborationData(this);
   }
 
   /**
@@ -923,7 +935,7 @@ export class Editor extends EventEmitter {
     * @returns {void}
     */
   initDefaultStyles(element = this.element) {
-    if (this.options.isHeadless || this.options.html) return;
+    if (this.options.isHeadless || this.options.htmlOverride) return;
 
     const proseMirror = element?.querySelector('.ProseMirror');
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
