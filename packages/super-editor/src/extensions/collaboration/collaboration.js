@@ -1,5 +1,6 @@
 import { Extension } from '@core/index.js';
 import { PluginKey } from 'prosemirror-state';
+import { encodeStateAsUpdate } from 'yjs';
 import { ySyncPlugin, yUndoPlugin, yUndoPluginKey, undo, redo, prosemirrorToYDoc } from 'y-prosemirror';
 
 export const CollaborationPluginKey = new PluginKey('collaboration');
