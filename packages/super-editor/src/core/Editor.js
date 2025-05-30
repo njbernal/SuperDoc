@@ -923,7 +923,7 @@ export class Editor extends EventEmitter {
     * @returns {void}
     */
   initDefaultStyles(element = this.element) {
-    if (this.options.isHeadless) return;
+    if (this.options.isHeadless || this.options.html) return;
 
     const proseMirror = element?.querySelector('.ProseMirror');
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};

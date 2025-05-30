@@ -57,7 +57,13 @@ export const OrderedList = Node.create({
 
       listId: {
         default: null,
-        render: false,
+        parseDOM: (elem) => elem.getAttribute('data-list-id'),
+        renderDOM: (attrs) => {
+          if (!attrs.listId) return {};
+          return {
+            'data-list-id': attrs.listId,
+          };
+        },
       },
 
       'list-style-type': {

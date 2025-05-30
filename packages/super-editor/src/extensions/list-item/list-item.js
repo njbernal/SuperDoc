@@ -59,17 +59,41 @@ export const ListItem = Node.create({
 
       lvlText: {
         default: null,
-        rendered: false,
+        parseDOM: (elem) => elem.getAttribute('data-lvl-text'),
+        renderDOM: (attrs) => {
+          if (!attrs.lvlText) return {};
+          return {
+            'data-lvl-text': attrs.lvlText,
+          };
+        },
       },
 
       listNumberingType: {
         default: null,
-        rendered: false,
+        parseDOM: (elem) => elem.getAttribute('data-num-fmt'),
+        renderDOM: (attrs) => {
+          if (!attrs.listNumberingType) return {};
+          return {
+            'data-num-fmt': attrs.listNumberingType,
+          };
+        },
       },
 
       listLevel: {
         default: null,
-        rendered: false,
+        parseDOM: (elem) => {
+          let listLevel = elem.getAttribute('data-list-level');
+          try {
+            listLevel = JSON.parse(listLevel);
+          } catch (e) {};
+          return listLevel;
+        },
+        renderDOM: (attrs) => {
+          if (!attrs.listLevel) return {};
+          return {
+            'data-list-level': JSON.stringify(attrs.listLevel),
+          };
+        },
       },
       
       // JC = justification. Expect left, right, center
@@ -93,13 +117,33 @@ export const ListItem = Node.create({
 
       numId: {
         default: null,
-        rendered: false,
+        parseDOM: (elem) => elem.getAttribute('data-num-id'),
       },
 
       attributes: {
         rendered: false,
       },
-      
+
+      importedFontSize: {
+        parseDOM: (elem) => elem.getAttribute('data-font-size'),
+        renderDOM: (attrs) => {
+          if (!attrs.importedFontSize) return {};
+          return {
+            'data-font-size': attrs.importedFontSize,
+          };
+        }
+      },
+
+      importedFontFamily: {
+        parseDOM: (elem) => elem.getAttribute('data-font-family'),
+        renderDOM: (attrs) => {
+          if (!attrs.importedFontFamily) return {};
+          return {
+            'data-font-family': attrs.importedFontFamily,
+          };
+        }
+      },
+  
       spacing: {
         default: null,
         rendered: false,
