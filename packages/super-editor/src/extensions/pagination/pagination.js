@@ -2,7 +2,7 @@ import { Plugin, EditorState } from 'prosemirror-state';
 import { EditorView } from "prosemirror-view";
 import { Extension } from '@core/Extension.js';
 import { Decoration, DecorationSet } from 'prosemirror-view';
-import { createHeaderFooterEditor, PaginationPluginKey, toggleHeaderFooterEditMode } from './pagination-helpers.js';
+import { createHeaderFooterEditor, PaginationPluginKey, toggleHeaderFooterEditMode, broadcastEditorEvents } from './pagination-helpers.js';
 import { CollaborationPluginKey } from '@extensions/collaboration/collaboration.js';
 import { ImagePlaceholderPluginKey } from '@extensions/image/imageHelpers/imagePlaceholderPlugin.js';
 import { LinkedStylesPluginKey } from '@extensions/linked-styles/linked-styles.js';
@@ -509,6 +509,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
       id: headerId,
       editor: editorSection,
     });
+    broadcastEditorEvents(editor, editorSection);
   }
   editorContainer.className = 'pagination-section-header';
   editorContainer.style.paddingTop = headerMargin + 'px';
@@ -574,6 +575,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
       editor: editorSection,
     });
     editorSection.setEditable(false, false);
+    broadcastEditorEvents(editor, editorSection);
   }
   editorContainer.className = 'pagination-section-footer';
   editorContainer.style.height = footerHeight + 'px';
