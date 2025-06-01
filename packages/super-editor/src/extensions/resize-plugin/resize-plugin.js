@@ -1,17 +1,13 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { Extension } from '@core/Extension.js';
 
 /**
- * Plugin key for the image resize plugin
+ * Plugin key for the resize plugin
  */
-export const ImageResizePluginKey = new PluginKey("imageResize");
+export const ResizePluginKey = new PluginKey("resize-nodes");
 
-/**
- * Plugin for handling image resizing functionality
- *
- * @returns {Plugin} ProseMirror plugin for image resizing
- */
-export const ImageResizePlugin = () => {
+const resize = (nodeNames = ["image"]) => {
 	// Track the resize state
 	let resizeState = {
 		dragging: false,
@@ -20,9 +16,8 @@ export const ImageResizePlugin = () => {
 		startWidth: 0,
 		startHeight: 0,
 		handle: null,
-		imagePos: null,
-		imageNode: null,
-		imageElement: null,
+		pos: null,
+		resizableElement: null,
 		aspectRatio: 1,
 	};
 
@@ -33,7 +28,7 @@ export const ImageResizePlugin = () => {
 	let globalMousedownHandler = null;
 
 	return new Plugin({
-		key: ImageResizePluginKey,
+		key: ResizePluginKey,
 
 		state: {
 			init() {
@@ -42,20 +37,20 @@ export const ImageResizePlugin = () => {
 
 			apply(tr, oldState, _, newState) {
 				// Skip if the transaction is from this plugin
-				if (tr.getMeta(ImageResizePluginKey)) {
+				if (tr.getMeta(ResizePluginKey)) {
 					return oldState;
 				}
 
 				const decorations = [];
 				const { selection } = newState;
 
-				// Only create decoration if an image node is selected
-				if (selection.node && selection.node.type.name === "image") {
+				// Only create decoration if one of the resizable nodes is selected
+				if (nodeNames.includes(selection.node?.type.name)) {
 					decorations.push(
 						Decoration.node(selection.from, selection.to, {
 							nodeName: "span",
-							class: "resizable-image-wrapper image-selected",
-							"data-image-pos": selection.from,
+							class: "resizable-wrapper",
+							"data-pos": selection.from,
 						}),
 					);
 				}
@@ -76,8 +71,8 @@ export const ImageResizePlugin = () => {
 			// Add global click handler
 			globalClickHandler = (event) => {
 				if (
-					!event.target.closest(".resizable-image-wrapper") &&
-					!event.target.closest(".image-resize-container")
+					!event.target.closest(".resizable-wrapper") &&
+					!event.target.closest(".resize-container")
 				) {
 					hideResizeHandles();
 				}
@@ -108,18 +103,11 @@ export const ImageResizePlugin = () => {
 						selection.to !== prevSelection.to
 					) {
 						setTimeout(() => {
-							const selectedImageWrapper = document.querySelector(
-								".resizable-image-wrapper.image-selected",
+							const selectedResizableWrapper = document.querySelector(
+								".resizable-wrapper",
 							);
-							console.log({ selectedImageWrapper });
-							if (selectedImageWrapper) {
-								const img = selectedImageWrapper.querySelector("img");
-								console.log({ img });
-								if (img) {
-									showResizeHandles(view, img);
-								} else {
-									hideResizeHandles();
-								}
+							if (selectedResizableWrapper) {
+							  showResizeHandles(view, selectedResizableWrapper);
 							} else {
 								hideResizeHandles();
 							}
@@ -144,22 +132,20 @@ export const ImageResizePlugin = () => {
 		},
 	});
 
-	function showResizeHandles(view, imageElement) {
+	function showResizeHandles(view, wrapper) {
 		hideResizeHandles();
 
-		const wrapper = imageElement.closest(".resizable-image-wrapper");
-		if (!wrapper) return;
-
-		const imagePos = Number.parseInt(
-			wrapper.getAttribute("data-image-pos"),
+		const pos = Number.parseInt(
+			wrapper.getAttribute("data-pos"),
 			10,
 		);
-		const node = view.state.doc.nodeAt(imagePos);
-		if (!node || node.type.name !== "image") return;
+
+		const node = view.state.doc.nodeAt(pos);
+		if (!nodeNames.includes(node?.type.name)) return;
 
 		// Create resize container
 		resizeContainer = document.createElement("div");
-		resizeContainer.className = "image-resize-container";
+		resizeContainer.className = "resize-container";
 		resizeContainer.style.position = "absolute";
 		resizeContainer.style.pointerEvents = "none";
 		resizeContainer.style.zIndex = "1000";
@@ -170,14 +156,14 @@ export const ImageResizePlugin = () => {
 			const handleEl = document.createElement("div");
 			handleEl.className = `resize-handle resize-handle-${handle}`;
 			handleEl.setAttribute("data-handle", handle);
-			handleEl.setAttribute("data-image-pos", imagePos);
+			handleEl.setAttribute("data-pos", pos);
 			handleEl.style.pointerEvents = "auto";
 			resizeContainer.appendChild(handleEl);
 		}
 
-		// Position the container relative to the image
+		// Position the container relative to the resizable element
 		document.body.appendChild(resizeContainer);
-		updateHandlePositions(imageElement);
+		updateHandlePositions(wrapper.firstElementChild);
 	}
 
 	function hideResizeHandles() {
@@ -187,10 +173,10 @@ export const ImageResizePlugin = () => {
 		}
 	}
 
-	function updateHandlePositions(imageElement) {
-		if (!resizeContainer || !imageElement) return;
+	function updateHandlePositions(resizableElement) {
+		if (!resizeContainer || !resizableElement) return;
 
-		const rect = imageElement.getBoundingClientRect();
+		const rect = resizableElement.getBoundingClientRect();
 		const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 		const scrollLeft =
 			window.pageXOffset || document.documentElement.scrollLeft;
@@ -203,19 +189,19 @@ export const ImageResizePlugin = () => {
 
 	function startResize(view, event, handleElement) {
 		const handle = handleElement.getAttribute("data-handle");
-		const imagePos = Number.parseInt(
-			handleElement.getAttribute("data-image-pos"),
+		const pos = Number.parseInt(
+			handleElement.getAttribute("data-pos"),
 			10,
 		);
-		const node = view.state.doc.nodeAt(imagePos);
+		const node = view.state.doc.nodeAt(pos);
 
-		if (!node || node.type.name !== "image") return;
+		if (!nodeNames.includes(node?.type.name)) return;
 
-		const imageElement = view.nodeDOM(imagePos);
+		const resizableElement = view.nodeDOM(pos);
 
-		if (!imageElement) return;
+		if (!resizableElement) return;
 
-		const rect = imageElement.getBoundingClientRect();
+		const rect = resizableElement.getBoundingClientRect();
 
 		resizeState = {
 			dragging: true,
@@ -224,9 +210,8 @@ export const ImageResizePlugin = () => {
 			startWidth: rect.width,
 			startHeight: rect.height,
 			handle,
-			imagePos,
-			imageNode: node,
-			imageElement,
+			pos,
+			resizableElement,
 			aspectRatio: rect.width / rect.height,
 		};
 
@@ -251,15 +236,14 @@ export const ImageResizePlugin = () => {
 
 		// Calculate new dimensions maintaining aspect ratio
 		const newWidth = Math.max(20, resizeState.startWidth + deltaX);
-		const newHeight = newWidth / resizeState.aspectRatio;
 
 		// Apply the new size immediately for visual feedback
-		if (resizeState.imageElement) {
-			resizeState.imageElement.style.width = `${newWidth}px`;
-			resizeState.imageElement.style.height = "auto";
+		if (resizeState.resizableElement) {
+			resizeState.resizableElement.style.width = `${newWidth}px`;
+			resizeState.resizableElement.style.height = "auto";
 
 			// Update handle positions
-			updateHandlePositions(resizeState.imageElement);
+			updateHandlePositions(resizeState.resizableElement);
 		}
 	}
 
@@ -282,12 +266,12 @@ export const ImageResizePlugin = () => {
 		// Update the document
 		if (
 			editorView &&
-			resizeState.imagePos < editorView.state.doc.content.size
+			resizeState.pos < editorView.state.doc.content.size
 		) {
 			const tr = editorView.state.tr;
-			const node = tr.doc.nodeAt(resizeState.imagePos);
+			const node = tr.doc.nodeAt(resizeState.pos);
 
-			if (node && node.type.name === "image") {
+			if (nodeNames.includes(node?.type.name)) {
 				const attrs = {
 					...node.attrs,
 					size: {
@@ -297,8 +281,8 @@ export const ImageResizePlugin = () => {
 					},
 				};
 
-				tr.setNodeMarkup(resizeState.imagePos, null, attrs);
-				tr.setMeta(ImageResizePluginKey, { action: "resize" });
+				tr.setNodeMarkup(resizeState.pos, null, attrs);
+				tr.setMeta(ResizePluginKey, { action: "resize" });
 				editorView.dispatch(tr);
 			}
 		}
@@ -311,9 +295,8 @@ export const ImageResizePlugin = () => {
 			startWidth: 0,
 			startHeight: 0,
 			handle: null,
-			imagePos: null,
-			imageNode: null,
-			imageElement: null,
+			pos: null,
+			resizableElement: null,
 			aspectRatio: 1,
 		};
 	}
@@ -338,3 +321,11 @@ export const ImageResizePlugin = () => {
 		}
 	}
 };
+
+export const ResizePlugin = Extension.create({
+  name: 'resizePlugin',
+
+  addPmPlugins() {
+    return [resize(["image"])]
+  }
+});

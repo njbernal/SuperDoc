@@ -1,8 +1,6 @@
 import { Attribute, Node } from "@core/index.js";
 import { ImagePlaceholderPlugin } from "./imageHelpers/imagePlaceholderPlugin.js";
 import { ImagePositionPlugin } from "./imageHelpers/imagePositionPlugin.js";
-import { ImageResizePlugin } from "./imageHelpers/imageResizePlugin.js";
-import "./imageHelpers/imageResize.css";
 
 export const Image = Node.create({
 	name: "image",
@@ -142,25 +140,7 @@ export const Image = Node.create({
 						type: this.name,
 						attrs: options,
 					});
-				},
-			resizeImage:
-				(pos, width, height) =>
-				({ tr }) => {
-					const node = tr.doc.nodeAt(pos);
-					if (node && node.type.name === "image") {
-						const attrs = {
-							...node.attrs,
-							size: {
-								...node.attrs.size,
-								width,
-								height,
-							},
-						};
-						tr.setNodeMarkup(pos, null, attrs);
-						return true;
-					}
-					return false;
-				},
+				}
 		};
 	},
 
@@ -168,7 +148,6 @@ export const Image = Node.create({
 		return [
 			ImagePlaceholderPlugin(),
 			ImagePositionPlugin({ editor: this.editor }),
-			ImageResizePlugin(),
 		];
 	},
 });

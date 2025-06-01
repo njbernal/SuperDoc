@@ -58,6 +58,7 @@ import { TrackChanges } from './track-changes/index.js';
 import { Pagination } from './pagination/index.js';
 import { LinkedStyles } from './linked-styles/linked-styles.js';
 import { Search } from './search/index.js';
+import { ResizePlugin } from './resize-plugin/index.js';
 
 // Helpers
 import { trackChangesHelpers } from './track-changes/index.js';
@@ -100,6 +101,7 @@ const getRichTextExtensions = () => {
     TrackFormat,
     AiPlugin,
     Image,
+    ResizePlugin,
   ];
 };
 
@@ -165,6 +167,7 @@ const getStarterExtensions = () => {
     ContentBlock,
     Search,
     StructuredContent,
+    ResizePlugin,
   ];
 };
 
@@ -227,4 +230,5 @@ export {
   AiPlugin,
   Search,
   StructuredContent,
+  ResizePlugin,
 };

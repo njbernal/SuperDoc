@@ -1,12 +1,5 @@
-/* Image resize styles */
-.ProseMirror .resizable-image-wrapper img {
-	display: block;
-	max-width: 100%;
-	height: auto;
-}
-
 /* Resize handles container */
-.image-resize-container {
+.resize-container {
 	position: absolute;
 	pointer-events: none;
 	z-index: 1000;
@@ -57,21 +50,21 @@
 }
 
 /* Hide handles when editor loses focus */
-.ProseMirror:not(.ProseMirror-focused) .image-resize-container {
+.ProseMirror:not(.ProseMirror-focused) .resize-container {
 	display: none;
 }
 
-/* Smooth transitions for image resizing */
-.resizable-image-wrapper img {
+/* Smooth transitions for resizing */
+.resizable-wrapper * {
 	transition: none;
 }
 
-.resizable-image-wrapper img:not([style*="width"]) {
+.resizable-wrapper *:not([style*="width"]) {
 	transition: all 0.2s ease;
 }
 
 /* Resize feedback indicator */
-.resizable-image-wrapper::after {
+.resizable-wrapper::after {
 	content: "Drag corners to resize";
 	position: absolute;
 	bottom: -25px;
@@ -89,6 +82,6 @@
 	z-index: 1001;
 }
 
-.resizable-image-wrapper:hover::after {
+.resizable-wrapper:hover::after {
 	opacity: 1;
 }
