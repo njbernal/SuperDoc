@@ -5,35 +5,28 @@ import '@harbour-enterprises/superdoc/style.css';
 import { useEffect, useRef } from 'react';
 
 interface Props {
-    documentId: string,
-    initialData: File | null,
-    documentType?: string,
-    readOnly?: boolean,
-    onEditorReady: (editor: { superdoc: SuperDoc }) => void;
+  initialData: File | null,
+  readOnly?: boolean,
 }
 
 const DocumentEditor = ({
-  documentId, 
-  documentType = 'docx', 
   initialData = null,
   readOnly = false,
-  onEditorReady 
 }: Props) => {
   const editorRef = useRef<SuperDoc>(null);
   useEffect(() => {
     const config: Config = {
       selector: '#superdoc',
-      toolbar: 'superdoc-toolbar',
+      toolbar: '#superdoc-toolbar',
+      document: initialData, // URL, File or document config
       documentMode: readOnly ? 'viewing' : 'editing',
-      onReady: (activeSuperDoc: SuperDoc) => {
-        const superEditor = activeSuperDoc.activeEditor;
-        console.debug('SuperDoc editor is ready', superEditor);
+      pagination: true,
+      rulers: true,
+      onReady: (event) => {
+        console.log('SuperDoc is ready', event);
       },
-      onEditorCreate: (editor: Editor) => {
-        console.log('Editor created', editor);
-      },
-      onEditorDestroy: () => {
-        console.log('Editor destroyed');
+      onEditorCreate: (event) => {
+        console.log('Editor is created', event);
       },
     };
   
@@ -46,7 +39,7 @@ const DocumentEditor = ({
         editorRef.current = null;
       }
     };
-  }, [documentId, documentType, initialData, readOnly, onEditorReady]);
+  }, [initialData, readOnly]);
 
   return (
     <div className="document-editor">
@@ -64,6 +57,8 @@ const DocumentEditor = ({
           border-bottom: 1px solid #eee;
         }
         .editor {
+          display: flex;
+          justify-content: center;
           flex: 1 1 auto;
           overflow: auto;
         }

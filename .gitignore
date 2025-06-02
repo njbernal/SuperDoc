@@ -34,7 +34,7 @@ lerna-debug.log*
 .vitepress/.cache
 .vitepress/dist
 
-packages/super-editor/src/tests/data/*
+packages/super-editor/src/tests/data/*/
 
 # Playwright
 test-results

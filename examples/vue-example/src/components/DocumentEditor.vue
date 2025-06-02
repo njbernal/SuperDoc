@@ -13,10 +13,6 @@ import { SuperDoc } from '@harbour-enterprises/superdoc';
 import '@harbour-enterprises/superdoc/style.css';
 
 const props = defineProps({
-  documentId: {
-    type: String,
-    required: true
-  },
   initialData: {
     type: File,
     default: null
@@ -52,26 +48,17 @@ const initializeEditor = async () => {
     // Create new editor instance
     editor.value = new SuperDoc({
       selector: '#superdoc',
-      toolbar: 'superdoc-toolbar',
+      toolbar: '#superdoc-toolbar',
+      document: props.initialData, // URL, File or document config
       documentMode: props.readOnly ? 'viewing' : 'editing',
-      documents: [{
-        id: props.documentId,
-        type: 'docx',
-        data: props.initialData
-      }],
-      // Handle focus events
-      onFocus: () => {
-        console.log('Editor focused');
+      pagination: true,
+      rulers: true,
+      onReady: (event) => {
+        console.log('SuperDoc is ready', event);
       },
-      onBlur: () => {
-        console.log('Editor lost focus');
+      onEditorCreate: (event) => {
+        console.log('Editor is created', event);
       },
-      onReady: () => {
-        emit('editor-ready', editor.value);
-      },
-      onError: (error) => {
-        emit('editor-error', error);
-      }
     });
   } catch (error) {
     console.error('Failed to initialize editor:', error);
@@ -98,9 +85,9 @@ onUnmounted(() => {
 
 <style scoped>
 .editor-container {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; */
 }
 .document-editor {
   display: flex;
@@ -116,6 +103,8 @@ onUnmounted(() => {
 }
 
 .editor {
+  display: flex;
+  justify-content: center;
   flex: 1 1 auto;
   overflow: auto;
   margin-top: 10px;

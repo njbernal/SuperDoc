@@ -37,6 +37,7 @@ import { PageNumber, TotalPageCount } from './page-number/index.js';
 import { ShapeContainer } from './shape-container/index.js';
 import { ShapeTextbox } from './shape-textbox/index.js';
 import { ContentBlock } from './content-block/index.js';
+import { StructuredContent } from './structured-content/index.js';
 
 // Marks extensions
 import { TextStyle } from './text-style/text-style.js';
@@ -77,7 +78,6 @@ const getRichTextExtensions = () => {
     Link,
     OrderedList,
     Paragraph,
-    HardBreak,
     Strike,
     Text,
     TextAlign,
@@ -164,6 +164,7 @@ const getStarterExtensions = () => {
     ShapeTextbox,
     ContentBlock,
     Search,
+    StructuredContent,
   ];
 };
 
@@ -225,4 +226,5 @@ export {
   AiLoaderNode,
   AiPlugin,
   Search,
+  StructuredContent,
 };

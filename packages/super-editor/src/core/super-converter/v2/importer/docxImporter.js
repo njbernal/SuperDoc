@@ -10,6 +10,7 @@ import { runNodeHandlerEntity } from './runNodeImporter.js';
 import { textNodeHandlerEntity } from './textNodeImporter.js';
 import { paragraphNodeHandlerEntity } from './paragraphNodeImporter.js';
 import { annotationNodeHandlerEntity } from './annotationImporter.js';
+import { sdtNodeHandlerEntity } from './structuredDocumentNodeImporter.js';
 import { standardNodeHandlerEntity } from './standardNodeImporter.js';
 import { lineBreakNodeHandlerEntity } from './lineBreakImporter.js';
 import { bookmarkNodeHandlerEntity } from './bookmarkNodeImporter.js';
@@ -130,6 +131,7 @@ export const defaultNodeListHandler = () => {
     textNodeHandlerEntity,
     lineBreakNodeHandlerEntity,
     annotationNodeHandlerEntity,
+    sdtNodeHandlerEntity,
     bookmarkNodeHandlerEntity,
     hyperlinkNodeHandlerEntity,
     drawingNodeHandlerEntity,

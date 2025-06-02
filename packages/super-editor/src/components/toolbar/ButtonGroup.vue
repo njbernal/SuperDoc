@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, h } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
 import ToolbarSeparator from './ToolbarSeparator.vue';
 import OverflowMenu from './OverflowMenu.vue';
@@ -68,10 +68,25 @@ const closeDropdowns = () => {
   currentItem.value = null;
 };
 
+const selectedOption = ref(null);
 const handleSelect = (item, option) => {
   closeDropdowns();
   const value = item.dropdownValueKey.value ? option[item.dropdownValueKey.value] : option.label;
   emit('command', { item, argument: value, option });
+  selectedOption.value = option.key;
+};
+
+const dropdownOptions = (item) => {
+  if (!item.nestedOptions?.value?.length) return [];
+  return item.nestedOptions.value.map((option) => {
+    return {
+      ...option,
+      props: {
+        ...option.props,
+        class: selectedOption.value === option.key ? 'selected' : '',
+      },
+    };
+  });
 };
 
 const handleClickOutside = (e) => {
@@ -96,7 +111,7 @@ const handleClickOutside = (e) => {
       <!-- Toolbar button -->
       <n-dropdown
         v-if="isDropdown(item) && item.nestedOptions?.value?.length"
-        :options="item.nestedOptions.value"
+        :options="dropdownOptions(item)"
         :trigger="item.disabled.value ? null : 'click'"
         :show="item.expand.value"
         size="medium"

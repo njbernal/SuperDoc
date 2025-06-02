@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="https://unpkg.com/@harbour-enterprises/superdoc@0.6.37/dist/style.css">
-  <script type="module" src="https://unpkg.com/@harbour-enterprises/superdoc@0.6.37/dist/superdoc.umd.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/@harbour-enterprises/superdoc@0.11.45/dist/style.css">
+  <script type="module" src="https://unpkg.com/@harbour-enterprises/superdoc@0.11.45/dist/superdoc.umd.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SuperDoc - CDN example</title>
@@ -25,11 +25,18 @@
 
   <script type="module">
     const superdoc = new SuperDocLibrary.SuperDoc({
-      toolbar: 'my-toolbar',
-      documents: [{
-        url: './sample.docx',
-        type: SuperDocLibrary.DOCX,
-      }],
+      selector: '#superdoc',
+      toolbar: '#my-toolbar',
+      document: './sample.docx', // URL, File or document config
+      documentMode: 'editing',
+      pagination: true,
+      rulers: true,
+      onReady: (event) => {
+        console.log('SuperDoc is ready', event);
+      },
+      onEditorCreate: (event) => {
+        console.log('Editor is created', event);
+      },
     });
   </script>
 

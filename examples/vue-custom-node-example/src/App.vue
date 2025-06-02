@@ -22,6 +22,8 @@ const init = (fileToLoad) => {
     // Enable pagination
     pagination: true,
 
+    rulers: true,
+
     document: fileToLoad ? { data: fileToLoad } : sampleDocument,
 
     // Initialize the toolbar

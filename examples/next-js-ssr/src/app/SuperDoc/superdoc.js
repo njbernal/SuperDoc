@@ -11,16 +11,26 @@ export default function SuperDocEditor() {
 
   const onReady = () => {
     editor.current = superdoc.current.activeEditor;
+    console.log('SuperDoc is ready');
   };
 
   const initSuperDoc = async (fileToLoad = null) => {
     const { SuperDoc } = await import('@harbour-enterprises/superdoc');
     superdoc.current = new SuperDoc({
       selector: superdocContainerRef.current,
-      pagination: true,
+      modules: { 
+        toolbar: { 
+          selector: '#toolbar', 
+          toolbarGroups: ['center'], 
+        },
+      },
       document: fileToLoad ? { data: fileToLoad } : '/sample-document.docx',
-      modules: { toolbar: { selector: '#toolbar', toolbarGroups: ['center'] } },
+      pagination: true,
+      rulers: true,
       onReady,
+      onEditorCreate: (event) => {
+        console.log('Editor is created', event);
+      },
     });
   };
 

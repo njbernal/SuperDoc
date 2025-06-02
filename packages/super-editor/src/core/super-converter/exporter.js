@@ -91,6 +91,7 @@ export function exportSchemaToJson(params) {
     shapeContainer: translateShapeContainer,
     shapeTextbox: translateShapeTextbox,
     contentBlock: translateContentBlock,
+    structuredContent: translateStructuredContent,
   };
 
   if (!router[type]) {
@@ -356,7 +357,9 @@ function translateChildNodes(params) {
   const translatedNodes = [];
   nodes.forEach((node) => {
     let translatedNode = exportSchemaToJson({ ...params, node });
-    translatedNode = isolateAnnotations(translatedNode);
+
+    const nodeType = translatedNode?.name || translatedNode?.type;
+    if (nodeType !== 'w:sdt') translatedNode = isolateAnnotations(translatedNode);
 
     if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
     else translatedNodes.push(translatedNode);
@@ -375,6 +378,12 @@ const isolateAnnotations = (node) => {
   if (!node) return node;
   const hasTextRun = node.elements?.some(item => item.name === 'w:r');
   const hasSdtContent = node.elements?.some(item => item.name === 'w:sdt');
+
+  const sdtNode = node.elements?.find(item => item.name === 'w:sdt');
+  const sdtPr = sdtNode?.elements?.find(item => item.name === 'w:sdtPr');
+  const hasAlias = sdtPr?.elements?.some(item => item.name === 'w:alias');
+  if (!hasAlias) return node;
+
   let result = node;
   if (hasTextRun && hasSdtContent) {
     const sdtNodes = node.elements.filter(item => item.name === 'w:sdt');
@@ -609,23 +618,67 @@ function translateLinkNode(params) {
 
   const linkMark = node.marks.find((m) => m.type === 'link');
   const link = linkMark.attrs.href;
+
   let rId = linkMark.attrs.rId;
   if (!rId) {
     rId = addNewLinkRelationship(params, link);
   }
 
   node.marks = node.marks.filter((m) => m.type !== 'link');
+  
   const outputNode = exportSchemaToJson({ ...params, node });
+  const contentNode = processLinkContentNode(outputNode);
+
   const newNode = {
     name: 'w:hyperlink',
     type: 'element',
     attributes: {
       'r:id': rId,
     },
-    elements: [outputNode],
+    elements: [contentNode],
   };
 
   return newNode;
+}
+
+function processLinkContentNode(node) {
+  if (!node) return node;
+
+  const contentNode = carbonCopy(node);
+  if (!contentNode) return contentNode;
+
+  const hyperlinkStyle = {
+    name: 'w:rStyle',
+    attributes: { 'w:val': 'Hyperlink' },
+  };
+  const color = {
+    name: 'w:color',
+    attributes: { 'w:val': '467886' },
+  };
+
+  if (contentNode.name === 'w:r') {
+    const runProps = contentNode.elements.find((el) => el.name === 'w:rPr');
+
+    if (runProps) {
+      const foundColor = runProps.elements.find((el) => el.name === 'w:color');
+      const foundHyperlinkStyle = runProps.elements.find((el) => el.name === 'w:rStyle');
+      if (!foundColor) runProps.elements.unshift(color);
+      if (!foundHyperlinkStyle) runProps.elements.unshift(hyperlinkStyle);
+    } else {
+      // we don't add underline by default
+      const runProps = {
+        name: 'w:rPr',
+        elements: [
+          hyperlinkStyle,
+          color,
+        ],
+      };
+
+      contentNode.elements.unshift(runProps);
+    }
+  }
+
+  return contentNode;
 }
 
 /**
@@ -638,7 +691,10 @@ function translateLinkNode(params) {
 function addNewLinkRelationship(params, link) {
   const newId = 'rId' + generateDocxRandomId();
 
-  if (!params.relationships || !Array.isArray(params.relationships)) params.relationships = [];
+  if (!params.relationships || !Array.isArray(params.relationships)) {
+    params.relationships = [];
+  }
+
   params.relationships.push({
     type: 'element',
     name: 'Relationship',
@@ -649,6 +705,7 @@ function addNewLinkRelationship(params, link) {
       TargetMode: 'External',
     },
   });
+
   return newId;
 }
 
@@ -732,6 +789,33 @@ function translateList(params) {
           return isChanged ? isChanged : item;
         });
         outputNode.elements[propsElementIndex].elements = resultProps;
+      }
+
+      let importedFontSize;
+      if (listNode.attrs?.importedFontSize) {
+        const fontNoUnit = parseInt(listNode.attrs.importedFontSize.split('pt')[0]);
+        importedFontSize = {
+          name: 'w:sz',
+          attributes: { 'w:val': fontNoUnit * 2 },
+        };
+      };
+
+      let importedFontFamily
+      if (listNode.attrs?.importedFontFamily) {
+        importedFontFamily = {
+          name: 'w:rFonts',
+          attributes: { 'w:ascii': listNode.attrs?.importedFontFamily, 'w:hAnsi': listNode.attrs?.importedFontFamily },
+        };
+      }
+
+      const rPrElement = outputNode.elements.find((e) => e.name === 'w:rPr');
+      if (rPrElement) {
+        rPrElement.elements.push(fontSize);
+      } else if (importedFontSize || importedFontFamily) {
+        const elements = [];
+        if (importedFontSize) elements.push(importedFontSize);
+        if (importedFontFamily) elements.push(importedFontFamily);
+        outputNode.elements.unshift({ name: 'w:rPr', elements });
       }
 
       // Remove the numPr properties from content nodes
@@ -1825,6 +1909,7 @@ function prepareUrlAnnotation(params) {
   const newId = addNewLinkRelationship(params, attrs.linkUrl);
 
   const linkTextNode = getTextNodeForExport(attrs.linkUrl, marks, params);
+  const contentNode = processLinkContentNode(linkTextNode);
 
   return {
     name: 'w:hyperlink',
@@ -1833,7 +1918,7 @@ function prepareUrlAnnotation(params) {
       'r:id': newId,
       'w:history': 1,
     },
-    elements: [linkTextNode],
+    elements: [contentNode],
   };
 }
 
@@ -1994,6 +2079,7 @@ export function translateHardBreak(params) {
   const { attrs = {} } = node;
   const { pageBreakSource } = attrs;
   if (pageBreakSource === 'sectPr') return null;
+
   return {
     name: 'w:r',
     elements: [{
@@ -2237,4 +2323,25 @@ function applyMarksToHtmlAnnotation(state, marks) {
   });
 
   return state.apply(tr);
+};
+
+function translateStructuredContent(params) {
+  const { node } = params;
+  const { attrs = {} } = node;
+
+  const childContent = translateChildNodes({ ...params, nodes: node.content });
+
+  // We build the sdt node elements here, and re-add passthrough sdtPr node
+  const nodeElements = [
+    {
+      name: 'w:sdtContent',
+      elements: childContent,
+    },
+  ];
+  nodeElements.unshift(attrs.sdtPr)
+
+  return {
+    name: 'w:sdt',
+    elements: nodeElements,
+  };
 };

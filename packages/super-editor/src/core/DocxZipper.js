@@ -1,3 +1,4 @@
+import xmljs from 'xml-js';
 import JSZip from 'jszip';
 import { getContentTypesFromXml } from './super-converter/helpers.js';
 import { CONTENT_TYPES } from './super-converter/exporter-docx-defs.js';
@@ -108,24 +109,33 @@ class DocxZipper {
     }
   
     // Update for comments
+    const xmlJson = JSON.parse(xmljs.xml2json(contentTypesXml, null, 2));
+    const types = xmlJson.elements?.find((el) => el.name === 'Types') || {};
+
+    // Overrides
+    const hasComments = types.elements?.some((el) => el.name === 'Override' && el.attributes.PartName === '/word/comments.xml');
+    const hasCommentsExtended = types.elements?.some((el) => el.name === 'Override' && el.attributes.PartName === '/word/commentsExtended.xml');
+    const hasCommentsIds = types.elements?.some((el) => el.name === 'Override' && el.attributes.PartName === '/word/commentsIds.xml');
+    const hasCommentsExtensible = types.elements?.some((el) => el.name === 'Override' && el.attributes.PartName === '/word/commentsExtensible.xml');
+    
     if (docx.files['word/comments.xml']) {
       const commentsDef = `<Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" />`;
-      if (!contentTypesXml.includes(commentsDef)) typesString += commentsDef;
+      if (!hasComments) typesString += commentsDef;
     };
-
+  
     if (docx.files['word/commentsExtended.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml" />`;
-      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
+      if (!hasCommentsExtended) typesString += commentsExtendedDef;
     };
 
     if (docx.files['word/commentsIds.xml']) {
       const commentsIdsDef = `<Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml" />`;
-      if (!contentTypesXml.includes(commentsIdsDef)) typesString += commentsIdsDef;
+      if (!hasCommentsIds) typesString += commentsIdsDef;
     };
 
     if (docx.files['word/commentsExtensible.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtensible.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml" />`;
-      if (!contentTypesXml.includes(commentsExtendedDef)) typesString += commentsExtendedDef;
+      if (!hasCommentsExtensible) typesString += commentsExtendedDef;
     };
   
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';

@@ -66,7 +66,10 @@ describe('AnnotationNodeExporter', async () => {
     const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
     expect(shortFieldType.attributes['w:val']).toBe('link');
   
-    const text = getTextFromNode(body.elements[10].elements[1].elements[1].elements[0]);
+    const node = body.elements[10].elements[1].elements[1].elements[0];
+    const run = node.elements.find((el) => el.name === 'w:r');
+    const text = run?.elements[1].elements[0].text;
+
     expect(text).toEqual('https://vitest.dev/guide/coverage');
     expect(params.relationships[2].attributes.Target).toBe('https://vitest.dev/guide/coverage');
   });
