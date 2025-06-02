@@ -823,6 +823,7 @@ export const makeDefaultItems = ({
     tooltip: 'Show or hide ruler',
   });
 
+  const selectedLinkedStyle = ref(null);
   const linkedStyles = useToolbarItem({
     type: 'dropdown',
     name: 'linkedStyles',
@@ -847,12 +848,14 @@ export const makeDefaultItems = ({
             closeDropdown(linkedStyles);
             const itemWithCommand = { ...linkedStyles, command: 'setLinkedStyle' };
             superToolbar.emitCommand({ item: itemWithCommand, argument: style });
+            selectedLinkedStyle.value = style.id;
           };
 
           return h('div', {}, [
             h(LinkedStyle, {
               editor: superToolbar.activeEditor,
               onSelect: handleSelect,
+              selectedOption: selectedLinkedStyle.value,
             })
           ])
         }
