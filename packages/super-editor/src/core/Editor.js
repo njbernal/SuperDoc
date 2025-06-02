@@ -496,6 +496,7 @@ export class Editor extends EventEmitter {
       // this.unregisterPlugin('comments');
       this.commands.toggleTrackChangesShowOriginal();
       this.setEditable(false, false);
+      this.setOptions({ documentMode: 'viewing' });
       toggleHeaderFooterEditMode(this, null, false);
     }
 
@@ -505,6 +506,7 @@ export class Editor extends EventEmitter {
       this.#registerPluginByNameIfNotExists('TrackChangesBase');
       this.commands.disableTrackChangesShowOriginal();
       this.commands.enableTrackChanges();
+      this.setOptions({ documentMode: 'suggesting' });
       this.setEditable(true, false);
     }
 
@@ -515,6 +517,7 @@ export class Editor extends EventEmitter {
       this.commands.disableTrackChangesShowOriginal();
       this.commands.disableTrackChanges();
       this.setEditable(true, false);
+      this.setOptions({ documentMode: 'editing' });
       toggleHeaderFooterEditMode(this, null, false);
     }
   }
@@ -904,6 +907,9 @@ export class Editor extends EventEmitter {
       dispatchTransaction: this.#dispatchTransaction.bind(this),
       state: EditorState.create(state),
       handleDoubleClick: async (view, pos, event) => {
+        // Prevent edits if editor is not editable
+        if (this.options.documentMode !== 'editing') return;
+
         // Deactivates header/footer editing mode when double-click on main editor
         const isHeader = hasSomeParentWithClass(event.target, 'pagination-section-header');
         const isFooter = hasSomeParentWithClass(event.target, 'pagination-section-footer');

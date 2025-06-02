@@ -195,14 +195,14 @@ const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sec
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
   
-  await updateYdocData(mainEditor);
+  await updateYdocDocxData(mainEditor);
 };
 
 const setEditorToolbar = ({ editor }, mainEditor) => {
   editor.setToolbar(mainEditor.toolbar);
 };
 
-const updateYdocData = async (editor) => {
+const updateYdocDocxData = async (editor) => {
   if (!editor.options.ydoc) return;
   
   const metaMap = editor.options.ydoc.getMap('meta');

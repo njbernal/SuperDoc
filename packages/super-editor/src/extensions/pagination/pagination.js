@@ -492,7 +492,16 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
 
   const availableHeight = headerHeight - headerMargin;
   const editorContainer = document.createElement('div');
+
+  if (!editor.converter.headers[headerId]) {
+    editor.converter.headers[headerId] = {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [] }]
+    }
+  };
+
   const data = editor.converter.headers[headerId];
+
   let editorSection;
   if (data) {
     editorSection = createHeaderFooterEditor({ 
@@ -601,6 +610,8 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
  * @param {Editor} currentFocusedSectionEditor Focused header/footer editor
  */
 const onHeaderFooterDblClick = (editor, currentFocusedSectionEditor) => {
+  if (editor.options.documentMode !== 'editing') return;
+
   editor.setEditable(false, false);
   toggleHeaderFooterEditMode(editor, currentFocusedSectionEditor, true);
 };
