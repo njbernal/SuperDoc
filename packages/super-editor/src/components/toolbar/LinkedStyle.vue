@@ -9,6 +9,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  selectedOption: {
+    type: String,
+  },
 });
 
 const select = (style) => {
@@ -20,7 +23,7 @@ const select = (style) => {
 <template>
   <div class="linked-style-buttons" v-if="props.editor">
     <div
-      v-for="style in getQuickFormatList(editor)" class="style-item" @click="select(style)">
+      v-for="style in getQuickFormatList(editor)" class="style-item" @click="select(style)" :class="{ 'selected': selectedOption === style.id }">
       <div class="style-name" :style="generateLinkedStyleString(style, null, false)" data-item="btn-linkedStyles-option">
         {{ style.definition.attrs.name }}
       </div>
