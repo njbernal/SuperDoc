@@ -505,6 +505,8 @@ class SuperConverter {
     Object.entries(this.headers).forEach(([id, header]) => {
       const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target;
       const headerEditor = this.headerEditors.find((item) => item.id === id);
+      
+      if (!headerEditor) return;
 
       const { result, params } = this.exportToXmlJson({ 
         data: header,
@@ -540,6 +542,8 @@ class SuperConverter {
     Object.entries(this.footers).forEach(([id, footer]) => {
       const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target;
       const footerEditor = this.footerEditors.find((item) => item.id === id);
+      
+      if (!footerEditor) return;
 
       const { result, params } = this.exportToXmlJson({
         data: footer,

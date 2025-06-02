@@ -1371,9 +1371,10 @@ export class Editor extends EventEmitter {
    * @param {boolean} [options.isFinalDoc=false] - Whether this is the final document version
    * @param {string} [options.commentsType] - The type of comments to include
    * @param {Array} [options.comments=[]] - Array of comments to include in the document
-   * @returns {Promise<Blob|ArrayBuffer>} The exported DOCX file
+   * @param {boolean} [options.getUpdatedDocs=false] - When set to true return only updated docx files
+   * @returns {Promise<Blob|ArrayBuffer|Object>} The exported DOCX file or updated docx files
    */
-  async exportDocx({ isFinalDoc = false, commentsType = 'external', comments = [] } = {}) {
+  async exportDocx({ isFinalDoc = false, commentsType = 'external', comments = [], getUpdatedDocs = false } = {}) {
 
     // Pre-process the document state to prepare for export
     const json = this.#prepareDocumentForExport(comments);
@@ -1428,6 +1429,8 @@ export class Editor extends EventEmitter {
       updatedDocs['word/commentsExtensible.xml'] = String(commentsExtensibleXml);
       updatedDocs['word/commentsIds.xml'] = String(commentsIdsXml);
     }
+    
+    if (getUpdatedDocs) return updatedDocs;
 
     const zipper = new DocxZipper();
     const result = await zipper.updateZip({

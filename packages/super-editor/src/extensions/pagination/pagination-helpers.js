@@ -177,7 +177,7 @@ export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditM
   }
 };
 
-const onHeaderFooterDataUpdate = ({ editor, transaction }, mainEditor, sectionId, type) => {
+const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sectionId, type) => {
   if (!type || !sectionId) return;
   
   const updatedData = editor.getUpdatedJson();
@@ -194,8 +194,35 @@ const onHeaderFooterDataUpdate = ({ editor, transaction }, mainEditor, sectionId
     });
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
+  
+  await updateYdocData(mainEditor);
 };
 
 const setEditorToolbar = ({ editor }, mainEditor) => {
   editor.setToolbar(mainEditor.toolbar);
 };
+
+const updateYdocData = async (editor) => {
+  if (!editor.options.ydoc) return;
+  
+  const metaMap = editor.options.ydoc.getMap('meta');
+  const docx = [...metaMap.get('docx')];
+
+  const newXml = await editor.exportDocx({ getUpdatedDocs: true });
+
+  Object.keys(newXml).forEach(key => {
+    if (key.includes('header') || key.includes('footer')) {
+      const fileIndex = docx.findIndex(item => item.name === key);
+      if (fileIndex === -1) return;
+      docx.splice(fileIndex, 1);
+      docx.push({
+        name: key,
+        content: newXml[key],
+      });
+    }
+  })
+
+  editor.options.ydoc.transact(() => {
+    metaMap.set('docx', docx);
+  });
+}
