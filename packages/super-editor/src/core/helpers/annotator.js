@@ -59,8 +59,7 @@ const annotateYesNo = (value) => {
  * @param {Object} param0.editor The editor instance
  * @param {Array} param0.annotationValues The annotation values to process
  */
-export const processTables = ({ editor, tr, annotationValues }) => {
-  const { state } = editor;
+export const processTables = ({ state, tr, annotationValues }) => {
   const { doc } = state;
 
   // Get all tables in the document
@@ -73,13 +72,13 @@ export const processTables = ({ editor, tr, annotationValues }) => {
     const currentTableNode = tr.doc.nodeAt(pos);
     if (!currentTableNode || currentTableNode.type.name !== 'table') return;
 
-    generateTableIfNecessary({ tableNode: { node: currentTableNode, pos }, annotationValues, tr, editor });
+    generateTableIfNecessary({ tableNode: { node: currentTableNode, pos }, annotationValues, tr, state });
   });
 
   return tr;
 };
 
-const generateTableIfNecessary = ({ tableNode, annotationValues, tr, editor }) => {
+const generateTableIfNecessary = ({ tableNode, annotationValues, tr, state, }) => {
   let rowNodeToGenerate = null;
   let currentRow = null;
 
@@ -88,7 +87,7 @@ const generateTableIfNecessary = ({ tableNode, annotationValues, tr, editor }) =
     tableCell: CellType,
     fieldAnnotation: FieldType,
     paragraph: ParaType
-  } = editor.schema.nodes;
+  } = state.schema.nodes;
 
   // Find the row with fieldAnnotations that are arrays
   tableNode.node.descendants((node, pos) => {

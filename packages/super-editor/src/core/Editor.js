@@ -1633,7 +1633,7 @@ export class Editor extends EventEmitter {
     const { state, view, schema } = this;
     let tr = state.tr;
 
-    tr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
+    tr = AnnotatorServices.processTables({ state: this.state, tr, annotationValues });
     tr = AnnotatorServices.annotateDocument({
       tr,
       schema,
@@ -1644,6 +1644,29 @@ export class Editor extends EventEmitter {
 
     // Dispatch everything in a single transaction, which makes this undo-able in a single undo
     if (tr.docChanged) view.dispatch(tr.scrollIntoView());
+  }
+
+  /**
+   * Preview annotations in the editor. It stores a copy of the original state.
+   * This can be reverted via closePreview()
+   * 
+   * @param {Object[]} annotationValues 
+   * @param {string[]} hiddenIds 
+   * @returns {void}
+   */
+  previewAnnotations(annotationValues = [], hiddenIds = []) {
+    this.originalState = this.view.state;
+    this.annotate(annotationValues, hiddenIds);
+  }
+
+  /**
+   * If there is a preview active, this will revert the editor to the original state.
+   * 
+   * @returns {void} 
+   */
+  closePreview() {
+    if (!this.originalState) return;
+    this.view.updateState(this.originalState);
   }
 
 }
