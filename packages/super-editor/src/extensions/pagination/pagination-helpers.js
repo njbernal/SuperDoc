@@ -2,6 +2,7 @@ import { PluginKey } from 'prosemirror-state';
 import { Editor as SuperEditor } from '@core/Editor.js';
 import { getStarterExtensions } from '@extensions/index.js';
 
+
 export const PaginationPluginKey = new PluginKey('paginationPlugin');
 
 /**
@@ -56,64 +57,172 @@ export const initPaginationData = async (editor) => {
  */
 const getSectionHeight = async (editor, data) => {
   if (!data) return {};
+  
   return new Promise((resolve) => {
     const editorContainer = document.createElement('div');
     editorContainer.className = 'super-editor';
-    editorContainer.style.padding = 0;
-    editorContainer.style.margin = 0;
-
-    const parentStyles = editor.converter.getDocumentDefaultStyles();
-    const { fontSizePt, typeface } = parentStyles;
-    const fontSizeInPixles = fontSizePt * 1.3333;
-    const lineHeight = fontSizeInPixles * 1.15;
-
-    Object.assign(editorContainer.style, {
-      padding: "0",
-      margin: "0",
-      border: "none",
-      boxSizing: "border-box",
-      position: "absolute",
-      top: "0",
-      left: "0",
-      width: "auto",
-      maxWidth: "none",
-      fontFamily: typeface,
-      fontSize: `${fontSizeInPixles}px`,
-      lineHeight: `${lineHeight}px`,
-    });
-
-    document.body.appendChild(editorContainer);
-    const sectionEditor = new SuperEditor({
-      loadFromSchema: true,
-      mode: 'text',
-      editable: false,
-      element: editorContainer,
-      content: data,
-      extensions: getStarterExtensions(),
-      documentId: 'sectionId',
-    });
-
+    editorContainer.style.padding = '0';
+    editorContainer.style.margin = '0';
+    
+    const sectionEditor = createHeaderFooterEditor({ editor, data, editorContainer });
+    
     sectionEditor.on('create', () => {
+      sectionEditor.setEditable(false, false);
       requestAnimationFrame(() => {
         const height = editorContainer.offsetHeight;
         document.body.removeChild(editorContainer);
-
-        Object.assign(editorContainer.style, {
-          padding: "0",
-          margin: "0",
-          border: "none",
-          boxSizing: "border-box",
-          position: "relative",
-          top: "initial",
-          left: "initial",
-          width: "initial",
-          maxWidth: "initial",
-          fontFamily: "initial",
-          fontSize: "initial",
-          lineHeight: "initial",
-        });
         resolve({ height, sectionEditor, sectionContainer: editorContainer });
       })
     });
   });
 };
+
+export const createHeaderFooterEditor = ({ 
+  editor, 
+  data, 
+  editorContainer, 
+  appendToBody = true,
+  sectionId,
+  type,
+  availableHeight
+}) => {
+  const parentStyles = editor.converter.getDocumentDefaultStyles();
+  const { fontSizePt, typeface } = parentStyles;
+  const fontSizeInPixles = fontSizePt * 1.3333;
+  const lineHeight = fontSizeInPixles * 1.2;
+
+  Object.assign(editorContainer.style, {
+    padding: "0",
+    margin: "0",
+    border: "none",
+    boxSizing: "border-box",
+    position: "absolute",
+    top: "0",
+    left: "0",
+    width: "auto",
+    maxWidth: "none",
+    fontFamily: typeface,
+    fontSize: `${fontSizeInPixles}px`,
+    lineHeight: `${lineHeight}px`,
+  });
+
+  Object.assign(editorContainer.style, {
+    padding: '0',
+    margin: '0',
+    border: 'none',
+    boxSizing: 'border-box',
+    height: availableHeight + 'px',
+    overflow: 'hidden',
+  });
+  if (appendToBody) document.body.appendChild(editorContainer);
+  
+  const headerFooterEditor = new SuperEditor({
+    loadFromSchema: true,
+    mode: 'docx',
+    element: editorContainer,
+    content: data,
+    extensions: getStarterExtensions(),
+    documentId: sectionId || 'sectionId',
+    media: editor.options.media,
+    mediaFiles: editor.options.mediaFiles,
+    fonts: editor.options.fonts,
+    isHeaderOrFooter: true,
+    onCreate: (evt) => setEditorToolbar(evt, editor),
+    onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
+  });
+
+  const pm = editorContainer.querySelector('.ProseMirror');
+  pm.style.maxHeight = '100%';
+  pm.style.minHeight = '100%';
+  pm.style.overflow = 'auto';
+  pm.style.outline = 'none';
+  pm.style.border = 'none';
+
+  return headerFooterEditor;
+};
+
+export const broadcastEditorEvents = (editor, sectionEditor) => {
+  const eventNames = [
+    'fieldAnnotationDropped',
+    'fieldAnnotationPaste',
+    'fieldAnnotationSelected',
+    'fieldAnnotationClicked',
+    'fieldAnnotationDoubleClicked',
+    'fieldAnnotationDeleted',
+  ];
+  eventNames.forEach((eventName) => {
+    sectionEditor.on(eventName, (...args) => {
+      editor.emit(eventName, ...args);
+      console.debug('broadcastEditorEvents', { eventName, args });
+    });
+  });
+};
+
+export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditMode) => {
+  editor.converter.headerEditors.forEach(item => {
+    item.editor.setEditable(isEditMode, false);
+  });
+  
+  editor.converter.footerEditors.forEach(item => {
+    item.editor.setEditable(isEditMode, false);
+  });
+  
+  if (isEditMode) {
+    const pm = document.querySelector('.ProseMirror');
+    pm.classList.add('header-footer-edit');
+  }
+  
+  if (focusedSectionEditor) {
+    focusedSectionEditor.view.focus();
+  }
+};
+
+export const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sectionId, type) => {
+  if (!type || !sectionId) return;
+  
+  const updatedData = editor.getUpdatedJson();
+  mainEditor.converter[`${type}Editors`].forEach(item => {
+    if (item.id === sectionId) {
+      item.editor.setOptions({
+        media: editor.options.media,
+        mediaFiles: editor.options.mediaFiles,
+      });
+      item.editor.replaceContent(updatedData);
+    }
+    item.editor.setOptions({
+      lastSelection: transaction?.selection,
+    });
+  });
+  mainEditor.converter[`${type}s`][sectionId] = updatedData;
+
+  await updateYdocDocxData(mainEditor);
+};
+
+const setEditorToolbar = ({ editor }, mainEditor) => {
+  editor.setToolbar(mainEditor.toolbar);
+};
+
+const updateYdocDocxData = async (editor) => {
+  if (!editor.options.ydoc) return;
+  
+  const metaMap = editor.options.ydoc.getMap('meta');
+  const docx = [...metaMap.get('docx')];
+
+  const newXml = await editor.exportDocx({ getUpdatedDocs: true });
+
+  Object.keys(newXml).forEach(key => {
+    if (key.includes('header') || key.includes('footer')) {
+      const fileIndex = docx.findIndex(item => item.name === key);
+      if (fileIndex === -1) return;
+      docx.splice(fileIndex, 1);
+      docx.push({
+        name: key,
+        content: newXml[key],
+      });
+    }
+  })
+
+  editor.options.ydoc.transact(() => {
+    metaMap.set('docx', docx);
+  });
+}

@@ -479,15 +479,22 @@ export class SuperToolbar extends EventEmitter {
 
         // move cursor to end
         const { view } = this.activeEditor;
-        const endPos = view.state.selection.$to.pos;
-        const selection = new TextSelection(view.state.doc.resolve(endPos));
-        const tr = view.state.tr.setSelection(selection);
+        let { selection } = view.state;
+        if (this.activeEditor.options.isHeaderOrFooter) {
+          selection = this.activeEditor.options.lastSelection;
+        }
+        const endPos = selection.$to.pos;
+        
+        const newSelection = new TextSelection(view.state.doc.resolve(endPos));
+        const tr = view.state.tr.setSelection(newSelection);
         const state = view.state.apply(tr);
         view.updateState(state);
 
-        setTimeout(() => {
-          view.focus();
-        }, 100);
+        if (!this.activeEditor.options.isHeaderOrFooter) {
+          setTimeout(() => {
+            view.focus();
+          }, 100);
+        }
       }
       this.updateToolbarState();
     },
@@ -721,7 +728,7 @@ export class SuperToolbar extends EventEmitter {
           textAlign: 'textAlign',
         };
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
-        if (markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
+        if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
           const value = {
             [item.name.value]: linkedStyles?.definition.styles[markToStyleMap[item.name.value]]
           };
@@ -803,7 +810,10 @@ export class SuperToolbar extends EventEmitter {
    * @returns {*} The result of the executed command, undefined if no result is returned
   */
   emitCommand({ item, argument, option }) {
-    this.activeEditor?.focus();
+    if (this.activeEditor && !this.activeEditor.options.isHeaderOrFooter) {
+      this.activeEditor.focus();
+    }
+    
     const { command } = item;
 
     if (!command) {
