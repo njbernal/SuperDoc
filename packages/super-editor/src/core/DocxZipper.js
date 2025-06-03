@@ -121,23 +121,34 @@ class DocxZipper {
     if (docx.files['word/comments.xml']) {
       const commentsDef = `<Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" />`;
       if (!hasComments) typesString += commentsDef;
-    };
+    }
   
     if (docx.files['word/commentsExtended.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtended.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml" />`;
       if (!hasCommentsExtended) typesString += commentsExtendedDef;
-    };
+    }
 
     if (docx.files['word/commentsIds.xml']) {
       const commentsIdsDef = `<Override PartName="/word/commentsIds.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml" />`;
       if (!hasCommentsIds) typesString += commentsIdsDef;
-    };
+    }
 
     if (docx.files['word/commentsExtensible.xml']) {
       const commentsExtendedDef = `<Override PartName="/word/commentsExtensible.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml" />`;
       if (!hasCommentsExtensible) typesString += commentsExtendedDef;
-    };
-  
+    }
+    
+    
+    Object.keys(docx.files).forEach((name) => {
+      if (!name.includes('header') && !name.includes('footer')) return;
+      const hasExtensible = types.elements?.some((el) => el.name === 'Override' && el.attributes.PartName === `/${name}`);
+      const type = name.includes('header') ? 'header' : 'footer';
+      const extendedDef = `<Override PartName="/${name}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.${type}+xml"/>`;
+      if (!hasExtensible) {
+        typesString += extendedDef;
+      }
+    })
+    
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
     const updatedContentTypesXml = contentTypesXml.replace(beginningString, `${beginningString}${typesString}`);
 

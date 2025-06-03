@@ -7,6 +7,7 @@ import { CollaborationPluginKey } from '@extensions/collaboration/collaboration.
 import { ImagePlaceholderPluginKey } from '@extensions/image/imageHelpers/imagePlaceholderPlugin.js';
 import { LinkedStylesPluginKey } from '@extensions/linked-styles/linked-styles.js';
 import { findParentNodeClosestToPos } from '@core/helpers/findParentNodeClosestToPos.js';
+import { generateDocxRandomId } from '../../core/helpers/index.js';
 
 const isDebugging = false;
 
@@ -494,7 +495,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
   const editorContainer = document.createElement('div');
 
   if (!headerId && !editor.converter.headerIds['default']) {
-    headerId = 'rId6';
+    headerId = 'rId' + generateDocxRandomId();
     editor.converter.headerIds['default'] = headerId;
   }
 
@@ -503,7 +504,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
       type: 'doc',
       content: [{ type: 'paragraph', content: [] }]
     }
-  };
+  }
 
   const data = editor.converter.headers[headerId];
   const editorSection = createHeaderFooterEditor({ 
@@ -515,15 +516,11 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
     type: 'header',
     availableHeight,
   });
+  editor.converter.headerEditors.push({
+    id: headerId,
+    editor: editorSection,
+  });
   editorSection.setEditable(false, false);
-
-  const hasEditorInConverter = editor.converter.headerEditors.find((headerEditor) => headerEditor.id === headerId);
-  if (!hasEditorInConverter) {
-    editor.converter.headerEditors.push({
-      id: headerId,
-      editor: editorSection,
-    });
-  };
 
   broadcastEditorEvents(editor, editorSection);
   editorContainer.className = 'pagination-section-header';
@@ -573,7 +570,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   const editorContainer = document.createElement('div');
 
   if (!footerId && !editor.converter.footerIds['default']) {
-    footerId = 'rId7';
+    footerId = 'rId' + generateDocxRandomId();
     editor.converter.footerIds['default'] = footerId;
   }
 
@@ -582,7 +579,7 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
       type: 'doc',
       content: [{ type: 'paragraph', content: [] }]
     }
-  };
+  }
 
   const data = editor.converter.footers[footerId];
   const editorSection = createHeaderFooterEditor({ 
@@ -599,14 +596,6 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
     editor: editorSection,
   });
   editorSection.setEditable(false, false);
-
-  const hasEditorInConverter = editor.converter.footerEditors.find((footerEditor) => footerEditor.id === footerId);
-  if (!hasEditorInConverter) {
-    editor.converter.footerEditors.push({
-      id: footerId,
-      editor: editorSection,
-    });
-  };
 
   broadcastEditorEvents(editor, editorSection);
 

@@ -117,8 +117,15 @@ function translateBodyNode(params) {
     const hasHeader = sectPr.elements.some((n) => n.name === 'w:headerReference');
     const hasDefaultHeader = params.converter.headerIds?.default;
     if (!hasHeader && hasDefaultHeader && !params.editor.options.isHeaderOrFooter) {
-      const defaultHeader = generateDefaultHeader();
+      const defaultHeader = generateDefaultHeaderFooter('header', params.converter.headerIds?.default);
       sectPr.elements.push(defaultHeader);
+    }
+    
+    const hasFooter = sectPr.elements.some((n) => n.name === 'w:footerReference');
+    const hasDefaultFooter = params.converter.footerIds?.default;
+    if (!hasFooter && hasDefaultFooter && !params.editor.options.isHeaderOrFooter) {
+      const defaultFooter = generateDefaultHeaderFooter('footer', params.converter.footerIds?.default);
+      sectPr.elements.push(defaultFooter);
     }
 
     const newMargins = params.converter.pageStyles.pageMargins;
@@ -146,13 +153,13 @@ function translateBodyNode(params) {
   };
 }
 
-const generateDefaultHeader = () => {
+const generateDefaultHeaderFooter = (type, id) => {
   return {
     "type": "element",
-    "name": "w:headerReference",
+    "name": `w:${type}Reference`,
     "attributes": {
         "w:type": "default",
-        "r:id": "rId6"
+        "r:id": id
     }
   };
 }
