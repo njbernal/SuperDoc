@@ -214,14 +214,15 @@ const updateYdocDocxData = async (editor) => {
   Object.keys(newXml).forEach(key => {
     if (key.includes('header') || key.includes('footer')) {
       const fileIndex = docx.findIndex(item => item.name === key);
-      if (fileIndex === -1) return;
-      docx.splice(fileIndex, 1);
+      if (fileIndex > -1) {
+        docx.splice(fileIndex, 1);
+      }
       docx.push({
         name: key,
         content: newXml[key],
       });
     }
-  })
+  });
 
   editor.options.ydoc.transact(() => {
     metaMap.set('docx', docx);
