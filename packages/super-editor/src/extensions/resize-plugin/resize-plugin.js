@@ -1,331 +1,313 @@
-import { Plugin, PluginKey } from "prosemirror-state";
-import { Decoration, DecorationSet } from "prosemirror-view";
+import { Plugin, PluginKey } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
 import { Extension } from '@core/Extension.js';
 
 /**
  * Plugin key for the resize plugin
  */
-export const ResizePluginKey = new PluginKey("resize-nodes");
+export const ResizePluginKey = new PluginKey('resize-nodes');
 
-const resize = (nodeNames = ["image"]) => {
-	// Track the resize state
-	let resizeState = {
-		dragging: false,
-		startX: 0,
-		startY: 0,
-		startWidth: 0,
-		startHeight: 0,
-		handle: null,
-		pos: null,
-		resizableElement: null,
-		aspectRatio: 1,
-	};
+const resize = (nodeNames = ['image']) => {
+  // Track the resize state
+  let resizeState = {
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    startWidth: 0,
+    startHeight: 0,
+    handle: null,
+    pos: null,
+    resizableElement: null,
+    aspectRatio: 1,
+  };
 
-	// Store references to resize handles container and editor view
-	let resizeContainer = null;
-	let editorView = null;
-	let globalClickHandler = null;
-	let globalMousedownHandler = null;
+  // Store references to resize handles container and editor view
+  let resizeContainer = null;
+  let editorView = null;
+  let globalClickHandler = null;
+  let globalMousedownHandler = null;
 
-	return new Plugin({
-		key: ResizePluginKey,
+  return new Plugin({
+    key: ResizePluginKey,
 
-		state: {
-			init() {
-				return DecorationSet.empty;
-			},
+    state: {
+      init() {
+        return DecorationSet.empty;
+      },
 
-			apply(tr, oldState, _, newState) {
-				// Skip if the transaction is from this plugin
-				if (tr.getMeta(ResizePluginKey)) {
-					return oldState;
-				}
+      apply(tr, oldState, _, newState) {
+        // Skip if the transaction is from this plugin
+        if (tr.getMeta(ResizePluginKey)) {
+          return oldState;
+        }
 
-				const decorations = [];
-				const { selection } = newState;
+        const decorations = [];
+        const { selection } = newState;
 
-				// Only create decoration if one of the resizable nodes is selected
-				if (nodeNames.includes(selection.node?.type.name)) {
-					decorations.push(
-						Decoration.node(selection.from, selection.to, {
-							nodeName: "span",
-							class: "resizable-wrapper",
-							"data-pos": selection.from,
-						}),
-					);
-				}
+        // Only create decoration if one of the resizable nodes is selected
+        if (nodeNames.includes(selection.node?.type.name)) {
+          decorations.push(
+            Decoration.node(selection.from, selection.to, {
+              nodeName: 'span',
+              class: 'resizable-wrapper',
+              'data-pos': selection.from,
+            }),
+          );
+        }
 
-				return DecorationSet.create(newState.doc, decorations);
-			},
-		},
+        return DecorationSet.create(newState.doc, decorations);
+      },
+    },
 
-		props: {
-			decorations(state) {
-				return this.getState(state);
-			},
-		},
+    props: {
+      decorations(state) {
+        return this.getState(state);
+      },
+    },
 
-		view(view) {
-			editorView = view;
+    view(view) {
+      editorView = view;
 
-			// Add global click handler
-			globalClickHandler = (event) => {
-				if (
-					!event.target.closest(".resizable-wrapper") &&
-					!event.target.closest(".resize-container")
-				) {
-					hideResizeHandles();
-				}
-			};
+      // Add global click handler
+      globalClickHandler = (event) => {
+        if (!event.target.closest('.resizable-wrapper') && !event.target.closest('.resize-container')) {
+          hideResizeHandles();
+        }
+      };
 
-			document.addEventListener("click", globalClickHandler);
+      document.addEventListener('click', globalClickHandler);
 
-			// Add global mousedown handler
-			globalMousedownHandler = (event) => {
-				if (event.target.closest(".resize-handle")) {
-					event.preventDefault();
-					event.stopPropagation();
-					startResize(editorView, event, event.target);
-					return true;
-				}
-			};
+      // Add global mousedown handler
+      globalMousedownHandler = (event) => {
+        if (event.target.closest('.resize-handle')) {
+          event.preventDefault();
+          event.stopPropagation();
+          startResize(editorView, event, event.target);
+          return true;
+        }
+      };
 
-			document.addEventListener("mousedown", globalMousedownHandler);
+      document.addEventListener('mousedown', globalMousedownHandler);
 
-			return {
-				update(view, prevState) {
-					// Show/hide resize handles based on selection changes
-					const { selection } = view.state;
-					const prevSelection = prevState.selection;
+      return {
+        update(view, prevState) {
+          // Show/hide resize handles based on selection changes
+          const { selection } = view.state;
+          const prevSelection = prevState.selection;
 
-					if (
-						selection.from !== prevSelection.from ||
-						selection.to !== prevSelection.to
-					) {
-						setTimeout(() => {
-							const selectedResizableWrapper = document.querySelector(
-								".resizable-wrapper",
-							);
-							if (selectedResizableWrapper) {
-							  showResizeHandles(view, selectedResizableWrapper);
-							} else {
-								hideResizeHandles();
-							}
-						}, 10);
-					}
-				},
+          if (selection.from !== prevSelection.from || selection.to !== prevSelection.to) {
+            setTimeout(() => {
+              const selectedResizableWrapper = document.querySelector('.resizable-wrapper');
+              if (selectedResizableWrapper) {
+                showResizeHandles(view, selectedResizableWrapper);
+              } else {
+                hideResizeHandles();
+              }
+            }, 10);
+          }
+        },
 
-				destroy() {
-					hideResizeHandles();
-					cleanupEventListeners();
-					if (globalClickHandler) {
-						document.removeEventListener("click", globalClickHandler);
-						globalClickHandler = null;
-					}
-					if (globalMousedownHandler) {
-						document.removeEventListener("mousedown", globalMousedownHandler);
-						globalMousedownHandler = null;
-					}
-					editorView = null;
-				},
-			};
-		},
-	});
+        destroy() {
+          hideResizeHandles();
+          cleanupEventListeners();
+          if (globalClickHandler) {
+            document.removeEventListener('click', globalClickHandler);
+            globalClickHandler = null;
+          }
+          if (globalMousedownHandler) {
+            document.removeEventListener('mousedown', globalMousedownHandler);
+            globalMousedownHandler = null;
+          }
+          editorView = null;
+        },
+      };
+    },
+  });
 
-	function showResizeHandles(view, wrapper) {
-		hideResizeHandles();
+  function showResizeHandles(view, wrapper) {
+    hideResizeHandles();
 
-		const pos = Number.parseInt(
-			wrapper.getAttribute("data-pos"),
-			10,
-		);
+    const pos = Number.parseInt(wrapper.getAttribute('data-pos'), 10);
 
-		const node = view.state.doc.nodeAt(pos);
-		if (!nodeNames.includes(node?.type.name)) return;
+    const node = view.state.doc.nodeAt(pos);
+    if (!nodeNames.includes(node?.type.name)) return;
 
-		// Create resize container
-		resizeContainer = document.createElement("div");
-		resizeContainer.className = "resize-container";
-		resizeContainer.style.position = "absolute";
-		resizeContainer.style.pointerEvents = "none";
-		resizeContainer.style.zIndex = "1000";
+    // Create resize container
+    resizeContainer = document.createElement('div');
+    resizeContainer.className = 'resize-container';
+    resizeContainer.style.position = 'absolute';
+    resizeContainer.style.pointerEvents = 'none';
+    resizeContainer.style.zIndex = '1000';
 
-		// Create handles
-		const handles = ["nw", "ne", "sw", "se"];
-		for (const handle of handles) {
-			const handleEl = document.createElement("div");
-			handleEl.className = `resize-handle resize-handle-${handle}`;
-			handleEl.setAttribute("data-handle", handle);
-			handleEl.setAttribute("data-pos", pos);
-			handleEl.style.pointerEvents = "auto";
-			resizeContainer.appendChild(handleEl);
-		}
+    // Create handles
+    const handles = ['nw', 'ne', 'sw', 'se'];
+    for (const handle of handles) {
+      const handleEl = document.createElement('div');
+      handleEl.className = `resize-handle resize-handle-${handle}`;
+      handleEl.setAttribute('data-handle', handle);
+      handleEl.setAttribute('data-pos', pos);
+      handleEl.style.pointerEvents = 'auto';
+      resizeContainer.appendChild(handleEl);
+    }
 
-		// Position the container relative to the resizable element
-		document.body.appendChild(resizeContainer);
-		updateHandlePositions(wrapper.firstElementChild);
-	}
+    // Position the container relative to the resizable element
+    document.body.appendChild(resizeContainer);
+    updateHandlePositions(wrapper.firstElementChild);
+  }
 
-	function hideResizeHandles() {
-		if (resizeContainer?.parentNode) {
-			resizeContainer.parentNode.removeChild(resizeContainer);
-			resizeContainer = null;
-		}
-	}
+  function hideResizeHandles() {
+    if (resizeContainer?.parentNode) {
+      resizeContainer.parentNode.removeChild(resizeContainer);
+      resizeContainer = null;
+    }
+  }
 
-	function updateHandlePositions(resizableElement) {
-		if (!resizeContainer || !resizableElement) return;
+  function updateHandlePositions(resizableElement) {
+    if (!resizeContainer || !resizableElement) return;
 
-		const rect = resizableElement.getBoundingClientRect();
-		const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-		const scrollLeft =
-			window.pageXOffset || document.documentElement.scrollLeft;
+    const rect = resizableElement.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
-		resizeContainer.style.left = `${rect.left + scrollLeft}px`;
-		resizeContainer.style.top = `${rect.top + scrollTop}px`;
-		resizeContainer.style.width = `${rect.width}px`;
-		resizeContainer.style.height = `${rect.height}px`;
-	}
+    resizeContainer.style.left = `${rect.left + scrollLeft}px`;
+    resizeContainer.style.top = `${rect.top + scrollTop}px`;
+    resizeContainer.style.width = `${rect.width}px`;
+    resizeContainer.style.height = `${rect.height}px`;
+  }
 
-	function startResize(view, event, handleElement) {
-		const handle = handleElement.getAttribute("data-handle");
-		const pos = Number.parseInt(
-			handleElement.getAttribute("data-pos"),
-			10,
-		);
-		const node = view.state.doc.nodeAt(pos);
+  function startResize(view, event, handleElement) {
+    const handle = handleElement.getAttribute('data-handle');
+    const pos = Number.parseInt(handleElement.getAttribute('data-pos'), 10);
+    const node = view.state.doc.nodeAt(pos);
 
-		if (!nodeNames.includes(node?.type.name)) return;
+    if (!nodeNames.includes(node?.type.name)) return;
 
-		const resizableElement = view.nodeDOM(pos);
+    const resizableElement = view.nodeDOM(pos);
 
-		if (!resizableElement) return;
+    if (!resizableElement) return;
 
-		const rect = resizableElement.getBoundingClientRect();
+    const rect = resizableElement.getBoundingClientRect();
 
-		resizeState = {
-			dragging: true,
-			startX: event.clientX,
-			startY: event.clientY,
-			startWidth: rect.width,
-			startHeight: rect.height,
-			handle,
-			pos,
-			resizableElement,
-			aspectRatio: rect.width / rect.height,
-		};
+    resizeState = {
+      dragging: true,
+      startX: event.clientX,
+      startY: event.clientY,
+      startWidth: rect.width,
+      startHeight: rect.height,
+      handle,
+      pos,
+      resizableElement,
+      aspectRatio: rect.width / rect.height,
+    };
 
-		document.addEventListener("mousemove", handleMouseMove);
-		document.addEventListener("mouseup", handleMouseUp);
-		document.body.style.cursor = getResizeCursor(handle);
-		document.body.style.userSelect = "none";
-	}
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = getResizeCursor(handle);
+    document.body.style.userSelect = 'none';
+  }
 
-	function handleMouseMove(event) {
-		if (!resizeState.dragging) return;
+  function handleMouseMove(event) {
+    if (!resizeState.dragging) return;
 
-		event.preventDefault();
-		event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
 
-		let deltaX = event.clientX - resizeState.startX;
-		let deltaY = event.clientY - resizeState.startY;
+    let deltaX = event.clientX - resizeState.startX;
+    let deltaY = event.clientY - resizeState.startY;
 
-		// Adjust delta based on handle position
-		if (resizeState.handle.includes("w")) deltaX = -deltaX;
-		if (resizeState.handle.includes("n")) deltaY = -deltaY;
+    // Adjust delta based on handle position
+    if (resizeState.handle.includes('w')) deltaX = -deltaX;
+    if (resizeState.handle.includes('n')) deltaY = -deltaY;
 
-		// Calculate new dimensions maintaining aspect ratio
-		const newWidth = Math.max(20, resizeState.startWidth + deltaX);
+    // Calculate new dimensions maintaining aspect ratio
+    const newWidth = Math.max(20, resizeState.startWidth + deltaX);
 
-		// Apply the new size immediately for visual feedback
-		if (resizeState.resizableElement) {
-			resizeState.resizableElement.style.width = `${newWidth}px`;
-			resizeState.resizableElement.style.height = "auto";
+    // Apply the new size immediately for visual feedback
+    if (resizeState.resizableElement) {
+      resizeState.resizableElement.style.width = `${newWidth}px`;
+      resizeState.resizableElement.style.height = 'auto';
 
-			// Update handle positions
-			updateHandlePositions(resizeState.resizableElement);
-		}
-	}
+      // Update handle positions
+      updateHandlePositions(resizeState.resizableElement);
+    }
+  }
 
-	function handleMouseUp(event) {
-		if (!resizeState.dragging) return;
+  function handleMouseUp(event) {
+    if (!resizeState.dragging) return;
 
-		cleanupEventListeners();
+    cleanupEventListeners();
 
-		let deltaX = event.clientX - resizeState.startX;
-		let deltaY = event.clientY - resizeState.startY;
+    let deltaX = event.clientX - resizeState.startX;
+    let deltaY = event.clientY - resizeState.startY;
 
-		// Adjust delta based on handle position
-		if (resizeState.handle.includes("w")) deltaX = -deltaX;
-		if (resizeState.handle.includes("n")) deltaY = -deltaY;
+    // Adjust delta based on handle position
+    if (resizeState.handle.includes('w')) deltaX = -deltaX;
+    if (resizeState.handle.includes('n')) deltaY = -deltaY;
 
-		// Calculate final dimensions
-		const newWidth = Math.max(20, resizeState.startWidth + deltaX);
-		const newHeight = newWidth / resizeState.aspectRatio;
+    // Calculate final dimensions
+    const newWidth = Math.max(20, resizeState.startWidth + deltaX);
+    const newHeight = newWidth / resizeState.aspectRatio;
 
-		// Update the document
-		if (
-			editorView &&
-			resizeState.pos < editorView.state.doc.content.size
-		) {
-			const tr = editorView.state.tr;
-			const node = tr.doc.nodeAt(resizeState.pos);
+    // Update the document
+    if (editorView && resizeState.pos < editorView.state.doc.content.size) {
+      const tr = editorView.state.tr;
+      const node = tr.doc.nodeAt(resizeState.pos);
 
-			if (nodeNames.includes(node?.type.name)) {
-				const attrs = {
-					...node.attrs,
-					size: {
-						...node.attrs.size,
-						width: Math.round(newWidth),
-						height: Math.round(newHeight),
-					},
-				};
+      if (nodeNames.includes(node?.type.name)) {
+        const attrs = {
+          ...node.attrs,
+          size: {
+            ...node.attrs.size,
+            width: Math.round(newWidth),
+            height: Math.round(newHeight),
+          },
+        };
 
-				tr.setNodeMarkup(resizeState.pos, null, attrs);
-				tr.setMeta(ResizePluginKey, { action: "resize" });
-				editorView.dispatch(tr);
-			}
-		}
+        tr.setNodeMarkup(resizeState.pos, null, attrs);
+        tr.setMeta(ResizePluginKey, { action: 'resize' });
+        editorView.dispatch(tr);
+      }
+    }
 
-		// Reset resize state
-		resizeState = {
-			dragging: false,
-			startX: 0,
-			startY: 0,
-			startWidth: 0,
-			startHeight: 0,
-			handle: null,
-			pos: null,
-			resizableElement: null,
-			aspectRatio: 1,
-		};
-	}
+    // Reset resize state
+    resizeState = {
+      dragging: false,
+      startX: 0,
+      startY: 0,
+      startWidth: 0,
+      startHeight: 0,
+      handle: null,
+      pos: null,
+      resizableElement: null,
+      aspectRatio: 1,
+    };
+  }
 
-	function cleanupEventListeners() {
-		document.removeEventListener("mousemove", handleMouseMove);
-		document.removeEventListener("mouseup", handleMouseUp);
-		document.body.style.cursor = "";
-		document.body.style.userSelect = "";
-	}
+  function cleanupEventListeners() {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
 
-	function getResizeCursor(handle) {
-		switch (handle) {
-			case "nw":
-			case "se":
-				return "nwse-resize";
-			case "ne":
-			case "sw":
-				return "nesw-resize";
-			default:
-				return "default";
-		}
-	}
+  function getResizeCursor(handle) {
+    switch (handle) {
+      case 'nw':
+      case 'se':
+        return 'nwse-resize';
+      case 'ne':
+      case 'sw':
+        return 'nesw-resize';
+      default:
+        return 'default';
+    }
+  }
 };
 
 export const ResizePlugin = Extension.create({
   name: 'resizePlugin',
 
   addPmPlugins() {
-    return [resize(["image"])]
-  }
+    return [resize(['image'])];
+  },
 });
