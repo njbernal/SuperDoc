@@ -150,6 +150,11 @@ const exportDocx = async (commentsType) => {
   await superdoc.value.export({ commentsType });
 };
 
+const exportDocxBlob = async () => {
+  const blob = await superdoc.value.export({ commentsType: 'external', triggerDownload: false });
+  console.debug(blob);
+};
+
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
 
@@ -202,6 +207,7 @@ onMounted(async () => {
           <button class="dev-app__header-export-btn" @click="exportDocx()">Export Docx</button>
           <button class="dev-app__header-export-btn" @click="exportDocx('clean')">Export clean Docx</button>
           <button class="dev-app__header-export-btn" @click="exportDocx('external')">Export external Docx</button>
+          <button class="dev-app__header-export-btn" @click="exportDocxBlob()">Export Docx Blob</button>
           <button class="dev-app__header-export-btn" @click="toggleCommentsPanel">Toggle comments panel</button>
         </div>
       </div>
