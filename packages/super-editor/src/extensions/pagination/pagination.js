@@ -493,6 +493,11 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
   const availableHeight = headerHeight - headerMargin;
   const editorContainer = document.createElement('div');
 
+  if (!headerId && !editor.converter.headerIds['default']) {
+    headerId = 'rId6';
+    editor.converter.headerIds['default'] = headerId;
+  }
+
   if (!editor.converter.headers[headerId]) {
     editor.converter.headers[headerId] = {
       type: 'doc',
@@ -501,25 +506,26 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
   };
 
   const data = editor.converter.headers[headerId];
+  const editorSection = createHeaderFooterEditor({ 
+    editor, 
+    data, 
+    editorContainer, 
+    appendToBody: false,
+    sectionId: headerId,
+    type: 'header',
+    availableHeight,
+  });
+  editorSection.setEditable(false, false);
 
-  let editorSection;
-  if (data) {
-    editorSection = createHeaderFooterEditor({ 
-      editor, 
-      data, 
-      editorContainer, 
-      appendToBody: false,
-      sectionId: headerId,
-      type: 'header',
-      availableHeight,
-    });
-    editorSection.setEditable(false, false);
+  const hasEditorInConverter = editor.converter.headerEditors.find((headerEditor) => headerEditor.id === headerId);
+  if (!hasEditorInConverter) {
     editor.converter.headerEditors.push({
       id: headerId,
       editor: editorSection,
     });
-    broadcastEditorEvents(editor, editorSection);
-  }
+  };
+
+  broadcastEditorEvents(editor, editorSection);
   editorContainer.className = 'pagination-section-header';
   editorContainer.style.paddingTop = headerMargin + 'px';
   editorContainer.style.paddingLeft = pageMargins.left * 96 + 'px';
@@ -554,38 +560,56 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   const minFooterHeight = pageMargins.bottom * 96; // pageMargins are in inches
   const footerPaddingFromEdge = pageMargins.footer * 96;
   const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight - footerPaddingFromEdge);
-  
-  
-  // const sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
-  // const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
-  // if (autoPageNumber) {
-  //   const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
-  //     autoPageNumber.nextElementSibling?.style?.fontSize;
-  //   if (fontSize) autoPageNumber.style.fontSize = fontSize;
-  //   autoPageNumber.innerText = currentPageNumber;
-  // }
-  
-  const editorContainer = document.createElement('div');
-  const data = editor.converter.footers[footerId];
 
-  let editorSection;
-  if (data) {
-    editorSection = createHeaderFooterEditor({ 
-      editor, 
-      data, 
-      editorContainer, 
-      appendToBody: false,
-      sectionId: footerId,
-      type: 'footer',
-      availableHeight: footerHeight,
-    });
+  const sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
+  const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
+  if (autoPageNumber) {
+    const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
+      autoPageNumber.nextElementSibling?.style?.fontSize;
+    if (fontSize) autoPageNumber.style.fontSize = fontSize;
+    autoPageNumber.innerText = currentPageNumber;
+  }
+
+  const editorContainer = document.createElement('div');
+
+  if (!footerId && !editor.converter.footerIds['default']) {
+    footerId = 'rId7';
+    editor.converter.footerIds['default'] = footerId;
+  }
+
+  if (!editor.converter.footers[footerId]) {
+    editor.converter.footers[footerId] = {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [] }]
+    }
+  };
+
+  const data = editor.converter.footers[footerId];
+  const editorSection = createHeaderFooterEditor({ 
+    editor, 
+    data, 
+    editorContainer, 
+    appendToBody: false,
+    sectionId: footerId,
+    type: 'footer',
+    availableHeight: footerHeight,
+  });
+  editor.converter.footerEditors.push({
+    id: footerId,
+    editor: editorSection,
+  });
+  editorSection.setEditable(false, false);
+
+  const hasEditorInConverter = editor.converter.footerEditors.find((footerEditor) => footerEditor.id === footerId);
+  if (!hasEditorInConverter) {
     editor.converter.footerEditors.push({
       id: footerId,
       editor: editorSection,
     });
-    editorSection.setEditable(false, false);
-    broadcastEditorEvents(editor, editorSection);
-  }
+  };
+
+  broadcastEditorEvents(editor, editorSection);
+
   editorContainer.className = 'pagination-section-footer';
   editorContainer.style.height = footerHeight + 'px';
   editorContainer.style.marginBottom = footerPaddingFromEdge + 'px';

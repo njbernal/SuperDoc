@@ -111,9 +111,16 @@ export function exportSchemaToJson(params) {
  * @returns {XmlReadyNode} JSON of the XML-ready body node
  */
 function translateBodyNode(params) {
-  const sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
+  let sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
 
   if (params.converter) {
+    const hasHeader = sectPr.elements.some((n) => n.name === 'w:headerReference');
+    const hasDefaultHeader = params.converter.headerIds?.default;
+    if (!hasHeader && hasDefaultHeader && !params.editor.options.isHeaderOrFooter) {
+      const defaultHeader = generateDefaultHeader();
+      sectPr.elements.push(defaultHeader);
+    }
+
     const newMargins = params.converter.pageStyles.pageMargins;
     const sectPrMargins = sectPr.elements.find((n) => n.name === 'w:pgMar');
     const { attributes } = sectPrMargins;
@@ -136,6 +143,17 @@ function translateBodyNode(params) {
   return {
     name: 'w:body',
     elements: [...elements, sectPr],
+  };
+}
+
+const generateDefaultHeader = () => {
+  return {
+    "type": "element",
+    "name": "w:headerReference",
+    "attributes": {
+        "w:type": "default",
+        "r:id": "rId6"
+    }
   };
 }
 
