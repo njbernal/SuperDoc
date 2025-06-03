@@ -5,7 +5,7 @@ import { Extension } from '@core/Extension.js';
 /**
  * Plugin key for the resize plugin
  */
-export const ResizePluginKey = new PluginKey('node-resizer');
+export const NodeResizerKey = new PluginKey('node-resizer');
 
 const nodeResizer = (nodeNames = ['image']) => {
   // Track the resize state
@@ -28,7 +28,7 @@ const nodeResizer = (nodeNames = ['image']) => {
   let globalMousedownHandler = null;
 
   return new Plugin({
-    key: ResizePluginKey,
+    key: NodeResizerKey,
 
     state: {
       init() {
@@ -37,7 +37,7 @@ const nodeResizer = (nodeNames = ['image']) => {
 
       apply(tr, oldState, _, newState) {
         // Skip if the transaction is from this plugin
-        if (tr.getMeta(ResizePluginKey)) {
+        if (tr.getMeta(NodeResizerKey)) {
           return oldState;
         }
 
@@ -267,7 +267,7 @@ const nodeResizer = (nodeNames = ['image']) => {
         };
 
         tr.setNodeMarkup(resizeState.pos, null, attrs);
-        tr.setMeta(ResizePluginKey, { action: 'resize' });
+        tr.setMeta(NodeResizerKey, { action: 'resize' });
         editorView.dispatch(tr);
       }
     }
