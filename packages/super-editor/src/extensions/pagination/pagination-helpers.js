@@ -135,7 +135,6 @@ export const createHeaderFooterEditor = ({
   const pm = editorContainer.querySelector('.ProseMirror');
   pm.style.maxHeight = '100%';
   pm.style.minHeight = '100%';
-  pm.style.overflow = 'auto';
   pm.style.outline = 'none';
   pm.style.border = 'none';
 
