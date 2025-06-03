@@ -94,6 +94,7 @@ const init = async () => {
         // hideButtons: false,
         // responsiveToContainer: true,
         excludeItems: [], // ['italic', 'bold'],
+        // texts: {},
       },
       // 'hrbr-fields': {},
 
