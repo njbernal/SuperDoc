@@ -16,7 +16,7 @@ export default function SuperDocEditor() {
 
   const initSuperDoc = async (fileToLoad = null) => {
     const { SuperDoc } = await import('@harbour-enterprises/superdoc');
-    superdoc.current = new SuperDoc({
+    const config = {
       selector: superdocContainerRef.current,
       modules: { 
         toolbar: { 
@@ -24,14 +24,18 @@ export default function SuperDocEditor() {
           toolbarGroups: ['center'], 
         },
       },
-      document: fileToLoad ? { data: fileToLoad } : '/sample-document.docx',
       pagination: true,
       rulers: true,
       onReady,
       onEditorCreate: (event) => {
         console.log('Editor is created', event);
       },
-    });
+    }
+
+    if (fileToLoad) config.document = { data: fileToLoad };
+    // config.document = '/sample-document.docx'; // or load with file path
+
+    superdoc.current = new SuperDoc(config);
   };
 
   useEffect(() => {
