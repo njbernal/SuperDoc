@@ -127,6 +127,7 @@ export const createHeaderFooterEditor = ({
     mediaFiles: editor.options.mediaFiles,
     fonts: editor.options.fonts,
     isHeaderOrFooter: true,
+    annotations: true,
     onCreate: (evt) => setEditorToolbar(evt, editor),
     onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
   });
