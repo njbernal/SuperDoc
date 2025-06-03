@@ -1616,7 +1616,7 @@ export class Editor extends EventEmitter {
   prepareForAnnotations(annotationValues = []) {
     const { tr } = this.state;
     const { dispatch } = this.view;
-    const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
+    const newTr = AnnotatorServices.processTables({ state: this.state, tr, annotationValues });
     this.view.dispatch(newTr);
   
     AnnotatorServices.annotateHeadersAndFooters({ editor: this, annotationValues });
