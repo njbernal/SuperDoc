@@ -84,7 +84,9 @@ const getImagePositionDecorations = (state, view) => {
         }
       }
 
-      decorations.push(Decoration.node(pos, pos + node.nodeSize, { style, class: className }));
+      decorations.push(
+        Decoration.inline(pos, pos + node.nodeSize, { style, class: className }),
+      );
     }
   });
   return decorations;
