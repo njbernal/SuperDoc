@@ -111,9 +111,23 @@ export function exportSchemaToJson(params) {
  * @returns {XmlReadyNode} JSON of the XML-ready body node
  */
 function translateBodyNode(params) {
-  const sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
+  let sectPr = params.bodyNode?.elements.find((n) => n.name === 'w:sectPr') || {};
 
   if (params.converter) {
+    const hasHeader = sectPr.elements.some((n) => n.name === 'w:headerReference');
+    const hasDefaultHeader = params.converter.headerIds?.default;
+    if (!hasHeader && hasDefaultHeader && !params.editor.options.isHeaderOrFooter) {
+      const defaultHeader = generateDefaultHeaderFooter('header', params.converter.headerIds?.default);
+      sectPr.elements.push(defaultHeader);
+    }
+    
+    const hasFooter = sectPr.elements.some((n) => n.name === 'w:footerReference');
+    const hasDefaultFooter = params.converter.footerIds?.default;
+    if (!hasFooter && hasDefaultFooter && !params.editor.options.isHeaderOrFooter) {
+      const defaultFooter = generateDefaultHeaderFooter('footer', params.converter.footerIds?.default);
+      sectPr.elements.push(defaultFooter);
+    }
+
     const newMargins = params.converter.pageStyles.pageMargins;
     const sectPrMargins = sectPr.elements.find((n) => n.name === 'w:pgMar');
     const { attributes } = sectPrMargins;
@@ -136,6 +150,17 @@ function translateBodyNode(params) {
   return {
     name: 'w:body',
     elements: [...elements, sectPr],
+  };
+}
+
+const generateDefaultHeaderFooter = (type, id) => {
+  return {
+    "type": "element",
+    "name": `w:${type}Reference`,
+    "attributes": {
+        "w:type": "default",
+        "r:id": id
+    }
   };
 }
 

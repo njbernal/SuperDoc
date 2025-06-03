@@ -5,13 +5,13 @@ import { DocxExporter, exportSchemaToJson } from './exporter';
 import { createDocumentJson, addDefaultStylesIfMissing } from './v2/importer/docxImporter.js';
 import { deobfuscateFont, getArrayBufferFromUrl } from './helpers.js';
 import { baseNumbering } from './v2/exporter/helpers/base-list.definitions.js';
-import { DEFAULT_CUSTOM_XML, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
+import { DEFAULT_CUSTOM_XML, DEFAULT_DOCX_DEFS, SETTINGS_CUSTOM_XML } from './exporter-docx-defs.js';
 import {
   getCommentDefinition,
   prepareCommentParaIds,
   prepareCommentsXmlFilesForExport,
 } from './v2/exporter/commentsExporter.js';
-import { HYPERLINK_RELATIONSHIP_TYPE } from './constants.js';
+import { FOOTER_RELATIONSHIP_TYPE, HEADER_RELATIONSHIP_TYPE, HYPERLINK_RELATIONSHIP_TYPE } from './constants.js';
 
 class SuperConverter {
   static allowedElements = Object.freeze({
@@ -420,11 +420,11 @@ class SuperConverter {
     }
 
     this.convertedXml = { ...this.convertedXml, ...updatedXml };
+
+    const headFootRels = this.#exportProcessHeadersFooters({ isFinalDoc });
     
     // Update the rels table
-    this.#exportProcessNewRelationships([...params.relationships, ...commentsRels]);
-
-    this.#exportProcessHeadersFooters({ isFinalDoc });
+    this.#exportProcessNewRelationships([...params.relationships, ...commentsRels, ...headFootRels]);
 
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
@@ -502,9 +502,10 @@ class SuperConverter {
   #exportProcessHeadersFooters({ isFinalDoc = false }) {
     const relsData = this.convertedXml['word/_rels/document.xml.rels'];
     const relationships = relsData.elements.find((x) => x.name === 'Relationships');
+    const newDocRels = [];
     
-    Object.entries(this.headers).forEach(([id, header]) => {
-      const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target;
+    Object.entries(this.headers).forEach(([id, header], index) => {
+      const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target || `header${index + 1}.xml`;
       const headerEditor = this.headerEditors.find((item) => item.id === id);
 
       if (!headerEditor) return;
@@ -521,7 +522,29 @@ class SuperConverter {
 
       const bodyContent = result.elements[0].elements;
       const file = this.convertedXml[`word/${fileName}`];
-      file.elements[0].elements = bodyContent;
+      
+      if (!file) {
+        this.convertedXml[`word/${fileName}`] = {
+          declaration: this.initialJSON?.declaration,
+          elements: [{
+            attributes: DEFAULT_DOCX_DEFS,
+            name: 'w:hdr',
+            type: 'element',
+            elements: []
+          }]
+        };
+        newDocRels.push({
+          type: 'element',
+          name: 'Relationship',
+          attributes: {
+            Id: id,
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
+            Target: fileName,
+          },
+        });
+      }
+      
+      this.convertedXml[`word/${fileName}`].elements[0].elements = bodyContent;
 
       if (params.relationships.length) {
         const relationships = this.convertedXml[`word/_rels/${fileName}.rels`]?.elements?.find((x) => x.name === 'Relationships')?.elements || [];
@@ -541,8 +564,8 @@ class SuperConverter {
       }
     });
 
-    Object.entries(this.footers).forEach(([id, footer]) => {
-      const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target;
+    Object.entries(this.footers).forEach(([id, footer], index) => {
+      const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target || `footer${index + 1}.xml`;
       const footerEditor = this.footerEditors.find((item) => item.id === id);
       
       if (!footerEditor) return;
@@ -559,7 +582,29 @@ class SuperConverter {
       
       const bodyContent = result.elements[0].elements;
       const file = this.convertedXml[`word/${fileName}`];
-      file.elements[0].elements = bodyContent;
+      
+      if (!file) {
+        this.convertedXml[`word/${fileName}`] = {
+          declaration: this.initialJSON?.declaration,
+          elements: [{
+            attributes: DEFAULT_DOCX_DEFS,
+            name: 'w:ftr',
+            type: 'element',
+            elements: []
+          }]
+        };
+        newDocRels.push({
+          type: 'element',
+          name: 'Relationship',
+          attributes: {
+            Id: id,
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
+            Target: fileName,
+          },
+        });
+      }
+      
+      this.convertedXml[`word/${fileName}`].elements[0].elements = bodyContent;
 
       if (params.relationships.length) {
         const relationships = this.convertedXml[`word/_rels/${fileName}.rels`]?.elements?.find((x) => x.name === 'Relationships')?.elements || [];
@@ -578,6 +623,8 @@ class SuperConverter {
         };
       }
     });
+    
+    return newDocRels;
   }
 
   #exportProcessNewRelationships(rels = []) {
@@ -593,8 +640,9 @@ class SuperConverter {
       const existingTarget = relationships.elements.find((el) => el.attributes.Target === rel.attributes.Target);
       const isNewMedia = rel.attributes.Target?.startsWith('media/') && existingId.length > 6;
       const isNewHyperlink = rel.attributes.Type === HYPERLINK_RELATIONSHIP_TYPE && existingId.length > 6;
-
-      if (existingTarget && !isNewMedia && !isNewHyperlink) {
+      const isNewHeadFoot = rel.attributes.Type === (HEADER_RELATIONSHIP_TYPE || rel.attributes.Type === FOOTER_RELATIONSHIP_TYPE) && existingId.length > 6;
+      
+      if (existingTarget && !isNewMedia && !isNewHyperlink && !isNewHeadFoot) {
         return;
       }
       
