@@ -424,7 +424,7 @@ class SuperConverter {
     // Update the rels table
     this.#exportProcessNewRelationships([...params.relationships, ...commentsRels]);
 
-    this.#exportProcessHeadersFooters();
+    this.#exportProcessHeadersFooters({ isFinalDoc });
 
     // Store the SuperDoc version
     storeSuperdocVersion(this.convertedXml);
@@ -499,14 +499,14 @@ class SuperConverter {
     return { documentXml, relationships };
   }
 
-  #exportProcessHeadersFooters() {
+  #exportProcessHeadersFooters({ isFinalDoc = false }) {
     const relsData = this.convertedXml['word/_rels/document.xml.rels'];
     const relationships = relsData.elements.find((x) => x.name === 'Relationships');
     
     Object.entries(this.headers).forEach(([id, header]) => {
       const fileName = relationships.elements.find((el) => el.attributes.Id === id)?.attributes.Target;
       const headerEditor = this.headerEditors.find((item) => item.id === id);
-      
+
       if (!headerEditor) return;
 
       const { result, params } = this.exportToXmlJson({ 
@@ -516,8 +516,9 @@ class SuperConverter {
         comments: [],
         commentDefinitions: [],
         isHeaderFooter: true,
+        isFinalDoc,
       });
-      
+
       const bodyContent = result.elements[0].elements;
       const file = this.convertedXml[`word/${fileName}`];
       file.elements[0].elements = bodyContent;
@@ -553,6 +554,7 @@ class SuperConverter {
         comments: [],
         commentDefinitions: [],
         isHeaderFooter: true,
+        isFinalDoc,
       });
       
       const bodyContent = result.elements[0].elements;

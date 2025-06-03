@@ -1,5 +1,6 @@
 import { Fragment } from 'prosemirror-model';
 import { fieldAnnotationHelpers } from '@extensions/index.js';
+import { createHeaderFooterEditor, onHeaderFooterDataUpdate } from '@extensions/pagination/pagination-helpers.js';
 
 /**
  * Get the field attributes based on the field type and value
@@ -160,12 +161,62 @@ const getAnnotationValue = (id, annotationValues) => {
   return annotationValues.find((value) => value.input_id === id)?.input_value || null;
 };
 
+/**
+ * Annotate headers and footers in the document
+ * 
+ * @param {Object} param0 
+ * @param {Object} param0.editor The editor instance
+ * @param {Array} param0.annotationValues The annotation values to apply
+ * @param {Array} param0.hiddenFieldIds List of field IDs to hide
+ * @returns {void}
+ */
+const annotateHeadersAndFooters = ({ editor, annotationValues = [], hiddenFieldIds = [] }) => {
+  const sections = {
+    header: editor.converter.headers || {},
+    footer: editor.converter.footers || {},
+  };
+
+  Object.entries(sections).forEach(([type, items]) => {
+    const editorsKey = `${type}Editors`;
+    Object.entries(items).forEach(([sectionId, data]) => {
+      // Try to find an existing editor instance for this section
+      let sectionEditor = editor.converter[editorsKey][sectionId];
+      if (!sectionEditor) {
+        sectionEditor = {
+          id: sectionId,
+          editor: createHeaderFooterEditor({
+            editor,
+            data,
+            editorContainer: document.createElement('div'),
+            appendToBody: false,
+            sectionId,
+            type,
+          }),
+        };
+        editor.converter[editorsKey].push(sectionEditor);
+      }
+
+      sectionEditor.editor.annotate(annotationValues, hiddenFieldIds);
+      onHeaderFooterDataUpdate(
+        { editor: sectionEditor.editor },
+        editor,
+        sectionId,
+        type
+      );
+    });
+  });
+};
+
 export const annotateDocument = ({
   annotationValues = [],
   hiddenFieldIds = [],
   schema,
   tr,
+  editor,
 }) => {
+
+  // Annotate headers and footers first
+  annotateHeadersAndFooters({ editor, annotationValues, hiddenFieldIds });
 
   const annotations = [];
   const FieldType = schema.nodes.fieldAnnotation;
@@ -274,4 +325,5 @@ export const AnnotatorServices = {
   getFieldAttrs,
   processTables,
   annotateDocument,
+  annotateHeadersAndFooters,
 };

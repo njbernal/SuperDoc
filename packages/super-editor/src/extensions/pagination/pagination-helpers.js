@@ -177,7 +177,7 @@ export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditM
   }
 };
 
-const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sectionId, type) => {
+export const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sectionId, type) => {
   if (!type || !sectionId) return;
   
   const updatedData = editor.getUpdatedJson();
@@ -190,11 +190,11 @@ const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEditor, sec
       item.editor.replaceContent(updatedData);
     }
     item.editor.setOptions({
-      lastSelection: transaction.selection,
+      lastSelection: transaction?.selection,
     });
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
-  
+
   await updateYdocDocxData(mainEditor);
 };
 

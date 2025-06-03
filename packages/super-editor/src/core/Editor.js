@@ -1618,6 +1618,8 @@ export class Editor extends EventEmitter {
     const { dispatch } = this.view;
     const newTr = AnnotatorServices.processTables({ editor: this, tr, annotationValues });
     this.view.dispatch(newTr);
+  
+    AnnotatorServices.annotateHeadersAndFooters({ editor: this, annotationValues });
   }
 
   /**
@@ -1636,7 +1638,8 @@ export class Editor extends EventEmitter {
       tr,
       schema,
       annotationValues,
-      hiddenFieldIds: hiddenIds
+      hiddenFieldIds: hiddenIds,
+      editor: this,
     });
 
     // Dispatch everything in a single transaction, which makes this undo-able in a single undo
