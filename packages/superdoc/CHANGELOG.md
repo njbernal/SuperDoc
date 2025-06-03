@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.13](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.12...v0.12.13) (2025-06-03)
+
+
+### Features
+
+* allow to export the raw blob without triggering a download ([5ba3259](https://github.com/Harbour-Enterprises/SuperDoc/commit/5ba32592ab5b6f26e15b35890d024765443ee983))
+
 ## [0.12.12](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.11...v0.12.12) (2025-06-03)
 
 ## [0.12.11](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.10...v0.12.11) (2025-06-03)
