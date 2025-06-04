@@ -176,7 +176,7 @@ export function translateParagraphNode(params) {
   // Replace current paragraph with content of html annotation
   const htmlAnnotationChild = elements.find((element) => element.name === 'htmlAnnotation');
   if (htmlAnnotationChild) {
-    return htmlAnnotationChild.elements;
+    return htmlAnnotationChild.elements
   }
   
   // Insert paragraph properties at the beginning of the elements array
@@ -787,9 +787,18 @@ function translateList(params) {
       if (!outputNode.elements) {
         outputNode.elements = [];
       }
+
+      // Process html annotation if present
+      if (Array.isArray(outputNode)) {
+        const mapped = [];
+        outputNode.forEach((el) => mapped.push(...el.elements, { name: 'w:br', type: 'element' }));
+        mapped.unshift(carbonCopy(pPr));
+        return listNodes.push({ name: 'w:p', elements: mapped });
+      };
+
       const propsElementIndex = outputNode.elements.findIndex((e) => e.name === 'w:pPr');
       const content = outputNode.elements.filter((e) => e.name !== 'w:pPr');
-      if (!content.length) {
+      if (!content.length && !Array.isArray(outputNode)) {
         // Apply initial properties to the empty nodes
         const elements = contentNode.attrs.paragraphProperties ? [contentNode.attrs.paragraphProperties] : [];
         const spacer = { 
@@ -799,7 +808,26 @@ function translateList(params) {
         };
         return listNodes.push(spacer);
       }
-      
+
+      outputNode.elements = outputNode.elements.map((el, index) => {
+        if (el.name === 'w:sdt') {
+          const contentIndex = el.elements.findIndex((e) => e.name === 'w:sdtContent');
+          const content = el.elements[contentIndex];
+        
+          const innerContent = content.elements[0];
+          if (innerContent.name === 'w:p') {
+            content.elements = innerContent.elements;
+          };
+          return {
+            name: 'w:r',
+            type: 'element',
+            elements: [el],
+          }
+        } else {
+          return el;
+        }
+      });
+
       // pPr processing
       const { attributes: generalAttributes } = attrs;
       const { originalInlineRunProps } = generalAttributes || {};
@@ -1886,7 +1914,7 @@ function prepareHtmlAnnotation(params) {
     node: { attrs = {}, marks = [] },
     editorSchema,
   } = params;
-
+  
   const parser = new window.DOMParser();
   const paragraphHtml = parser.parseFromString(attrs.rawHtml || attrs.displayLabel, 'text/html');
   const marksFromAttrs = translateFieldAttrsToMarks(attrs);
