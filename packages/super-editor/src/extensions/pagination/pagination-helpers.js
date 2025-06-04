@@ -1,7 +1,7 @@
 import { PluginKey } from 'prosemirror-state';
 import { Editor as SuperEditor } from '@core/Editor.js';
 import { getStarterExtensions } from '@extensions/index.js';
-
+import { updateYdocDocxData } from '@extensions/collaboration/collaboration-helpers.js';
 
 export const PaginationPluginKey = new PluginKey('paginationPlugin');
 
@@ -202,28 +202,3 @@ const setEditorToolbar = ({ editor }, mainEditor) => {
   editor.setToolbar(mainEditor.toolbar);
 };
 
-const updateYdocDocxData = async (editor) => {
-  if (!editor.options.ydoc) return;
-  
-  const metaMap = editor.options.ydoc.getMap('meta');
-  const docx = [...metaMap.get('docx')];
-
-  const newXml = await editor.exportDocx({ getUpdatedDocs: true });
-
-  Object.keys(newXml).forEach(key => {
-    if (key.includes('header') || key.includes('footer')) {
-      const fileIndex = docx.findIndex(item => item.name === key);
-      if (fileIndex > -1) {
-        docx.splice(fileIndex, 1);
-      }
-      docx.push({
-        name: key,
-        content: newXml[key],
-      });
-    }
-  });
-
-  editor.options.ydoc.transact(() => {
-    metaMap.set('docx', docx);
-  });
-}
