@@ -77,6 +77,7 @@ import { initSuperdocYdoc, initCollaborationComments, makeDocumentsCollaborative
  * @property {string} [toolbar] Optional DOM element to render the toolbar in
  * @property {Array<string>} [toolbarGroups] Toolbar groups to show
  * @property {Object} [toolbarIcons] Icons to show in the toolbar
+ * @property {Object} [toolbarTexts] Texts to override in the toolbar
  * @property {boolean} [isDev] Whether the SuperDoc is in development mode
  * @property {TelemetryConfig} [telemetry] Telemetry configuration
  * @property {(editor: Editor) => void} [onEditorBeforeCreate] Callback before an editor is created
@@ -157,6 +158,7 @@ export class SuperDoc extends EventEmitter {
     toolbar: null, // Optional DOM element to render the toolbar in
     toolbarGroups: ['left', 'center', 'right'],
     toolbarIcons: {},
+    toolbarTexts: {},
 
     isDev: false,
 
@@ -485,6 +487,7 @@ export class SuperDoc extends EventEmitter {
       role: this.config.role,
       pagination: this.config.pagination,
       icons: this.config.modules?.toolbar?.icons || this.config.toolbarIcons,
+      texts: this.config.modules?.toolbar?.texts || this.config.toolbarTexts,
       fonts: this.config.modules?.toolbar?.fonts || null,
       hideButtons: this.config.modules?.toolbar?.hideButtons ?? true,
       responsiveToContainer: this.config.modules?.toolbar?.responsiveToContainer ?? false,

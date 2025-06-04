@@ -24,6 +24,7 @@ const closeDropdown = (dropdown) => {
 export const makeDefaultItems = ({
   superToolbar,
   toolbarIcons,
+  toolbarTexts,
   toolbarFonts,
   hideButtons,
   availableWidth,
@@ -37,14 +38,14 @@ export const makeDefaultItems = ({
     name: 'bold',
     command: 'toggleBold',
     icon: toolbarIcons.bold,
-    tooltip: 'Bold',
+    tooltip: toolbarTexts.bold,
   });
 
   // font
   const fontButton = useToolbarItem({
     type: 'dropdown',
     name: 'fontFamily',
-    tooltip: 'Font',
+    tooltip: toolbarTexts.fontFamily,
     command: 'setFontFamily',
     defaultLabel: 'Arial',
     label: 'Arial',
@@ -70,7 +71,7 @@ export const makeDefaultItems = ({
       outline: 'none',
     },
     name: 'ai',
-    tooltip: 'AI text generation',
+    tooltip: toolbarTexts.ai,
     icon: toolbarIcons.ai,
     hideLabel: true,
     hasCaret: false,
@@ -121,7 +122,7 @@ export const makeDefaultItems = ({
     minWidth: '50px',
     markName: 'textStyle',
     labelAttr: 'fontSize',
-    tooltip: 'Font size',
+    tooltip: toolbarTexts.fontSize,
     hasCaret: true,
     hasInlineTextInput: false,
     inlineTextInputVisible: true,
@@ -171,7 +172,7 @@ export const makeDefaultItems = ({
     command: 'toggleItalic',
     icon: toolbarIcons.italic,
     active: false,
-    tooltip: 'Italic',
+    tooltip: toolbarTexts.italic,
   });
 
   // underline
@@ -181,7 +182,7 @@ export const makeDefaultItems = ({
     command: 'toggleUnderline',
     icon: toolbarIcons.underline,
     active: false,
-    tooltip: 'Underline',
+    tooltip: toolbarTexts.underline,
   });
   
   // highlight
@@ -193,7 +194,7 @@ export const makeDefaultItems = ({
     markName: 'highlight',
     labelAttr: 'color',
     active: false,
-    tooltip: 'Highlight color',
+    tooltip: toolbarTexts.highlight,
     command: 'setHighlight',
     noArgumentCommand: 'unsetHighlight',
     suppressActiveHighlight: true,
@@ -219,7 +220,7 @@ export const makeDefaultItems = ({
     markName: 'textStyle',
     labelAttr: 'color',
     active: false,
-    tooltip: 'Text color',
+    tooltip: toolbarTexts.color,
     command: 'setColor',
     suppressActiveHighlight: true,
     options: [
@@ -242,7 +243,7 @@ export const makeDefaultItems = ({
     name: 'search',
     active: false,
     icon: toolbarIcons.search,
-    tooltip: 'Search',
+    tooltip: toolbarTexts.search,
     group: 'right',
     inputRef: searchRef,
     options: [
@@ -275,7 +276,7 @@ export const makeDefaultItems = ({
     markName: 'link',
     icon: toolbarIcons.link,
     active: false,
-    tooltip: 'Link',
+    tooltip: toolbarTexts.link,
     options: [
       {
         type: 'render',
@@ -335,7 +336,7 @@ export const makeDefaultItems = ({
     command: 'startImageUpload',
     icon: toolbarIcons.image,
     active: false,
-    tooltip: 'Image',
+    tooltip: toolbarTexts.image,
     disabled: false,
   });
 
@@ -347,7 +348,7 @@ export const makeDefaultItems = ({
     hideLabel: true,
     labelAttr: 'table',
     active: false,
-    tooltip: 'Insert table',
+    tooltip: toolbarTexts.table,
     command: 'insertTable',
     suppressActiveHighlight: true,
     options: [
@@ -390,69 +391,69 @@ export const makeDefaultItems = ({
 
   const tableActionsOptions = [
     { 
-      label: 'Insert row above',
+      label: toolbarTexts.addRowBefore,
       command: 'addRowBefore',
       icon: toolbarIcons.addRowBefore,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Insert row below',
+      label: toolbarTexts.addRowAfter,
       command: 'addRowAfter',
       icon: toolbarIcons.addRowAfter,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Insert column left',
+      label: toolbarTexts.addColumnBefore,
       command: 'addColumnBefore',
       icon: toolbarIcons.addColumnBefore,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Insert column right',
+      label: toolbarTexts.addColumnAfter,
       command: 'addColumnAfter',
       icon: toolbarIcons.addColumnAfter,
       bottomBorder: true,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Delete row',
+      label: toolbarTexts.deleteRow,
       command: 'deleteRow',
       icon: toolbarIcons.deleteRow,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Delete column',
+      label: toolbarTexts.deleteColumn,
       command: 'deleteColumn',
       icon: toolbarIcons.deleteColumn,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Delete table',
+      label: toolbarTexts.deleteTable,
       command: 'deleteTable',
       icon: toolbarIcons.deleteTable,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Transparent borders',
+      label: toolbarTexts.transparentBorders,
       command: 'deleteCellAndTableBorders',
       icon: toolbarIcons.deleteBorders,
       bottomBorder: true,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Merge cells',
+      label: toolbarTexts.mergeCells,
       command: 'mergeCells',
       icon: toolbarIcons.mergeCells,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Split cell',
+      label: toolbarTexts.splitCell,
       command: 'splitCell',
       icon: toolbarIcons.splitCell,
       props: { 'data-item': 'btn-tableActions-option' }
     },
     { 
-      label: 'Fix tables',
+      label: toolbarTexts.fixTables,
       command: 'fixTables',
       icon: toolbarIcons.fixTables,
       props: { 'data-item': 'btn-tableActions-option' }
@@ -474,7 +475,7 @@ export const makeDefaultItems = ({
   const alignment = useToolbarItem({
     type: 'dropdown',
     name: 'textAlign',
-    tooltip: 'Alignment',
+    tooltip: toolbarTexts.textAlign,
     icon: toolbarIcons.alignLeft,
     command: 'setTextAlign',
     hasCaret: true,
@@ -530,7 +531,7 @@ export const makeDefaultItems = ({
     command: 'toggleBulletList',
     icon: toolbarIcons.bulletList,
     active: false,
-    tooltip: 'Bullet list',
+    tooltip: toolbarTexts.bulletList,
   });
 
   // number list
@@ -540,7 +541,7 @@ export const makeDefaultItems = ({
     command: 'toggleOrderedList',
     icon: toolbarIcons.numberedList,
     active: false,
-    tooltip: 'Numbered list',
+    tooltip: toolbarTexts.numberedList,
   });
 
   // indent left
@@ -550,7 +551,7 @@ export const makeDefaultItems = ({
     command: 'decreaseTextIndent',
     icon: toolbarIcons.indentLeft,
     active: false,
-    tooltip: 'Left indent',
+    tooltip: toolbarTexts.indentLeft,
     disabled: false,
   });
 
@@ -561,7 +562,7 @@ export const makeDefaultItems = ({
     command: 'increaseTextIndent',
     icon: toolbarIcons.indentRight,
     active: false,
-    tooltip: 'Right indent',
+    tooltip: toolbarTexts.indentRight,
     disabled: false,
   });
 
@@ -588,7 +589,7 @@ export const makeDefaultItems = ({
     type: 'dropdown',
     name: 'zoom',
     allowWithoutEditor: true,
-    tooltip: 'Zoom',
+    tooltip: toolbarTexts.zoom,
     defaultLabel: '100%',
     label: '100%',
     hasCaret: true,
@@ -617,7 +618,7 @@ export const makeDefaultItems = ({
     type: 'button',
     name: 'undo',
     disabled: true,
-    tooltip: 'Undo',
+    tooltip: toolbarTexts.undo,
     command: 'undo',
     icon: toolbarIcons.undo,
     group: 'left',
@@ -631,7 +632,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: true,
     name: 'redo',
-    tooltip: 'Redo',
+    tooltip: toolbarTexts.redo,
     command: 'redo',
     icon: toolbarIcons.redo,
     group: 'left',
@@ -645,7 +646,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: false,
     name: 'toggleTrackChanges',
-    tooltip: 'Track Changes',
+    tooltip: toolbarTexts.trackChanges,
     command: 'toggleTrackChanges',
     icon: toolbarIcons.trackChanges,
     group: 'left',
@@ -655,7 +656,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: false,
     name: 'acceptTrackedChangeBySelection',
-    tooltip: 'Accept changes under selection',
+    tooltip: toolbarTexts.trackChangesAccept,
     command: 'acceptTrackedChangeBySelection',
     icon: toolbarIcons.trackChangesAccept,
     group: 'left',
@@ -665,7 +666,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: false,
     name: 'rejectTrackedChangeOnSelection',
-    tooltip: 'Reject changes under selection',
+    tooltip: toolbarTexts.trackChangesReject,
     command: 'rejectTrackedChangeOnSelection',
     icon: toolbarIcons.trackChangesReject,
     group: 'left',
@@ -675,7 +676,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: false,
     name: 'toggleTrackChangesShowOriginal',
-    tooltip: 'Toggle Show Original',
+    tooltip: toolbarTexts.trackChangesOriginal,
     command: 'toggleTrackChangesShowOriginal',
     icon: toolbarIcons.trackChangesOriginal,
     group: 'left',
@@ -685,7 +686,7 @@ export const makeDefaultItems = ({
     type: 'button',
     disabled: false,
     name: 'toggleTrackChangesShowFinal',
-    tooltip: 'Toggle Show Final',
+    tooltip: toolbarTexts.trackChangesFinal,
     command: 'toggleTrackChangesShowFinal',
     icon: toolbarIcons.trackChangesFinal,
     group: 'left',
@@ -695,7 +696,7 @@ export const makeDefaultItems = ({
     type: 'button',
     name: 'clearFormatting',
     command: 'clearFormat',
-    tooltip: 'Clear formatting',
+    tooltip: toolbarTexts.clearFormatting,
     icon: toolbarIcons.clearFormatting,
   });
 
@@ -712,7 +713,7 @@ export const makeDefaultItems = ({
   const copyFormat = useToolbarItem({
     type: 'button',
     name: 'copyFormat',
-    tooltip: 'Format painter',
+    tooltip: toolbarTexts.copyFormat,
     icon: toolbarIcons.copyFormat,
     command: 'copyFormat',
     active: false,
@@ -759,22 +760,22 @@ export const makeDefaultItems = ({
 
   const documentOptions = [
     { 
-      label: 'Editing', 
+      label: toolbarTexts.documentEditingMode, 
       value: 'editing', 
       icon: toolbarIcons.documentEditingMode, 
-      description: 'Edit document directly' 
+      description: toolbarTexts.documentEditingModeDescription, 
     },
     { 
-      label: 'Suggesting', 
+      label: toolbarTexts.documentSuggestingMode, 
       value: 'suggesting', 
       icon: toolbarIcons.documentSuggestingMode, 
-      description: 'Edits become suggestions' 
+      description: toolbarTexts.documentSuggestingModeDescription, 
     },
     { 
-      label: 'Viewing', 
+      label: toolbarTexts.documentViewingMode, 
       value: 'viewing', 
       icon: toolbarIcons.documentViewingMode, 
-      description: 'View clean version of document only' 
+      description: toolbarTexts.documentViewingModeDescription, 
     },
   ];
 
@@ -798,7 +799,7 @@ export const makeDefaultItems = ({
     command: 'insertPageBreak',
     icon: toolbarIcons.pageBreak,
     active: false,
-    tooltip: 'Insert page break',
+    tooltip: toolbarTexts.pageBreak,
   });
 
   // define sizes to calculate toolbar overflow items
@@ -820,7 +821,7 @@ export const makeDefaultItems = ({
     command: 'toggleRuler',
     icon: toolbarIcons.ruler,
     active: false,
-    tooltip: 'Show or hide ruler',
+    tooltip: toolbarTexts.ruler,
   });
 
   const selectedLinkedStyle = ref(null);
@@ -829,8 +830,8 @@ export const makeDefaultItems = ({
     name: 'linkedStyles',
     command: 'setLinkedStyle',
     icon: toolbarIcons.paintbrush,
-    defaultLabel: 'Format text',
-    label: 'Format text',
+    defaultLabel: toolbarTexts.formatText,
+    label: toolbarTexts.formatText,
     hasCaret: true,
     isWide: true,
     style: { width: '140px' },
@@ -878,7 +879,7 @@ export const makeDefaultItems = ({
   const lineHeight = useToolbarItem({
     type: 'dropdown',
     name: 'lineHeight',
-    tooltip: 'Line height',
+    tooltip: toolbarTexts.lineHeight,
     icon: toolbarIcons.lineHeight,
     hasCaret: false,
     hasInlineTextInput: false,
