@@ -181,9 +181,7 @@ const nodeResizer = (nodeNames = ['image']) => {
   function startResize(view, event, handleElement) {
     const handle = handleElement.getAttribute('data-handle');
     const pos = Number.parseInt(handleElement.getAttribute('data-pos'), 10);
-    const node = view.state.doc.nodeAt(pos);
-
-    if (!nodeNames.includes(node?.type.name)) return;
+    if (view.state.selection.from !== pos || !nodeNames.includes(view.state.selection.node?.type.name)) return;
 
     const resizableElement = view.nodeDOM(pos);
 
