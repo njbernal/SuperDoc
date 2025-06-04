@@ -287,7 +287,8 @@ const editorOptions = (doc) => {
     handleImageUpload: proxy.$superdoc.config.handleImageUpload,
     telemetry: proxy.$superdoc.telemetry,
     externalExtensions: proxy.$superdoc.config.editorExtensions || [],
-    htmlOverride: proxy.$superdoc.config.htmlOverride,
+    suppressDefaultDocxStyles: proxy.$superdoc.config.suppressDefaultDocxStyles,
+    jsonOverride: proxy.$superdoc.config.jsonOverride,
   };
 
   return options;

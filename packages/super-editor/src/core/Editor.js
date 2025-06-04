@@ -101,7 +101,8 @@ import { hasSomeParentWithClass } from './super-converter/helpers.js';
  * @property {Function} [onException] - Called when an exception occurs
  * @property {Function} [handleImageUpload] - Handler for image uploads
  * @property {Object} [telemetry] - Telemetry configuration
- * @property {boolean} [htmlOverride] - Whether to override content with provided html
+ * @property {boolean} [suppressDefaultDocxStyles] - Prevent default styles from being applied in docx mode
+ * @property {boolean} [jsonOverride] - Whether to override content with provided json
  * @property {string} [html] - HTML content to initialize the editor with
  */
 
@@ -188,7 +189,8 @@ export class Editor extends EventEmitter {
     numbering: {},
     isHeaderOrFooter: false,
     lastSelection: null,
-    htmlOverride: false,
+    suppressDefaultDocxStyles: false,
+    jsonOverride: false,
     onBeforeCreate: () => null,
     onCreate: () => null,
     onUpdate: () => null,
@@ -865,6 +867,7 @@ export class Editor extends EventEmitter {
 
           // If we have a new doc, and have html data, we initialize from html
           if (this.options.html) doc = this.#createDocFromHTML(this.options.html)
+          else if (this.options.jsonOverride) doc = this.schema.nodeFromJSON(this.options.jsonOverride);
 
           if (fragment) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
         }
@@ -1002,7 +1005,7 @@ export class Editor extends EventEmitter {
     * @returns {void}
     */
   initDefaultStyles(element = this.element) {
-    if (this.options.isHeadless || this.options.htmlOverride) return;
+    if (this.options.isHeadless || this.options.suppressDefaultDocxStyles) return;
 
     const proseMirror = element?.querySelector('.ProseMirror');
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};

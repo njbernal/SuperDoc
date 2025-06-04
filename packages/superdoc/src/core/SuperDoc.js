@@ -104,6 +104,8 @@ import { initSuperdocYdoc, initCollaborationComments, makeDocumentsCollaborative
  * @property {User} [lockedBy] The user who locked the SuperDoc
  * @property {HocuspocusProviderWebsocket} [socket] The socket connection for collaboration
  * @property {boolean} [rulers] Whether to show the ruler in the editor
+ * @property {boolean} [suppressDefaultDocxStyles] Whether to suppress default styles in docx mode
+ * @property {boolean} [jsonOverride] Whether to override content with provided JSON
  */
 
 /**
