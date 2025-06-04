@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, getCurrentInstance, onMounted } from "vue";
 import { toolbarIcons } from './toolbarIcons.js';
+import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 
 const emit = defineEmits(['submit', 'cancel']);
 const props = defineProps({
@@ -25,6 +26,7 @@ const props = defineProps({
     default: () => {},
   },
 });
+const { isHighContrast } = useHighContrastMode();
 
 const { proxy } = getCurrentInstance();
 const handleSubmit = () => {
@@ -93,21 +95,12 @@ onMounted(() => {
 
     <div v-if="showInput && !isAnchor">
       <div class="input-row">
-        <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
-        <input
-          type="text"
-          placeholder="Type or paste a link"
-          :class="{ error: urlError }"
-          v-model="rawUrl"
-          @keydown.enter.stop.prevent="handleSubmit"
-          @keydown="urlError = false"
-        />
+        <div class="input-icon" v-html="toolbarIcons.linkInput" :class="{ 'high-contrast': isHighContrast }"></div>
+        <input type="text" placeholder="Type or paste a link"
+          :class="{ error: urlError, 'high-contrast': isHighContrast }" v-model="rawUrl"
+          @keydown.enter.stop.prevent="handleSubmit" @keydown="urlError = false" />
 
-        <div 
-          class="open-link-icon" 
-          :class="{ disabled: !validUrl }" 
-          v-html="toolbarIcons.openLink" 
-          @click="openLink"
+        <div class="open-link-icon" :class="{ disabled: !validUrl }" v-html="toolbarIcons.openLink" @click="openLink"
           data-item="btn-link-open">
         </div>
       </div>
@@ -116,7 +109,8 @@ onMounted(() => {
           <div class="remove-btn__icon" v-html="toolbarIcons.removeLink"></div>
           Remove
         </button>
-        <button class="submit-btn" v-if="showApply" @click="handleSubmit" :class="{ 'disable-btn': isDisabled }" data-item="btn-link-apply">
+        <button class="submit-btn" v-if="showApply" @click="handleSubmit"
+          :class="{ 'disable-btn': isDisabled, 'high-contrast': isHighContrast }" data-item="btn-link-apply">
           {{ getApplyText }}
         </button>
       </div>
@@ -166,6 +160,7 @@ onMounted(() => {
   cursor: not-allowed;
   pointer-events: none;
 }
+
 .link-buttons {
   display: flex;
   justify-content: flex-end;
@@ -183,18 +178,22 @@ onMounted(() => {
 .link-buttons button {
   margin-left: 5px;
 }
+
 .disable-btn {
   opacity: 0.6;
   cursor: not-allowed;
   pointer-events: none;
 }
+
 .go-to-anchor a {
   font-size: 14px;
   text-decoration: underline;
 }
+
 .clickable {
   cursor: pointer;
 }
+
 .link-title {
   font-size: 14px;
   font-weight: 600;
@@ -209,6 +208,9 @@ onMounted(() => {
   height: 12px;
   color: #999;
   pointer-events: none;
+&.high-contrast {
+    color: #000;
+  }
 }
 
 .hasBottomMargin {
@@ -224,6 +226,7 @@ onMounted(() => {
   background-color: #fff;
   box-sizing: border-box;
 }
+
 .remove-btn {
   display: inline-flex;
   justify-content: center;
@@ -240,9 +243,11 @@ onMounted(() => {
   border: 1px solid #ebebeb;
   box-sizing: border-box;
 }
+
 .remove-btn:hover {
   background-color: #dbdbdb;
 }
+
 .submit-btn {
   display: inline-flex;
   justify-content: center;
@@ -258,37 +263,45 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   box-sizing: border-box;
+/* &.high-contrast {
+    background-color: black;
+  } */
+  &:hover {
+    background-color: #0d47c1;
+  }
 }
-.submit-btn:hover {
-  background-color: #0d47c1;
-}
+
 
 .input-row {
   align-content: baseline;
   display: flex;
   align-items: center;
-}
-
-.input-row input {
-  font-size: 13px;
-  flex-grow: 1;
-  padding: 10px;
-  border-radius: 8px;
-  padding-left: 32px;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
-  color: #666;
-  border: 1px solid #ddd;
-  box-sizing: border-box;
-}
-.input-row input:active,
-.input-row input:focus {
-  outline: none;
-  border: 1px solid #1355ff;
-}
-
-.input-row {
   font-size: 16px;
+
+  input {
+    font-size: 13px;
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 8px;
+    padding-left: 32px;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+    color: #666;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+
+    &:active,
+    &:focus {
+      outline: none;
+      border: 1px solid #1355ff;
+    }
+
+    &.high-contrast {
+      color: #000;
+      border-color: #000;
+    }
+  }
 }
+
 
 .error {
   border-color: red !important;

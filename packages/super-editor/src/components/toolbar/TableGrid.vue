@@ -1,10 +1,11 @@
 <script setup>
 import { ref } from 'vue';
-
+import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 const emit = defineEmits(['select', 'clickoutside']);
 
 const selectedRows = ref(0);
 const selectedCols = ref(0);
+const { isHighContrast } = useHighContrastMode();
 
 const onTableGridMouseOver = (event) => {
   let target = event.target;
@@ -45,12 +46,8 @@ const handleClick = ({ cols, rows }) => {
   <div class="toolbar-table-grid-wrapper">
     <div class="toolbar-table-grid" @mouseover="onTableGridMouseOver" data-grid="true">
       <template v-for="i in 5" :key="i">
-        <div class="toolbar-table-grid__item" 
-          v-for="n in 5" 
-          :key="`${i}_${n}`" 
-          :data-cols="n" 
-          :data-rows="i" 
-          data-item="true"
+        <div class="toolbar-table-grid__item" v-for="n in 5" :key="`${i}_${n}`" :data-cols="n" :data-rows="i"
+          data-item="true" :class="{ 'high-contrast': isHighContrast }"
           @click.stop.prevent="handleClick({ cols: n, rows: i })">
         </div>
       </template>
@@ -77,9 +74,16 @@ const handleClick = ({ cols, rows }) => {
   border: 1px solid #d3d3d3;
   cursor: pointer;
   transition: all .15s;
+
+  &.high-contrast {
+    border-color: #000;
+  }
 }
 
 .toolbar-table-grid__item.selected {
+  &.high-contrast {
+    background-color: #000;
+  }
   background-color: #dbdbdb;
 }
 
