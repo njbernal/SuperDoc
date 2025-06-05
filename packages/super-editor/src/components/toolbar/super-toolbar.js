@@ -186,12 +186,7 @@ export class SuperToolbar extends EventEmitter {
       this.config.selector = this.config.element;
     }
 
-    this.toolbarContainer = this.getElementBySelector(this.config.selector);
-
-    if (!this.toolbarContainer) {
-      return;
-    }
-
+    this.toolbarContainer = this.findElementBySelector(this.config.selector);
     this.#initToolbarGroups();
     this.#makeToolbarItems({
       superToolbar: this,
@@ -202,6 +197,10 @@ export class SuperToolbar extends EventEmitter {
       isDev: config.isDev,
     });
 
+    if (this.config.selector && !this.toolbarContainer) {
+      return;
+    }
+    
     this.app = createApp(Toolbar);
     this.app.directive('click-outside', vClickOutside);
     this.app.config.globalProperties.$toolbar = this;
@@ -212,7 +211,7 @@ export class SuperToolbar extends EventEmitter {
     this.updateToolbarState();
   }
 
-  getElementBySelector(selector) {
+  findElementBySelector(selector) {
     let el = null;
 
     if (selector) {
@@ -607,7 +606,7 @@ export class SuperToolbar extends EventEmitter {
     isDev = false,
   } = {}) {
     const documentWidth = document.documentElement.clientWidth; // take into account the scrollbar
-    const containerWidth = this.toolbarContainer.offsetWidth;
+    const containerWidth = this.toolbarContainer?.offsetWidth ?? 0;
     const availableWidth = this.config.responsiveToContainer ? containerWidth : documentWidth;
 
     const { defaultItems, overflowItems } = makeDefaultItems({
