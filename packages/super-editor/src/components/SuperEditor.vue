@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
       @click="handleSuperEditorClick"
       @mousedown="handleMarginClick"
     >
-      <div ref="editorElem" class="editor-element super-editor__element"></div>
+      <div ref="editorElem" class="editor-element super-editor__element" role="presentation"></div>
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">

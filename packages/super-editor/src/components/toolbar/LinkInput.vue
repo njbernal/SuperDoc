@@ -96,6 +96,7 @@ onMounted(() => {
         <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input
           type="text"
+          name="link"
           placeholder="Type or paste a link"
           :class="{ error: urlError }"
           v-model="rawUrl"

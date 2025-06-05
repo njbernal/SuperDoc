@@ -947,6 +947,7 @@ export class Editor extends EventEmitter {
           toggleHeaderFooterEditMode(this, null, false);
           const pm = document.querySelector('.ProseMirror');
           pm.classList.remove('header-footer-edit');
+          pm.setAttribute('aria-readonly', false);
         }
       }
     });
@@ -1013,6 +1014,11 @@ export class Editor extends EventEmitter {
     if (!proseMirror || !pageSize || !pageMargins) {
       return;
     }
+    
+    proseMirror.setAttribute('role', 'document');
+    proseMirror.setAttribute('aria-multiline', true);
+    proseMirror.setAttribute('aria-label', 'Main content area, start typing to enter text.');
+    proseMirror.setAttribute('aria-description', '');
 
     // Set fixed dimensions and padding that won't change with scaling
     element.style.width = pageSize.width + 'in';

@@ -52,7 +52,12 @@ const handleCommand = ({ item, argument, option }) => {
 </script>
 
 <template>
-  <div class="superdoc-toolbar" :key="toolbarKey">
+  <div 
+    class="superdoc-toolbar" 
+    :key="toolbarKey"
+    role="toolbar"
+    aria-label="Toolbar"
+  >
     <ButtonGroup
       v-if="showLeftSide"
       :toolbar-items="getFilteredItems('left')"

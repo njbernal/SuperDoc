@@ -19,6 +19,7 @@ const handleClick = (item) => {
       @click="handleClick(option)"
       :class="{ disabled: option.disabled }"
       data-item="btn-documentMode-option"
+      role="menuitem"
     >
       <div class="document-mode-column icon-column">
         <div class="icon-column__icon" v-html="option.icon"></div>

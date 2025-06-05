@@ -20,6 +20,10 @@ const props = defineProps({
     type: String,
     default: 'left',
   },
+  fromOverflow: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const currentItem = ref(null);
@@ -89,13 +93,24 @@ const dropdownOptions = (item) => {
   });
 };
 
+const getDropdownAttributes = (option, item) => {
+  return {
+    role: 'menuitem',
+    ariaLabel: `${item.attributes.value.ariaLabel} - ${option.label}`,
+  };
+};
+
 const handleClickOutside = (e) => {
   closeDropdowns();
 };
 </script>
 
 <template>
-  <div :style="getPositionStyle" class="button-group">
+  <div 
+    :style="getPositionStyle" 
+    class="button-group"
+    role="group"
+  >
     <div
       v-for="item in toolbarItems"
       :key="item.id.value"
@@ -120,6 +135,10 @@ const handleClickOutside = (e) => {
         @select="(key, option) => handleSelect(item, option)"
         @clickoutside="handleClickOutside"
         :style="item.dropdownStyles.value"
+        :menu-props="() => ({
+          role: 'menu'
+        })"
+        :node-props="(option) => getDropdownAttributes(option, item)"
       >
         <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">
           <template #trigger>
@@ -140,6 +159,7 @@ const handleClickOutside = (e) => {
         <template #trigger>
           <ToolbarButton
             :toolbar-item="item"
+            :is-overflow-item="fromOverflow"
             @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
             @buttonClick="handleToolbarButtonClick(item)"
           />
