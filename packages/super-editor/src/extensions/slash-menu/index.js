@@ -137,12 +137,26 @@ export const SlashMenu = Extension.create({
           }
 
           if (pluginState.open && (event.key === 'Escape' || event.key === 'ArrowLeft')) {
-            // Only dispatch state update - event will be emitted in apply()
+            // Store current state before closing
+            const { anchorPos } = pluginState;
+            
+            // Close menu
             view.dispatch(
               view.state.tr.setMeta(SlashMenuPluginKey, {
                 type: 'close',
               })
             );
+
+            // Restore cursor position and focus
+            if (anchorPos !== null) {
+              const tr = view.state.tr.setSelection(
+                view.state.selection.constructor.near(
+                  view.state.doc.resolve(anchorPos)
+                )
+              );
+              view.dispatch(tr);
+              view.focus();
+            }
             return true;
           }
 

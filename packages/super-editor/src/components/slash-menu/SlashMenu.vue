@@ -86,12 +86,28 @@ export default {
     // Shared close function
     const closeMenu = () => {
       if (props.editor?.view) {
-        // Update prosemirror state
+        // Get plugin state to access anchorPos
+        const pluginState = SlashMenuPluginKey.getState(props.editor.view.state);
+        const { anchorPos } = pluginState;
+
+        // Update prosemirror state to close menu
         props.editor.view.dispatch(
           props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
             type: 'close',
           })
         );
+
+        // Restore cursor position and focus
+        if (anchorPos !== null) {
+          const tr = props.editor.view.state.tr.setSelection(
+            props.editor.view.state.selection.constructor.near(
+              props.editor.view.state.doc.resolve(anchorPos)
+            )
+          );
+          props.editor.view.dispatch(tr);
+          props.editor.view.focus();
+        }
+
         // Update local state
         isOpen.value = false;
         searchQuery.value = '';
