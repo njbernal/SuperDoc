@@ -763,7 +763,7 @@ export const makeDefaultItems = ({
     icon: toolbarIcons.trackChangesAccept,
     group: 'left',
     attributes: {
-      ariaLabel: 'Accept tacked changes',
+      ariaLabel: 'Accept tracked changes',
     }
   });
 
@@ -776,7 +776,7 @@ export const makeDefaultItems = ({
     icon: toolbarIcons.trackChangesReject,
     group: 'left',
     attributes: {
-      ariaLabel: 'Reject tacked changes',
+      ariaLabel: 'Reject tracked changes',
     }
   });
 
@@ -789,7 +789,7 @@ export const makeDefaultItems = ({
     icon: toolbarIcons.trackChangesOriginal,
     group: 'left',
     attributes: {
-      ariaLabel: 'Toggle tacked changes show original',
+      ariaLabel: 'Toggle tracked changes show original',
     }
   });
 
@@ -802,7 +802,7 @@ export const makeDefaultItems = ({
     icon: toolbarIcons.trackChangesFinal,
     group: 'left',
     attributes: {
-      ariaLabel: 'Toggle tacked changes show final',
+      ariaLabel: 'Toggle tracked changes show final',
     }
   });
 
