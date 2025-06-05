@@ -791,7 +791,12 @@ function translateList(params) {
       // Process html annotation if present
       if (Array.isArray(outputNode)) {
         const mapped = [];
-        outputNode.forEach((el) => mapped.push(...el.elements, { name: 'w:br', type: 'element' }));
+        outputNode.forEach((el, index) => {
+          mapped.push(...el.elements);
+          if (index < outputNode.length - 1) mapped.push({ name: 'w:br', type: 'element' });
+        });
+
+        // Add the pPr for the list
         mapped.unshift(carbonCopy(pPr));
         return listNodes.push({ name: 'w:p', elements: mapped });
       };
