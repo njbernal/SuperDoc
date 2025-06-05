@@ -1,6 +1,9 @@
 <script setup>
+import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
+
 import { toolbarIcons } from './toolbarIcons.js';
 
+const { isHighContrastMode } = useHighContrastMode();
 const emit = defineEmits(['select']);
 
 const select = (alignment) => {
@@ -9,7 +12,7 @@ const select = (alignment) => {
 </script>
 
 <template>
-  <div class="alignment-buttons">
+  <div class="alignment-buttons" :class="{ 'high-contrast': isHighContrastMode }">
     <div 
       class="button-icon" 
       @click="select('left')" 
@@ -17,11 +20,13 @@ const select = (alignment) => {
       data-item="btn-textAlign-option"
       role="menuitem"
       aria-label="Align left"
-    ></div>
+    >
+    </div>
     <div 
       class="button-icon"
       @click="select('center')" 
-      v-html="toolbarIcons.alignCenter" 
+      v-html="toolbarIcons.alignCenter"
+      
       data-item="btn-textAlign-option" 
       role="menuitem"
       aria-label="Align center"
@@ -33,11 +38,13 @@ const select = (alignment) => {
       data-item="btn-textAlign-option" 
       role="menuitem"
       aria-label="Align right"
-    ></div>
+    >
+    </div>
     <div 
       class="button-icon" 
       @click="select('justify')" 
-      v-html="toolbarIcons.alignJustify" 
+      v-html="toolbarIcons.alignJustify"
+      
       data-item="btn-textAlign-option" 
       role="menuitem"
       aria-label="Justify"
@@ -52,27 +59,38 @@ const select = (alignment) => {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
-}
-.button-icon {
-  cursor: pointer;
-  padding: 5px;
-  font-size: 16px;
-  width: 25px;
-  height: 25px;
-  border-radius: 4px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-}
-.button-icon:hover {
-  background-color: #d8dee5;
-}
 
-.button-icon :deep(svg) {
-  width: 100%;
-  height: 100%;
-  display: block;
-  fill: currentColor;
+  .button-icon {
+    cursor: pointer;
+    padding: 5px;
+    font-size: 16px;
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+
+    &:hover {
+      background-color: #d8dee5;
+    }
+
+    :deep(svg) {
+      width: 100%;
+      height: 100%;
+      display: block;
+      fill: currentColor;
+    }
+  }
+
+  &.high-contrast {
+    .button-icon {
+      &:hover {
+        background-color: #000;
+        color: #fff;
+      }
+    }
+  }
 }
 </style>

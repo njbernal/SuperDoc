@@ -219,6 +219,9 @@ export class SuperDoc extends EventEmitter {
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
 
+    // Apply csp nonce if provided
+    if (this.config.cspNonce) this.#patchNaiveUIStyles();
+
     // this.#initTelemetry();
     this.#initVueApp();
     this.#initListeners();
@@ -259,6 +262,19 @@ export class SuperDoc extends EventEmitter {
     };
   }
 
+  #patchNaiveUIStyles() {
+    const cspNonce = this.config.cspNonce;
+
+    const originalCreateElement = document.createElement
+    document.createElement = function(tagName) {
+      const element = originalCreateElement.call(this, tagName)
+      if (tagName.toLowerCase() === 'style') {
+        element.setAttribute('nonce', cspNonce)
+      }
+      return element
+    }
+  }
+
   #initDocuments() {
     const doc = this.config.document;
     const hasDocumentConfig = !!doc && typeof doc === 'object' && Object.keys(this.config.document)?.length;
@@ -293,7 +309,7 @@ export class SuperDoc extends EventEmitter {
   }
 
   #initVueApp() {
-    const { app, pinia, superdocStore, commentsStore } = createSuperdocVueApp();
+    const { app, pinia, superdocStore, commentsStore, highContrastModeStore } = createSuperdocVueApp();
     this.app = app;
     this.pinia = pinia;
     this.app.config.globalProperties.$config = this.config;
@@ -302,6 +318,7 @@ export class SuperDoc extends EventEmitter {
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.commentsStore = commentsStore;
+    this.highContrastModeStore = highContrastModeStore;
     this.superdocStore.init(this.config);
     this.commentsStore.init(this.config.modules.comments);
   }
@@ -848,5 +865,16 @@ export class SuperDoc extends EventEmitter {
         }
       });
     }
+  }
+
+  /**
+   * Set the high contrast mode
+   * @param {boolean} isHighContrast
+   * @returns {void}
+   */
+  setHighContrastMode(isHighContrast) {
+    if (!this.activeEditor) return;
+    this.activeEditor.setHighContrastMode(isHighContrast);
+    this.highContrastModeStore.setHighContrastMode(isHighContrast);
   }
 }

@@ -53,7 +53,7 @@ const init = async () => {
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
     rulers: false,
-    annotations: false,
+    annotations: true,
     isInternal,
     telemetry: false,
     // format: 'docx',
@@ -77,6 +77,7 @@ const init = async () => {
     //     isNewFile: true,
     //   },
     // ],
+    // cspNonce: 'testnonce123',
     modules: {
       comments: {
         // comments: sampleComments,
@@ -238,22 +239,6 @@ onMounted(async () => {
 }
 .comments-panel {
   width: 320px;
-}
-.superdoc .super-editor {
-  background-color: white;
-  border-radius: 16px;
-  border: 1px solid #d3d3d3 !important;
-  text-align: left;
-  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.05);
-  transition: all 0.18s ease-out;
-}
-.superdoc .super-editor:hover {
-  border: 1px solid #0160cc86;
-  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.1);
-}
-.superdoc .super-editor:focus-within {
-  border: 1px solid #015fcc;
-  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.3);
 }
 
 @media screen and (max-width: 1024px) {

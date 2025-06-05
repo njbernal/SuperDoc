@@ -1,5 +1,50 @@
 # Changelog
 
+# [0.13.0](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31...v0.13.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* added missing dep ([de22944](https://github.com/Harbour-Enterprises/SuperDoc/commit/de229443f5352a186b1d95afc0f4dbbc7f9dd93b))
+* removed unnecessary change ([9e3b43b](https://github.com/Harbour-Enterprises/SuperDoc/commit/9e3b43b8bb94357ae4f9ca37d04c9c5321060f59))
+
+
+### Features
+
+* added high contrast mode example ([6802937](https://github.com/Harbour-Enterprises/SuperDoc/commit/6802937bfe67cf0ee500d4dbd1464efc6ebcd7b9))
+* added initial support for high contrast mode ([eabd56f](https://github.com/Harbour-Enterprises/SuperDoc/commit/eabd56f11790614d72c5ae084a0506361b50344c))
+* added missing package-lock changes ([a0776fc](https://github.com/Harbour-Enterprises/SuperDoc/commit/a0776fca006084eceb2ead48ad4f35259c758e82))
+* expose function to set high contrast mode ([aab5ebb](https://github.com/Harbour-Enterprises/SuperDoc/commit/aab5ebbee9b68717cfc3fa6e86d0d7c70c955125))
+
+## [0.12.31](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.30...v0.12.31) (2025-06-05)
+
+## [0.12.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.29...v0.12.30) (2025-06-05)
+
+## [0.12.29](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.28...v0.12.29) (2025-06-05)
+
+
+### Features
+
+* **ai:** Add support for italic and underline text formatting in AI helpers ([86c282a](https://github.com/Harbour-Enterprises/SuperDoc/commit/86c282a274c883bfada1a1fe5634164392cc07ce))
+
+## [0.12.28](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.27...v0.12.28) (2025-06-05)
+
+## [0.12.27](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.26...v0.12.27) (2025-06-05)
+
+## [0.12.26](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.25...v0.12.26) (2025-06-05)
+
+## [0.12.25](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.24...v0.12.25) (2025-06-05)
+
+## [0.12.24](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.23...v0.12.24) (2025-06-05)
+
+## [0.12.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.22...v0.12.23) (2025-06-05)
+
+## [0.12.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.21...v0.12.22) (2025-06-04)
+
+## [0.12.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.20...v0.12.21) (2025-06-04)
+
+## [0.12.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.19...v0.12.20) (2025-06-04)
+
 ## [0.12.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.18...v0.12.19) (2025-06-04)
 
 ## [0.12.18](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.17...v0.12.18) (2025-06-04)

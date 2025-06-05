@@ -4,6 +4,7 @@ import ToolbarButton from './ToolbarButton.vue';
 import ToolbarSeparator from './ToolbarSeparator.vue';
 import OverflowMenu from './OverflowMenu.vue';
 import { NDropdown, NTooltip, NSelect } from 'naive-ui';
+import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 
 const emit = defineEmits(['command']);
 
@@ -27,6 +28,7 @@ const props = defineProps({
 });
 
 const currentItem = ref(null);
+const { isHighContrastMode } = useHighContrastMode();
 // Matches media query from SuperDoc.vue
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 const styleMap = {
@@ -111,15 +113,10 @@ const handleClickOutside = (e) => {
     class="button-group"
     role="group"
   >
-    <div
-      v-for="item in toolbarItems"
-      :key="item.id.value"
-      :class="{
+    <div v-for="item in toolbarItems" :key="item.id.value" :class="{
         narrow: item.isNarrow.value,
         wide: item.isWide.value,
-      }"
-      class="toolbar-item-ctn"
-    >
+      }" class="toolbar-item-ctn">
       <!-- toolbar separator -->
       <ToolbarSeparator v-if="isSeparator(item)" style="width: 20px" />
 
@@ -132,6 +129,7 @@ const handleClickOutside = (e) => {
         size="medium"
         placement="bottom-start"
         class="toolbar-button toolbar-dropdown sd-editor-toolbar-dropdown"
+        :class="{ 'high-contrast': isHighContrastMode }"
         @select="(key, option) => handleSelect(item, option)"
         @clickoutside="handleClickOutside"
         :style="item.dropdownStyles.value"
@@ -142,11 +140,8 @@ const handleClickOutside = (e) => {
       >
         <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">
           <template #trigger>
-            <ToolbarButton
-              :toolbar-item="item"
-              @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
-              @buttonClick="handleToolbarButtonClick(item)"
-            />
+            <ToolbarButton :toolbar-item="item" @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
+              @buttonClick="handleToolbarButtonClick(item)" />
           </template>
           <div>
             {{ item.tooltip }}
@@ -171,11 +166,8 @@ const handleClickOutside = (e) => {
       </n-tooltip>
 
       <!-- Overflow menu -->
-      <OverflowMenu
-        v-if="isOverflow(item) && overflowItems.length"
-        :toolbar-item="item"
-        :overflow-items="overflowItems"
-      />
+      <OverflowMenu v-if="isOverflow(item) && overflowItems.length" :toolbar-item="item"
+        :overflow-items="overflowItems" />
     </div>
   </div>
 </template>
@@ -187,11 +179,32 @@ const handleClickOutside = (e) => {
   cursor: pointer;
 }
 
-.sd-editor-toolbar-dropdown .n-dropdown-option-body {
-  &:hover {
-    &::before,
-    &::after {
-      background-color: #d8dee5 !important;
+.sd-editor-toolbar-dropdown {
+  &.high-contrast {
+    .n-dropdown-option-body {
+      &:hover {
+
+        &::before,
+        &::after {
+          background-color: #000 !important;
+        }
+      }
+
+      &__label {
+        &:hover {
+          color: #fff !important;
+        }
+      }
+    }
+  }
+
+  .n-dropdown-option-body {
+    &:hover {
+
+      &::before,
+      &::after {
+        background-color: #d8dee5 !important;
+      }
     }
   }
 }
