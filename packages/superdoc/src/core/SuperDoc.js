@@ -309,7 +309,7 @@ export class SuperDoc extends EventEmitter {
   }
 
   #initVueApp() {
-    const { app, pinia, superdocStore, commentsStore } = createSuperdocVueApp();
+    const { app, pinia, superdocStore, commentsStore, highContrastModeStore } = createSuperdocVueApp();
     this.app = app;
     this.pinia = pinia;
     this.app.config.globalProperties.$config = this.config;
@@ -318,6 +318,7 @@ export class SuperDoc extends EventEmitter {
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.commentsStore = commentsStore;
+    this.highContrastModeStore = highContrastModeStore;
     this.superdocStore.init(this.config);
     this.commentsStore.init(this.config.modules.comments);
   }
@@ -864,5 +865,16 @@ export class SuperDoc extends EventEmitter {
         }
       });
     }
+  }
+
+  /**
+   * Set the high contrast mode
+   * @param {boolean} isHighContrast
+   * @returns {void}
+   */
+  setHighContrastMode(isHighContrast) {
+    if (!this.activeEditor) return;
+    this.activeEditor.setHighContrastMode(isHighContrast);
+    this.highContrastModeStore.setHighContrastMode(isHighContrast);
   }
 }

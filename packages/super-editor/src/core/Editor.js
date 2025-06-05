@@ -26,7 +26,7 @@ import DocxZipper from '@core/DocxZipper.js';
 import { generateCollaborationData } from '@extensions/collaboration/collaboration.js';
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
-
+import { useHighContrastMode } from '../composables/use-high-contrast-mode.js'
 /**
  * @typedef {Object} FieldValue
  * @property {string} input_id The id of the input field
@@ -242,6 +242,8 @@ export class Editor extends EventEmitter {
 
     let initMode = modes[this.options.mode] ?? modes.default;
 
+    const { setHighContrastMode } = useHighContrastMode();
+    this.setHighContrastMode = setHighContrastMode;
     initMode();
   }
 
