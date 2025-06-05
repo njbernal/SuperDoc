@@ -129,9 +129,9 @@ export default {
               }
               props.editor.view.focus();
             },
-            superToolbar: {
-              activeEditor: props.editor,
-            },
+            editor: props.editor,
+            apiKey: props.editor.options?.aiApiKey,
+            endpoint: props.editor.options?.aiEndpoint,
           });
 
           // Render and append
