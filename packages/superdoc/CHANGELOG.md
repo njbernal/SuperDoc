@@ -1,5 +1,21 @@
 # Changelog
 
+# [0.13.0](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31...v0.13.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* added missing dep ([de22944](https://github.com/Harbour-Enterprises/SuperDoc/commit/de229443f5352a186b1d95afc0f4dbbc7f9dd93b))
+* removed unnecessary change ([9e3b43b](https://github.com/Harbour-Enterprises/SuperDoc/commit/9e3b43b8bb94357ae4f9ca37d04c9c5321060f59))
+
+
+### Features
+
+* added high contrast mode example ([6802937](https://github.com/Harbour-Enterprises/SuperDoc/commit/6802937bfe67cf0ee500d4dbd1464efc6ebcd7b9))
+* added initial support for high contrast mode ([eabd56f](https://github.com/Harbour-Enterprises/SuperDoc/commit/eabd56f11790614d72c5ae084a0506361b50344c))
+* added missing package-lock changes ([a0776fc](https://github.com/Harbour-Enterprises/SuperDoc/commit/a0776fca006084eceb2ead48ad4f35259c758e82))
+* expose function to set high contrast mode ([aab5ebb](https://github.com/Harbour-Enterprises/SuperDoc/commit/aab5ebbee9b68717cfc3fa6e86d0d7c70c955125))
+
 ## [0.12.31](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.30...v0.12.31) (2025-06-05)
 
 ## [0.12.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.29...v0.12.30) (2025-06-05)
