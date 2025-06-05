@@ -105,6 +105,78 @@ const getDropdownAttributes = (option, item) => {
 const handleClickOutside = (e) => {
   closeDropdowns();
 };
+
+
+const moveToNextButton = (e) => {
+  const currentButton = e.target;
+  const nextButton = e.target.closest('.toolbar-item-ctn').nextElementSibling;
+  if (nextButton) {
+    currentButton.setAttribute('tabindex', '-1');
+    nextButton.setAttribute('tabindex', '0');
+    nextButton.focus();
+  }
+};
+
+const moveToPreviousButton = (e) => {
+  const currentButton = e.target;
+  const previousButton = e.target.closest('.toolbar-item-ctn').previousElementSibling;
+  if (previousButton) {
+    currentButton.setAttribute('tabindex', '-1');
+    previousButton.setAttribute('tabindex', '0');
+    previousButton.focus();
+  }
+};
+
+const moveToNextButtonGroup = (e) => {
+  const nextButtonGroup = e.target.closest('.button-group').nextElementSibling;
+  if (nextButtonGroup) {
+    nextButtonGroup.setAttribute('tabindex', '0');
+    nextButtonGroup.focus();
+  }
+};
+
+const moveToPreviousButtonGroup = (e) => {
+  const previousButtonGroup = e.target.closest('.button-group').previousElementSibling;
+  if (previousButtonGroup) {
+    previousButtonGroup.setAttribute('tabindex', '0');
+    previousButtonGroup.focus();
+  }
+};
+
+// Implement keyboard navigation using Roving Tabindex
+// https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
+// Set tabindex to 0 for the current focused button
+// Set tabindex to -1 for all other buttons
+const handleKeyDown = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  switch (e.key) {
+    case 'ArrowRight':
+      moveToNextButton(e);
+      break;
+    case 'ArrowLeft':
+      moveToPreviousButton(e);
+      break;
+    case 'Tab':
+      if (e.shiftKey) {
+        moveToPreviousButtonGroup(e);
+      } else {
+        moveToNextButtonGroup(e);
+      }
+      break;
+    default:
+      break;
+  }
+};
+const handleFocus = (e) => {
+  // Set the focus to the first button inside the button group that is not disabled
+  const firstButton = e.target.closest('.button-group').querySelector('.toolbar-item-ctn:not(.disabled)');
+  if (firstButton) {
+    // Force focus on the first button
+    firstButton.focus();
+  }
+};
 </script>
 
 <template>
@@ -112,11 +184,20 @@ const handleClickOutside = (e) => {
     :style="getPositionStyle" 
     class="button-group"
     role="group"
+    @keydown="handleKeyDown"
+    @focus="handleFocus"
   >
-    <div v-for="item in toolbarItems" :key="item.id.value" :class="{
+    <div
+      v-for="(item, index) in toolbarItems"
+      :key="item.id.value"
+      :class="{
         narrow: item.isNarrow.value,
         wide: item.isWide.value,
-      }" class="toolbar-item-ctn">
+        disabled: item.disabled.value,
+      }"
+      class="toolbar-item-ctn"
+      :tabindex="index === 0 ? 0 : -1"
+    >
       <!-- toolbar separator -->
       <ToolbarSeparator v-if="isSeparator(item)" style="width: 20px" />
 
@@ -140,8 +221,12 @@ const handleClickOutside = (e) => {
       >
         <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">
           <template #trigger>
-            <ToolbarButton :toolbar-item="item" @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
-              @buttonClick="handleToolbarButtonClick(item)" />
+            <ToolbarButton
+              :toolbar-item="item"
+              :disabled="item.disabled.value"
+              @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
+              @buttonClick="handleToolbarButtonClick(item)"
+            />
           </template>
           <div>
             {{ item.tooltip }}
