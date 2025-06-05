@@ -88,16 +88,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="link-input-ctn">
+  <div class="link-input-ctn" :class="{'high-contrast': isHighContrast}">
     <div class="link-title" v-if="!href">Add link</div>
     <div class="link-title" v-else-if="isAnchor">Page anchor</div>
     <div class="link-title" v-else>Edit link</div>
 
     <div v-if="showInput && !isAnchor">
       <div class="input-row">
-        <div class="input-icon" v-html="toolbarIcons.linkInput" :class="{ 'high-contrast': isHighContrast }"></div>
+        <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input type="text" placeholder="Type or paste a link"
-          :class="{ error: urlError, 'high-contrast': isHighContrast }" v-model="rawUrl"
+          :class="{ error: urlError }" v-model="rawUrl"
           @keydown.enter.stop.prevent="handleSubmit" @keydown="urlError = false" />
 
         <div class="open-link-icon" :class="{ disabled: !validUrl }" v-html="toolbarIcons.openLink" @click="openLink"
@@ -110,7 +110,7 @@ onMounted(() => {
           Remove
         </button>
         <button class="submit-btn" v-if="showApply" @click="handleSubmit"
-          :class="{ 'disable-btn': isDisabled, 'high-contrast': isHighContrast }" data-item="btn-link-apply">
+          :class="{ 'disable-btn': isDisabled }" data-item="btn-link-apply">
           {{ getApplyText }}
         </button>
       </div>
@@ -123,13 +123,69 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.link-input-ctn :deep(svg) {
-  width: 100%;
-  height: 100%;
-  display: block;
-  fill: currentColor;
+.link-input-ctn {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  border-radius: 5px;
+  background-color: #fff;
+  box-sizing: border-box;
+
+  :deep(svg) {
+    width: 100%;
+      height: 100%;
+      display: block;
+      fill: currentColor;
+    }
+    
+    .input-row {
+      align-content: baseline;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+    
+      input {
+        font-size: 13px;
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 8px;
+        padding-left: 32px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+        color: #666;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    
+        &:active,
+        &:focus {
+          outline: none;
+          border: 1px solid #1355ff;
+        }
+        
+      }
+    }
+
+.input-icon {
+  position: absolute;
+  transform: rotate(45deg);
+  left: 25px;
+  width: auto;
+  height: 12px;
+  color: #999;
+  pointer-events: none;
 }
 
+&.high-contrast {
+  .input-icon {
+    color: #000;
+  }
+
+  .input-row input {
+    color: #000;
+    border-color: #000;
+  }
+}
+}
 .open-link-icon {
   margin-left: 10px;
   width: 30px;
@@ -200,32 +256,10 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
-.input-icon {
-  position: absolute;
-  transform: rotate(45deg);
-  left: 25px;
-  width: auto;
-  height: 12px;
-  color: #999;
-  pointer-events: none;
-&.high-contrast {
-    color: #000;
-  }
-}
-
 .hasBottomMargin {
   margin-bottom: 1em;
 }
 
-.link-input-ctn {
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  padding: 1em;
-  border-radius: 5px;
-  background-color: #fff;
-  box-sizing: border-box;
-}
 
 .remove-btn {
   display: inline-flex;
@@ -268,37 +302,6 @@ onMounted(() => {
   } */
   &:hover {
     background-color: #0d47c1;
-  }
-}
-
-
-.input-row {
-  align-content: baseline;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-
-  input {
-    font-size: 13px;
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 8px;
-    padding-left: 32px;
-    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
-    color: #666;
-    border: 1px solid #ddd;
-    box-sizing: border-box;
-
-    &:active,
-    &:focus {
-      outline: none;
-      border: 1px solid #1355ff;
-    }
-
-    &.high-contrast {
-      color: #000;
-      border-color: #000;
-    }
   }
 }
 

@@ -43,11 +43,11 @@ const handleClick = ({ cols, rows }) => {
 </script>
 
 <template>
-  <div class="toolbar-table-grid-wrapper">
+  <div class="toolbar-table-grid-wrapper" :class="{ 'high-contrast': isHighContrast }">
     <div class="toolbar-table-grid" @mouseover="onTableGridMouseOver" data-grid="true">
       <template v-for="i in 5" :key="i">
         <div class="toolbar-table-grid__item" v-for="n in 5" :key="`${i}_${n}`" :data-cols="n" :data-rows="i"
-          data-item="true" :class="{ 'high-contrast': isHighContrast }"
+          data-item="true"
           @click.stop.prevent="handleClick({ cols: n, rows: i })">
         </div>
       </template>
@@ -60,36 +60,41 @@ const handleClick = ({ cols, rows }) => {
 </template>
 
 <style scoped>
-.toolbar-table-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  padding: 8px;
-  box-sizing: border-box;
-}
+.toolbar-table-grid-wrapper {
+  .toolbar-table-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
 
-.toolbar-table-grid__item {
-  width: 20px;
-  height: 20px;
-  border: 1px solid #d3d3d3;
-  cursor: pointer;
-  transition: all .15s;
+  .toolbar-table-grid__item {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #d3d3d3;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .toolbar-table-grid__item.selected {
+    background-color: #dbdbdb;
+  }
 
   &.high-contrast {
-    border-color: #000;
-  }
-}
+    .toolbar-table-grid__item {
+      border-color: #000;
+    }
 
-.toolbar-table-grid__item.selected {
-  &.high-contrast {
-    background-color: #000;
+    .toolbar-table-grid__item.selected {
+      background: #000;
+    }
   }
-  background-color: #dbdbdb;
-}
 
-.toolbar-table-grid-value {
-  font-size: 13px;
-  line-height: 1.1;
-  padding: 0px 8px 2px;
-}
+  .toolbar-table-grid-value {
+    font-size: 13px;
+    line-height: 1.1;
+    padding: 0px 8px 2px;
+  }
+    }
 </style>
