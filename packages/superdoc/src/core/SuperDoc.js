@@ -219,6 +219,9 @@ export class SuperDoc extends EventEmitter {
     // Initialize collaboration if configured
     await this.#initCollaboration(this.config.modules);
 
+    // Apply csp nonce if provided
+    if (this.config.cspNonce) this.#patchNaiveUIStyles();
+
     // this.#initTelemetry();
     this.#initVueApp();
     this.#initListeners();
@@ -257,6 +260,19 @@ export class SuperDoc extends EventEmitter {
       documents: this.superdocStore.documents,
       users: this.users,
     };
+  }
+
+  #patchNaiveUIStyles() {
+    const cspNonce = this.config.cspNonce;
+
+    const originalCreateElement = document.createElement
+    document.createElement = function(tagName) {
+      const element = originalCreateElement.call(this, tagName)
+      if (tagName.toLowerCase() === 'style') {
+        element.setAttribute('nonce', cspNonce)
+      }
+      return element
+    }
   }
 
   #initDocuments() {

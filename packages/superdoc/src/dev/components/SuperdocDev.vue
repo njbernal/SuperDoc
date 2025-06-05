@@ -77,6 +77,7 @@ const init = async () => {
     //     isNewFile: true,
     //   },
     // ],
+    cspNonce: 'testnonce123',
     modules: {
       comments: {
         // comments: sampleComments,
