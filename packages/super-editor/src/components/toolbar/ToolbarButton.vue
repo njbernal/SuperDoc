@@ -90,15 +90,17 @@ const caretIcon = computed(() => {
   <div 
     :class="['toolbar-item', attributes.className]" 
     :style="getStyle"
-    :role="isOverflowItem ? 'menuitem' : ''"
+    :role="isOverflowItem ? 'menuitem' : ''"]
+    role="button"
+    :aria-label="attributes.ariaLabel"
+    @click="handleClick"
+    @keydown.enter.stop="handleClick"
+    tabindex="0"
   >
     <div
-      @click="handleClick"
       class="toolbar-button"
       :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput, 'high-contrast': isHighContrastMode }"
       :data-item="`btn-${name || ''}`"
-      :aria-label="attributes.ariaLabel"
-      role="button"
     >
       <ToolbarButtonIcon v-if="icon" :color="iconColor" class="toolbar-icon" :icon="icon" :name="name">
       </ToolbarButtonIcon>
@@ -110,8 +112,7 @@ const caretIcon = computed(() => {
       <span v-if="inlineTextInputVisible">
         <input v-if="name === 'fontSize'" v-model="inlineTextInput" @input="onFontSizeInput" :placeholder="label"
           @keydown.enter.prevent="handleInputSubmit" type="text" class="button-text-input"
-          :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autoccomplete="off"
-          ref="inlineInput" />
+          :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autoccomplete="off" ref="inlineInput" />
         <input v-else v-model="inlineTextInput" :placeholder="label" @keydown.enter.prevent="handleInputSubmit"
           type="text" class="button-text-input" :id="'inlineTextInput-' + name" autoccomplete="off" ref="inlineInput" />
       </span>
