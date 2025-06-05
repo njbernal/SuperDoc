@@ -53,7 +53,10 @@ const handleClick = ({ cols, rows }) => {
       </template>
     </div>
 
-    <div class="toolbar-table-grid-value">
+    <div 
+      class="toolbar-table-grid-value"
+      :aria-valuetext="`${selectedRows} x ${selectedCols}`"
+    >
       {{ selectedRows }} x {{ selectedCols }}
     </div>
   </div>

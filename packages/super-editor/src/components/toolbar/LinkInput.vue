@@ -96,9 +96,15 @@ onMounted(() => {
     <div v-if="showInput && !isAnchor">
       <div class="input-row">
         <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
-        <input type="text" placeholder="Type or paste a link"
-          :class="{ error: urlError }" v-model="rawUrl"
-          @keydown.enter.stop.prevent="handleSubmit" @keydown="urlError = false" />
+        <input
+          type="text"
+          name="link"
+          placeholder="Type or paste a link"
+          :class="{ error: urlError }"
+          v-model="rawUrl"
+          @keydown.enter.stop.prevent="handleSubmit"
+          @keydown="urlError = false"
+        />
 
         <div class="open-link-icon" :class="{ disabled: !validUrl }" v-html="toolbarIcons.openLink" @click="openLink"
           data-item="btn-link-open">

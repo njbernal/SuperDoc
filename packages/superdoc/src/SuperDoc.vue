@@ -548,7 +548,7 @@ watch(getFloatingComments, () => {
 
 <template>
   <div class="superdoc" :class="{ 'superdoc--with-sidebar': showCommentsSidebar, 'high-contrast': isHighContrastMode }">
-    <div class="superdoc__layers layers" ref="layers">
+    <div class="superdoc__layers layers" ref="layers" role="group">
 
       <!-- Floating tools menu (shows up when user has text selection)-->
       <div v-if="showToolsFloatingMenu" class="superdoc__tools tools" :style="toolsMenuPosition">

@@ -19,7 +19,11 @@ const getSeparatorColor = () => {
 </script>
 
 <template>
-  <div class="toolbar-separator">
+  <div 
+    class="toolbar-separator"
+    role="separator"
+    aria-label="Toolbar separator"
+  >
     <div class="separator-inner" :style="{ backgroundColor: getSeparatorColor() }"></div>
   </div>
 </template>

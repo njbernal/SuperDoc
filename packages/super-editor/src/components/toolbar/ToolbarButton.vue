@@ -30,6 +30,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  isOverflowItem: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const {
@@ -83,12 +87,20 @@ const caretIcon = computed(() => {
 </script>
 
 <template>
-  <div :class="['toolbar-item', attributes.className]" :style="getStyle">
-    <div @click="handleClick" class="toolbar-button"
+  <div 
+    :class="['toolbar-item', attributes.className]" 
+    :style="getStyle"
+    :role="isOverflowItem ? 'menuitem' : ''"
+  >
+    <div
+      @click="handleClick"
+      class="toolbar-button"
       :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput, 'high-contrast': isHighContrastMode }"
-      :data-item="`btn-${name || ''}`">
-      <ToolbarButtonIcon v-if="icon" :color="iconColor" class="toolbar-icon"
-        :class="{ 'high-contrast': isHighContrastMode }" :icon="icon" :name="name">
+      :data-item="`btn-${name || ''}`"
+      :aria-label="attributes.ariaLabel"
+      role="button"
+    >
+      <ToolbarButtonIcon v-if="icon" :color="iconColor" class="toolbar-icon" :icon="icon" :name="name">
       </ToolbarButtonIcon>
 
       <div class="button-label" v-if="label && !hideLabel && !inlineTextInputVisible">

@@ -21,6 +21,10 @@ const props = defineProps({
     type: String,
     default: 'left',
   },
+  fromOverflow: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const currentItem = ref(null);
@@ -91,13 +95,24 @@ const dropdownOptions = (item) => {
   });
 };
 
+const getDropdownAttributes = (option, item) => {
+  return {
+    role: 'menuitem',
+    ariaLabel: `${item.attributes.value.ariaLabel} - ${option.label}`,
+  };
+};
+
 const handleClickOutside = (e) => {
   closeDropdowns();
 };
 </script>
 
 <template>
-  <div :style="getPositionStyle" class="button-group">
+  <div 
+    :style="getPositionStyle" 
+    class="button-group"
+    role="group"
+  >
     <div v-for="item in toolbarItems" :key="item.id.value" :class="{
         narrow: item.isNarrow.value,
         wide: item.isWide.value,
@@ -106,11 +121,23 @@ const handleClickOutside = (e) => {
       <ToolbarSeparator v-if="isSeparator(item)" style="width: 20px" />
 
       <!-- Toolbar button -->
-      <n-dropdown v-if="isDropdown(item) && item.nestedOptions?.value?.length" :options="dropdownOptions(item)"
-        :trigger="item.disabled.value ? null : 'click'" :show="item.expand.value" size="medium" placement="bottom-start"
-        class="toolbar-button toolbar-dropdown sd-editor-toolbar-dropdown" :class="{ 'high-contrast': isHighContrastMode }"
-        @select="(key, option) => handleSelect(item, option)" @clickoutside="handleClickOutside"
-        :style="item.dropdownStyles.value">
+      <n-dropdown
+        v-if="isDropdown(item) && item.nestedOptions?.value?.length"
+        :options="dropdownOptions(item)"
+        :trigger="item.disabled.value ? null : 'click'"
+        :show="item.expand.value"
+        size="medium"
+        placement="bottom-start"
+        class="toolbar-button toolbar-dropdown sd-editor-toolbar-dropdown"
+        :class="{ 'high-contrast': isHighContrastMode }"
+        @select="(key, option) => handleSelect(item, option)"
+        @clickoutside="handleClickOutside"
+        :style="item.dropdownStyles.value"
+        :menu-props="() => ({
+          role: 'menu'
+        })"
+        :node-props="(option) => getDropdownAttributes(option, item)"
+      >
         <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">
           <template #trigger>
             <ToolbarButton :toolbar-item="item" @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
@@ -125,8 +152,12 @@ const handleClickOutside = (e) => {
 
       <n-tooltip trigger="hover" v-else-if="isButton(item)" class="sd-editor-toolbar-tooltip">
         <template #trigger>
-          <ToolbarButton :toolbar-item="item" @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
-            @buttonClick="handleToolbarButtonClick(item)" />
+          <ToolbarButton
+            :toolbar-item="item"
+            :is-overflow-item="fromOverflow"
+            @textSubmit="handleToolbarButtonTextSubmit(item, $event)"
+            @buttonClick="handleToolbarButtonClick(item)"
+          />
         </template>
         <div v-if="item.tooltip">
           {{ item.tooltip }}
