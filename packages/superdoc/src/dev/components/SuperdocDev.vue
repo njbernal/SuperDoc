@@ -53,7 +53,7 @@ const init = async () => {
     toolbarGroups: ['left', 'center', 'right'],
     pagination: true,
     rulers: false,
-    annotations: false,
+    annotations: true,
     isInternal,
     telemetry: false,
     // format: 'docx',
