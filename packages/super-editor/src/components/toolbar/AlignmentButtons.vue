@@ -3,7 +3,7 @@ import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 
 import { toolbarIcons } from './toolbarIcons.js';
 
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 const emit = defineEmits(['select']);
 
 const select = (alignment) => {
@@ -12,7 +12,7 @@ const select = (alignment) => {
 </script>
 
 <template>
-  <div class="alignment-buttons" :class="{ 'high-contrast': isHighContrast }">
+  <div class="alignment-buttons" :class="{ 'high-contrast': isHighContrastMode }">
     <div class="button-icon" @click="select('left')" v-html="toolbarIcons.alignLeft" data-item="btn-textAlign-option">
     </div>
     <div class="button-icon" @click="select('center')" v-html="toolbarIcons.alignCenter"

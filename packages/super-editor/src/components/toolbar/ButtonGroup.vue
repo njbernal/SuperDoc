@@ -24,7 +24,7 @@ const props = defineProps({
 });
 
 const currentItem = ref(null);
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 // Matches media query from SuperDoc.vue
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 const styleMap = {
@@ -108,7 +108,7 @@ const handleClickOutside = (e) => {
       <!-- Toolbar button -->
       <n-dropdown v-if="isDropdown(item) && item.nestedOptions?.value?.length" :options="dropdownOptions(item)"
         :trigger="item.disabled.value ? null : 'click'" :show="item.expand.value" size="medium" placement="bottom-start"
-        class="toolbar-button toolbar-dropdown sd-editor-toolbar-dropdown" :class="{ 'high-contrast': isHighContrast }"
+        class="toolbar-button toolbar-dropdown sd-editor-toolbar-dropdown" :class="{ 'high-contrast': isHighContrastMode }"
         @select="(key, option) => handleSelect(item, option)" @clickoutside="handleClickOutside"
         :style="item.dropdownStyles.value">
         <n-tooltip trigger="hover" :disabled="!item.tooltip?.value">

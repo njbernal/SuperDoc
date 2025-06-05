@@ -4,7 +4,7 @@ import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 
 const emit = defineEmits(['select']);
 
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 
 const props = defineProps({
   options: {
@@ -18,7 +18,7 @@ const handleClick = (item) => {
 </script>
 
 <template>
-  <div class="document-mode" :class="{ 'high-contrast': isHighContrast }">
+  <div class="document-mode" :class="{ 'high-contrast': isHighContrastMode }">
     <div class="option-item" v-for="option in options" @click="handleClick(option)"
       :class="{ disabled: option.disabled }" data-item="btn-documentMode-option">
       <div class="document-mode-column icon-column">

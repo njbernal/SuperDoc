@@ -26,7 +26,7 @@ const props = defineProps({
     default: () => {},
   },
 });
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 
 const { proxy } = getCurrentInstance();
 const handleSubmit = () => {
@@ -88,7 +88,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="link-input-ctn" :class="{'high-contrast': isHighContrast}">
+  <div class="link-input-ctn" :class="{'high-contrast': isHighContrastMode}">
     <div class="link-title" v-if="!href">Add link</div>
     <div class="link-title" v-else-if="isAnchor">Page anchor</div>
     <div class="link-title" v-else>Edit link</div>

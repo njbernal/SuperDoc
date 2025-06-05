@@ -50,7 +50,7 @@ const {
 
 const inlineTextInput = ref(props.defaultLabel);
 const inlineInput = ref(null);
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 
 const handleClick = () => {
   if (hasInlineTextInput) {
@@ -85,10 +85,10 @@ const caretIcon = computed(() => {
 <template>
   <div :class="['toolbar-item', attributes.className]" :style="getStyle">
     <div @click="handleClick" class="toolbar-button"
-      :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput, 'high-contrast': isHighContrast }"
+      :class="{ active, disabled, narrow: isNarrow, wide: isWide, 'has-inline-text-input': hasInlineTextInput, 'high-contrast': isHighContrastMode }"
       :data-item="`btn-${name || ''}`">
       <ToolbarButtonIcon v-if="icon" :color="iconColor" class="toolbar-icon"
-        :class="{ 'high-contrast': isHighContrast }" :icon="icon" :name="name">
+        :class="{ 'high-contrast': isHighContrastMode }" :icon="icon" :name="name">
       </ToolbarButtonIcon>
 
       <div class="button-label" v-if="label && !hideLabel && !inlineTextInputVisible">
@@ -98,7 +98,7 @@ const caretIcon = computed(() => {
       <span v-if="inlineTextInputVisible">
         <input v-if="name === 'fontSize'" v-model="inlineTextInput" @input="onFontSizeInput" :placeholder="label"
           @keydown.enter.prevent="handleInputSubmit" type="text" class="button-text-input"
-          :class="{ 'high-contrast': isHighContrast }" :id="'inlineTextInput-' + name" autoccomplete="off"
+          :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autoccomplete="off"
           ref="inlineInput" />
         <input v-else v-model="inlineTextInput" :placeholder="label" @keydown.enter.prevent="handleInputSubmit"
           type="text" class="button-text-input" :id="'inlineTextInput-' + name" autoccomplete="off" ref="inlineInput" />

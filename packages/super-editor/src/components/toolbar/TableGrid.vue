@@ -5,7 +5,7 @@ const emit = defineEmits(['select', 'clickoutside']);
 
 const selectedRows = ref(0);
 const selectedCols = ref(0);
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 
 const onTableGridMouseOver = (event) => {
   let target = event.target;
@@ -43,7 +43,7 @@ const handleClick = ({ cols, rows }) => {
 </script>
 
 <template>
-  <div class="toolbar-table-grid-wrapper" :class="{ 'high-contrast': isHighContrast }">
+  <div class="toolbar-table-grid-wrapper" :class="{ 'high-contrast': isHighContrastMode }">
     <div class="toolbar-table-grid" @mouseover="onTableGridMouseOver" data-grid="true">
       <template v-for="i in 5" :key="i">
         <div class="toolbar-table-grid__item" v-for="n in 5" :key="`${i}_${n}`" :data-cols="n" :data-rows="i"

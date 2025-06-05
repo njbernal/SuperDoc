@@ -8,10 +8,10 @@ const props = defineProps({
   },
 });
 
-const { isHighContrast } = useHighContrastMode();
+const { isHighContrastMode } = useHighContrastMode();
 
 const getSeparatorColor = () => {
-  if (isHighContrast.value) {
+  if (isHighContrastMode.value) {
     return '#000';
   }
   return '#dbdbdb';
