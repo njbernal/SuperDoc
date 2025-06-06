@@ -1,4 +1,4 @@
-name: Publish SuperDoc Package to npm
+name: Publish develop branch to npm ("next" tag)
 
 on:
   push:
