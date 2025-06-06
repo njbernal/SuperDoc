@@ -347,9 +347,46 @@ const getFormattedDate = (input = null, format = '') => {
   });
 };
 
+const updateHeaderFooterFieldAnnotations = ({ editor, fieldIdOrArray, attrs = {} }) => {
+  if (!editor) return;
+
+  const sectionEditors = getAllHeaderFooterEditors(editor);
+
+  sectionEditors.forEach(({ editor: sectionEditor, sectionId, type }) => {
+    sectionEditor.commands.updateFieldAnnotations(fieldIdOrArray, attrs);
+
+    onHeaderFooterDataUpdate(
+      { editor: sectionEditor },
+      editor,
+      sectionId,
+      type,
+    );
+  });
+};
+
+const deleteHeaderFooterFieldAnnotations = ({ editor, fieldIdOrArray }) => {
+  if (!editor) return;
+
+  const sectionEditors = getAllHeaderFooterEditors(editor);
+
+  sectionEditors.forEach(({ editor: sectionEditor, sectionId, type }) => {
+    sectionEditor.commands.deleteFieldAnnotations(fieldIdOrArray);
+
+    onHeaderFooterDataUpdate(
+      { editor: sectionEditor },
+      editor,
+      sectionId,
+      type,
+    );
+  });
+};
+
 export const AnnotatorHelpers = {
   getFieldAttrs,
   processTables,
   annotateDocument,
   annotateHeadersAndFooters,
+  getAllHeaderFooterEditors,
+  updateHeaderFooterFieldAnnotations,
+  deleteHeaderFooterFieldAnnotations,
 };
