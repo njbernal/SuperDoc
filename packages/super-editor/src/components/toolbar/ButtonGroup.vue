@@ -183,7 +183,12 @@ const handleFocus = (e) => {
 </script>
 
 <template>
-  <div :style="getPositionStyle" class="button-group" @focus="(e) => handleFocus(e)">
+  <div 
+    :style="getPositionStyle" 
+    class="button-group" 
+    role="group"
+    @focus="(e) => handleFocus(e)"
+  >
     <div
       v-for="(item, index) in toolbarItems"
       :key="item.id.value"

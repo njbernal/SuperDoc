@@ -90,8 +90,7 @@ const caretIcon = computed(() => {
   <div 
     :class="['toolbar-item', attributes.className]" 
     :style="getStyle"
-    :role="isOverflowItem ? 'menuitem' : ''"
-    role="button"
+    :role="isOverflowItem ? 'menuitem' : 'button'"
     :aria-label="attributes.ariaLabel"
     @click="handleClick"
     @keydown.enter.stop="handleClick"
@@ -112,14 +111,15 @@ const caretIcon = computed(() => {
       <span v-if="inlineTextInputVisible">
         <input v-if="name === 'fontSize'" v-model="inlineTextInput" @input="onFontSizeInput" :placeholder="label"
           @keydown.enter.prevent="handleInputSubmit" type="text" class="button-text-input"
-          :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autoccomplete="off" ref="inlineInput" />
+          :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autocomplete="off" ref="inlineInput" />
         <input v-else v-model="inlineTextInput" :placeholder="label" @keydown.enter.prevent="handleInputSubmit"
-          type="text" class="button-text-input" :id="'inlineTextInput-' + name" autoccomplete="off" ref="inlineInput" />
+          type="text" class="button-text-input" :id="'inlineTextInput-' + name" autocomplete="off" ref="inlineInput" />
       </span>
 
       <div v-if="hasCaret" class="dropdown-caret" v-html="caretIcon" :style="{ opacity: disabled ? 0.6 : 1 }">
       </div>
 
+      <div aria-live="polite" class="visually-hidden">{{ `${attributes.ariaLabel} ${active ? 'selected' : 'unset'}` }}</div>
     </div>
   </div>
 </template>
@@ -130,6 +130,14 @@ const caretIcon = computed(() => {
   z-index: 1;
   min-width: 30px;
   margin: 0 1px;
+}
+
+.visually-hidden {
+  position: absolute;
+  left: -9999px;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
 }
 
 .toolbar-button {
