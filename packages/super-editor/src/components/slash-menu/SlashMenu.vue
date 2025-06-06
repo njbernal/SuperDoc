@@ -3,12 +3,27 @@ import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, 
 import AIWriter from '../toolbar/AIWriter.vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { toolbarIcons } from '../toolbar/toolbarIcons.js';
+
+import { getPropsByItemId } from './utils.js';
+// need to refactor
+// need a clean way to handle the component and props being passed
+// generically - ie what if the component needs access to the editor or
+// newly created popover div
 const defaultItems = [
   {
     id: 'insert-text',
     label: 'Insert Text',
     icon: toolbarIcons.ai,
+    component: AIWriter,
   },
+  {
+    id: 'insert-image',
+    label: 'Insert Image',
+    icon: toolbarIcons.image,
+    action: () => window.alert('insert image'),
+  },
+  
+  
   // Add more items as needed
 ];
 
@@ -26,6 +41,7 @@ export default {
 
     const searchInput = ref(null);
     const searchQuery = ref('');
+    const activePopover = ref(null);
     
     // Replace computed properties with refs
     const isOpen = ref(false);
@@ -76,14 +92,114 @@ export default {
       });
     });
 
+    // Add popover management functions 
+    const closePopover = () => {
+      if (activePopover.value?.parentNode) {
+        // Unmount Vue app if it exists
+        if (activePopover.value._vueApp) {
+          activePopover.value._vueApp.unmount();
+        }
+        activePopover.value.parentNode.removeChild(activePopover.value);
+        activePopover.value = null;
+      }
+      // Restore editor focus
+      props.editor?.view?.focus();
+    };
+
+    const handlePopoverKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closePopover();
+      }
+    };
+
+    const handleClickOutside = (event) => {
+      if (activePopover.value && !activePopover.value.contains(event.target)) {
+        closePopover();
+      }
+    };
+
+    const createPopover = () => {
+      // Close any existing popover
+      closePopover();       
+
+      // Create new popover
+      const popover = document.createElement('div');
+      popover.className = 'popover';
+
+      // Position the popover near the slash menu
+      const menuElement = menuRef.value;
+      if (menuElement) {
+        const menuRect = menuElement.getBoundingClientRect();
+        // Place the popover right where the slash menu is
+        popover.style.position = 'absolute';
+        popover.style.left = `${menuRect.left}px`;
+        popover.style.top = `${menuRect.top}px`;
+        popover.style.zIndex = '9999';
+      }
+
+      // Add event listeners
+      document.addEventListener('keydown', handlePopoverKeyDown);
+      document.addEventListener('click', handleClickOutside);
+
+      // Store reference
+      activePopover.value = popover;
+
+      return popover;
+    };
+
+    // Cleanup function for event listeners
     onBeforeUnmount(() => {
+      document.removeEventListener('keydown', handlePopoverKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+      closePopover();
+      
       if (props.editor) {
         props.editor.off('slashMenu:open');
         props.editor.off('slashMenu:close');
       }
     });
 
-    // Shared close function
+    const executeCommand = (item) => {
+      if (props.editor?.view) {
+        if (item.component) {
+          // Create and setup popover
+          const popover = createPopover();
+          document.body.appendChild(popover);
+          
+          // Get props for the component
+          const componentProps = getPropsByItemId(item.id, { ...props, closePopover });
+          
+          // Create a new Vue app instance for the component
+          const app = createApp({
+            setup() {
+              return () => h('div', { class: 'popover-content' }, [
+                h(item.component, componentProps)
+              ]);
+            }
+          });
+          
+          // Mount the app to the popover
+          const mountedApp = app.mount(popover);
+          
+          // Store reference for cleanup
+          popover._vueApp = app;
+          
+          // Don't close menu immediately for component actions
+          nextTick(() => {
+            // Only close the menu after the component is mounted
+            closeMenu();
+          });
+        } else if (item.action) {
+          // Execute action directly
+          item.action(props.editor.view);
+          closeMenu();
+        }
+      }
+    };
+
+    // Update closeMenu to also close any active popover
     const closeMenu = () => {
       if (props.editor?.view) {
         // Get plugin state to access anchorPos
@@ -114,69 +230,6 @@ export default {
       }
     };
 
-    const executeCommand = (item) => {
-      if (props.editor?.view) {
-        if (item.id === 'insert-text') {
-          // Get selected text
-          const { state } = props.editor.view;
-          const { from, to, empty } = state.selection;
-          const selectedText = !empty ? state.doc.textBetween(from, to) : '';
-
-          // Create AI Writer popover
-          const aiPopover = document.createElement('div');
-          aiPopover.className = 'ai-popover';
-
-          // Position the popover near the slash menu
-          const menuElement = menuRef.value;
-          if (menuElement) {
-            const menuRect = menuElement.getBoundingClientRect();
-            aiPopover.style.position = 'absolute';
-            aiPopover.style.left = `${menuRect.left}px`;
-            aiPopover.style.top = `${menuRect.top}px`;
-          }
-
-          // Mount AI Writer component
-          const aiWriter = h(AIWriter, {
-            selectedText,
-            handleClose: () => {
-              // Safely remove the popover if it exists
-              if (aiPopover.parentNode) {
-                aiPopover.parentNode.removeChild(aiPopover);
-              }
-              props.editor.view.focus();
-            },
-            editor: props.editor,
-            apiKey: props.editor.options?.aiApiKey,
-            endpoint: props.editor.options?.aiEndpoint,
-          });
-
-          // Render and append
-          const app = createApp({
-            render: () => aiWriter,
-          });
-          app.mount(aiPopover);
-          document.body.appendChild(aiPopover);
-        } else {
-          // Handle other commands
-          item.command?.(props.editor.view);
-        }
-
-        // Use shared close function
-        closeMenu();
-      }
-    };
-
-    // Add new method to handle input blur
-    const handleInputBlur = (event) => {
-      // Prevent closing if clicking inside the menu
-      if (menuRef.value?.contains(event.relatedTarget)) {
-        return;
-      }
-
-      // Use shared close function
-      closeMenu();
-    };
-
     const handleKeyDown = (event) => {
       const currentItems = items.value;
       const currentIndex = currentItems.findIndex(item => item.id === selectedId.value);
@@ -200,6 +253,7 @@ export default {
           event.preventDefault();
           const selectedItem = currentItems.find(item => item.id === selectedId.value);
           if (selectedItem) {
+              closeMenu();
             executeCommand(selectedItem);
           }
           break;
@@ -220,7 +274,6 @@ export default {
       selectedId,
       items,
       handleKeyDown,
-      handleInputBlur,
       executeCommand,
     };
   },
@@ -237,7 +290,6 @@ export default {
       class="slash-menu-hidden-input"
       @keydown="handleKeyDown"
       @keydown.stop
-      @blur="handleInputBlur"
     />
 
     <div class="slash-menu-items">
@@ -264,7 +316,6 @@ export default {
   background: white;
   border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem;
   margin-top: 0.5rem;
 }
 
@@ -338,5 +389,12 @@ export default {
 .slash-menu-item-icon svg {
   height: 16px;
   width: 16px;
+}
+
+.popover {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
+  z-index: 100;
 }
 </style> 
