@@ -118,7 +118,6 @@ export default {
       }
     });
 
-
     // Add popover management functions 
     const closePopover = () => {
       if (activePopover.value?.parentNode) {
@@ -133,17 +132,27 @@ export default {
       props.editor?.view?.focus();
     };
 
-    const handlePopoverKeyDown = (event) => {
+    // Consolidated event handlers
+    const handleGlobalKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        closePopover();
+        if (activePopover.value) {
+          closePopover();
+        } else if (isOpen.value) {
+          closeMenu();
+        }
       }
     };
 
-    const handleClickOutside = (event) => {
+    const handleGlobalClick = (event) => {
+      // Handle clicks outside popover
       if (activePopover.value && !activePopover.value.contains(event.target)) {
         closePopover();
+      }
+      // Handle clicks outside menu
+      else if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
+        closeMenu();
       }
     };
 
@@ -174,10 +183,6 @@ export default {
         popover.style.zIndex = '9999';
       }
 
-      // Add event listeners
-      document.addEventListener('keydown', handlePopoverKeyDown);
-      document.addEventListener('click', handleClickOutside);
-
       // Store reference
       activePopover.value = popover;
 
@@ -187,6 +192,10 @@ export default {
     // On Mount
     onMounted(() => {
       if (!props.editor) return;
+
+      // Add global event listeners
+      document.addEventListener('keydown', handleGlobalKeyDown);
+      document.addEventListener('click', handleGlobalClick);
 
       // Listen for the slash menu to open
       props.editor.on('slashMenu:open', (event) => {
@@ -206,8 +215,8 @@ export default {
 
     // Cleanup function for event listeners
     onBeforeUnmount(() => {
-      document.removeEventListener('keydown', handlePopoverKeyDown);
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+      document.removeEventListener('click', handleGlobalClick);
       closePopover();
       
       if (props.editor) {
