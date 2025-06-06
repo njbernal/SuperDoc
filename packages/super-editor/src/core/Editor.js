@@ -8,7 +8,7 @@ import { ExtensionService } from './ExtensionService.js';
 import { CommandService } from './CommandService.js';
 import { Attribute } from './Attribute.js';
 import { SuperConverter } from '@core/super-converter/SuperConverter.js';
-import { Commands, Keymap, Editable, EditorFocus } from './extensions/index.js';
+import { Commands, Editable, EditorFocus, Keymap } from './extensions/index.js';
 import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
@@ -18,15 +18,12 @@ import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import { getRichTextExtensions } from '../extensions/index.js';
 import { AnnotatorHelpers } from '@helpers/annotator.js';
-import {
-  prepareCommentsForExport,
-  prepareCommentsForImport,
-} from '@extensions/comment/comments-helpers.js';
+import { prepareCommentsForExport, prepareCommentsForImport } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
 import { generateCollaborationData } from '@extensions/collaboration/collaboration.js';
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
-import { useHighContrastMode } from '../composables/use-high-contrast-mode.js'
+import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
 /**
  * @typedef {Object} FieldValue
  * @property {string} input_id The id of the input field
@@ -1458,10 +1455,16 @@ export class Editor extends EventEmitter {
       updatedDocs['word/commentsExtensible.xml'] = String(commentsExtensibleXml);
       updatedDocs['word/commentsIds.xml'] = String(commentsIdsXml);
     }
-    
-    if (getUpdatedDocs) return updatedDocs;
 
     const zipper = new DocxZipper();
+    
+    if (getUpdatedDocs) {
+      updatedDocs['[Content_Types].xml'] = await zipper.updateContentTypes({
+        files: this.options.content
+      }, media, true);
+      return updatedDocs;
+    }
+    
     const result = await zipper.updateZip({
       docx: this.options.content,
       updatedDocs: updatedDocs,

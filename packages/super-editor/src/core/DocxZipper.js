@@ -1,7 +1,6 @@
 import xmljs from 'xml-js';
 import JSZip from 'jszip';
 import { getContentTypesFromXml } from './super-converter/helpers.js';
-import { CONTENT_TYPES } from './super-converter/exporter-docx-defs.js';
 
 /**
  * Class to handle unzipping and zipping of docx files
@@ -85,13 +84,17 @@ class DocxZipper {
   /**
    * Update [Content_Types].xml with extensions of new Image annotations
    */
-  async updateContentTypes(docx, media) {
+  async updateContentTypes(docx, media, fromJson) {
     const newMediaTypes = Object.keys(media).map((name) => {
       return this.getFileExtension(name);
     });
-
+    
     const contentTypesPath = '[Content_Types].xml';
-    const contentTypesXml = await docx.file(contentTypesPath).async('string');
+    let contentTypesXml;
+    if (fromJson) {
+      contentTypesXml = docx.files.find(file => file.name === contentTypesPath)?.content || '';
+    } else contentTypesXml = await docx.file(contentTypesPath).async('string');
+    
     let typesString = '';
 
     const defaultMediaTypes = getContentTypesFromXml(contentTypesXml);
@@ -147,10 +150,12 @@ class DocxZipper {
       if (!hasExtensible) {
         typesString += extendedDef;
       }
-    })
+    });
     
     const beginningString = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
     const updatedContentTypesXml = contentTypesXml.replace(beginningString, `${beginningString}${typesString}`);
+    
+    if (fromJson) return updatedContentTypesXml;
 
     docx.file(contentTypesPath, updatedContentTypesXml);
   }
