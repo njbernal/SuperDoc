@@ -1,62 +1,9 @@
 <script>
 import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h } from 'vue';
-import AIWriter from '../toolbar/AIWriter.vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
-import { toolbarIcons } from '../toolbar/toolbarIcons.js';
 import { getPropsByItemId } from './utils.js';
 import { calculateMenuPosition } from './utils.js';
-
-const defaultItems = [
-  {
-    id: 'insert-text',
-    label: 'Insert Text',
-    icon: toolbarIcons.ai,
-    component: AIWriter,
-    allowedTriggers: ['slash', 'click']
-  },
-  {
-    id: 'insert-image',
-    label: 'Insert Image',
-    icon: toolbarIcons.image,
-    action: () => window.alert('insert image'),
-    allowedTriggers: ['slash']
-  },
-  {
-    id: 'cut',
-    label: 'Cut',
-    icon: toolbarIcons.cut,
-    action: (view) => {
-      const { state } = view;
-      const { from, to } = state.selection;
-      state.tr.delete(from, to);
-    },
-    allowedTriggers: ['click']
-  },
-  {
-    id: 'copy',
-    label: 'Copy',
-    icon: toolbarIcons.copy,
-    action: (view) => {
-      const { state } = view;
-      const { from, to } = state.selection;
-      const text = state.doc.textBetween(from, to);
-      navigator.clipboard.writeText(text);
-    },
-    allowedTriggers: ['click']
-  },
-  {
-    id: 'paste',
-    label: 'Paste',
-    icon: toolbarIcons.paste,
-    action: async (view) => {
-      const text = await navigator.clipboard.readText();
-      const { state, dispatch } = view;
-      const { from, to } = state.selection;
-      dispatch(state.tr.replaceWith(from, to, state.schema.text(text)));
-    },
-    allowedTriggers: ['click']
-  }
-];
+import { defaultItems } from './menuItems.js';
 
 export default {
   name: 'SlashMenu',
@@ -72,9 +19,7 @@ export default {
     const searchInput = ref(null);
     const searchQuery = ref('');
     const activePopover = ref(null);
-    const currentTriggerType = ref('slash'); // Track the current trigger type
-    
-    // Replace computed properties with refs
+    const currentTriggerType = ref('slash');
     const isOpen = ref(false);
     const selectedId = ref(defaultItems[0]?.id || null);
     const menuPosition = ref({ left: '0px', top: '0px' });
@@ -118,7 +63,9 @@ export default {
       }
     });
 
-    // Add popover management functions 
+    /**
+     * Popover management
+     */ 
     const closePopover = () => {
       if (activePopover.value?.parentNode) {
         // Unmount Vue app if it exists
@@ -131,38 +78,6 @@ export default {
       // Restore editor focus
       props.editor?.view?.focus();
     };
-
-    // Consolidated event handlers
-    const handleGlobalKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        event.stopPropagation();
-        if (activePopover.value) {
-          closePopover();
-        } else if (isOpen.value) {
-          closeMenu();
-        }
-      }
-    };
-
-    const handleGlobalClick = (event) => {
-      // Handle clicks outside popover
-      if (activePopover.value && !activePopover.value.contains(event.target)) {
-        closePopover();
-      }
-      // Handle clicks outside menu
-      else if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
-        closeMenu();
-      }
-    };
-
-    const handleRightClick = (event) => {
-        event.preventDefault();
-        currentTriggerType.value = 'click';
-        isOpen.value = true;
-        menuPosition.value = calculateMenuPosition('click', event, props.editor);
-        searchQuery.value = '';  // Reset search on open
-    }
 
     const createPopover = () => {
       // Close any existing popover
@@ -189,13 +104,82 @@ export default {
       return popover;
     };
 
-    // On Mount
+    /**
+     * Event handlers - controls keystrokes and clicks
+     */
+    const handleGlobalKeyDown = (event) => {
+      // ESCAPE: always close popover or menu
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (activePopover.value) {
+          closePopover();
+        } else if (isOpen.value) {
+          closeMenu();
+        }
+        return;
+      }
+
+      // Only handle navigation/selection if menu is open and input is focused
+      if (
+        isOpen.value &&
+        (event.target === searchInput.value || (menuRef.value && menuRef.value.contains(event.target)))
+      ) {
+        const currentItems = items.value;
+        const currentIndex = currentItems.findIndex(item => item.id === selectedId.value);
+        switch (event.key) {
+          case 'ArrowDown':
+            event.preventDefault();
+            if (currentIndex < currentItems.length - 1) {
+              selectedId.value = currentItems[currentIndex + 1].id;
+            }
+            break;
+          case 'ArrowUp':
+            event.preventDefault();
+            if (currentIndex > 0) {
+              selectedId.value = currentItems[currentIndex - 1].id;
+            }
+            break;
+          case 'Enter':
+            event.preventDefault();
+            const selectedItem = currentItems.find(item => item.id === selectedId.value);
+            if (selectedItem) {
+              closeMenu();
+              executeCommand(selectedItem);
+            }
+            break;
+        }
+      }
+    };
+
+    const handleGlobalOutsideClick = (event) => {
+      // Handle clicks outside popover
+      if (activePopover.value && !activePopover.value.contains(event.target)) {
+        closePopover();
+      }
+      // Handle clicks outside menu
+      else if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
+        closeMenu();
+      }
+    };
+
+    const handleRightClick = (event) => {
+        event.preventDefault();
+        currentTriggerType.value = 'click';
+        isOpen.value = true;
+        menuPosition.value = calculateMenuPosition('click', event, props.editor);
+        searchQuery.value = '';  // Reset search on open
+    }
+
+    /**
+     * Lifecycle hooks on mount and onBeforeUnmount
+     */
     onMounted(() => {
       if (!props.editor) return;
 
       // Add global event listeners
       document.addEventListener('keydown', handleGlobalKeyDown);
-      document.addEventListener('click', handleGlobalClick);
+      document.addEventListener('click', handleGlobalOutsideClick);
 
       // Listen for the slash menu to open
       props.editor.on('slashMenu:open', (event) => {
@@ -216,7 +200,7 @@ export default {
     // Cleanup function for event listeners
     onBeforeUnmount(() => {
       document.removeEventListener('keydown', handleGlobalKeyDown);
-      document.removeEventListener('click', handleGlobalClick);
+      document.removeEventListener('click', handleGlobalOutsideClick);
       closePopover();
       
       if (props.editor) {
@@ -229,11 +213,11 @@ export default {
     const executeCommand = (item) => {
       if (props.editor?.view) {
         if (item.component) {
-          // Create and setup popover
           const popover = createPopover();
           document.body.appendChild(popover);
           
           // Get props for the component
+          // By id (see utils.js)
           const componentProps = getPropsByItemId(item.id, { ...props, closePopover });
           
           // Create a new Vue app instance for the component
@@ -257,7 +241,7 @@ export default {
             closeMenu();
           });
         } else if (item.action) {
-          // Execute action directly
+          // Execute action directly - give access to the editor view
           item.action(props.editor.view);
           closeMenu();
         }
@@ -295,41 +279,6 @@ export default {
       }
     };
 
-    const handleKeyDown = (event) => {
-      const currentItems = items.value;
-      const currentIndex = currentItems.findIndex(item => item.id === selectedId.value);
-
-      switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault();
-          if (currentIndex < currentItems.length - 1) {
-            selectedId.value = currentItems[currentIndex + 1].id;
-          }
-          break;
-
-        case 'ArrowUp':
-          event.preventDefault();
-          if (currentIndex > 0) {
-            selectedId.value = currentItems[currentIndex - 1].id;
-          }
-          break;
-
-        case 'Enter':
-          event.preventDefault();
-          const selectedItem = currentItems.find(item => item.id === selectedId.value);
-          if (selectedItem) {
-              closeMenu();
-            executeCommand(selectedItem);
-          }
-          break;
-
-        case 'Escape':
-          event.preventDefault();
-          closeMenu();
-          break;
-      }
-    };
-
     return {
       menuRef,
       searchInput,
@@ -338,9 +287,9 @@ export default {
       isOpen,
       selectedId,
       items,
-      handleKeyDown,
+      handleGlobalKeyDown,
       executeCommand,
-      currentTriggerType, // expose if needed in template
+      currentTriggerType,
     };
   },
 };
@@ -354,7 +303,7 @@ export default {
       v-model="searchQuery"
       type="text"
       class="slash-menu-hidden-input"
-      @keydown="handleKeyDown"
+      @keydown="handleGlobalKeyDown"
       @keydown.stop
     />
 
