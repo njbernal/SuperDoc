@@ -83,6 +83,8 @@ const init = async () => {
         // comments: sampleComments,
         overflow: true,
         selector: 'comments-panel',
+        // useInternalExternalComments: true,
+        // suppressInternalExternal: true,
       },
       toolbar: {
         selector: 'toolbar',

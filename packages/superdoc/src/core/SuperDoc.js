@@ -342,9 +342,9 @@ export class SuperDoc extends EventEmitter {
   /**
    * Initialize collaboration if configured
    * @param {Object} config
-   * @returns {Promise<Array>} The processed documents with collaboration enabled
+   * @returns {Promise<Object[]>} The processed documents with collaboration enabled
    */
-  async #initCollaboration({ collaboration: collaborationModuleConfig } = {}) {
+  async #initCollaboration({ collaboration: collaborationModuleConfig, comments: commentsConfig = {} } = {}) {
     if (!collaborationModuleConfig) return this.config.documents;
 
     // Flag this superdoc as collaborative
@@ -355,14 +355,23 @@ export class SuperDoc extends EventEmitter {
       url: collaborationModuleConfig.url,
     });
 
-    // Initialize global superdoc sync - for comments, view, etc.
-    initSuperdocYdoc(this);
+    // Initialize collaboration for documents
+    const processedDocuments = makeDocumentsCollaborative(this);
+
+    // Optionally, initialize separate superdoc sync - for comments, view, etc.
+    if (commentsConfig.useInternalExternalComments && !commentsConfig.suppressInternalExternalComments) {
+      const { ydoc: sdYdoc, provider: sdProvider } = initSuperdocYdoc(this);
+      this.ydoc = sdYdoc;
+      this.provider = sdProvider;
+    } else {
+      this.ydoc = processedDocuments[0].ydoc;
+      this.provider = processedDocuments[0].provider;
+    };
 
     // Initialize comments sync, if enabled
     initCollaborationComments(this);
 
-    // Initialize collaboration for documents
-    return makeDocumentsCollaborative(this);
+    return processedDocuments;
   }
 
   /**
