@@ -90,7 +90,7 @@ const caretIcon = computed(() => {
   <div 
     :class="['toolbar-item', attributes.className]" 
     :style="getStyle"
-    :role="isOverflowItem ? 'menuitem' : ''"]
+    :role="isOverflowItem ? 'menuitem' : ''"
     role="button"
     :aria-label="attributes.ariaLabel"
     @click="handleClick"
