@@ -10,18 +10,16 @@ export const updateYdocDocxData = async (editor) => {
   const metaMap = editor.options.ydoc.getMap('meta');
   const docx = [...metaMap.get('docx')];
   const newXml = await editor.exportDocx({ getUpdatedDocs: true });
-
+  
   Object.keys(newXml).forEach(key => {
-    if (key.includes('header') || key.includes('footer')) {
-      const fileIndex = docx.findIndex(item => item.name === key);
-      if (fileIndex > -1) {
-        docx.splice(fileIndex, 1);
-      }
-      docx.push({
-        name: key,
-        content: newXml[key],
-      });
+    const fileIndex = docx.findIndex(item => item.name === key);
+    if (fileIndex > -1) {
+      docx.splice(fileIndex, 1);
     }
+    docx.push({
+      name: key,
+      content: newXml[key],
+    });
   });
 
   editor.options.ydoc.transact(() => {
