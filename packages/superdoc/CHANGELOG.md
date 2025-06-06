@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.12.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.29...v0.12.30) (2025-06-05)
+
+## [0.12.29](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.28...v0.12.29) (2025-06-05)
+
+
+### Features
+
+* **ai:** Add support for italic and underline text formatting in AI helpers ([86c282a](https://github.com/Harbour-Enterprises/SuperDoc/commit/86c282a274c883bfada1a1fe5634164392cc07ce))
+
+## [0.12.28](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.27...v0.12.28) (2025-06-05)
+
+## [0.12.27](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.26...v0.12.27) (2025-06-05)
+
+## [0.12.26](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.25...v0.12.26) (2025-06-05)
+
+## [0.12.25](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.24...v0.12.25) (2025-06-05)
+
 ## [0.12.24](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.23...v0.12.24) (2025-06-05)
 
 ## [0.12.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.22...v0.12.23) (2025-06-05)
