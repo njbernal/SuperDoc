@@ -55,11 +55,11 @@ const isButton = (item) => item.type === 'button';
 const isDropdown = (item) => item.type === 'dropdown';
 const isSeparator = (item) => item.type === 'separator';
 const isOverflow = (item) => item.type === 'overflow';
-const handleToolbarButtonClick = (item, argument = null) => {
+const handleToolbarButtonClick = (item, argument = null, switchFocusToEditor = true) => {
   currentItem.value = item;
   currentItem.value.expand = true;
   if (item.disabled.value) return;
-  emit('command', { item, argument });
+  emit('command', { item, argument, switchFocusToEditor });
 };
 
 const handleToolbarButtonTextSubmit = (item, argument) => {
@@ -147,11 +147,14 @@ const moveToPreviousButtonGroup = (e) => {
 // https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
 // Set tabindex to 0 for the current focused button
 // Set tabindex to -1 for all other buttons
-const handleKeyDown = (e) => {
+const handleKeyDown = (e, item) => {
   e.preventDefault();
   e.stopPropagation();
 
   switch (e.key) {
+    case 'Enter':
+      handleToolbarButtonClick(item, null, false);
+      break;
     case 'ArrowRight':
       moveToNextButton(e);
       break;
@@ -180,13 +183,7 @@ const handleFocus = (e) => {
 </script>
 
 <template>
-  <div 
-    :style="getPositionStyle" 
-    class="button-group"
-    role="group"
-    @keydown="handleKeyDown"
-    @focus="handleFocus"
-  >
+  <div :style="getPositionStyle" class="button-group" @focus="(e) => handleFocus(e)">
     <div
       v-for="(item, index) in toolbarItems"
       :key="item.id.value"
@@ -195,6 +192,7 @@ const handleFocus = (e) => {
         wide: item.isWide.value,
         disabled: item.disabled.value,
       }"
+      @keydown="(e) => handleKeyDown(e, item)"
       class="toolbar-item-ctn"
       :tabindex="index === 0 ? 0 : -1"
     >
