@@ -78,7 +78,7 @@ const selectedOption = ref(null);
 const handleSelect = (item, option) => {
   closeDropdowns();
   const value = item.dropdownValueKey.value ? option[item.dropdownValueKey.value] : option.label;
-  emit('command', { item, argument: value, option });
+  emit('command', { item, argument: value, option, switchFocusToEditor: true });
   selectedOption.value = option.key;
 };
 
@@ -132,6 +132,12 @@ const moveToNextButtonGroup = (e) => {
   if (nextButtonGroup) {
     nextButtonGroup.setAttribute('tabindex', '0');
     nextButtonGroup.focus();
+  } else {
+    // Move to the editor
+    const editor = document.querySelector('.ProseMirror');
+    if (editor) {
+      editor.focus();
+    }
   }
 };
 
@@ -149,16 +155,19 @@ const moveToPreviousButtonGroup = (e) => {
 // Set tabindex to -1 for all other buttons
 const handleKeyDown = (e, item) => {
   e.preventDefault();
-  e.stopPropagation();
-
   switch (e.key) {
     case 'Enter':
       handleToolbarButtonClick(item, null, false);
       break;
+    case 'Escape':
+      closeDropdowns();
+      break;
     case 'ArrowRight':
+      closeDropdowns();
       moveToNextButton(e);
       break;
     case 'ArrowLeft':
+      closeDropdowns();
       moveToPreviousButton(e);
       break;
     case 'Tab':
@@ -176,7 +185,6 @@ const handleFocus = (e) => {
   // Set the focus to the first button inside the button group that is not disabled
   const firstButton = e.target.closest('.button-group').querySelector('.toolbar-item-ctn:not(.disabled)');
   if (firstButton) {
-    // Force focus on the first button
     firstButton.focus();
   }
 };
@@ -187,7 +195,7 @@ const handleFocus = (e) => {
     :style="getPositionStyle" 
     class="button-group" 
     role="group"
-    @focus="(e) => handleFocus(e)"
+    @focus="handleFocus"
   >
     <div
       v-for="(item, index) in toolbarItems"
