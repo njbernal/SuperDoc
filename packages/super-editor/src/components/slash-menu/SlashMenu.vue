@@ -3,28 +3,59 @@ import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, 
 import AIWriter from '../toolbar/AIWriter.vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { toolbarIcons } from '../toolbar/toolbarIcons.js';
-
 import { getPropsByItemId } from './utils.js';
-// need to refactor
-// need a clean way to handle the component and props being passed
-// generically - ie what if the component needs access to the editor or
-// newly created popover div
+import { calculateMenuPosition } from './utils.js';
+
 const defaultItems = [
   {
     id: 'insert-text',
     label: 'Insert Text',
     icon: toolbarIcons.ai,
     component: AIWriter,
+    allowedTriggers: ['slash', 'click']
   },
   {
     id: 'insert-image',
     label: 'Insert Image',
     icon: toolbarIcons.image,
     action: () => window.alert('insert image'),
+    allowedTriggers: ['slash']
   },
-  
-  
-  // Add more items as needed
+  {
+    id: 'cut',
+    label: 'Cut',
+    icon: toolbarIcons.cut,
+    action: (view) => {
+      const { state } = view;
+      const { from, to } = state.selection;
+      state.tr.delete(from, to);
+    },
+    allowedTriggers: ['click']
+  },
+  {
+    id: 'copy',
+    label: 'Copy',
+    icon: toolbarIcons.copy,
+    action: (view) => {
+      const { state } = view;
+      const { from, to } = state.selection;
+      const text = state.doc.textBetween(from, to);
+      navigator.clipboard.writeText(text);
+    },
+    allowedTriggers: ['click']
+  },
+  {
+    id: 'paste',
+    label: 'Paste',
+    icon: toolbarIcons.paste,
+    action: async (view) => {
+      const text = await navigator.clipboard.readText();
+      const { state, dispatch } = view;
+      const { from, to } = state.selection;
+      dispatch(state.tr.replaceWith(from, to, state.schema.text(text)));
+    },
+    allowedTriggers: ['click']
+  }
 ];
 
 export default {
@@ -38,21 +69,32 @@ export default {
   },
 
   setup(props) {
-
     const searchInput = ref(null);
     const searchQuery = ref('');
     const activePopover = ref(null);
+    const currentTriggerType = ref('slash'); // Track the current trigger type
     
     // Replace computed properties with refs
     const isOpen = ref(false);
     const selectedId = ref(defaultItems[0]?.id || null);
     const menuPosition = ref({ left: '0px', top: '0px' });
     const menuRef = ref(menuPosition.value);
-    // Filtered items based on search query
+
+    // Filtered items based on search query and current trigger type
     const items = computed(() => {
-      if (!searchQuery.value) return defaultItems;
+      // First filter by trigger type
+      const triggerFilteredItems = defaultItems.filter(item => {
+        // If item has allowedTriggers specified, use that, otherwise show in both
+        if (item.allowedTriggers) {
+          return item.allowedTriggers.includes(currentTriggerType.value);
+        }
+        return true;
+      });
+
+      // Then filter by search query
+      if (!searchQuery.value) return triggerFilteredItems;
       
-      return defaultItems.filter((item) =>
+      return triggerFilteredItems.filter((item) =>
         item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
     });
@@ -76,21 +118,6 @@ export default {
       }
     });
 
-    onMounted(() => {
-      if (!props.editor) return;
-
-      // Listen for the slash menu to open
-      props.editor.on('slashMenu:open', ({ menuPosition: position }) => {
-        isOpen.value = true;
-        menuPosition.value = position;
-        searchQuery.value = '';  // Reset search on open
-      });
-
-      props.editor.on('slashMenu:close', () => {
-        isOpen.value = false;
-        searchQuery.value = '';
-      });
-    });
 
     // Add popover management functions 
     const closePopover = () => {
@@ -119,6 +146,14 @@ export default {
         closePopover();
       }
     };
+
+    const handleRightClick = (event) => {
+        event.preventDefault();
+        currentTriggerType.value = 'click';
+        isOpen.value = true;
+        menuPosition.value = calculateMenuPosition('click', event, props.editor);
+        searchQuery.value = '';  // Reset search on open
+    }
 
     const createPopover = () => {
       // Close any existing popover
@@ -149,6 +184,26 @@ export default {
       return popover;
     };
 
+    // On Mount
+    onMounted(() => {
+      if (!props.editor) return;
+
+      // Listen for the slash menu to open
+      props.editor.on('slashMenu:open', (event) => {
+        currentTriggerType.value = 'slash';
+        isOpen.value = true;
+        menuPosition.value = calculateMenuPosition('slash', event.menuPosition);
+        searchQuery.value = '';  // Reset search on open
+      });
+
+      props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
+
+      props.editor.on('slashMenu:close', () => {
+        isOpen.value = false;
+        searchQuery.value = '';
+      });
+    });
+
     // Cleanup function for event listeners
     onBeforeUnmount(() => {
       document.removeEventListener('keydown', handlePopoverKeyDown);
@@ -158,6 +213,7 @@ export default {
       if (props.editor) {
         props.editor.off('slashMenu:open');
         props.editor.off('slashMenu:close');
+        props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
       }
     });
 
@@ -275,6 +331,7 @@ export default {
       items,
       handleKeyDown,
       executeCommand,
+      currentTriggerType, // expose if needed in template
     };
   },
 };
