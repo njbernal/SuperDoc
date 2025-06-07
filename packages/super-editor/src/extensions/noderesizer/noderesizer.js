@@ -179,6 +179,7 @@ const nodeResizer = (nodeNames = ['image']) => {
   }
 
   function startResize(view, event, handleElement) {
+    if (!view.hasFocus()) return;
     const handle = handleElement.getAttribute('data-handle');
     const pos = Number.parseInt(handleElement.getAttribute('data-pos'), 10);
     if (view.state.selection.from !== pos || !nodeNames.includes(view.state.selection.node?.type.name)) return;
