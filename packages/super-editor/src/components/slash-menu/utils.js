@@ -61,3 +61,39 @@ export function moveCursorToMouseEvent(event, editor) {
     view.focus();
   }
 }
+
+/**
+ * Get the current editor context for menu logic
+ *
+ * @param {Object} editor - The editor instance
+ * @param {MouseEvent} [event] - Optional mouse event (for context menu)
+ * @returns {Object} context - { editor, selectedText, pos, node, event }
+ */
+export function getEditorContext(editor, event) {
+  const { view } = editor;
+  const { state } = view;
+  const { from, to, empty } = state.selection;
+  console.log('state.selection', state.selection);
+  const selectedText = !empty ? state.doc.textBetween(from, to) : '';
+
+  let pos = null;
+  let node = null;
+
+  if (event) {
+    const coords = { left: event.clientX, top: event.clientY };
+    pos = view.posAtCoords(coords)?.pos ?? null;
+    node = pos !== null ? state.doc.nodeAt(pos) : null;
+  } else {
+    // For slash trigger, use the selection anchor
+    pos = from;
+    node = state.doc.nodeAt(pos);
+  }
+
+  return {
+    editor,
+    selectedText,
+    pos,
+    node,
+    event,
+  };
+}

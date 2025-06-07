@@ -5,23 +5,16 @@ import { Extension } from '@core/Extension.js';
 function getCursorPositionRelativeToContainer(view) {
   const { state, dom } = view;
   const { selection } = state;
+  
+  // Get the coordinates of the cursor/selection start in the viewport
+  const cursorCoords = view.coordsAtPos(selection.from);
+  // Get the bounding rectangle of the ProseMirror container
+  const containerRect = dom.getBoundingClientRect();
+  // Calculate the position relative to the container
+  const relativeX = cursorCoords.left - containerRect.left;
+  const relativeY = cursorCoords.top - containerRect.top;
 
-  if (selection.empty) {
-    // Get the coordinates of the cursor in the viewport
-    const cursorCoords = view.coordsAtPos(selection.from);
-    console.log('cursorCoords', cursorCoords);
-    // Get the bounding rectangle of the ProseMirror container
-    const containerRect = dom.getBoundingClientRect();
-    console.log('containerRect', containerRect);
-    // Calculate the position relative to the container
-    const relativeX = cursorCoords.left - containerRect.left;
-    const relativeY = cursorCoords.top - containerRect.top;
-
-    return { left: relativeX, top: relativeY };
-  } else {
-    console.warn('Selection is not empty, no single cursor position available.');
-    return null;
-  }
+  return { left: relativeX, top: relativeY };
 }
 
 export const SlashMenuPluginKey = new PluginKey('slashMenu');

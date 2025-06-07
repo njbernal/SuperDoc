@@ -3,7 +3,8 @@ import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, 
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
 import { moveCursorToMouseEvent } from './utils.js';
-import { defaultItems } from './menuItems.js';
+import { getItems } from './menuItems.js';
+import { getEditorContext } from './utils.js';
 
 export default {
   name: 'SlashMenu',
@@ -20,26 +21,18 @@ export default {
     const searchQuery = ref('');
     const activePopover = ref(null);
     const currentTriggerType = ref('slash');
-    const isOpen = ref(false);
-    const selectedId = ref(defaultItems[0]?.id || null);
+    const isOpen = ref(false)
     const menuPosition = ref({ left: '0px', top: '0px' });
     const menuRef = ref(menuPosition.value);
 
-    // Filtered items based on search query and current trigger type
-    const items = computed(() => {
-      // First filter by trigger type
-      const triggerFilteredItems = defaultItems.filter(item => {
-        // If item has allowedTriggers specified, use that, otherwise show in both
-        if (item.allowedTriggers) {
-          return item.allowedTriggers.includes(currentTriggerType.value);
-        }
-        return true;
-      });
+    // Only set items and selectedId when menu opens
+    const items = ref([]);
+    const selectedId = ref(null);
 
-      // Then filter by search query
-      if (!searchQuery.value) return triggerFilteredItems;
-      
-      return triggerFilteredItems.filter((item) =>
+    // Filtered items based on search query
+    const filteredItems = computed(() => {
+      if (!searchQuery.value) return items.value;
+      return items.value.filter((item) =>
         item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
     });
@@ -81,7 +74,7 @@ export default {
 
     const createPopover = () => {
       // Close any existing popover
-      closePopover();       
+      closePopover();
 
       // Create new popover
       const popover = document.createElement('div');
@@ -166,7 +159,6 @@ export default {
 
     const handleRightClick = (event) => {
       event.preventDefault();
-      moveCursorToMouseEvent(event, props.editor);
       props.editor.view.dispatch(
         props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
           type: 'open',
@@ -174,6 +166,10 @@ export default {
         })
       );
       searchQuery.value = '';
+      // Set items and selectedId when menu opens
+      const context = getEditorContext(props.editor, event);
+      items.value = getItems({ ...context, trigger: 'click' });
+      selectedId.value = items.value[0]?.id || null;
     }
 
     /**
@@ -184,14 +180,17 @@ export default {
 
       // Add global event listeners
       document.addEventListener('keydown', handleGlobalKeyDown);
-      document.addEventListener('click', handleGlobalOutsideClick);
+      document.addEventListener('mousedown', handleGlobalOutsideClick);
 
       // Listen for the slash menu to open
       props.editor.on('slashMenu:open', (event) => {
-        currentTriggerType.value = 'slash';
         isOpen.value = true;
         menuPosition.value = event.menuPosition;
         searchQuery.value = '';
+        // Set items and selectedId when menu opens
+        const context = getEditorContext(props.editor);
+        items.value = getItems({ ...context, trigger: 'slash' });
+        selectedId.value = items.value[0]?.id || null;
       });
 
       props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
@@ -205,7 +204,7 @@ export default {
     // Cleanup function for event listeners
     onBeforeUnmount(() => {
       document.removeEventListener('keydown', handleGlobalKeyDown);
-      document.removeEventListener('click', handleGlobalOutsideClick);
+      document.removeEventListener('mousedown', handleGlobalOutsideClick);
       closePopover();
       
       if (props.editor) {
@@ -217,14 +216,15 @@ export default {
 
     const executeCommand = (item) => {
       if (props.editor?.view) {
+        // First call the action if needed on the item
+        item.action ? item.action(props.editor) : null;
+
         if (item.component) {
+          // Open popover, do NOT move the cursor yet
           const popover = createPopover();
           document.body.appendChild(popover);
-          
           // Get props for the component
-          // By id (see utils.js)
           const componentProps = getPropsByItemId(item.id, { ...props, closePopover });
-          
           // Create a new Vue app instance for the component
           const app = createApp({
             setup() {
@@ -233,27 +233,19 @@ export default {
               ]);
             }
           });
-          
           // Mount the app to the popover
           const mountedApp = app.mount(popover);
-          
           // Store reference for cleanup
           popover._vueApp = app;
-          
-          // Don't close menu immediately for component actions
-          nextTick(() => {
-            // Only close the menu after the component is mounted
-            closeMenu();
-          });
-        } else if (item.action) {
-          // Execute action directly - give access to the editor view
-          item.action(props.editor.view);
-          closeMenu();
         }
+        // Don't close menu immediately for component actions
+        nextTick(() => {
+          // Only close the menu after the component is mounted
+          closeMenu();
+        });
       }
     };
 
-    // Update closeMenu to also close any active popover
     const closeMenu = (options = { restoreCursor: true }) => {
       if (props.editor?.view) {
         // Get plugin state to access anchorPos
@@ -292,6 +284,7 @@ export default {
       isOpen,
       selectedId,
       items,
+      filteredItems,
       handleGlobalKeyDown,
       executeCommand,
       currentTriggerType,
@@ -301,7 +294,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isOpen" ref="menuRef" class="slash-menu" :style="menuPosition">
+  <div v-if="isOpen" ref="menuRef" class="slash-menu" :style="menuPosition" @mousedown.stop>
     <!-- Hide the input visually but keep it focused for typing -->
     <input
       ref="searchInput"
@@ -314,7 +307,7 @@ export default {
 
     <div class="slash-menu-items">
       <div
-        v-for="item in items"
+        v-for="item in filteredItems"
         :key="item.id"
         class="slash-menu-item"
         :class="{ 'is-selected': item.id === selectedId }"
@@ -337,6 +330,7 @@ export default {
   border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
   margin-top: 0.5rem;
+  font-size: 12px;
 }
 
 /* Hide the input but keep it functional */
@@ -407,8 +401,8 @@ export default {
 }
 
 .slash-menu-item-icon svg {
-  height: 16px;
-  width: 16px;
+  height: 12px;
+  width: 12px;
 }
 
 .popover {
