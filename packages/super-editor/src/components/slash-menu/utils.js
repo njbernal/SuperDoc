@@ -1,3 +1,5 @@
+import { TextSelection } from 'prosemirror-state';
+
 /**
  * Get props by item id
  * 
@@ -43,28 +45,19 @@ export const getPropsByItemId = (itemId, props) => {
 }
 
 /**
- * Calculate menu position based on trigger type
- * @param {string} triggerType - 'slash' or 'click'
- * @param {Object} event - The event that triggered the menu (MouseEvent for click, custom event for slash)
+ * Move the editor cursor to the position closest to the mouse event
+ * @param {MouseEvent} event
  * @param {Object} editor - The editor instance
- * @returns {Object} - Position object with left and top coordinates
  */
-export const calculateMenuPosition = (triggerType, event, editor) => {
-
-    if (triggerType === 'click') {
-        // For right-click context menu, position relative to editor
-        const editorRect = editor.view.dom.getBoundingClientRect();
-        const relativeX = event.clientX - editorRect.left;
-        const relativeY = event.clientY - editorRect.top;
-        
-        return {
-            left: `${relativeX}px`,
-            top: `${relativeY}px`
-        };
-    } else {
-        // For slash menu, position based on text cursor
-        // The event should contain the coordinates of the text cursor
-        // event is the menuposition from the plugin for slash 
-        return event
-    }
+export function moveCursorToMouseEvent(event, editor) {
+  const { view } = editor;
+  const coords = { left: event.clientX, top: event.clientY };
+  const pos = view.posAtCoords(coords)?.pos;
+  if (typeof pos === 'number') {
+    const tr = view.state.tr.setSelection(
+      TextSelection.create(view.state.doc, pos)
+    );
+    view.dispatch(tr);
+    view.focus();
+  }
 }

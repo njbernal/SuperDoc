@@ -2,7 +2,7 @@
 import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h } from 'vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
-import { calculateMenuPosition } from './utils.js';
+import { moveCursorToMouseEvent } from './utils.js';
 import { defaultItems } from './menuItems.js';
 
 export default {
@@ -159,16 +159,21 @@ export default {
       }
       // Handle clicks outside menu
       else if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
-        closeMenu();
+        moveCursorToMouseEvent(event, props.editor);
+        closeMenu({ restoreCursor: false });
       }
     };
 
     const handleRightClick = (event) => {
-        event.preventDefault();
-        currentTriggerType.value = 'click';
-        isOpen.value = true;
-        menuPosition.value = calculateMenuPosition('click', event, props.editor);
-        searchQuery.value = '';  // Reset search on open
+      event.preventDefault();
+      moveCursorToMouseEvent(event, props.editor);
+      props.editor.view.dispatch(
+        props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
+          type: 'open',
+          pos: props.editor.view.state.selection.from,
+        })
+      );
+      searchQuery.value = '';
     }
 
     /**
@@ -185,8 +190,8 @@ export default {
       props.editor.on('slashMenu:open', (event) => {
         currentTriggerType.value = 'slash';
         isOpen.value = true;
-        menuPosition.value = calculateMenuPosition('slash', event.menuPosition);
-        searchQuery.value = '';  // Reset search on open
+        menuPosition.value = event.menuPosition;
+        searchQuery.value = '';
       });
 
       props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
@@ -249,7 +254,7 @@ export default {
     };
 
     // Update closeMenu to also close any active popover
-    const closeMenu = () => {
+    const closeMenu = (options = { restoreCursor: true }) => {
       if (props.editor?.view) {
         // Get plugin state to access anchorPos
         const pluginState = SlashMenuPluginKey.getState(props.editor.view.state);
@@ -262,8 +267,8 @@ export default {
           })
         );
 
-        // Restore cursor position and focus
-        if (anchorPos !== null) {
+        // Restore cursor position and focus only if requested
+        if (options.restoreCursor && anchorPos !== null) {
           const tr = props.editor.view.state.tr.setSelection(
             props.editor.view.state.selection.constructor.near(
               props.editor.view.state.doc.resolve(anchorPos)
