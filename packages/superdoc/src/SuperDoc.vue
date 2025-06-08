@@ -97,7 +97,6 @@ const {
   handleAiWriterClose,
   handleAiToolClick
 } = useAi({
-  emitAiHighlight: (params) => proxy.$superdoc.emit('ai-highlight', params),
   activeEditorRef
 });
 
@@ -373,12 +372,10 @@ onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
   }
-  proxy.$superdoc.on('ai-highlight', handleAiHighlight);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown);
-  proxy.$superdoc.off('ai-highlight', handleAiHighlight);
 });
 
 const selectionLayer = ref(null);

@@ -4,11 +4,10 @@ import { ref, reactive } from 'vue';
  * Composable to manage AI layer and AI writer functionality
  * 
  * @param {Object} options - Configuration options
- * @param {Function} options.emitAiHighlight - Function to emit AI highlight events
  * @param {Object} options.activeEditorRef - Ref to the active editor
  * @returns {Object} - AI state and methods
  */
-export function useAi({ emitAiHighlight, activeEditorRef }) {
+export function useAi({ activeEditorRef }) {
   // Shared state
   const showAiLayer = ref(false);
   const showAiWriter = ref(false);
@@ -67,8 +66,8 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
       
       // If we have selected text, add AI highlighting
       if (!selection.empty) {
-        // Emit the highlight event to trigger the AI highlighting
-        emitAiHighlight({ type: 'add', data: null });
+        // Add the ai mark to the document
+        editor.commands.insertAiMark();
       }
       
       let coords;
@@ -131,9 +130,14 @@ export function useAi({ emitAiHighlight, activeEditorRef }) {
    * Handle tool click for AI functionality
    */
   const handleAiToolClick = () => {
-    // Emit the highlight event before showing the AI writer
-    // @todo: is this double?
-    emitAiHighlight({ type: 'add', data: null });
+    // Add the ai mark to the document
+    const editor = activeEditorRef.value;
+    if (!editor || editor.isDestroyed) {
+      console.error('[useAi] Editor not available');
+      return;
+    }
+    editor.commands.insertAiMark();
+    // Show the AI writer at the cursor position
     showAiWriterAtCursor();
   };
 
