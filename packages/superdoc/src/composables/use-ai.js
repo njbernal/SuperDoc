@@ -15,41 +15,6 @@ export function useAi({ activeEditorRef }) {
   const aiLayer = ref(null);
 
   /**
-   * Handle AI highlighting events
-   * 
-   * @param {Object} params - Event parameters
-   * @param {String} params.type - Type of event (add/remove)
-   * @param {Object} params.data - Additional data (optional)
-   */
-  const handleAiHighlight = ({ type, data }) => {
-    if (!aiLayer.value) return;
-    
-    // Get the editor from the ref
-    const editor = activeEditorRef.value;
-
-    switch (type) {
-      case 'add':
-        // First clear any existing pulse animation if the editor is available
-        if (editor && !editor.isDestroyed) {
-          editor.commands.clearAiHighlightStyle();
-        }
-        // Then add the highlight
-        aiLayer.value.addAiHighlight();
-        break;
-      case 'remove':
-        // Clear any pulse animation before removing highlight
-        if (editor && !editor.isDestroyed) {
-          editor.commands.clearAiHighlightStyle();
-        }
-        aiLayer.value.removeAiHighlight();
-        break;
-      case 'update':
-        aiLayer.value.updateAiHighlight();
-        break;
-    }
-  };
-
-  /**
    * Show the AI writer at the current cursor position
    */
   const showAiWriterAtCursor = () => {
@@ -150,7 +115,6 @@ export function useAi({ activeEditorRef }) {
     
     // Methods
     initAiLayer,
-    handleAiHighlight,
     showAiWriterAtCursor,
     handleAiWriterClose,
     handleAiToolClick

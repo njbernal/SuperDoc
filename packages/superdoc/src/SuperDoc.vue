@@ -92,7 +92,6 @@ const {
   aiWriterPosition,
   aiLayer,
   initAiLayer,
-  handleAiHighlight,
   showAiWriterAtCursor,
   handleAiWriterClose,
   handleAiToolClick
@@ -611,7 +610,7 @@ watch(getFloatingComments, () => {
     <div class="ai-writer-container" v-if="showAiWriter" :style="aiWriterPosition">
       <AIWriter :selected-text="selectedText" :handle-close="handleAiWriterClose" :editor="proxy.$superdoc.activeEditor"
         :api-key="proxy.$superdoc.toolbar?.config?.aiApiKey" :endpoint="proxy.$superdoc.config?.modules?.ai?.endpoint"
-        @ai-highlight="handleAiHighlight" />
+      />
     </div>
   </div>
 </template>
