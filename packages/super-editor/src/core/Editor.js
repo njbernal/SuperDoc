@@ -8,7 +8,7 @@ import { ExtensionService } from './ExtensionService.js';
 import { CommandService } from './CommandService.js';
 import { Attribute } from './Attribute.js';
 import { SuperConverter } from '@core/super-converter/SuperConverter.js';
-import { Commands, Keymap, Editable, EditorFocus } from './extensions/index.js';
+import { Commands, Editable, EditorFocus, Keymap } from './extensions/index.js';
 import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
@@ -17,16 +17,13 @@ import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/
 import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import { getRichTextExtensions } from '../extensions/index.js';
-import { AnnotatorServices } from '@helpers/annotator.js';
-import {
-  prepareCommentsForExport,
-  prepareCommentsForImport,
-} from '@extensions/comment/comments-helpers.js';
+import { AnnotatorHelpers } from '@helpers/annotator.js';
+import { prepareCommentsForExport, prepareCommentsForImport } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
 import { generateCollaborationData } from '@extensions/collaboration/collaboration.js';
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
-
+import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
 /**
  * @typedef {Object} FieldValue
  * @property {string} input_id The id of the input field
@@ -242,6 +239,8 @@ export class Editor extends EventEmitter {
 
     let initMode = modes[this.options.mode] ?? modes.default;
 
+    const { setHighContrastMode } = useHighContrastMode();
+    this.setHighContrastMode = setHighContrastMode;
     initMode();
   }
 
@@ -947,6 +946,7 @@ export class Editor extends EventEmitter {
           toggleHeaderFooterEditMode(this, null, false);
           const pm = document.querySelector('.ProseMirror');
           pm.classList.remove('header-footer-edit');
+          pm.setAttribute('aria-readonly', false);
         }
       }
     });
@@ -1013,6 +1013,11 @@ export class Editor extends EventEmitter {
     if (!proseMirror || !pageSize || !pageMargins) {
       return;
     }
+    
+    proseMirror.setAttribute('role', 'document');
+    proseMirror.setAttribute('aria-multiline', true);
+    proseMirror.setAttribute('aria-label', 'Main content area, start typing to enter text.');
+    proseMirror.setAttribute('aria-description', '');
 
     // Set fixed dimensions and padding that won't change with scaling
     element.style.width = pageSize.width + 'in';
@@ -1450,10 +1455,16 @@ export class Editor extends EventEmitter {
       updatedDocs['word/commentsExtensible.xml'] = String(commentsExtensibleXml);
       updatedDocs['word/commentsIds.xml'] = String(commentsIdsXml);
     }
-    
-    if (getUpdatedDocs) return updatedDocs;
 
     const zipper = new DocxZipper();
+    
+    if (getUpdatedDocs) {
+      updatedDocs['[Content_Types].xml'] = await zipper.updateContentTypes({
+        files: this.options.content
+      }, media, true);
+      return updatedDocs;
+    }
+    
     const result = await zipper.updateZip({
       docx: this.options.content,
       updatedDocs: updatedDocs,
@@ -1618,11 +1629,8 @@ export class Editor extends EventEmitter {
    */
   prepareForAnnotations(annotationValues = []) {
     const { tr } = this.state;
-    const { dispatch } = this.view;
-    const newTr = AnnotatorServices.processTables({ state: this.state, tr, annotationValues });
-    this.view.dispatch(newTr);
-  
-    AnnotatorServices.annotateHeadersAndFooters({ editor: this, annotationValues });
+    const newTr = AnnotatorHelpers.processTables({ state: this.state, tr, annotationValues });
+    this.view.dispatch(newTr);  
   }
 
   /**
@@ -1632,16 +1640,17 @@ export class Editor extends EventEmitter {
    * @param {String[]} hiddenIds List of field ids to remove from the document.
    * @returns {void}
    */
-  annotate(annotationValues = [], hiddenIds = []) {
+  annotate(annotationValues = [], hiddenIds = [], removeEmptyFields = false) {
     const { state, view, schema } = this;
     let tr = state.tr;
 
-    tr = AnnotatorServices.processTables({ state: this.state, tr, annotationValues });
-    tr = AnnotatorServices.annotateDocument({
+    tr = AnnotatorHelpers.processTables({ state: this.state, tr, annotationValues });
+    tr = AnnotatorHelpers.annotateDocument({
       tr,
       schema,
       annotationValues,
       hiddenFieldIds: hiddenIds,
+      removeEmptyFields,
       editor: this,
     });
 

@@ -137,7 +137,11 @@ export const createHeaderFooterEditor = ({
   pm.style.minHeight = '100%';
   pm.style.outline = 'none';
   pm.style.border = 'none';
-
+  
+  pm.setAttribute('role', 'textbox');
+  pm.setAttribute('aria-multiline', true);
+  pm.setAttribute('aria-label', `${type} content area. Double click to start typing.`);
+  
   return headerFooterEditor;
 };
 
@@ -161,15 +165,18 @@ export const broadcastEditorEvents = (editor, sectionEditor) => {
 export const toggleHeaderFooterEditMode = (editor, focusedSectionEditor, isEditMode) => {
   editor.converter.headerEditors.forEach(item => {
     item.editor.setEditable(isEditMode, false);
+    item.editor.view.dom.setAttribute('aria-readonly', !isEditMode);
   });
   
   editor.converter.footerEditors.forEach(item => {
     item.editor.setEditable(isEditMode, false);
+    item.editor.view.dom.setAttribute('aria-readonly', !isEditMode);
   });
   
   if (isEditMode) {
     const pm = document.querySelector('.ProseMirror');
     pm.classList.add('header-footer-edit');
+    pm.setAttribute('aria-readonly', true);
   }
   
   if (focusedSectionEditor) {

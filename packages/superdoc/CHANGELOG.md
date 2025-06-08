@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.12.36-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.35-next.1...v0.12.36-next.1) (2025-06-06)
+
+## [0.12.35-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.34-next.2...v0.12.35-next.1) (2025-06-06)
+
+
+### Features
+
+* (accessibility) simulate click with enter ([f9cd0b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/f9cd0b4f5f8148ad0d0afad091288b32333f4cd3))
+* added extra accessibility features ([6a0f9d8](https://github.com/Harbour-Enterprises/SuperDoc/commit/6a0f9d80ae281f21ebc39beb8a14be027ef24619))
+* added initial toolbar keyboard navigation ([e37d79b](https://github.com/Harbour-Enterprises/SuperDoc/commit/e37d79bd284265f9b22f9a1ec23d05e58c21263a))
+* added roving tabindex ([6c77015](https://github.com/Harbour-Enterprises/SuperDoc/commit/6c770155532b805888d37bc91cb4d120129d541f))
+
+## [0.12.34-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.34-next.1...v0.12.34-next.2) (2025-06-06)
+
+## [0.12.34-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31-next.5...v0.12.34-next.1) (2025-06-06)
+
+## [0.12.31-next.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31-next.4...v0.12.31-next.5) (2025-06-06)
+
+## [0.12.31-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31-next.3...v0.12.31-next.4) (2025-06-06)
+
+## [0.12.31-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31-next.2...v0.12.31-next.3) (2025-06-06)
+
+## [0.12.31-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31-next.1...v0.12.31-next.2) (2025-06-06)
+
+## [0.12.31-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.30-next.2...v0.12.31-next.1) (2025-06-05)
+
+## [0.12.30-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.13.1...v0.12.30-next.2) (2025-06-05)
+
+## [0.13.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.13.0...v0.13.1) (2025-06-05)
+
+# [0.13.0](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.31...v0.13.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* added missing dep ([de22944](https://github.com/Harbour-Enterprises/SuperDoc/commit/de229443f5352a186b1d95afc0f4dbbc7f9dd93b))
+* removed unnecessary change ([9e3b43b](https://github.com/Harbour-Enterprises/SuperDoc/commit/9e3b43b8bb94357ae4f9ca37d04c9c5321060f59))
+
+
+### Features
+
+* added high contrast mode example ([6802937](https://github.com/Harbour-Enterprises/SuperDoc/commit/6802937bfe67cf0ee500d4dbd1464efc6ebcd7b9))
+* added initial support for high contrast mode ([eabd56f](https://github.com/Harbour-Enterprises/SuperDoc/commit/eabd56f11790614d72c5ae084a0506361b50344c))
+* added missing package-lock changes ([a0776fc](https://github.com/Harbour-Enterprises/SuperDoc/commit/a0776fca006084eceb2ead48ad4f35259c758e82))
+* expose function to set high contrast mode ([aab5ebb](https://github.com/Harbour-Enterprises/SuperDoc/commit/aab5ebbee9b68717cfc3fa6e86d0d7c70c955125))
+
+## [0.12.31](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.30...v0.12.31) (2025-06-05)
+
 ## [0.12.30](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.29...v0.12.30) (2025-06-05)
 
 ## [0.12.29](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.28...v0.12.29) (2025-06-05)

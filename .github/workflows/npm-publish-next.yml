@@ -1,9 +1,9 @@
-name: Release "latest" tag SuperDoc Package to npm
+name: Publish develop branch to npm ("next" tag)
 
 on:
   push:
     branches:
-      - main
+      - develop
     paths-ignore:
       - '*.md'
       - 'LICENSE'
@@ -14,6 +14,8 @@ on:
       - '*.yml'
       - '*.yaml'
       - '.prettierrc'
+      - 'examples/**'
+      - '.github/**'
 
   workflow_dispatch:
 
@@ -25,7 +27,7 @@ jobs:
   run-unit-tests:
     uses: ./.github/workflows/run-unit-tests.yml
 
-  release:
+  release-next:
     # Block the workflow until the run-unit-tests job is complete
     needs: run-unit-tests
     # Only run if:
@@ -56,9 +58,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Release
+      - name: Publish "next" npm tag
         working-directory: packages/superdoc
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm run release
+        run: npm run release:next

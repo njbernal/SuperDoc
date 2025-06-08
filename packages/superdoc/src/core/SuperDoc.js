@@ -309,7 +309,7 @@ export class SuperDoc extends EventEmitter {
   }
 
   #initVueApp() {
-    const { app, pinia, superdocStore, commentsStore } = createSuperdocVueApp();
+    const { app, pinia, superdocStore, commentsStore, highContrastModeStore } = createSuperdocVueApp();
     this.app = app;
     this.pinia = pinia;
     this.app.config.globalProperties.$config = this.config;
@@ -318,6 +318,7 @@ export class SuperDoc extends EventEmitter {
     this.app.config.globalProperties.$superdoc = this;
     this.superdocStore = superdocStore;
     this.commentsStore = commentsStore;
+    this.highContrastModeStore = highContrastModeStore;
     this.superdocStore.init(this.config);
     this.commentsStore.init(this.config.modules.comments);
   }
@@ -341,9 +342,9 @@ export class SuperDoc extends EventEmitter {
   /**
    * Initialize collaboration if configured
    * @param {Object} config
-   * @returns {Promise<Array>} The processed documents with collaboration enabled
+   * @returns {Promise<Object[]>} The processed documents with collaboration enabled
    */
-  async #initCollaboration({ collaboration: collaborationModuleConfig } = {}) {
+  async #initCollaboration({ collaboration: collaborationModuleConfig, comments: commentsConfig = {} } = {}) {
     if (!collaborationModuleConfig) return this.config.documents;
 
     // Flag this superdoc as collaborative
@@ -354,14 +355,23 @@ export class SuperDoc extends EventEmitter {
       url: collaborationModuleConfig.url,
     });
 
-    // Initialize global superdoc sync - for comments, view, etc.
-    initSuperdocYdoc(this);
+    // Initialize collaboration for documents
+    const processedDocuments = makeDocumentsCollaborative(this);
+
+    // Optionally, initialize separate superdoc sync - for comments, view, etc.
+    if (commentsConfig.useInternalExternalComments && !commentsConfig.suppressInternalExternalComments) {
+      const { ydoc: sdYdoc, provider: sdProvider } = initSuperdocYdoc(this);
+      this.ydoc = sdYdoc;
+      this.provider = sdProvider;
+    } else {
+      this.ydoc = processedDocuments[0].ydoc;
+      this.provider = processedDocuments[0].provider;
+    };
 
     // Initialize comments sync, if enabled
     initCollaborationComments(this);
 
-    // Initialize collaboration for documents
-    return makeDocumentsCollaborative(this);
+    return processedDocuments;
   }
 
   /**
@@ -864,5 +874,16 @@ export class SuperDoc extends EventEmitter {
         }
       });
     }
+  }
+
+  /**
+   * Set the high contrast mode
+   * @param {boolean} isHighContrast
+   * @returns {void}
+   */
+  setHighContrastMode(isHighContrast) {
+    if (!this.activeEditor) return;
+    this.activeEditor.setHighContrastMode(isHighContrast);
+    this.highContrastModeStore.setHighContrastMode(isHighContrast);
   }
 }
