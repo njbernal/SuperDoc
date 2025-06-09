@@ -1,5 +1,5 @@
 <script>
-import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h } from 'vue';
+import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h, markRaw } from 'vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
 import { moveCursorToMouseEvent } from './utils.js';
@@ -137,7 +137,6 @@ export default {
             event.preventDefault();
             const selectedItem = currentItems.find(item => item.id === selectedId.value);
             if (selectedItem) {
-              closeMenu();
               executeCommand(selectedItem);
             }
             break;
@@ -222,7 +221,7 @@ export default {
         item.action ? await item.action(props.editor) : null;
 
         if (item.component) {
-          // Open popover, do NOT move the cursor yet
+          // Create popover BEFORE closing menu
           const popover = createPopover();
           document.body.appendChild(popover);
           // Get props for the component
@@ -231,20 +230,27 @@ export default {
           const app = createApp({
             setup() {
               return () => h('div', { class: 'popover-content' }, [
-                h(item.component, componentProps)
+                h(markRaw(item.component), componentProps)
               ]);
             }
           });
-          // Mount the app to the popover
-          const mountedApp = app.mount(popover);
-          // Store reference for cleanup
-          popover._vueApp = app;
-        }
-        // Don't close menu immediately for component actions
-        nextTick(() => {
-          // Only close the menu after the component is mounted
+
+          // Wait for component to be mounted
+          // This is needed to get the positioning of the menu before the menu is closed
+          // Position is used for the popover
+          return new Promise((resolve) => {
+            // Mount the app and wait for it to be ready
+            app.mount(popover);
+            popover._vueApp = app;
+            requestAnimationFrame(() => {
+              closeMenu();
+              resolve();
+            });
+          });
+        } else {
+          // For non-component actions, close immediately
           closeMenu();
-        });
+        }
       }
     };
 
