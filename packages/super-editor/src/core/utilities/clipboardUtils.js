@@ -1,6 +1,6 @@
 // clipboardUtils.js
 
-import { DOMSerializer, DOMParser } from 'prosemirror-model';
+import { DOMSerializer, DOMParser, Fragment } from 'prosemirror-model';
 
 /**
  * Serializes the current selection in the editor state to HTML and plain text for clipboard use.
@@ -83,4 +83,23 @@ export async function readFromClipboard(state) {
     content = state.schema.text(text);
   }
   return content;
+}
+
+// Helper to check if a node or fragment is block
+export function isBlockContent(content) {
+  if (!content) return false;
+  if (content instanceof Fragment) {
+    // If any child is a block node
+    return content.content.some(child => child.isBlock);
+  }
+  return content.content[0].isBlock;
+}
+
+// Helper to extract plain text from fragment or node
+export function extractText(content) {
+  if (!content) return '';
+  if (content instanceof Fragment) {
+    return content.textBetween(0, content.size, '\n');
+  }
+  return content.textContent;
 } 

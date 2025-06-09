@@ -1,6 +1,6 @@
 import { toolbarIcons } from '../toolbar/toolbarIcons.js';
 import AIWriter from '../toolbar/AIWriter.vue';
-import { serializeSelectionToClipboard, writeToClipboard, readFromClipboard } from '../../core/utilities/clipboardUtils.js';
+import { serializeSelectionToClipboard, writeToClipboard, isBlockContent, extractText } from '../../core/utilities/clipboardUtils.js';
 
 /**
  * Get menu items based on context (trigger, selection, node, etc)
@@ -63,12 +63,35 @@ export function getItems(context) {
       id: 'paste',
       label: 'Paste',
       icon: toolbarIcons.paste,
-        action: async (editor) => {
+      action: async (editor) => {
         const { state, dispatch } = editor.view;
-        if (clipboardContent) {
-          const { from, to } = state.selection;
-          dispatch(state.tr.replaceWith(from, to, clipboardContent));
+        if (!clipboardContent) return;
+        const selection = state.selection;
+        const schema = state.schema;
+        // If selection is inside a textblock (paragraph, heading, etc)
+        const $from = selection.$from;
+        const parent = $from.parent;
+        const isInlineContext = parent.isTextblock && $from.parentOffset !== 0;
+        // If clipboard content is block and we're in inline context, paste as text
+        if (isBlockContent(clipboardContent) && isInlineContext) {
+          const text = extractText(clipboardContent);
+          if (text) {
+            const textNode = schema.text(text);
+            dispatch(state.tr.replaceSelectionWith(textNode, false));
+          }
+          return;
         }
+        // If clipboard content is inline or we're at block level, paste as-is
+        // Fix for pasting at end of doc: if selection is at end, use insert instead of replaceSelectionWith
+        const atEnd = selection.$to.pos === state.doc.content.size;
+        if (atEnd && isBlockContent(clipboardContent)) {
+          // Insert at end
+          let tr = state.tr.insert(state.doc.content.size, clipboardContent);
+          dispatch(tr.scrollIntoView());
+          return;
+        }
+        // Default: replace selection with clipboard content
+        dispatch(state.tr.replaceSelectionWith(clipboardContent, false));
       },
       allowedTriggers: ['click'],
       requiresClipboard: true
