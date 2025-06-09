@@ -157,7 +157,7 @@ export default {
       }
     };
 
-    const handleRightClick = (event) => {
+    const handleRightClick = async (event) => {
       event.preventDefault();
       props.editor.view.dispatch(
         props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
@@ -167,7 +167,7 @@ export default {
       );
       searchQuery.value = '';
       // Set items and selectedId when menu opens
-      const context = getEditorContext(props.editor, event);
+      const context = await getEditorContext(props.editor, event);
       items.value = getItems({ ...context, trigger: 'click' });
       selectedId.value = items.value[0]?.id || null;
     }
@@ -183,12 +183,12 @@ export default {
       document.addEventListener('mousedown', handleGlobalOutsideClick);
 
       // Listen for the slash menu to open
-      props.editor.on('slashMenu:open', (event) => {
+      props.editor.on('slashMenu:open', async (event) => {
         isOpen.value = true;
         menuPosition.value = event.menuPosition;
         searchQuery.value = '';
         // Set items and selectedId when menu opens
-        const context = getEditorContext(props.editor);
+        const context = await getEditorContext(props.editor);
         items.value = getItems({ ...context, trigger: 'slash' });
         selectedId.value = items.value[0]?.id || null;
       });
@@ -214,10 +214,10 @@ export default {
       }
     });
 
-    const executeCommand = (item) => {
-      if (props.editor?.view) {
+    const executeCommand = async (item) => {
+      if (props.editor) {
         // First call the action if needed on the item
-        item.action ? item.action(props.editor) : null;
+        item.action ? await item.action(props.editor) : null;
 
         if (item.component) {
           // Open popover, do NOT move the cursor yet

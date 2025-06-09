@@ -1,4 +1,5 @@
 import { TextSelection } from 'prosemirror-state';
+import { readFromClipboard } from '../../core/utilities/clipboardUtils.js';
 
 /**
  * Get props by item id
@@ -69,11 +70,10 @@ export function moveCursorToMouseEvent(event, editor) {
  * @param {MouseEvent} [event] - Optional mouse event (for context menu)
  * @returns {Object} context - { editor, selectedText, pos, node, event }
  */
-export function getEditorContext(editor, event) {
+export async function getEditorContext(editor, event) {
   const { view } = editor;
   const { state } = view;
   const { from, to, empty } = state.selection;
-  console.log('state.selection', state.selection);
   const selectedText = !empty ? state.doc.textBetween(from, to) : '';
 
   let pos = null;
@@ -89,11 +89,15 @@ export function getEditorContext(editor, event) {
     node = state.doc.nodeAt(pos);
   }
 
+  // We need to check if we have anything in the clipboard
+  const clipboardContent = await readFromClipboard(state);
+
   return {
     editor,
     selectedText,
     pos,
     node,
     event,
+    clipboardContent,
   };
 }
