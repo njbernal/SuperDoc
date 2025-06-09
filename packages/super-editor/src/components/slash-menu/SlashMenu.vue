@@ -163,6 +163,8 @@ export default {
         props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
           type: 'open',
           pos: props.editor.view.state.selection.from,
+          clientX: event.clientX,
+          clientY: event.clientY,
         })
       );
       searchQuery.value = '';

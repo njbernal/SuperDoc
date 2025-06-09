@@ -1,20 +1,30 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Extension } from '@core/Extension.js';
 
-// Utility to move later
-function getCursorPositionRelativeToContainer(view) {
+/**
+ * Calculates the cursor position relative to the editor container element
+ * @param {EditorView} view - The ProseMirror editor view instance
+ * @param {Object} eventLocation - Object containing clientX/clientY coordinates from an event
+ * @param {number} [eventLocation.clientX] - The x coordinate relative to the viewport
+ * @param {number} [eventLocation.clientY] - The y coordinate relative to the viewport
+ * @returns {{left: number, top: number}} The cursor position relative to the container
+ */
+function getCursorPositionRelativeToContainer(view, eventLocation) {
   const { state, dom } = view;
   const { selection } = state;
-  
-  // Get the coordinates of the cursor/selection start in the viewport
-  const cursorCoords = view.coordsAtPos(selection.from);
-  // Get the bounding rectangle of the ProseMirror container
   const containerRect = dom.getBoundingClientRect();
-  // Calculate the position relative to the container
-  const relativeX = cursorCoords.left - containerRect.left;
-  const relativeY = cursorCoords.top - containerRect.top;
-
-  return { left: relativeX, top: relativeY };
+  let x, y;
+  if (typeof eventLocation.clientX === 'number' && typeof eventLocation.clientY === 'number') {
+    // Use the provided mouse coordinates
+    x = eventLocation.clientX - containerRect.left;
+    y = eventLocation.clientY - containerRect.top;
+  } else {
+    // Fallback to the cursor/selection start in the viewport
+    const cursorCoords = view.coordsAtPos(selection.from);
+    x = cursorCoords.left - containerRect.left;
+    y = cursorCoords.top - containerRect.top;
+  }
+  return { left: x, top: y };
 }
 
 export const SlashMenuPluginKey = new PluginKey('slashMenu');
@@ -44,7 +54,7 @@ export const SlashMenu = Extension.create({
 
           switch (meta.type) {
             case 'open': {
-              const pos = getCursorPositionRelativeToContainer(editor.view);
+              const pos = getCursorPositionRelativeToContainer(editor.view, meta);
               const menuPosition = {
                 left: `${pos.left + 100}px`,
                 top: `${pos.top + 28}px`,
