@@ -243,13 +243,14 @@ export default {
             app.mount(popover);
             popover._vueApp = app;
             requestAnimationFrame(() => {
-              closeMenu();
+              // Do NOT restore editor focus if mounting a component
+              closeMenu({ restoreCursor: false });
               resolve();
             });
           });
         } else {
-          // For non-component actions, close immediately
-          closeMenu();
+          // For non-component actions, close immediately and restore focus
+          closeMenu({ restoreCursor: true });
         }
       }
     };
@@ -281,6 +282,7 @@ export default {
         // Update local state
         isOpen.value = false;
         searchQuery.value = '';
+        items.value = [];
       }
     };
 

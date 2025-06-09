@@ -64,11 +64,14 @@ const saveSelection = () => {
 };
 
 const focusTextarea = () => {
-  nextTick(() => {
-    if (editableRef.value) {
-      editableRef.value.focus();
-    }
-  });
+  // Defer focus to after all event handlers (including browser's default)
+  setTimeout(() => {
+    nextTick(() => {
+      if (editableRef.value) {
+        editableRef.value.focus();
+      }
+    });
+  }, 0);
 };
 
 const addEventListeners = () => {
