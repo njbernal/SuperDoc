@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.36-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.3...v0.12.36-next.4) (2025-06-10)
+
+
+### Reverts
+
+* Revert "Undo tests around spacing - will refactor" ([f40647f](https://github.com/Harbour-Enterprises/SuperDoc/commit/f40647f7788f97db7a678282f0d197f59af981f3))
+
 ## [0.12.36-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.2...v0.12.36-next.3) (2025-06-09)
 
 ## [0.12.36-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.1...v0.12.36-next.2) (2025-06-09)
