@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.12.36-next.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.7...v0.12.36-next.8) (2025-06-11)
+
+## [0.12.36-next.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.6...v0.12.36-next.7) (2025-06-10)
+
+## [0.12.36-next.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.5...v0.12.36-next.6) (2025-06-10)
+
+## [0.12.36-next.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.4...v0.12.36-next.5) (2025-06-10)
+
+## [0.12.36-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.3...v0.12.36-next.4) (2025-06-10)
+
+
+### Reverts
+
+* Revert "Undo tests around spacing - will refactor" ([f40647f](https://github.com/Harbour-Enterprises/SuperDoc/commit/f40647f7788f97db7a678282f0d197f59af981f3))
+
+## [0.12.36-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.2...v0.12.36-next.3) (2025-06-09)
+
+## [0.12.36-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.36-next.1...v0.12.36-next.2) (2025-06-09)
+
 ## [0.12.36-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.35-next.1...v0.12.36-next.1) (2025-06-06)
 
 ## [0.12.35-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.34-next.2...v0.12.35-next.1) (2025-06-06)
