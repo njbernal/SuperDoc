@@ -35,6 +35,10 @@ export const SlashMenu = Extension.create({
   addPmPlugins() {
     const editor = this.editor;
 
+    // Cooldown flag and timeout for slash menu
+    let slashCooldown = false;
+    let slashCooldownTimeout = null;
+
     const slashMenuPlugin = new Plugin({
       key: SlashMenuPluginKey,
 
@@ -108,6 +112,11 @@ export const SlashMenu = Extension.create({
           destroy() {
             window.removeEventListener('scroll', updatePosition, true);
             window.removeEventListener('resize', updatePosition);
+            // Clear cooldown timeout if exists
+            if (slashCooldownTimeout) {
+              clearTimeout(slashCooldownTimeout);
+              slashCooldownTimeout = null;
+            }
           },
         };
       },
@@ -115,6 +124,11 @@ export const SlashMenu = Extension.create({
       props: {
         handleKeyDown(view, event) {
           const pluginState = this.getState(view.state);
+
+          // If cooldown is active and slash is pressed, allow default behavior
+          if (event.key === '/' && slashCooldown) {
+            return false; // Let browser handle it
+          }
 
           if (event.key === '/' && !pluginState.open) {
             const { $cursor } = view.state.selection;
@@ -128,6 +142,14 @@ export const SlashMenu = Extension.create({
             if (!isEmptyOrAfterSpace) return false;
 
             event.preventDefault();
+
+            // Set cooldown
+            slashCooldown = true;
+            if (slashCooldownTimeout) clearTimeout(slashCooldownTimeout);
+            slashCooldownTimeout = setTimeout(() => {
+              slashCooldown = false;
+              slashCooldownTimeout = null;
+            }, 5000);
 
             // Only dispatch state update - event will be emitted in apply()
             view.dispatch(
