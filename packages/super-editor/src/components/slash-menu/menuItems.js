@@ -1,5 +1,7 @@
 import { toolbarIcons } from '../toolbar/toolbarIcons.js';
+import TableGrid from '../toolbar/TableGrid.vue';
 import AIWriter from '../toolbar/AIWriter.vue';
+import { isInsideTable } from './utils.js';
 import { serializeSelectionToClipboard, writeToClipboard, isBlockContent, extractText } from '../../core/utilities/clipboardUtils.js';
 
 /**
@@ -14,10 +16,13 @@ import { serializeSelectionToClipboard, writeToClipboard, isBlockContent, extrac
  *   allowedTriggers: Array<'slash'|'click'>,
  *   requiresSelection?: boolean,
  *   requiresClipboard?: boolean
+ *   requiresTableParent?: boolean
  * }>} Array of menu items
  */
 export function getItems(context) {
-  const { selectedText, node, event, trigger, clipboardContent } = context;
+  const { editor, selectedText, trigger, clipboardContent } = context;
+
+  const isInTable = isInsideTable(editor.view.state);
 
   const items = [
     {
@@ -32,6 +37,14 @@ export function getItems(context) {
         }
       },
       allowedTriggers: ['slash', 'click'],
+    },
+    {
+      id: 'table',
+      label: isInTable ? 'Edit Table' : 'Insert Table',
+      icon: toolbarIcons.table,
+      component: isInTable ? TableGrid : TableGrid,
+      allowedTriggers: ['slash', 'click'],
+      requiresTableParent: true,
     },
     {
       id: 'cut',

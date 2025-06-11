@@ -32,7 +32,14 @@ export const getPropsByItemId = (itemId, props) => {
                 apiKey: editor.options?.aiApiKey,
                 endpoint: editor.options?.aiEndpoint,
             };
-
+        case 'table':
+            return {
+                ...baseProps,
+                onSelect: ({rows, cols}) => {
+                    editor.commands.insertTable({ rows, cols });
+                    props.closePopover();
+                },
+            };
         case 'copy':
         case 'paste':
             return {
@@ -100,4 +107,21 @@ export async function getEditorContext(editor, event) {
     event,
     clipboardContent,
   };
+}
+
+/**
+ * Checks if the current selection is inside a table node
+ * Used to determine whether to show table-specific menu items in the slash menu
+ * 
+ * @param {EditorState} state - The current editor state
+ * @returns {boolean} True if selection is inside a table, false otherwise
+ */
+export function isInsideTable(state) {
+  const $from = state.selection.$from;
+  for (let d = $from.depth; d > 0; d--) {
+    if ($from.node(d).type.name === 'table') {
+      return true;
+    }
+  }
+  return false;
 }

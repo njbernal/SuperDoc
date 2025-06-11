@@ -335,7 +335,8 @@ export default {
 .slash-menu {
   position: absolute;
   z-index: 50;
-  width: 200px;
+  width: 175px;
+  color: #47484a;
   background: white;
   border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
