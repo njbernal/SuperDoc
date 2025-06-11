@@ -17,14 +17,120 @@ import checkIconSvg from '@harbour-enterprises/common/icons/check.svg?raw';
 import SearchInput from './SearchInput.vue';
 import { TOOLBAR_FONTS } from './constants.js';
 
+//Do we need to pass this in to "makeDefaultItems" or is it better to just import it?
+import { toolbarTexts } from './toolbarTexts.js';
+import { toolbarIcons } from './toolbarIcons.js';
+
+export const tableActionsOptions = [
+  { 
+    label: toolbarTexts.addRowBefore,
+    command: 'addRowBefore',
+    icon: toolbarIcons.addRowBefore,
+    props: { 
+      'data-item': 'btn-tableActions-option', 
+      ariaLabel: 'Add row before',
+    }
+  },
+  { 
+    label: toolbarTexts.addRowAfter,
+    command: 'addRowAfter',
+    icon: toolbarIcons.addRowAfter,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Add row after',
+    }
+  },
+  { 
+    label: toolbarTexts.addColumnBefore,
+    command: 'addColumnBefore',
+    icon: toolbarIcons.addColumnBefore,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Add column before',
+    }
+  },
+  { 
+    label: toolbarTexts.addColumnAfter,
+    command: 'addColumnAfter',
+    icon: toolbarIcons.addColumnAfter,
+    bottomBorder: true,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Add column after',
+    }
+  },
+  { 
+    label: toolbarTexts.deleteRow,
+    command: 'deleteRow',
+    icon: toolbarIcons.deleteRow,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Delete row',
+    }
+  },
+  { 
+    label: toolbarTexts.deleteColumn,
+    command: 'deleteColumn',
+    icon: toolbarIcons.deleteColumn,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Delete column',
+    }
+  },
+  { 
+    label: toolbarTexts.deleteTable,
+    command: 'deleteTable',
+    icon: toolbarIcons.deleteTable,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Delete table',
+    }
+  },
+  { 
+    label: toolbarTexts.transparentBorders,
+    command: 'deleteCellAndTableBorders',
+    icon: toolbarIcons.deleteBorders,
+    bottomBorder: true,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Delete cell and table borders',
+    }
+  },
+  { 
+    label: toolbarTexts.mergeCells,
+    command: 'mergeCells',
+    icon: toolbarIcons.mergeCells,
+    props: { 
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Merge cells',
+    }
+  },
+  { 
+    label: toolbarTexts.splitCell,
+    command: 'splitCell',
+    icon: toolbarIcons.splitCell,
+    props: {
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Split cells',
+    }
+  },
+  { 
+    label: toolbarTexts.fixTables,
+    command: 'fixTables',
+    icon: toolbarIcons.fixTables,
+    props: {
+      'data-item': 'btn-tableActions-option',
+      ariaLabel: 'Fix tables',
+    }
+  },
+];
+
 const closeDropdown = (dropdown) => {
   dropdown.expand.value = false;
 };
 
 export const makeDefaultItems = ({
   superToolbar,
-  toolbarIcons,
-  toolbarTexts,
   toolbarFonts,
   hideButtons,
   availableWidth,
@@ -427,110 +533,6 @@ export const makeDefaultItems = ({
       },
     ],
   });
-
-  const tableActionsOptions = [
-    { 
-      label: toolbarTexts.addRowBefore,
-      command: 'addRowBefore',
-      icon: toolbarIcons.addRowBefore,
-      props: { 
-        'data-item': 'btn-tableActions-option', 
-        ariaLabel: 'Add row before',
-      }
-    },
-    { 
-      label: toolbarTexts.addRowAfter,
-      command: 'addRowAfter',
-      icon: toolbarIcons.addRowAfter,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add row after',
-      }
-    },
-    { 
-      label: toolbarTexts.addColumnBefore,
-      command: 'addColumnBefore',
-      icon: toolbarIcons.addColumnBefore,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add column before',
-      }
-    },
-    { 
-      label: toolbarTexts.addColumnAfter,
-      command: 'addColumnAfter',
-      icon: toolbarIcons.addColumnAfter,
-      bottomBorder: true,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add column after',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteRow,
-      command: 'deleteRow',
-      icon: toolbarIcons.deleteRow,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete row',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteColumn,
-      command: 'deleteColumn',
-      icon: toolbarIcons.deleteColumn,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete column',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteTable,
-      command: 'deleteTable',
-      icon: toolbarIcons.deleteTable,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete table',
-      }
-    },
-    { 
-      label: toolbarTexts.transparentBorders,
-      command: 'deleteCellAndTableBorders',
-      icon: toolbarIcons.deleteBorders,
-      bottomBorder: true,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete cell and table borders',
-      }
-    },
-    { 
-      label: toolbarTexts.mergeCells,
-      command: 'mergeCells',
-      icon: toolbarIcons.mergeCells,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Merge cells',
-      }
-    },
-    { 
-      label: toolbarTexts.splitCell,
-      command: 'splitCell',
-      icon: toolbarIcons.splitCell,
-      props: {
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Split cells',
-      }
-    },
-    { 
-      label: toolbarTexts.fixTables,
-      command: 'fixTables',
-      icon: toolbarIcons.fixTables,
-      props: {
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Fix tables',
-      }
-    },
-  ];
 
   function renderTableActions(tableActionsItem) {
     return h(TableActions, {

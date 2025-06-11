@@ -1,6 +1,7 @@
 import { toolbarIcons } from '../toolbar/toolbarIcons.js';
 import TableGrid from '../toolbar/TableGrid.vue';
 import AIWriter from '../toolbar/AIWriter.vue';
+import TableActions from '../toolbar/TableActions.vue';
 import { isInsideTable } from './utils.js';
 import { serializeSelectionToClipboard, writeToClipboard, isBlockContent, extractText } from '../../core/utilities/clipboardUtils.js';
 
@@ -39,10 +40,17 @@ export function getItems(context) {
       allowedTriggers: ['slash', 'click'],
     },
     {
-      id: 'table',
-      label: isInTable ? 'Edit Table' : 'Insert Table',
+      id: 'insert-table',
+      label: 'Insert Table',
       icon: toolbarIcons.table,
-      component: isInTable ? TableGrid : TableGrid,
+      component: TableGrid,
+      allowedTriggers: ['slash', 'click'],
+    },
+    {
+      id: 'edit-table',
+      label: 'Edit Table',
+      icon: toolbarIcons.table,
+      component: TableActions,
       allowedTriggers: ['slash', 'click'],
       requiresTableParent: true,
     },
@@ -119,6 +127,9 @@ export function getItems(context) {
     if (!item.allowedTriggers.includes(trigger)) return false;
     // If the item requires clipboard content and there is no clipboard content, return false
     if (item.requiresClipboard && !clipboardContent) return false;
+    // If the item requires a table parent and there is no table parent, return false
+    // Or if we are in a table, do not show 'insert table'
+    if ((item.requiresTableParent && !isInTable) || (item.id === 'insert-table' && isInTable)) return false;
     return true;
   });
 }

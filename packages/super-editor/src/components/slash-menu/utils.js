@@ -1,6 +1,6 @@
 import { TextSelection } from 'prosemirror-state';
 import { readFromClipboard } from '../../core/utilities/clipboardUtils.js';
-
+import { tableActionsOptions } from '../toolbar/defaultItems.js';
 /**
  * Get props by item id
  * 
@@ -32,12 +32,23 @@ export const getPropsByItemId = (itemId, props) => {
                 apiKey: editor.options?.aiApiKey,
                 endpoint: editor.options?.aiEndpoint,
             };
-        case 'table':
+        case 'insert-table':
             return {
                 ...baseProps,
                 onSelect: ({rows, cols}) => {
                     editor.commands.insertTable({ rows, cols });
                     props.closePopover();
+                },
+            };
+        case 'edit-table':
+            return {
+                ...baseProps,
+                options: tableActionsOptions,
+                onSelect: ( { command }) => {
+                  if (editor.commands[command]) {
+                    editor.commands[command]();
+                  }
+                  props.closePopover();
                 },
             };
         case 'copy':
