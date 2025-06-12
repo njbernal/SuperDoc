@@ -289,6 +289,7 @@ const handleSubmit = async () => {
     // If there is selected text, update the ai highlight style to start pulsing animation
     if (props.selectedText) {
       props.editor.commands.updateAiHighlightStyle('sd-ai-highlight-pulse');
+      props.editor.commands.removeSelectionAfterAiPulse();
     } else {
       // Insert the loader node at the current cursor position
       props.editor.commands.insertContent({
