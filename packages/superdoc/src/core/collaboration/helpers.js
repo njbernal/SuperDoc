@@ -71,10 +71,6 @@ export const initSuperdocYdoc = (superdoc) => {
   const baseName = `${superdoc.config.superdocId}-superdoc`;
   if (!superdoc.config.superdocId) return;
 
-
-  const moduleConfig = superdoc.config.modules.collaboration;
-  const isHocusPocus = moduleConfig.providerType === 'hocuspocus';
-
   const documentId = isInternal ? baseName : `${baseName}-external`;
   const superdocCollaborationOptions = {
     config: superdoc.config.modules.collaboration,
