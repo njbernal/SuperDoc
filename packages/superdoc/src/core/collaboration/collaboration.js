@@ -1,3 +1,4 @@
+import { WebsocketProvider } from 'y-websocket'
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { awarenessStatesToArray } from '@harbour-enterprises/common/collaboration/awareness.js';
 import { Doc as YDoc } from 'yjs';
@@ -7,14 +8,27 @@ import { Doc as YDoc } from 'yjs';
  * emit an awareness-update event with the list of users.
  *
  * @param {Object} context The superdoc instance
- * @param {*} states The awareness states
+ * @param {Object} param
+ * @param {Object} param.changes The changes in awareness states
+ * @param {Object} param.states The current awareness states
  * @returns {void}
  */
-function createAwarenessHandler(context, states) {
+function awarenessHandler(context, { changes = {}, states }) {
   // Context is the superdoc instance
   // Since co-presence is handled outside of superdoc,
   // we need to emit an awareness-update event
-  context.emit('awareness-update', awarenessStatesToArray(context, states));
+
+  const { added = [], removed = []} = changes;
+  const awarenessArray = awarenessStatesToArray(context, states);
+
+  const payload = {
+    states: awarenessArray,
+    added,
+    removed,
+    superdoc: context,
+  };
+
+  context.emit('awareness-update', payload);
 }
 
 /**
@@ -29,11 +43,40 @@ function createAwarenessHandler(context, states) {
  * @returns {Object} The provider and socket
  */
 function createProvider({ config, user, documentId, socket, superdocInstance }) {
-  config.providerType = 'hocuspocus';
+  if (!config.providerType) config.providerType = 'superdoc';
+
   const providers = {
     hocuspocus: () => createHocuspocusProvider({ config, user, documentId, socket, superdocInstance }),
+    superdoc: () => createSuperDocProvider({ config, user, documentId, socket, superdocInstance }),
   };
+  if (!providers) throw new Error(`Provider type ${config.providerType} is not supported.`);
+
   return providers[config.providerType]();
+}
+
+/**
+ *
+ * @param {Object} param The config object
+ * @param {Object} param.config The configuration object
+ * @param {Object} param.ydoc The Yjs document
+ * @param {Object} param.user The user object
+ * @param {string} param.documentId The document ID
+ * @returns {Object} The provider and socket
+ */
+function createSuperDocProvider({ config, user, documentId, socket, superdocInstance }) {
+  const ydoc = new YDoc({ gc: false });
+  const options = {
+    params: {
+      ...config.params,
+    }
+  };
+
+  const provider = new WebsocketProvider(config.url, documentId, ydoc, options);
+  provider.awareness.setLocalStateField('user', user);
+  provider.awareness.on('update', (changes = {}) => {
+    return awarenessHandler(superdocInstance, { changes, states: provider.awareness.getStates() });
+  });
+  return { provider, ydoc };
 }
 
 /**
@@ -61,6 +104,13 @@ function createHocuspocusProvider({ config, user, documentId, socket, superdocIn
 
   const provider = new HocuspocusProvider(options);
   provider.setAwarenessField('user', user);
+
+  provider.on('awarenessUpdate', (params) => {
+    return awarenessHandler(superdocInstance, {
+      states: params.states,
+    });
+  });
+  
   return { provider, ydoc };
 }
 
@@ -80,4 +130,4 @@ const onDestroy = (superdocInstance, documentId) => {
   console.warn('🔌 [superdoc] Destroyed', documentId);
 };
 
-export { createAwarenessHandler, createProvider };
+export { createProvider };
