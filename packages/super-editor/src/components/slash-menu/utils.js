@@ -1,6 +1,7 @@
 import { TextSelection } from 'prosemirror-state';
 import { readFromClipboard } from '../../core/utilities/clipboardUtils.js';
 import { tableActionsOptions } from '../toolbar/defaultItems.js';
+import { markRaw } from 'vue';
 /**
  * Get props by item id
  * 
@@ -15,7 +16,7 @@ export const getPropsByItemId = (itemId, props) => {
     const editor = props.editor;
 
     const baseProps = {
-        editor,
+        editor: markRaw(props.editor),
 
     };
 

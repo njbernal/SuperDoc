@@ -389,6 +389,7 @@ const handleInput = (event) => {
 }
 
 .ai-writer {
+  background-color: white;
   display: flex;
   flex-direction: column;
   width: 300px;

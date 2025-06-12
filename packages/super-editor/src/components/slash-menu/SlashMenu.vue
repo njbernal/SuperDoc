@@ -1,13 +1,17 @@
 <script>
-import { createApp, ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h, markRaw } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h, markRaw } from 'vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
 import { moveCursorToMouseEvent } from './utils.js';
 import { getItems } from './menuItems.js';
 import { getEditorContext } from './utils.js';
+import GenericPopover from '../popovers/GenericPopover.vue';
 
 export default {
   name: 'SlashMenu',
+  components: {
+    GenericPopover
+  },
 
   props: {
     editor: {
@@ -19,28 +23,41 @@ export default {
   setup(props) {
     const searchInput = ref(null);
     const searchQuery = ref('');
-    const activePopover = ref(null);
     const currentTriggerType = ref('slash');
-    const isOpen = ref(false)
+    const isOpen = ref(false);
     const menuPosition = ref({ left: '0px', top: '0px' });
-    const menuRef = ref(menuPosition.value);
-
-    // Only set items and selectedId when menu opens
+    const menuRef = ref(null);
     const items = ref([]);
     const selectedId = ref(null);
-
-    // Filtered items based on search query
     const filteredItems = computed(() => {
       if (!searchQuery.value) return items.value;
       return items.value.filter((item) =>
         item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
     });
+    // Popover state
+    const showPopover = ref(false);
+    const popoverComponent = ref(null);
+    const popoverProps = ref({});
+    const popoverPosition = ref({ left: '0px', top: '0px' });
 
-    // Watch for isOpen changes to focus input
+    function openPopover(component, props, position) {
+      popoverComponent.value = component;
+      popoverProps.value = props;
+      popoverPosition.value = position;
+      showPopover.value = true;
+    }
+
+    function closePopover() {
+      showPopover.value = false;
+      popoverComponent.value = null;
+      popoverProps.value = {};
+      // Restore editor focus
+      props.editor?.view?.focus();
+    }
+
     watch(isOpen, (open) => {
       if (open) {
-        // Use nextTick to ensure DOM is updated
         nextTick(() => {
           if (searchInput.value) {
             searchInput.value.focus();
@@ -49,63 +66,18 @@ export default {
       }
     });
 
-    // Watch for search query changes to update selection
     watch(items, (newItems) => {
       if (newItems.length > 0) {
         selectedId.value = newItems[0].id;
       }
     });
 
-    /**
-     * Popover management
-     */ 
-    const closePopover = () => {
-      if (activePopover.value?.parentNode) {
-        // Unmount Vue app if it exists
-        if (activePopover.value._vueApp) {
-          activePopover.value._vueApp.unmount();
-        }
-        activePopover.value.parentNode.removeChild(activePopover.value);
-        activePopover.value = null;
-      }
-      // Restore editor focus
-      props.editor?.view?.focus();
-    };
-
-    const createPopover = () => {
-      // Close any existing popover
-      closePopover();
-
-      // Create new popover
-      const popover = document.createElement('div');
-      popover.className = 'popover';
-
-      // Position the popover near the slash menu
-      const menuElement = menuRef.value;
-      if (menuElement) {
-        const menuRect = menuElement.getBoundingClientRect();
-        // Place the popover right where the slash menu is
-        popover.style.position = 'absolute';
-        popover.style.left = `${menuRect.left}px`;
-        popover.style.top = `${menuRect.top}px`;
-        popover.style.zIndex = '9999';
-      }
-
-      // Store reference
-      activePopover.value = popover;
-
-      return popover;
-    };
-
-    /**
-     * Event handlers - controls keystrokes and clicks
-     */
     const handleGlobalKeyDown = (event) => {
       // ESCAPE: always close popover or menu
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        if (activePopover.value) {
+        if (showPopover.value) {
           closePopover();
         } else if (isOpen.value) {
           closeMenu();
@@ -145,12 +117,8 @@ export default {
     };
 
     const handleGlobalOutsideClick = (event) => {
-      // Handle clicks outside popover
-      if (activePopover.value && !activePopover.value.contains(event.target)) {
-        closePopover();
-      }
-      // Handle clicks outside menu
-      else if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
+      if (showPopover.value) return; // popover handles its own outside click
+      if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
         moveCursorToMouseEvent(event, props.editor);
         closeMenu({ restoreCursor: false });
       }
@@ -206,8 +174,6 @@ export default {
     onBeforeUnmount(() => {
       document.removeEventListener('keydown', handleGlobalKeyDown);
       document.removeEventListener('mousedown', handleGlobalOutsideClick);
-      closePopover();
-      
       if (props.editor) {
         props.editor.off('slashMenu:open');
         props.editor.off('slashMenu:close');
@@ -221,33 +187,10 @@ export default {
         item.action ? await item.action(props.editor) : null;
 
         if (item.component) {
-          // Create popover BEFORE closing menu
-          const popover = createPopover();
-          document.body.appendChild(popover);
-          // Get props for the component
+          const menuElement = menuRef.value;
           const componentProps = getPropsByItemId(item.id, { ...props, closePopover });
-          // Create a new Vue app instance for the component
-          const app = createApp({
-            setup() {
-              return () => h('div', { class: 'popover-content' }, [
-                h(markRaw(item.component), componentProps)
-              ]);
-            }
-          });
-
-          // Wait for component to be mounted
-          // This is needed to get the positioning of the menu before the menu is closed
-          // Position is used for the popover
-          return new Promise((resolve) => {
-            // Mount the app and wait for it to be ready
-            app.mount(popover);
-            popover._vueApp = app;
-            requestAnimationFrame(() => {
-              // Do NOT restore editor focus if mounting a component
-              closeMenu({ restoreCursor: false });
-              resolve();
-            });
-          });
+          openPopover(markRaw(item.component), componentProps, { left:menuPosition.value.left, top:menuPosition.value.top });
+          closeMenu({ restoreCursor: false });
         } else {
           // For non-component actions, close immediately and restore focus
           closeMenu({ restoreCursor: true });
@@ -298,6 +241,11 @@ export default {
       handleGlobalKeyDown,
       executeCommand,
       currentTriggerType,
+      showPopover,
+      popoverComponent,
+      popoverProps,
+      popoverPosition,
+      closePopover,
     };
   },
 };
@@ -329,6 +277,14 @@ export default {
       </div>
     </div>
   </div>
+  <GenericPopover
+    v-if="showPopover"
+    :visible="showPopover"
+    :position="popoverPosition"
+    @close="closePopover"
+  >
+    <component :is="popoverComponent" v-bind="popoverProps" />
+  </GenericPopover>
 </template>
 
 <style>
