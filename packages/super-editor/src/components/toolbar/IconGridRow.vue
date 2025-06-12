@@ -81,25 +81,27 @@ const moveToPreviousRow = (rowIndex, optionIndex) => {
 }
 
 const handleKeyDown = (event, rowIndex, optionIndex, option) => {
-  if (event.key === 'ArrowRight') {
-    moveToNextIcon(rowIndex, optionIndex);
-  }
-  if (event.key === 'ArrowLeft') {
-    moveToPreviousIcon(rowIndex, optionIndex);
-  }
-  if (event.key === 'ArrowDown') {
-    moveToNextRow(rowIndex, optionIndex);
-  }
-  if (event.key === 'ArrowUp') {
-    moveToPreviousRow(rowIndex, optionIndex);
-  }
-
-  if (event.key === 'Enter') {
-    handleClick(option);
-  }
-
-  if (event.key === 'Escape') {
-    emit('clickoutside');
+  switch (event.key) {
+    case 'ArrowRight':
+      moveToNextIcon(rowIndex, optionIndex);
+      break;
+    case 'ArrowLeft':
+      moveToPreviousIcon(rowIndex, optionIndex);
+      break;
+    case 'ArrowDown':
+      moveToNextRow(rowIndex, optionIndex);
+      break;
+    case 'ArrowUp':
+      moveToPreviousRow(rowIndex, optionIndex);
+      break;
+    case 'Enter':
+      handleClick(option);
+      break;
+    case 'Escape':
+      emit('clickoutside');
+      break;
+    default:
+      break;
   }
 }
 </script>
