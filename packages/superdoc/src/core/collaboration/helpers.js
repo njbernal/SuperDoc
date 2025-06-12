@@ -1,4 +1,4 @@
-import { createAwarenessHandler, createProvider } from '../collaboration/collaboration';
+import { createProvider } from '../collaboration/collaboration';
 import useComment from '../../components/CommentsLayer/use-comment';
 
 import {
@@ -71,6 +71,10 @@ export const initSuperdocYdoc = (superdoc) => {
   const baseName = `${superdoc.config.superdocId}-superdoc`;
   if (!superdoc.config.superdocId) return;
 
+
+  const moduleConfig = superdoc.config.modules.collaboration;
+  const isHocusPocus = moduleConfig.providerType === 'hocuspocus';
+
   const documentId = isInternal ? baseName : `${baseName}-external`;
   const superdocCollaborationOptions = {
     config: superdoc.config.modules.collaboration,
@@ -79,6 +83,7 @@ export const initSuperdocYdoc = (superdoc) => {
     socket: superdoc.config.socket,
     superdocInstance: superdoc,
   };
+
   const { provider: superdocProvider, ydoc: superdocYdoc } = createProvider(superdocCollaborationOptions);
 
   return { ydoc: superdocYdoc, provider: superdocProvider };
@@ -109,7 +114,6 @@ export const makeDocumentsCollaborative = (superdoc) => {
     doc.socket = superdoc.config.socket;
     doc.ydoc = ydoc;
     doc.role = superdoc.config.role;
-    provider.on('awarenessUpdate', ({ states }) => createAwarenessHandler(superdoc, states));
     processedDocuments.push(doc);
   });
   return processedDocuments;
