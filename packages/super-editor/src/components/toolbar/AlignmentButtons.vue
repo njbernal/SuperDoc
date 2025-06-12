@@ -69,7 +69,7 @@ const handleKeyDown = (e, index) => {
 } 
 onMounted(() => {
   // Focus on the first button
-  const firstButton = document.querySelector('.alignment-buttons .button-icon');
+  const firstButton = alignmentButtonsRefs.value[0];
   if (firstButton) {
     firstButton.setAttribute('tabindex', '0');
     firstButton.focus();
