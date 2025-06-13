@@ -56,11 +56,11 @@ const isButton = (item) => item.type === 'button';
 const isDropdown = (item) => item.type === 'dropdown';
 const isSeparator = (item) => item.type === 'separator';
 const isOverflow = (item) => item.type === 'overflow';
-const handleToolbarButtonClick = (item, argument = null, switchFocusToEditor = true) => {
+const handleToolbarButtonClick = (item, argument = null) => {
   currentItem.value = item;
   currentItem.value.expand = !currentItem.value.expand;
   if (item.disabled.value) return;
-  emit('command', { item, argument, switchFocusToEditor });
+  emit('command', { item, argument });
 };
 
 const handleToolbarButtonTextSubmit = (item, argument) => {
@@ -79,7 +79,7 @@ const selectedOption = ref(null);
 const handleSelect = (item, option) => {
   closeDropdowns();
   const value = item.dropdownValueKey.value ? option[item.dropdownValueKey.value] : option.label;
-  emit('command', { item, argument: value, option, switchFocusToEditor: true });
+  emit('command', { item, argument: value, option });
   selectedOption.value = option.key;
 };
 
@@ -159,10 +159,10 @@ const handleKeyDown = (e, item) => {
 
   switch (e.key) {
     case 'Enter':
+      console.log('Enter');
       handleToolbarButtonClick(item, null, false);
       break;
     case 'Escape':
-      console.log('Escape');
       closeDropdowns();
       break;
     case 'ArrowRight':
