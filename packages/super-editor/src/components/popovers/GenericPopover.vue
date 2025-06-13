@@ -1,8 +1,8 @@
-
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 
 const props = defineProps({
+  styles: { type: Object, default: () => ({}) },
   visible: { type: Boolean, default: false },
   position: { type: Object, default: () => ({ left: '0px', top: '0px' }) },
 });
@@ -16,26 +16,37 @@ function handleClickOutside(event) {
   }
 }
 
+function handleEscape(event) {
+  if (event.key === 'Escape') {
+    emit('close');
+  }
+}
+
 watch(() => props.visible, (val) => {
   if (val) {
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
   } else {
     document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener('keydown', handleEscape);
   }
 });
 
 onMounted(() => {
   if (props.visible) {
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
   }
 });
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleEscape);
 });
 
-const popoverStyle = computed(() => ({
+const derivedStyles = computed(() => ({
   left: props.position.left,
   top: props.position.top,
+  ...props.styles,
 }));
 
 </script>
@@ -44,7 +55,7 @@ const popoverStyle = computed(() => ({
   <div
     v-if="visible"
     class="generic-popover"
-    :style="popoverStyle"
+    :style="derivedStyles"
     ref="popover"
     @mousedown.stop
   >
@@ -55,6 +66,8 @@ const popoverStyle = computed(() => ({
 
 /* @remarks - popover adds a slight shadow, this can be removed if needed */
 .generic-popover {
+  /* @remarks - this should ideally be handled by the content or component - but some are missing */
+  background-color: white;
   position: absolute;
   z-index: 1000;
   border-radius: 6px;
