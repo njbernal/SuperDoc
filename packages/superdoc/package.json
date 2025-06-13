@@ -1,7 +1,7 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "0.12.36-next.8",
+  "version": "0.12.37-next.0",
   "license": "AGPL-3.0",
   "readme": "../../README.md",
   "files": [
@@ -57,7 +57,8 @@
     "pinia": "^2.1.7",
     "rollup-plugin-copy": "^3.5.0",
     "tippy": "^0.0.0",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "y-websocket": "^3.0.0"
   },
   "peerDependencies": {
     "@hocuspocus/provider": "^2.13.6",
