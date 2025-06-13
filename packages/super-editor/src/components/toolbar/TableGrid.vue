@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 const emit = defineEmits(['select', 'clickoutside']);
 
+const ROW_SIZE = 5;
 const selectedRows = ref(0);
 const selectedCols = ref(0);
 const { isHighContrastMode } = useHighContrastMode();
@@ -56,12 +57,12 @@ const handleKeyDown = (event, cols, rows) => {
       }
 
       // Move to the next column
-      const currentRow = normalizedRows * 5;
+      const currentRow = normalizedRows * ROW_SIZE;
       tableGridItems.value[currentRow + normalizedCols + 1].setAttribute('tabindex', '0');
       tableGridItems.value[currentRow + normalizedCols + 1].focus();
 
       selectGridItems(tableGridItems.value, cols + 1, rows);
-        break;
+      break;
     }
     case 'ArrowLeft': {
       if (normalizedCols <= 0) {
@@ -69,7 +70,7 @@ const handleKeyDown = (event, cols, rows) => {
       }
 
       // Move to the previous column
-      const currentRow = normalizedRows * 5;
+      const currentRow = normalizedRows * ROW_SIZE;
       tableGridItems.value[currentRow + normalizedCols - 1].setAttribute('tabindex', '0');
       tableGridItems.value[currentRow + normalizedCols - 1].focus();
 
@@ -82,7 +83,7 @@ const handleKeyDown = (event, cols, rows) => {
       }
 
       // Move to the next row
-      const nextRow = (normalizedRows + 1) * 5;
+      const nextRow = (normalizedRows + 1) * ROW_SIZE;
       tableGridItems.value[nextRow + normalizedCols].setAttribute('tabindex', '0');
       tableGridItems.value[nextRow + normalizedCols].focus();
       selectGridItems(tableGridItems.value, cols, rows + 1);
@@ -94,7 +95,7 @@ const handleKeyDown = (event, cols, rows) => {
       }
 
       // Move to the previous row
-      const previousRow = (normalizedRows - 1) * 5;
+      const previousRow = (normalizedRows - 1) * ROW_SIZE;
       tableGridItems.value[previousRow + normalizedCols].setAttribute('tabindex', '0');
       tableGridItems.value[previousRow + normalizedCols].focus();
       selectGridItems(tableGridItems.value, cols, rows - 1);
