@@ -19,7 +19,7 @@ export const handleDocxPaste = (html, editor, view, plugin) => {
   cleanedHtml = cleanHtmlUnnecessaryTags(cleanedHtml);
 
   const tempDiv = document.createElement('div');
-  tempDiv.innerHTML =cleanedHtml;
+  tempDiv.innerHTML = cleanedHtml;
 
   const paragraphs = tempDiv.querySelectorAll('p');
   paragraphs.forEach((p) => {
