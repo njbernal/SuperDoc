@@ -32,6 +32,7 @@ const handleClick = (option) => {
 const rowRefs = ref([]);
 const iconRefs = ref([]);
 
+const ROW_SIZE = 7;
 onMounted(() => {
   const isMatrix = props.icons.every((row) => Array.isArray(row));
   if (!isMatrix) throw new Error('icon props must be 2d array');
@@ -45,7 +46,7 @@ onMounted(() => {
 });
 
 const moveToNextIcon = (rowIndex, optionIndex) => {
-  const iconIndex = (7 * rowIndex) + optionIndex + 1;
+  const iconIndex = (ROW_SIZE * rowIndex) + optionIndex + 1;
   const nextIcon = iconRefs.value[iconIndex];
   if (nextIcon) {
     nextIcon.setAttribute('tabindex', '0');
@@ -54,7 +55,7 @@ const moveToNextIcon = (rowIndex, optionIndex) => {
 }
 
 const moveToPreviousIcon = (rowIndex, optionIndex) => {
-  const iconIndex = (7 * rowIndex) + optionIndex - 1;
+  const iconIndex = (ROW_SIZE * rowIndex) + optionIndex - 1;
   const previousIcon = iconRefs.value[iconIndex];
   if (previousIcon) {
     previousIcon.setAttribute('tabindex', '0');
@@ -63,7 +64,7 @@ const moveToPreviousIcon = (rowIndex, optionIndex) => {
 }
 
 const moveToNextRow = (rowIndex, optionIndex) => {
-  const iconIndex = optionIndex + (7 * (rowIndex + 1));
+  const iconIndex = optionIndex + (ROW_SIZE * (rowIndex + 1));
   const nextIcon = iconRefs.value[iconIndex];
   if (nextIcon) {
     nextIcon.setAttribute('tabindex', '0');
@@ -72,7 +73,7 @@ const moveToNextRow = (rowIndex, optionIndex) => {
 }
 
 const moveToPreviousRow = (rowIndex, optionIndex) => {
-  const iconIndex = optionIndex + (7 * (rowIndex - 1));
+  const iconIndex = optionIndex + (ROW_SIZE * (rowIndex - 1));
   const previousIcon = iconRefs.value[iconIndex];
   if (previousIcon) {
     previousIcon.setAttribute('tabindex', '0');
