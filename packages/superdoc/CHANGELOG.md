@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.13.0-next.0](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.37-next.2...v0.13.0-next.0) (2025-06-16)
+
+
+### Bug Fixes
+
+* switch focus to editor ([38985a0](https://github.com/Harbour-Enterprises/SuperDoc/commit/38985a0408ef133fecfec9deb93363a9b6bb98c8))
+
+
+### Features
+
+* make toolbar more accessible ([0176e32](https://github.com/Harbour-Enterprises/SuperDoc/commit/0176e3200ba909936730960308ad39d87d499e86))
+
 ## [0.12.37-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.12.37-next.1...v0.12.37-next.2) (2025-06-16)
 
 
