@@ -53,8 +53,7 @@ const getImagePositionDecorations = (state, view) => {
       let style = '';
       let className = '';
       const { vRelativeFrom, alignH } = node.attrs.anchorData;
-      const { size, padding } = node.attrs;
-
+      const { size, padding, marginOffset } = node.attrs;
       const pageBreak = findPreviousDomNodeWithClass(view, pos, 'pagination-break-wrapper');
       if (pageBreak) {
         switch (alignH) {
@@ -68,13 +67,22 @@ const getImagePositionDecorations = (state, view) => {
             style += 'display: block; margin-left: auto; margin-right: auto; ';
             break;
         }
+        const topPos = marginOffset.top !== undefined ? marginOffset.top : pageBreak?.offsetTop + pageBreak?.offsetHeight;
         style +=
           vRelativeFrom === 'margin'
-            ? `position: absolute; top: ${pageBreak?.offsetTop + pageBreak?.offsetHeight}px; `
+            ? `position: absolute; top: ${topPos}px; `
             : '';
-
         if (vRelativeFrom === 'margin') {
           const nextPos = view.posAtDOM(pageBreak, 1);
+          
+          if (nextPos < 0) {
+            const $pos = view.state.doc.resolve(pos);
+            // When no placeholder can be added apply height to the parent node to occupy absolute image size
+            decorations.push(
+              Decoration.node(pos - 1, pos + $pos.parent.nodeSize - 1, { style: `height: ${size.height + parseInt(padding.top) + parseInt(padding.bottom)}px` }),
+            );
+          }
+          
           const imageBlock = document.createElement('div');
           imageBlock.className = 'anchor-image-placeholder';
           imageBlock.style.float = alignH;
