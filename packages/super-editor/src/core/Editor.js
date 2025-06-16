@@ -1,4 +1,4 @@
-import { EditorState } from 'prosemirror-state';
+import { EditorState, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
@@ -24,6 +24,8 @@ import { generateCollaborationData } from '@extensions/collaboration/collaborati
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
 import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
+import { findWordBounds } from './helpers/findWordBounds.js';
+import { setWordSelection } from './helpers/setWordSelection.js';
 /**
  * @typedef {Object} FieldValue
  * @property {string} input_id The id of the input field
@@ -214,6 +216,9 @@ export class Editor extends EventEmitter {
 
     // telemetry
     telemetry: null,
+    
+    // Docx xml updated by User
+    customUpdatedFiles: {},
   };
 
   /**
@@ -575,6 +580,7 @@ export class Editor extends EventEmitter {
     
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
+    tr.setMeta('replaceContent', true);
     this.view.dispatch(tr);
   }
 
@@ -930,10 +936,13 @@ export class Editor extends EventEmitter {
         if (isHeader || isFooter) {
           const eventClone = new event.constructor(event.type);
           event.target.dispatchEvent(eventClone);
+
+          // Imitate default double click behavior - word selection
+          if (this.options.isHeaderOrFooter && this.options.editable) setWordSelection(view, pos);
           return;
         }
         event.stopPropagation();
-        
+
         if (!this.options.editable) {
           // ToDo don't need now but consider to update pagination when recalculate header/footer height
           // this.storage.pagination.sectionData = await initPaginationData(this);
@@ -948,6 +957,9 @@ export class Editor extends EventEmitter {
           pm.classList.remove('header-footer-edit');
           pm.setAttribute('aria-readonly', false);
         }
+
+        // Imitate default double click behavior - word selection
+        setWordSelection(view, pos);
       }
     });
     
@@ -1433,6 +1445,7 @@ export class Editor extends EventEmitter {
     const numberingData = this.converter.convertedXml['word/numbering.xml'];
     const numbering = this.converter.schemaToXml(numberingData.elements[0]);
     const updatedDocs = {
+      ...this.options.customUpdatedFiles,
       'word/document.xml': String(documentXml),
       'docProps/custom.xml': String(customXml),
       'word/settings.xml': String(customSettings),
@@ -1441,7 +1454,7 @@ export class Editor extends EventEmitter {
 
       // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
       'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
-      ...updatedHeadersFooters
+      ...updatedHeadersFooters,
     };
 
     if (comments.length) {
@@ -1544,7 +1557,7 @@ export class Editor extends EventEmitter {
       const result = migration(this);
       if (!result) throw new Error('Migration failed at ' + migration.name);
       else hasRunMigrations = true;
-    };
+    }
 
     // If no migrations were run, return undefined (no updated ydoc).
     if (!hasRunMigrations) return;
@@ -1587,6 +1600,38 @@ export class Editor extends EventEmitter {
     if (!this.options.ydoc) {
       this.#initPagination();
       this.#initComments();
+    }
+  }
+
+  /**
+   * Get internal docx file content
+   * @param {string} name - File name
+   * @param {string} type - type of result (json, string)
+   * @returns {Object|String} - file content
+   */
+  getInternalXmlFile(name, type = 'json') {
+    if (!this.converter.convertedXml[name]) {
+      console.warn('Cannot find file in docx')
+      return null;
+    }
+    
+    if (type === 'json') {
+      return this.converter.convertedXml[name].elements[0] || null;
+    }
+    return this.converter.schemaToXml(this.converter.convertedXml[name].elements[0]);
+  }
+  
+  /**
+   * Update internal docx file content
+   * @param {string} name - File name
+   * @param {string} updatedContent - new file content
+   */
+  updateInternalXmlFile(name, updatedContent) {
+    if (typeof updatedContent === 'string') {
+      this.options.customUpdatedFiles[name] = String(updatedContent);
+    } else {
+      const internalFileXml = this.converter.schemaToXml(updatedContent);
+      this.options.customUpdatedFiles[name] = String(internalFileXml);
     }
   }
 

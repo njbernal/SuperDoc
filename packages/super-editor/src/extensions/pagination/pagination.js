@@ -8,8 +8,13 @@ import { ImagePlaceholderPluginKey } from '@extensions/image/imageHelpers/imageP
 import { LinkedStylesPluginKey } from '@extensions/linked-styles/linked-styles.js';
 import { findParentNodeClosestToPos } from '@core/helpers/findParentNodeClosestToPos.js';
 import { generateDocxRandomId } from '../../core/helpers/index.js';
+import { computePosition, autoUpdate, hide } from '@floating-ui/dom';
+
+const SEPARATOR_CLASS = 'pagination-separator';
+const SEPARATOR_FLOATING_CLASS = 'pagination-separator-floating';
 
 const isDebugging = false;
+const cleanupFunctions = new Set();
 
 export const Pagination = Extension.create({
   name: 'pagination',
@@ -42,6 +47,7 @@ export const Pagination = Extension.create({
    */
   addPmPlugins() {
     const editor = this.editor;
+
     let isUpdating = false;
 
     // Used to prevent unnecessary transactions
@@ -129,7 +135,7 @@ export const Pagination = Extension.create({
         let previousDecorations = DecorationSet.empty;
 
         return {
-          update: (view) => {
+          update: (view, prevState) => {
             if (!shouldUpdate || isUpdating) return;
 
             isUpdating = true;
@@ -141,6 +147,7 @@ export const Pagination = Extension.create({
              */
             if (isDebugging) console.debug('--- Calling performUpdate ---')
             performUpdate(editor, view, previousDecorations);
+
             isUpdating = false;
             shouldUpdate = false;
           },
@@ -154,6 +161,10 @@ export const Pagination = Extension.create({
     });
 
     return [paginationPlugin];
+  },
+
+  onDestroy() {
+    cleanupFloatingSeparators();
   },
 });
 
@@ -218,8 +229,9 @@ const getHeaderFooterId = (currentPageNumber, sectionType, editor, node = null) 
  * @returns {void}
  */
 const performUpdate = (editor, view, previousDecorations) => {
-  const sectionData = editor.storage.pagination.sectionData;
+  const sectionData = editor.storage.pagination.sectionData;  
   const newDecorations = calculatePageBreaks(view, editor, sectionData);
+  const editorElement = editor.options.element;
 
   // Skip updating if decorations haven't changed
   if (!previousDecorations.eq(newDecorations)) {
@@ -229,7 +241,18 @@ const performUpdate = (editor, view, previousDecorations) => {
     );
 
     view.dispatch(updateTransaction);
-  }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        cleanupFloatingSeparators();
+        const separators = [...editorElement.querySelectorAll(`.${SEPARATOR_CLASS}--table`)];
+        separators.forEach((separator) => {
+          const { cleanup } = createFloatingSeparator(separator, editor);
+          cleanupFunctions.add(cleanup);
+        });
+      });
+    });
+  };
 
   // Emit that pagination has been updated
   editor.emit('paginationUpdate');
@@ -308,7 +331,6 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   const decorations = [];
   const { pageSize, pageMargins } = editor.converter.pageStyles;
   const pageHeight = pageSize.height * 96; // Convert inches to pixels
-  const scale = editor.options.scale;
 
   let currentPageNumber = 1;
   let pageHeightThreshold = pageHeight;
@@ -316,12 +338,12 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   let footer = null, header = null;
 
   const firstHeaderId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
-  const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId, editor);
+  const firstHeader = createHeader(pageMargins, pageSize, sectionData, firstHeaderId, editor, currentPageNumber);
   const pageBreak = createPageBreak({ editor, header: firstHeader, isFirstHeader: true });
   decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
 
   const lastFooterId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
-  const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId, editor);
+  const lastFooter = createFooter(pageMargins, pageSize, sectionData, lastFooterId, editor, currentPageNumber);
 
   // Reduce the usable page height by the header and footer heights now that they are prepped
   pageHeightThreshold -= firstHeader.headerHeight + lastFooter.footerHeight;
@@ -352,7 +374,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       if (currentPageNumber === 1) {
         const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor, currentNode);
         decorations.pop(); // Remove the first header and replace with sectPr header
-        const newFirstHeader = createHeader(pageMargins, pageSize, sectionData, headerId, editor);
+        const newFirstHeader = createHeader(pageMargins, pageSize, sectionData, headerId, editor, currentPageNumber - 1);
         const pageBreak = createPageBreak({ editor, header: newFirstHeader, isFirstHeader: true });
         decorations.push(Decoration.widget(0, pageBreak, { key: 'stable-key' }));
       }
@@ -370,7 +392,10 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
     if (isHardBreakNode || shouldAddPageBreak) {
       const $currentPos = view.state.doc.resolve(currentPos);
+      const table = findParentNodeClosestToPos($currentPos, (node) => node.type.name === 'table');
       const tableRow = findParentNodeClosestToPos($currentPos, (node) => node.type.name === 'tableRow');
+
+      let isInTable = (table || tableRow) ? true : false;
 
       if (tableRow) {
         // If the node is in a table cell, then split the entire row.
@@ -400,7 +425,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
       currentPageNumber++;
       const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
-      header = createHeader(pageMargins, pageSize, sectionData, headerId, editor);
+      header = createHeader(pageMargins, pageSize, sectionData, headerId, editor, currentPageNumber - 1);
       footer = createFooter(pageMargins, pageSize, sectionData, footerId, editor, currentPageNumber - 1);
 
       const bufferHeight = pageHeightThreshold - actualBreakBottom;
@@ -408,7 +433,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       const pageSpacer = Decoration.widget(breakPos, spacingNode, { key: 'stable-key' });
       decorations.push(pageSpacer);
 
-      const pageBreak = createPageBreak({ editor, header, footer });
+      const pageBreak = createPageBreak({ editor, header, footer, isInTable });
       decorations.push(Decoration.widget(breakPos, pageBreak, { key: 'stable-key' }));
 
       // Check if we have a hard page break node
@@ -427,7 +452,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   const lastNodeCoords = view.coordsAtPos(finalPos);
   const headerId = getHeaderFooterId(currentPageNumber, 'headerIds', editor);
   const footerId = getHeaderFooterId(currentPageNumber, 'footerIds', editor);
-  header = createHeader(pageMargins, pageSize, sectionData, headerId, editor);
+  header = createHeader(pageMargins, pageSize, sectionData, headerId, editor, currentPageNumber);
   footer = createFooter(pageMargins, pageSize, sectionData, footerId, editor, currentPageNumber);
   const bufferHeight = pageHeightThreshold - lastNodeCoords.bottom;
   const { node: spacingNode } = createFinalPagePadding(bufferHeight);
@@ -450,6 +475,9 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       totalPageNumber.innerText = currentPageNumber;
     }
   });
+
+  // Track the total pages in the editor instance
+  editor.currentTotalPages = currentPageNumber;
 
   // Return the widget decorations array
   return decorations;
@@ -481,7 +509,7 @@ function createFinalPagePadding(bufferHeight) {
  * @param {string} editor SuperEditor instance
  * @returns {Object} The header element and its height
  */
-function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
+function createHeader(pageMargins, pageSize, sectionData, headerId, editor, currentPageNumber) {
   const headerDef = sectionData.headers?.[headerId];
   const minHeaderHeight = pageMargins.top * 96; // pageMargins are in inches
   const headerMargin = pageMargins.header * 96;
@@ -515,6 +543,7 @@ function createHeader(pageMargins, pageSize, sectionData, headerId, editor) {
     sectionId: headerId,
     type: 'header',
     availableHeight,
+    currentPageNumber,
   });
   editor.converter.headerEditors.push({
     id: headerId,
@@ -557,16 +586,6 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
   const minFooterHeight = pageMargins.bottom * 96; // pageMargins are in inches
   const footerPaddingFromEdge = pageMargins.footer * 96;
   const footerHeight = Math.max(footerDef?.height || 0, minFooterHeight - footerPaddingFromEdge);
-
-  const sectionContainer = footerDef?.sectionContainer?.cloneNode(true);
-  const autoPageNumber = sectionContainer?.querySelector('span[data-id="auto-page-number"]');
-  if (autoPageNumber) {
-    const fontSize = autoPageNumber.previousElementSibling?.style?.fontSize ||
-      autoPageNumber.nextElementSibling?.style?.fontSize;
-    if (fontSize) autoPageNumber.style.fontSize = fontSize;
-    autoPageNumber.innerText = currentPageNumber;
-  }
-
   const editorContainer = document.createElement('div');
 
   if (!footerId && !editor.converter.footerIds['default']) {
@@ -590,7 +609,9 @@ function createFooter(pageMargins, pageSize, sectionData, footerId, editor, curr
     sectionId: footerId,
     type: 'footer',
     availableHeight: footerHeight,
+    currentPageNumber,
   });
+
   editor.converter.footerEditors.push({
     id: footerId,
     editor: editorSection,
@@ -637,7 +658,7 @@ const onHeaderFooterDblClick = (editor, currentFocusedSectionEditor) => {
  * @param {HTMLElement} param0.footer The footer element
  * @returns {HTMLElement} The page break element
  */
-function createPageBreak({ editor, header, footer, footerBottom = null, isFirstHeader, isLastFooter }) {
+function createPageBreak({ editor, header, footer, footerBottom = null, isFirstHeader, isLastFooter, isInTable = false }) {
   const { pageSize, pageMargins } = editor.converter.pageStyles;
 
   let sectionHeight = 0;
@@ -661,9 +682,11 @@ function createPageBreak({ editor, header, footer, footerBottom = null, isFirstH
     const separatorHeight = 20;
     sectionHeight += separatorHeight;
     const separator = document.createElement('div');
-    separator.className = 'pagination-separator';
+    separator.classList.add(SEPARATOR_CLASS);
+    if (isInTable) {
+      separator.classList.add(`${SEPARATOR_CLASS}--table`);
+    }
     if (isDebugging) separator.style.backgroundColor = 'green';
-
     innerDiv.appendChild(separator);
   }
 
@@ -731,3 +754,96 @@ const onImageLoad = (editor) => {
     editor.view.dispatch(newTr);
   });
 };
+
+function createFloatingSeparator(separator, editor) {
+  const floatingSeparator = document.createElement('div');
+  floatingSeparator.classList.add(SEPARATOR_FLOATING_CLASS);
+  floatingSeparator.dataset.floatingSeparator = '';
+
+  const editorElement = editor.options.element;
+  editorElement.append(floatingSeparator);
+
+  const updatePosition = () => {
+    computePosition(separator, floatingSeparator, {
+      strategy: 'absolute',
+      placement: 'top-start',
+      middleware: [
+        hide(),
+        {
+          name: 'copy',
+          fn: ({ elements }) => {
+            const rect = elements.reference.getBoundingClientRect();
+            const containerRect = editorElement.getBoundingClientRect();
+            const scaleFactor = getScaleFactor(editorElement);
+
+            const x = Math.round((rect.left - containerRect.left) / scaleFactor);
+            const y = Math.round((rect.top - containerRect.top) / scaleFactor);
+            const width = Math.round(rect.width / scaleFactor);
+            const height = Math.round(rect.height / scaleFactor);
+
+            return {
+              x,
+              y,
+              data: { width, height },
+            };
+          },
+        },
+      ],
+    }).then(({ x, y, middlewareData }) => { 
+      Object.assign(floatingSeparator.style, {
+        top: `${y}px`,
+        left: `${x}px`,
+        width: `${middlewareData.copy.width}px`,
+        height: `${middlewareData.copy.height}px`,
+        visibility: middlewareData.hide?.referenceHidden ? 'hidden' : 'visible',
+      });
+    });
+  };
+
+  const cleanup = autoUpdate(
+    separator,
+    floatingSeparator,
+    updatePosition,
+  );
+
+  const extendedCleanup = () => {
+    floatingSeparator?.remove();
+    cleanup();
+  };
+
+  return { 
+    cleanup: extendedCleanup, 
+    updatePosition,
+  };
+}
+
+function cleanupFloatingSeparators() {
+  cleanupFunctions.forEach((cleanup) => cleanup());
+  cleanupFunctions.clear();
+}
+
+function getScaleFactor(element) {
+  let scale = 1;
+  let currentElement = element;
+
+  while (currentElement && currentElement !== document.documentElement) {
+    let zoomStyle = currentElement.style.zoom;
+    if (zoomStyle) {
+      let zoom = parseFloat(zoomStyle) || 1;
+      scale *= zoom;
+    }
+
+    let transformStyle = currentElement.style.transform;
+    if (transformStyle) {
+      let scaleMatch = transformStyle.match(/scale\(([^)]+)\)/);
+      if (scaleMatch) {
+        let scaleValue = parseFloat(scaleMatch[1]) || 1;
+        scale *= scaleValue;
+      }
+    }
+
+    currentElement = currentElement.parentElement;
+  }
+
+  return scale;
+}
