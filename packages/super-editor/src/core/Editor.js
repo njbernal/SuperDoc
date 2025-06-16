@@ -216,6 +216,9 @@ export class Editor extends EventEmitter {
 
     // telemetry
     telemetry: null,
+    
+    // Docx xml updated by User
+    customUpdatedFiles: {},
   };
 
   /**
@@ -1442,6 +1445,7 @@ export class Editor extends EventEmitter {
     const numberingData = this.converter.convertedXml['word/numbering.xml'];
     const numbering = this.converter.schemaToXml(numberingData.elements[0]);
     const updatedDocs = {
+      ...this.options.customUpdatedFiles,
       'word/document.xml': String(documentXml),
       'docProps/custom.xml': String(customXml),
       'word/settings.xml': String(customSettings),
@@ -1450,7 +1454,7 @@ export class Editor extends EventEmitter {
 
       // Replace & with &amp; in styles.xml as DOCX viewers can't handle it
       'word/styles.xml': String(styles).replace(/&/gi, '&amp;'),
-      ...updatedHeadersFooters
+      ...updatedHeadersFooters,
     };
 
     if (comments.length) {
@@ -1553,7 +1557,7 @@ export class Editor extends EventEmitter {
       const result = migration(this);
       if (!result) throw new Error('Migration failed at ' + migration.name);
       else hasRunMigrations = true;
-    };
+    }
 
     // If no migrations were run, return undefined (no updated ydoc).
     if (!hasRunMigrations) return;
@@ -1596,6 +1600,38 @@ export class Editor extends EventEmitter {
     if (!this.options.ydoc) {
       this.#initPagination();
       this.#initComments();
+    }
+  }
+
+  /**
+   * Get internal docx file content
+   * @param {string} name - File name
+   * @param {string} type - type of result (json, string)
+   * @returns {Object|String} - file content
+   */
+  getInternalXmlFile(name, type = 'json') {
+    if (!this.converter.convertedXml[name]) {
+      console.warn('Cannot find file in docx')
+      return null;
+    }
+    
+    if (type === 'json') {
+      return this.converter.convertedXml[name].elements[0] || null;
+    }
+    return this.converter.schemaToXml(this.converter.convertedXml[name].elements[0]);
+  }
+  
+  /**
+   * Update internal docx file content
+   * @param {string} name - File name
+   * @param {string} updatedContent - new file content
+   */
+  updateInternalXmlFile(name, updatedContent) {
+    if (typeof updatedContent === 'string') {
+      this.options.customUpdatedFiles[name] = String(updatedContent);
+    } else {
+      const internalFileXml = this.converter.schemaToXml(updatedContent);
+      this.options.customUpdatedFiles[name] = String(internalFileXml);
     }
   }
 
