@@ -1609,8 +1609,13 @@ export class Editor extends EventEmitter {
    * @returns {Object|String} - file content
    */
   getInternalXmlFile(name, type = 'json') {
+    if (!this.converter.convertedXml[name]) {
+      console.warn('Cannot find file in docx')
+      return null;
+    }
+    
     if (type === 'json') {
-      return this.converter.convertedXml[name]?.elements[0] || null;
+      return this.converter.convertedXml[name].elements[0] || null;
     }
     return this.converter.schemaToXml(this.converter.convertedXml[name].elements[0]);
   }
