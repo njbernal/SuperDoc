@@ -8,6 +8,8 @@ import SlashMenu from './slash-menu/SlashMenu.vue';
 import { adjustPaginationBreaks } from './pagination-helpers.js';
 import { onMarginClickCursorChange } from './cursor-helpers.js';
 import Ruler from './rulers/Ruler.vue';
+import GenericPopover from './popovers/GenericPopover.vue';
+import { checkNodeSpecificClicks } from './cursor-helpers.js';
 
 const emit = defineEmits([
   'editor-ready',
@@ -46,6 +48,13 @@ const editor = shallowRef(null);
 
 const editorWrapper = ref(null);
 const editorElem = ref(null);
+
+const popoverControls = reactive({
+  visible: false,
+  position: { left: '0px', top: '0px' },
+  component: null,
+  props: {}
+});
 
 let dataPollTimeout;
 
@@ -154,6 +163,7 @@ const handleSuperEditorKeydown = (event) => {
 
 
 const handleSuperEditorClick = (event) => {
+  console.log('handleSuperEditorClick');
   emit('editor-click', { editor: editor.value });
   let pmElement = editorElem.value?.querySelector('.ProseMirror');
 
@@ -165,6 +175,13 @@ const handleSuperEditorClick = (event) => {
 
   if (!isInsideEditor && editor.value.isEditable) {
     editor.value.view?.focus();
+  }
+
+  // Add logic here to handle a click in the editor
+  // Get the node at the click position and check if it has a node in the parent tree
+  // example: hasParentNode(node, 'p')
+  if (isInsideEditor && editor.value.isEditable) {
+    checkNodeSpecificClicks(editor.value, event, popoverControls);
   }
 };
 
@@ -241,6 +258,14 @@ onBeforeUnmount(() => {
       <n-skeleton text :repeat="6" />
       <n-skeleton text style="width: 70%" />
     </div>
+
+    <GenericPopover
+      :visible="popoverControls.visible"
+      :position="popoverControls.position"
+      @close="popoverControls.visible = false"
+    >
+      <component :is="popoverControls.component" v-bind="popoverControls.props" />
+    </GenericPopover>
   </div>
 </template>
 

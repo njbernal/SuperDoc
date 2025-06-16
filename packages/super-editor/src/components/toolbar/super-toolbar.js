@@ -14,6 +14,7 @@ import { getQuickFormatList } from '@extensions/linked-styles/linked-styles.js';
 import { getAvailableColorOptions, makeColorOption, renderColorOptions } from './color-dropdown-helpers.js';
 import { isInTable } from '@helpers/isInTable.js';
 import { useToolbarItem } from '@components/toolbar/use-toolbar-item';
+import { selectionHasNodeOrMark } from '../cursor-helpers.js';
 
 /**
  * @typedef {Object} ToolbarConfig
@@ -504,7 +505,7 @@ export class SuperToolbar extends EventEmitter {
           }, 100);
         }
       }
-      this.updateToolbarState();
+      // this.updateToolbarState();
     },
 
     /**
@@ -804,6 +805,13 @@ export class SuperToolbar extends EventEmitter {
    */
   onEditorTransaction({ editor, transaction }) {
     if (!transaction.docChanged && !transaction.selectionSet) return;
+
+    // Handle link click in the editor to prevent toolbar opening
+    // We want to open the link popover instead of toolbar menu
+    if (selectionHasNodeOrMark(editor.view.state, 'link')) {
+      return;
+    }
+
     this.updateToolbarState();
   }
 
