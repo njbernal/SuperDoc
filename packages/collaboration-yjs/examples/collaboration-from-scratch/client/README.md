@@ -1,7 +1,7 @@
 # SuperDoc collaboration from scratch
 
 This example shows how to create an absolutely minimal collaboration service for SuperDoc using utilities from the Yjs library directly.
-It does not use our own **superdoc-yjs-library** (contact us q@sueprdoc.dev for more info).
+It does not use our own [superdoc-yjs-library](https://www.npmjs.com/package/@harbour-enterprises/superdoc-yjs-collaboration) which makes initial set up easier.
 
 This example is really an adaptation of [y-websocket-server](https://github.com/yjs/y-websocket-server/) from Yjs and shows how to use the basic utilities provided there to set up the socket connection.
 
