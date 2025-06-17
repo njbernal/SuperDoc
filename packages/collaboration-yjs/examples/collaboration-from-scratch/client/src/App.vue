@@ -81,7 +81,7 @@ onMounted(() => {
         <h1>SuperDoc - Collaboration from scratch</h1>
         <div style="margin-bottom: 10px;">
           This example shows how to create an absolutely minimal collaboration service for SuperDoc using utilities from the Yjs library directly. <br />
-          It does not use our own <strong>superdoc-yjs-library</strong> (contact us q@superdoc.dev for more info).
+          It does not use our own <strong><a href="https://www.npmjs.com/package/@harbour-enterprises/superdoc-yjs-collaboration" target="_blank">superdoc-yjs-library</a></strong>
         </div>
         <div style="margin-bottom: 10px;">
           <strong>Note:</strong> This example is for demonstration purposes only. It does not include any security or authentication features.<br />

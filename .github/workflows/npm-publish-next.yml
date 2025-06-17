@@ -16,6 +16,7 @@ on:
       - '.prettierrc'
       - 'examples/**'
       - '.github/**'
+      - 'packages/collaboration-yjs/**'
 
   workflow_dispatch:
 
