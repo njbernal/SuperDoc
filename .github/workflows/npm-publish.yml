@@ -14,6 +14,7 @@ on:
       - '*.yml'
       - '*.yaml'
       - '.prettierrc'
+      - 'packages/collaboration-yjs/**'
 
   workflow_dispatch:
 
