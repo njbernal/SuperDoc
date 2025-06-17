@@ -58,6 +58,7 @@ const derivedStyles = computed(() => ({
     :style="derivedStyles"
     ref="popover"
     @mousedown.stop
+    @click.stop
   >
     <slot />
   </div>

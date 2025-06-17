@@ -88,7 +88,6 @@ export const checkNodeSpecificClicks = (editor, event, popoverControls) => {
 
   // Check if the selection has a parent node of a given type
   if(selectionHasNodeOrMark(editor.view.state, 'link')) {
-    const href = getLinkHrefAtSelection(editor.view.state) || '';
     // Show popover with link input
     popoverControls.component = LinkInput;
     // Calculate the position of the popover relative to the editor
@@ -98,7 +97,6 @@ export const checkNodeSpecificClicks = (editor, event, popoverControls) => {
     };
     popoverControls.props = {
       showInput: true,
-      href,
     };
     popoverControls.visible = true;
   }

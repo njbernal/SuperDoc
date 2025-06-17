@@ -49,12 +49,28 @@ const editor = shallowRef(null);
 const editorWrapper = ref(null);
 const editorElem = ref(null);
 
+/**
+ * Generic popover controls including state, open and close functions
+ */
 const popoverControls = reactive({
   visible: false,
   position: { left: '0px', top: '0px' },
   component: null,
   props: {}
 });
+
+const closePopover = () => {
+  popoverControls.visible = false;
+  popoverControls.component = null;
+  popoverControls.props = {};
+};
+
+const openPopover = (component, props, position) => {
+  popoverControls.component = component;
+  popoverControls.props = props;
+  popoverControls.position = position;
+  popoverControls.visible = true;
+};
 
 let dataPollTimeout;
 
@@ -163,7 +179,6 @@ const handleSuperEditorKeydown = (event) => {
 
 
 const handleSuperEditorClick = (event) => {
-  console.log('handleSuperEditorClick');
   emit('editor-click', { editor: editor.value });
   let pmElement = editorElem.value?.querySelector('.ProseMirror');
 
@@ -238,7 +253,7 @@ onBeforeUnmount(() => {
       @mousedown="handleMarginClick"
     >
       <div ref="editorElem" class="editor-element super-editor__element" role="presentation"></div>
-      <SlashMenu v-if="editorReady && editor" :editor="editor" />
+      <SlashMenu v-if="editorReady && editor" :editor="editor" :popoverControls="popoverControls" :openPopover="openPopover" :closePopover="closePopover" />
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">
@@ -262,9 +277,9 @@ onBeforeUnmount(() => {
     <GenericPopover
       :visible="popoverControls.visible"
       :position="popoverControls.position"
-      @close="popoverControls.visible = false"
+      @close="closePopover"
     >
-      <component :is="popoverControls.component" v-bind="popoverControls.props" />
+      <component :is="popoverControls.component" v-bind="{ ...popoverControls.props, editor, closePopover }" />
     </GenericPopover>
   </div>
 </template>

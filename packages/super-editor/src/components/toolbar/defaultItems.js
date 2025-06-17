@@ -402,69 +402,6 @@ export const makeDefaultItems = ({
     ]);
   };
 
-  // link
-  const link = useToolbarItem({
-    type: 'dropdown',
-    name: 'link',
-    markName: 'link',
-    icon: toolbarIcons.link,
-    active: false,
-    tooltip: toolbarTexts.link,
-    attributes: {
-      ariaLabel: 'Link dropdown',
-    },
-    options: [
-      {
-        type: 'render',
-        key: 'linkDropdown',
-        render: () => renderLinkDropdown(link),
-      },
-    ],
-    onActivate: ({ href }) => {
-      if (href) link.attributes.value = { href };
-      else link.attributes.value = {};
-      link.expand.value = true;
-    },
-    onDeactivate: () => {
-      link.attributes.value = {};
-      link.expand.value = false;
-    },
-  });
-
-  function renderLinkDropdown(link) {
-    const handleSubmit = ({ href }) => {
-      closeDropdown(link);
-      link.attributes.value.link = { href };
-      const itemWithCommand = { ...link, command: 'toggleLink' };
-      superToolbar.emitCommand({ item: itemWithCommand, argument: { href, text: '' } });
-      if (!href) link.active.value = false;
-    };
-
-    return h('div', {}, [
-      h(LinkInput, {
-        onSubmit: handleSubmit,
-        href: link.attributes.value.href,
-        goToAnchor: () => {
-          closeDropdown(link);
-          if (!superToolbar.activeEditor || !link.attributes.value?.href) return;
-          const anchorName = link.attributes.value?.href?.slice(1);
-          const container = superToolbar.activeEditor.element;
-          const anchor = container.querySelector(`a[name='${anchorName}']`);
-          if (anchor) scrollToElement(anchor);
-        },
-      }),
-    ]);
-  }
-
-  const linkInput = useToolbarItem({
-    type: 'options',
-    name: 'linkInput',
-    command: 'toggleLink',
-    active: false,
-  });
-  link.childItem = linkInput;
-  linkInput.parentItem = link;
-
   // image
   const image = useToolbarItem({
     type: 'button',
@@ -1067,7 +1004,6 @@ export const makeDefaultItems = ({
     colorButton,
     highlight,
     separator,
-    link,
     image,
     tableItem,
     tableActionsItem,

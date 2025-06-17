@@ -2,8 +2,9 @@ import { toolbarIcons } from '../toolbar/toolbarIcons.js';
 import TableGrid from '../toolbar/TableGrid.vue';
 import AIWriter from '../toolbar/AIWriter.vue';
 import TableActions from '../toolbar/TableActions.vue';
+import LinkInput from '../toolbar/LinkInput.vue';
 import { isInsideTable } from './utils.js';
-import { serializeSelectionToClipboard, writeToClipboard, isBlockContent, extractText } from '../../core/utilities/clipboardUtils.js';
+import { serializeSelectionToClipboard, writeToClipboard } from '../../core/utilities/clipboardUtils.js';
 
 /**
  * Get menu items based on context (trigger, selection, node, etc)
@@ -39,6 +40,14 @@ export function getItems(context) {
       },
       allowedTriggers: ['slash', 'click'],
     },
+    { type: 'divider' },
+    {
+      id: 'insert-link',
+      label: 'Insert Link',
+      icon: toolbarIcons.link,
+      component: LinkInput,
+      allowedTriggers: ['click'],
+    },
     {
       id: 'insert-table',
       label: 'Insert Table',
@@ -46,6 +55,7 @@ export function getItems(context) {
       component: TableGrid,
       allowedTriggers: ['slash', 'click'],
     },
+    { type: 'divider' },
     {
       id: 'edit-table',
       label: 'Edit Table',
@@ -85,34 +95,27 @@ export function getItems(context) {
       label: 'Paste',
       icon: toolbarIcons.paste,
       action: async (editor) => {
-        const { state, dispatch } = editor.view;
-        if (!clipboardContent) return;
-        const selection = state.selection;
-        const schema = state.schema;
-        // If selection is inside a textblock (paragraph, heading, etc)
-        const $from = selection.$from;
-        const parent = $from.parent;
-        const isInlineContext = parent.isTextblock && $from.parentOffset !== 0;
-        // If clipboard content is block and we're in inline context, paste as text
-        if (isBlockContent(clipboardContent) && isInlineContext) {
-          const text = extractText(clipboardContent);
-          if (text) {
-            const textNode = schema.text(text);
-            dispatch(state.tr.replaceSelectionWith(textNode, false));
+        try {
+          // Use the browser's clipboard API directly
+          const clipboardData = await navigator.clipboard.read();
+          // Let ProseMirror handle the paste event
+          const event = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            bubbles: true,
+            cancelable: true
+          });
+          // Add the clipboard data to the event
+          for (const item of clipboardData) {
+            for (const type of item.types) {
+              const blob = await item.getType(type);
+              event.clipboardData.setData(type, await blob.text());
+            }
           }
-          return;
+          // Dispatch the paste event to ProseMirror
+          editor.view.dom.dispatchEvent(event);
+        } catch (error) {
+          console.warn('Failed to paste:', error);
         }
-        // If clipboard content is inline or we're at block level, paste as-is
-        // Fix for pasting at end of doc: if selection is at end, use insert instead of replaceSelectionWith
-        const atEnd = selection.$to.pos === state.doc.content.size;
-        if (atEnd && isBlockContent(clipboardContent)) {
-          // Insert at end
-          let tr = state.tr.insert(state.doc.content.size, clipboardContent);
-          dispatch(tr.scrollIntoView());
-          return;
-        }
-        // Default: replace selection with clipboard content
-        dispatch(state.tr.replaceSelectionWith(clipboardContent, false));
       },
       allowedTriggers: ['click'],
       requiresClipboard: true
@@ -121,6 +124,7 @@ export function getItems(context) {
 
   // Filter - can be extended to include more context-based filtering
   return items.filter(item => {
+    if (item.type === 'divider') return true;
     // If the item requires a selection and there is no selection, return false
     if (item.requiresSelection && !selectedText) return false;
     // If the item is not allowed to be triggered with the current trigger, return false

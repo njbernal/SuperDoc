@@ -12,10 +12,17 @@ export default {
   components: {
     GenericPopover
   },
-
   props: {
     editor: {
       type: Object,
+      required: true,
+    },
+    openPopover: {
+      type: Function,
+      required: true,
+    },
+    closePopover: {
+      type: Function,
       required: true,
     },
   },
@@ -30,31 +37,19 @@ export default {
     const items = ref([]);
     const selectedId = ref(null);
     const filteredItems = computed(() => {
-      if (!searchQuery.value) return items.value;
-      return items.value.filter((item) =>
-        item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
+      const baseItems = !searchQuery.value ? items.value : items.value.filter((item) =>
+        item.label?.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
+
+      // If we have 2 or fewer items, filter out dividers
+      if (baseItems.filter(item => !item.type || item.type !== 'divider').length <= 2) {
+        return baseItems.filter(item => !item.type || item.type !== 'divider');
+      }
+
+      return baseItems;
     });
-    // Popover state
-    const showPopover = ref(false);
-    const popoverComponent = ref(null);
-    const popoverProps = ref({});
-    const popoverPosition = ref({ left: '0px', top: '0px' });
 
-    function openPopover(component, props, position) {
-      popoverComponent.value = component;
-      popoverProps.value = props;
-      popoverPosition.value = position;
-      showPopover.value = true;
-    }
-
-    function closePopover() {
-      showPopover.value = false;
-      popoverComponent.value = null;
-      popoverProps.value = {};
-      // Restore editor focus
-      props.editor?.view?.focus();
-    }
+    const getSelectableItems = (itemsArr) => itemsArr.filter(item => !item.type || item.type !== 'divider');
 
     watch(isOpen, (open) => {
       if (open) {
@@ -67,8 +62,9 @@ export default {
     });
 
     watch(items, (newItems) => {
-      if (newItems.length > 0) {
-        selectedId.value = newItems[0].id;
+      const selectable = getSelectableItems(newItems);
+      if (selectable.length > 0) {
+        selectedId.value = selectable[0].id;
       }
     });
 
@@ -77,11 +73,8 @@ export default {
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        if (showPopover.value) {
-          closePopover();
-        } else if (isOpen.value) {
-          closeMenu();
-        }
+        closeMenu();
+        props.editor?.view?.focus();
         return;
       }
 
@@ -91,33 +84,36 @@ export default {
         (event.target === searchInput.value || (menuRef.value && menuRef.value.contains(event.target)))
       ) {
         const currentItems = items.value;
-        const currentIndex = currentItems.findIndex(item => item.id === selectedId.value);
+        const selectableItems = getSelectableItems(currentItems);
+        const currentIndex = selectableItems.findIndex(item => item.id === selectedId.value);
         switch (event.key) {
-          case 'ArrowDown':
+          case 'ArrowDown': {
             event.preventDefault();
-            if (currentIndex < currentItems.length - 1) {
-              selectedId.value = currentItems[currentIndex + 1].id;
+            if (currentIndex < selectableItems.length - 1) {
+              selectedId.value = selectableItems[currentIndex + 1].id;
             }
             break;
-          case 'ArrowUp':
+          }
+          case 'ArrowUp': {
             event.preventDefault();
             if (currentIndex > 0) {
-              selectedId.value = currentItems[currentIndex - 1].id;
+              selectedId.value = selectableItems[currentIndex - 1].id;
             }
             break;
-          case 'Enter':
+          }
+          case 'Enter': {
             event.preventDefault();
-            const selectedItem = currentItems.find(item => item.id === selectedId.value);
+            const selectedItem = selectableItems.find(item => item.id === selectedId.value);
             if (selectedItem) {
               executeCommand(selectedItem);
             }
             break;
+          }
         }
       }
     };
 
     const handleGlobalOutsideClick = (event) => {
-      if (showPopover.value) return; // popover handles its own outside click
       if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
         moveCursorToMouseEvent(event, props.editor);
         closeMenu({ restoreCursor: false });
@@ -188,12 +184,13 @@ export default {
 
         if (item.component) {
           const menuElement = menuRef.value;
-          const componentProps = getPropsByItemId(item.id, { ...props, closePopover });
-          openPopover(markRaw(item.component), componentProps, { left:menuPosition.value.left, top:menuPosition.value.top });
+          const componentProps = getPropsByItemId(item.id, props);
+          props.openPopover(markRaw(item.component), componentProps, { left:menuPosition.value.left, top:menuPosition.value.top });
           closeMenu({ restoreCursor: false });
         } else {
-          // For non-component actions, close immediately and restore focus
-          closeMenu({ restoreCursor: true });
+          // For paste operations, don't restore cursor
+          const shouldRestoreCursor = item.id !== 'paste';
+          closeMenu({ restoreCursor: shouldRestoreCursor });
         }
       }
     };
@@ -241,11 +238,6 @@ export default {
       handleGlobalKeyDown,
       executeCommand,
       currentTriggerType,
-      showPopover,
-      popoverComponent,
-      popoverProps,
-      popoverPosition,
-      closePopover,
     };
   },
 };
@@ -264,27 +256,21 @@ export default {
     />
 
     <div class="slash-menu-items">
-      <div
-        v-for="item in filteredItems"
-        :key="item.id"
-        class="slash-menu-item"
-        :class="{ 'is-selected': item.id === selectedId }"
-        @click="executeCommand(item)"
-      >
-        <!-- Render the icon if it exists -->
-        <span v-if="item.icon" class="slash-menu-item-icon" v-html="item.icon"></span>
-        <span>{{ item.label }}</span>
-      </div>
+      <template v-for="(item, idx) in filteredItems" :key="item.id ? item.id : 'divider-' + idx">
+        <div v-if="item.type === 'divider'" class="slash-menu-divider" tabindex="0"></div>
+        <div
+          v-else
+          class="slash-menu-item"
+          :class="{ 'is-selected': item.id === selectedId }"
+          @click="executeCommand(item)"
+        >
+          <!-- Render the icon if it exists -->
+          <span v-if="item.icon" class="slash-menu-item-icon" v-html="item.icon"></span>
+          <span>{{ item.label }}</span>
+        </div>
+      </template>
     </div>
   </div>
-  <GenericPopover
-    v-if="showPopover"
-    :visible="showPopover"
-    :position="popoverPosition"
-    @close="closePopover"
-  >
-    <component :is="popoverComponent" v-bind="popoverProps" />
-  </GenericPopover>
 </template>
 
 <style>
@@ -294,7 +280,6 @@ export default {
   width: 175px;
   color: #47484a;
   background: white;
-  border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
   margin-top: 0.5rem;
   font-size: 12px;
@@ -326,7 +311,6 @@ export default {
   width: 100%;
   padding: 0.25rem 0.5rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
   outline: none;
 }
 
@@ -340,9 +324,7 @@ export default {
 }
 
 .slash-menu-item {
-  padding: 0.5rem;
-  margin: 0.25rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.15s ease;
@@ -377,5 +359,11 @@ export default {
   border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
   z-index: 100;
+}
+
+.slash-menu-divider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 0;
 }
 </style> 

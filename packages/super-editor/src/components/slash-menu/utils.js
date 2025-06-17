@@ -33,6 +33,8 @@ export const getPropsByItemId = (itemId, props) => {
                 apiKey: editor.options?.aiApiKey,
                 endpoint: editor.options?.aiEndpoint,
             };
+        case 'insert-link':
+            return baseProps;
         case 'insert-table':
             return {
                 ...baseProps,
