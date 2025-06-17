@@ -1672,7 +1672,7 @@ function translateImageNode(params, imageSize) {
         attributes: {
           relativeFrom: attrs.anchorData.hRelativeFrom,
         },
-        ...(attrs.marginOffset.left && {
+        ...(attrs.marginOffset.left !== undefined && {
           elements: [{
             name: 'wp:posOffset',
             elements: [{
@@ -1691,12 +1691,13 @@ function translateImageNode(params, imageSize) {
           }]
         })
       });
+
       anchorElements.push({
         name: 'wp:positionV',
         attributes: {
           relativeFrom: attrs.anchorData.vRelativeFrom,
         },
-        ...(attrs.marginOffset.top && {
+        ...(attrs.marginOffset.top !== undefined && {
           elements: [{
             name: 'wp:posOffset',
             elements: [{
