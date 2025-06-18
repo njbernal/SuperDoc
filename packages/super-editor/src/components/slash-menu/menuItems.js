@@ -117,7 +117,7 @@ export function getItems(context) {
           console.warn('Failed to paste:', error);
         }
       },
-      allowedTriggers: ['click'],
+      allowedTriggers: ['click', 'slash'],
       requiresClipboard: true
     }
   ];
