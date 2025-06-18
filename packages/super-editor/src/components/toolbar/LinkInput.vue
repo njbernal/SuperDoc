@@ -64,6 +64,7 @@ const getLinkHrefAtSelection = () => {
 
 const text = ref('');
 const rawUrl = ref('');
+const isAnchor = ref(false);
 
 const url = computed(() => {
   if (!rawUrl.value?.startsWith('http')) return 'http://' + rawUrl.value;
@@ -76,8 +77,7 @@ const validUrl = computed(() => {
 });
 
 // --- CASE LOGIC ---
-const isPageAnchor = computed(() => rawUrl.value.startsWith('#'));
-const isEditing = computed(() => !isPageAnchor.value && !!getLinkHrefAtSelection());
+const isEditing = computed(() => !isAnchor.value && !!getLinkHrefAtSelection());
 
 const getApplyText = computed(() => (showApply.value ? 'Apply' : 'Remove'));
 const isDisabled = computed(() => !validUrl.value);
@@ -109,6 +109,7 @@ const focusInput = () => {
 
 onMounted(() => {
   updateFromEditor();
+  isAnchor.value = rawUrl.value.startsWith('#');
   if (props.showInput) focusInput();
 });
 
@@ -152,11 +153,11 @@ const handleRemove = () => {
 
 <template>
   <div class="link-input-ctn" :class="{'high-contrast': isHighContrastMode}">
-    <div class="link-title" v-if="isPageAnchor">Page anchor</div>
+    <div class="link-title" v-if="isAnchor">Page anchor</div>
     <div class="link-title" v-else-if="isEditing">Edit link</div>
     <div class="link-title" v-else>Add link</div>
 
-    <div v-if="showInput && !isPageAnchor">
+    <div v-if="showInput && !isAnchor">
       <div class="input-row">
         <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input
@@ -185,7 +186,7 @@ const handleRemove = () => {
       </div>
     </div>
 
-    <div v-else-if="isPageAnchor" class="input-row go-to-anchor clickable">
+    <div v-else-if="isAnchor" class="input-row go-to-anchor clickable">
       <a @click.stop.prevent="goToAnchor">Go to {{ rawUrl.startsWith('#_') ? rawUrl.substring(2) : rawUrl }}</a>
     </div>
   </div>
