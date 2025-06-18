@@ -3,7 +3,7 @@ import TableGrid from '../toolbar/TableGrid.vue';
 import AIWriter from '../toolbar/AIWriter.vue';
 import TableActions from '../toolbar/TableActions.vue';
 import LinkInput from '../toolbar/LinkInput.vue';
-import { isInsideTable } from './utils.js';
+import { selectionHasNodeOrMark } from '../cursor-helpers.js';
 import { serializeSelectionToClipboard, writeToClipboard } from '../../core/utilities/clipboardUtils.js';
 
 /**
@@ -24,7 +24,7 @@ import { serializeSelectionToClipboard, writeToClipboard } from '../../core/util
 export function getItems(context) {
   const { editor, selectedText, trigger, clipboardContent } = context;
 
-  const isInTable = isInsideTable(editor.view.state);
+  const isInTable = selectionHasNodeOrMark(editor.view.state, 'table', { requireEnds: true });
 
   const items = [
     {

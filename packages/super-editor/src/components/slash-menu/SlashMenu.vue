@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h, markRaw } from 'vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
-import { moveCursorToMouseEvent } from './utils.js';
+import { moveCursorToMouseEvent } from '../cursor-helpers.js';
 import { getItems } from './menuItems.js';
 import { getEditorContext } from './utils.js';
 import GenericPopover from '../popovers/GenericPopover.vue';

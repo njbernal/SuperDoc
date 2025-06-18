@@ -49,35 +49,6 @@ export const onMarginClickCursorChange = (event, editor) => {
 }
 
 /**
- * Gets the href attribute of a link mark at the current selection
- * @param {import('prosemirror-state').EditorState} state - The editor state
- * @returns {string|null} The href attribute of the link mark, or null if no link mark exists
- */
-function getLinkHrefAtSelection(state) {
-  const { selection, schema } = state;
-  const linkMark = schema.marks.link;
-  if (!linkMark) return null;
-
-  // For a cursor selection
-  if (selection.empty) {
-    const marks = state.storedMarks || selection.$from.marks();
-    const link = marks.find(mark => mark.type === linkMark);
-    return link ? link.attrs.href : null;
-  }
-
-  // For a range selection, return the first found href
-  let href = null;
-  state.doc.nodesBetween(selection.from, selection.to, node => {
-    const link = node.marks.find(mark => mark.type === linkMark);
-    if (link) {
-      href = link.attrs.href;
-      return false;
-    }
-  });
-  return href;
-}
-
-/**
  * Checks if the current selection has a parent node of a given type
  * and shows a popover with a link input if it does
  * @param {Editor} editor - The editor instance
@@ -87,7 +58,7 @@ export const checkNodeSpecificClicks = (editor, event, popoverControls) => {
   if (!editor) return;
 
   // Check if the selection has a parent node of a given type
-  if(selectionHasNodeOrMark(editor.view.state, 'link')) {
+  if(selectionHasNodeOrMark(editor.view.state, 'link', { requireEnds: true })) {
     // Show popover with link input
     popoverControls.component = LinkInput;
     // Calculate the position of the popover relative to the editor
@@ -104,16 +75,41 @@ export const checkNodeSpecificClicks = (editor, event, popoverControls) => {
 
 /**
  * Checks if the current selection is inside a node or mark with the given name.
+ * Optionally, can restrict the check to only the start or end of the selection (not anywhere in the range).
+ *
  * @param {EditorState} state - The ProseMirror editor state.
  * @param {string} name - The node or mark name to check for (e.g. 'paragraph', 'link').
+ * @param {Object} [options] - Optional settings.
+ * @param {boolean} [options.requireEnds=false] - If true, only checks if the start or end of the selection has the node/mark, not if it exists anywhere in the selection.
+ *
+ * This is useful for cases like showing a link popup: you may only want to show the popup if the selection starts or ends with a link, not if a link exists anywhere in the selection.
+ *
  * @returns {boolean}
  */
-export function selectionHasNodeOrMark(state, name) {
-  // 1. Check for node in the parent chain
+export function selectionHasNodeOrMark(state, name, options = {}) {
+  const { requireEnds = false } = options;
   const $from = state.selection.$from;
-  for (let d = $from.depth; d > 0; d--) {
-    if ($from.node(d).type.name === name) {
-      return true;
+  const $to = state.selection.$to;
+
+  // 1. Check for node in the parent chain
+  if (requireEnds) {
+    // Only check parent nodes at start or end
+    for (let d = $from.depth; d > 0; d--) {
+      if ($from.node(d).type.name === name) {
+        return true;
+      }
+    }
+    for (let d = $to.depth; d > 0; d--) {
+      if ($to.node(d).type.name === name) {
+        return true;
+      }
+    }
+  } else {
+    // Check anywhere in the parent chain from $from
+    for (let d = $from.depth; d > 0; d--) {
+      if ($from.node(d).type.name === name) {
+        return true;
+      }
     }
   }
 
@@ -121,24 +117,55 @@ export function selectionHasNodeOrMark(state, name) {
   const markType = state.schema.marks[name];
   if (markType) {
     const { from, to, empty } = state.selection;
-    if (empty) {
-      // Cursor: check marks at the cursor
-      if (markType.isInSet(state.storedMarks || $from.marks())) {
+    if (requireEnds) {
+      // Only check marks at the start or end
+      const fromMarks = markType.isInSet($from.marks());
+      const toMarks = markType.isInSet($to.marks());
+      if (fromMarks || toMarks) {
+        return true;
+      }
+      // Also check storedMarks if selection is empty
+      if (empty && markType.isInSet(state.storedMarks || $from.marks())) {
         return true;
       }
     } else {
-      // Range: check if any text in the range has the mark
-      let hasMark = false;
-      state.doc.nodesBetween(from, to, node => {
-        if (markType.isInSet(node.marks)) {
-          hasMark = true;
-          return false;
+      if (empty) {
+        // Cursor: check marks at the cursor
+        if (markType.isInSet(state.storedMarks || $from.marks())) {
+          return true;
         }
-      });
-      if (hasMark) return true;
+      } else {
+        // Range: check if any text in the range has the mark
+        let hasMark = false;
+        state.doc.nodesBetween(from, to, node => {
+          if (markType.isInSet(node.marks)) {
+            hasMark = true;
+            return false;
+          }
+        });
+        if (hasMark) return true;
+      }
     }
   }
 
   // Not found as node or mark
   return false;
+}
+
+/**
+ * Move the editor cursor to the position closest to the mouse event
+ * @param {MouseEvent} event
+ * @param {Object} editor - The editor instance
+ */
+export function moveCursorToMouseEvent(event, editor) {
+  const { view } = editor;
+  const coords = { left: event.clientX, top: event.clientY };
+  const pos = view.posAtCoords(coords)?.pos;
+  if (typeof pos === 'number') {
+    const tr = view.state.tr.setSelection(
+      TextSelection.create(view.state.doc, pos)
+    );
+    view.dispatch(tr);
+    view.focus();
+  }
 }
