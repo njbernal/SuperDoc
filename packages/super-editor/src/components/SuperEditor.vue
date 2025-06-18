@@ -275,6 +275,7 @@ onBeforeUnmount(() => {
     </div>
 
     <GenericPopover
+      :editor="editor"
       :visible="popoverControls.visible"
       :position="popoverControls.position"
       @close="closePopover"

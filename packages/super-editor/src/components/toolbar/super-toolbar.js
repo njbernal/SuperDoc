@@ -1,7 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 import { createApp } from 'vue';
 import { undoDepth, redoDepth } from 'prosemirror-history';
-import { TextSelection } from 'prosemirror-state';
 import { makeDefaultItems } from './defaultItems';
 import { getActiveFormatting } from '@core/helpers/getActiveFormatting.js';
 import { vClickOutside } from '@harbour-enterprises/common';
@@ -14,7 +13,6 @@ import { getQuickFormatList } from '@extensions/linked-styles/linked-styles.js';
 import { getAvailableColorOptions, makeColorOption, renderColorOptions } from './color-dropdown-helpers.js';
 import { isInTable } from '@helpers/isInTable.js';
 import { useToolbarItem } from '@components/toolbar/use-toolbar-item';
-import { selectionHasNodeOrMark } from '../cursor-helpers.js';
 
 /**
  * @typedef {Object} ToolbarConfig
@@ -770,12 +768,6 @@ export class SuperToolbar extends EventEmitter {
    */
   onEditorTransaction({ editor, transaction }) {
     if (!transaction.docChanged && !transaction.selectionSet) return;
-
-    // Handle link click in the editor to prevent toolbar opening
-    // We want to open the link popover instead of toolbar menu
-    if (selectionHasNodeOrMark(editor.view.state, 'link')) {
-      return;
-    }
 
     this.updateToolbarState();
   }

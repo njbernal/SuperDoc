@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
+import { moveCursorToMouseEvent } from '../cursor-helpers.js';
 
 const props = defineProps({
+  editor: { type: Object, required: true },
   styles: { type: Object, default: () => ({}) },
   visible: { type: Boolean, default: false },
   position: { type: Object, default: () => ({ left: '0px', top: '0px' }) },
@@ -14,6 +16,10 @@ function handleClickOutside(event) {
   if (popover.value && !popover.value.contains(event.target)) {
     emit('close');
   }
+
+  // Move the cursor to the new click location
+  // Same logic as in Slash Menu (might be able to combine similar logic)
+  moveCursorToMouseEvent(event, props.editor);
 }
 
 function handleEscape(event) {
