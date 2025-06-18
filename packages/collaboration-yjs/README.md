@@ -8,7 +8,7 @@ It provides:
 * **WebSocket** compatibility via `y-websocket` utilities
 * **Configurable hooks** for authentication, loading initial state, persistence, and change events
 * **Debounced persistence** to control write frequency
-* **Presence (Awareness)** support through `y-protocols/awareness`
+* **Co-Presence (Awareness)** support through `y-protocols/awareness`
 
 ---
 
@@ -16,12 +16,15 @@ It provides:
 
 * **Fluent builder API**: chainable methods to configure name, debounce, hooks, and extensions.
 * **Framework-agnostic**: can be used with Fastify, Express, Koa, or any WebSocket-capable HTTP server.
-* **Pluggable hooks**: `onAuthenticate`, `onLoad`, `onStore`, `onChange`, plus custom extensions.
+* **Pluggable hooks**: `onAuthenticate`, `onLoad`, `onAutoSave`, `onChange`, plus custom extensions.
 * **Debounced persistence**: built-in support for batching state saves.
-* **Awareness & presence**: optional user presence through built-in Awareness support.
+* **Awareness & co-presence**: optional user presence through built-in Awareness support.
 * **TypeScript & JSDoc**: fully documented via JSDoc for IDEs and TS consumption.
 
 ---
+
+## Examples
+Please see a [quick start example here](https://github.com/Harbour-Enterprises/SuperDoc/tree/develop/packages/collaboration-yjs/examples/fastify)
 
 ## Installation
 
@@ -103,11 +106,12 @@ Fluent builder for the collaboration service.
 | --------------------------- | ------------------------------------------ |
 | `.withName(name: string)`   | Set a unique service identifier.            |
 | `.withDebounce(ms: number)` | Debounce interval for persistence (ms).    |
+| `.withDocumentExpiryMs(ms: number)` | Time to retain documents in cache when no clients connected (ms).    |
+| `.onConfigure(fn)`       | Hook triggered after service is configured      |
 | `.onAuthenticate(fn)`       | Hook to authenticate each connection.      |
-| `.onLoad(fn)`               | Hook to load persisted state.              |
-| `.onStore(fn)`              | Hook to persist document state.            |
+| `.onLoad(fn)`               | Hook to load document state from storage or database             |
+| `.onAutoSave(fn)`              | Hook to persist document state.            |
 | `.onChange(fn)`             | Hook for processing Yjs updates.           |
-| `.useExtensions(exts)`      | Add custom Yjs or protocol extensions.     |
 | `.build()`                  | Build and return the `SuperDocCollaboration` |
 
 ### `SuperDocCollaboration`

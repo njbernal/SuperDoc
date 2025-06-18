@@ -345,7 +345,7 @@ function getDocumentStyles(node, docx, converter, editor) {
     }
   });
 
-  // Import headers and footrs. Stores them in converter.headers and converter.footers
+  // Import headers and footers. Stores them in converter.headers and converter.footers
   importHeadersFooters(docx, converter, editor);
   styles.alternateHeaders = isAlternatingHeadersOddEven(docx);
   return styles;
@@ -437,7 +437,9 @@ const importHeadersFooters = (docx, converter, mainEditor) => {
 
   const sectPr = findSectPr(docx['word/document.xml']) || [];
   const allSectPrElements = sectPr.flatMap((el) => el.elements);
+  if (!mainEditor) return;
 
+  // Copy class instance(private fields and inherited methods won't work)
   const editor = { ...mainEditor };
   editor.options.annotations = true;
 

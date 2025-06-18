@@ -24,6 +24,7 @@ import { generateCollaborationData } from '@extensions/collaboration/collaborati
 import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
 import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
+import { updateYdocDocxData } from '@extensions/collaboration/collaboration-helpers.js';
 import { findWordBounds } from './helpers/findWordBounds.js';
 import { setWordSelection } from './helpers/setWordSelection.js';
 /**
@@ -507,7 +508,12 @@ export class Editor extends EventEmitter {
       this.commands.toggleTrackChangesShowOriginal();
       this.setEditable(false, false);
       this.setOptions({ documentMode: 'viewing' });
-      toggleHeaderFooterEditMode(this, null, false);
+      toggleHeaderFooterEditMode({
+        editor: this,
+        focusedSectionEditor: null,
+        isEditMode: false,
+        documentMode: cleanedMode,
+      });
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
@@ -528,7 +534,12 @@ export class Editor extends EventEmitter {
       this.commands.disableTrackChanges();
       this.setEditable(true, false);
       this.setOptions({ documentMode: 'editing' });
-      toggleHeaderFooterEditMode(this, null, false);
+      toggleHeaderFooterEditMode({
+        editor: this,
+        focusedSectionEditor: null,
+        isEditMode: false,
+        documentMode: cleanedMode,
+      });
     }
   }
 
@@ -952,7 +963,12 @@ export class Editor extends EventEmitter {
           // this.view.dispatch(newTr);
 
           this.setEditable(true, false);
-          toggleHeaderFooterEditMode(this, null, false);
+          toggleHeaderFooterEditMode({
+            editor: this,
+            focusedSectionEditor: null,
+            isEditMode: false,
+            documentMode: this.options.documentMode,
+          });
           const pm = document.querySelector('.ProseMirror');
           pm.classList.remove('header-footer-edit');
           pm.setAttribute('aria-readonly', false);
@@ -1592,6 +1608,7 @@ export class Editor extends EventEmitter {
     this.initDefaultStyles();
 
     if (this.options.ydoc && this.options.collaborationProvider) {
+      updateYdocDocxData(this);
       this.initializeCollaborationData(true);
     } else {
       this.#insertNewFileData();

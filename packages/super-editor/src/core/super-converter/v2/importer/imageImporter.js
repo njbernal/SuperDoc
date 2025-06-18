@@ -76,10 +76,10 @@ export function handleImageImport(node, currentFileName, params) {
   const alignH = positionHTag?.elements.find((el) => el.name === 'wp:align')?.elements[0]?.text;
 
   const positionVTag = node.elements.find((el) => el.name === 'wp:positionV');
-  const positionV = positionVTag?.elements.find((el) => el.name === 'wp:posOffset');
+  const positionV = positionVTag?.elements?.find((el) => el.name === 'wp:posOffset');
   const positionVValue = emuToPixels(positionV?.elements[0]?.text);
   const vRelativeFrom = positionVTag?.attributes.relativeFrom;
-  const alignV = positionVTag?.elements.find((el) => el.name === 'wp:align')?.elements[0]?.text;
+  const alignV = positionVTag?.elements?.find((el) => el.name === 'wp:align')?.elements[0]?.text;
   
   const simplePos = node.elements.find((el) => el.name === 'wp:simplePos');
   const wrapSquare = node.elements.find((el) => el.name === 'wp:wrapSquare');
