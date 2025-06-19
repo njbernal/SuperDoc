@@ -139,7 +139,7 @@ export const FieldAnnotation = Node.create({
         default: '#980043',
         parseDOM: (elem) => elem.getAttribute('data-field-color') || elem.style.backgroundColor || null,
         renderDOM: (attrs) => {
-          if (!attrs.fieldColor) return {};
+          if (!attrs.fieldColor || attrs.fieldColor == 'None') return {};
           let hexColor = toHex(attrs.fieldColor);
           let isSixValueSyntax = hexColor.slice(1).length === 6;
 

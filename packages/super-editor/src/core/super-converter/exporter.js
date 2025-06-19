@@ -21,6 +21,7 @@ import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-l
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
 import { sanitizeHtml } from '../InputRule.js';
+import {toHex} from "color2k";
 
 /**
  * @typedef {Object} ExportParams
@@ -2061,6 +2062,7 @@ function translateFieldAnnotation(params) {
       sdtContentElements = [...processedNode.elements];
     }
   }
+  sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   return {
@@ -2488,3 +2490,19 @@ const getAutoPageJson = (type, outputMarks = []) => {
     }
   ]
 };
+
+const getFieldHighlightJson = () => {
+  return {
+    "name": "w:rPr",
+    "elements": [
+      {
+        "name": "w:shd",
+        "attributes": {
+          "w:fill": '7AA6FF',
+          "w:color": "auto",
+          "w:val": "clear"
+        }
+      }
+    ]
+  }
+}
