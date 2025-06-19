@@ -21,7 +21,6 @@ import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-l
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
 import { sanitizeHtml } from '../InputRule.js';
-import {toHex} from "color2k";
 
 /**
  * @typedef {Object} ExportParams
