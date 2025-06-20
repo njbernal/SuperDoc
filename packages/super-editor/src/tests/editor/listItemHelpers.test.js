@@ -1,5 +1,6 @@
 import { loadTestDataForEditorTests, initTestEditor } from '@tests/helpers/helpers.js';
-import { getListItemStyleDefinitions, getVisibleIndent } from '@extensions/list-item/ListItemNodeView.js';
+import { getVisibleIndent } from '@extensions/list-item/ListItemNodeView.js';
+import { getListItemStyleDefinitions } from '@helpers/list-numbering-helpers.js';
 import { expect } from 'vitest';
 
 describe(' test list item rendering indents from styles', () => {
