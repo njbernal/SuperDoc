@@ -2061,6 +2061,7 @@ function translateFieldAnnotation(params) {
       sdtContentElements = [...processedNode.elements];
     }
   }
+  sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   return {
@@ -2488,3 +2489,19 @@ const getAutoPageJson = (type, outputMarks = []) => {
     }
   ]
 };
+
+const getFieldHighlightJson = () => {
+  return {
+    "name": "w:rPr",
+    "elements": [
+      {
+        "name": "w:shd",
+        "attributes": {
+          "w:fill": '7AA6FF',
+          "w:color": "auto",
+          "w:val": "clear"
+        }
+      }
+    ]
+  }
+}
