@@ -769,12 +769,6 @@ function addNewImageRelationship(params, imagePath) {
  */
 function translateList(params) {
   const { node } = params;
-  const { attrs = {} } = node;
-
-  if (node.content.length > 1) {
-    const flatContent = flattenContent(params);
-    throw new Error('Multi list not supported yet');
-  }
 
   const listItem = node.content[0];
   const { numId, level } = listItem.attrs;
@@ -789,7 +783,7 @@ function translateList(params) {
   const paragraphNode = node.content[0]?.content[0];
   const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
   const pPr = outputNode.elements.find((n) => n.name === 'w:pPr');
-  if (pPr && pPr.elements) pPr.elements.unshift(numPrTag);
+  if (pPr && pPr.elements && numPrTag) pPr.elements.unshift(numPrTag);
 
   const indentTag = restoreIndent(listItem.attrs.indent);
   indentTag && pPr?.elements?.push(indentTag);
@@ -799,7 +793,7 @@ function translateList(params) {
   if (rPr) pPr.elements.push(rPr);
 
   if (listItem.attrs.numPrType !== 'inline') {
-    const numPrIndex = pPr?.elements?.findIndex((e) => e.name === 'w:numPr');
+    const numPrIndex = pPr?.elements?.findIndex((e) => e?.name === 'w:numPr');
     if (numPrIndex !== -1) {
       pPr?.elements?.splice(numPrIndex, 1);
     }

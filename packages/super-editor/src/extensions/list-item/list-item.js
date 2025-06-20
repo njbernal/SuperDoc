@@ -1,6 +1,4 @@
 import { Node, Attribute } from '@core/index.js';
-import { findParentNode } from '@helpers/index.js';
-import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { ListItemNodeView } from './ListItemNodeView.js';
 import { generateOrderedListIndex } from '@helpers/orderedListUtils.js';
 import { orderedListSync } from '../ordered-list/helpers/orderedListSyncPlugin.js';
@@ -33,7 +31,7 @@ export const ListItem = Node.create({
   },
 
   addPmPlugins() {
-    return [orderedListSync(this.editor)];
+    return this.editor?.converter?.convertedXml ? [orderedListSync(this.editor)] : [];
   },
 
   /**

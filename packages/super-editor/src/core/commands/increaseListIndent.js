@@ -1,5 +1,4 @@
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
-import { getListItemStyleDefinitions } from '@helpers/list-numbering-helpers.js';
 
 /**
  * Increases the indent level of the current list item.
