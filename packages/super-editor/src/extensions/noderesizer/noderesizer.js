@@ -41,6 +41,8 @@ const nodeResizer = (nodeNames = ['image']) => {
           return oldState;
         }
 
+        if (typeof document === 'undefined') return oldState;
+
         const decorations = [];
         const { selection } = newState;
 
