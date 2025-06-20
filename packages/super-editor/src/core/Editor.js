@@ -1239,7 +1239,7 @@ export class Editor extends EventEmitter {
    * @param {Object} transaction - ProseMirror transaction
    */
   #dispatchTransaction(transaction) {
-    if (this.view.isDestroyed) return;
+    if (this.isDestroyed) return;
 
     let state;
     try {
@@ -1557,8 +1557,6 @@ export class Editor extends EventEmitter {
     this.unmount();
 
     this.destroyHeaderFooterEditors();
-    this.converter = null;
-
     this.#endCollaboration();
     this.removeAllListeners();
   }
