@@ -45,6 +45,11 @@ import { setWordSelection } from './helpers/setWordSelection.js';
 * @property {string} email The user's email
 * @property {string | null} image The user's photo
 */
+
+/**
+ * @typedef {Object} DocxNode A JSON representation of a docx node
+ */
+
 /**
  * @typedef {Object} EditorOptions
  * @property {HTMLElement} [element] - The container element for the editor
@@ -1200,7 +1205,6 @@ export class Editor extends EventEmitter {
 
     const pagination = this.options.extensions.find((e) => e.name === 'pagination');
     if (pagination && this.options.pagination) {
-      console.debug('🔗 [super-editor] Initializing pagination');
       const sectionData = await initPaginationData(this);
       this.storage.pagination.sectionData = sectionData;
 
@@ -1428,7 +1432,14 @@ export class Editor extends EventEmitter {
    * @param {boolean} [options.getUpdatedDocs=false] - When set to true return only updated docx files
    * @returns {Promise<Blob|ArrayBuffer|Object>} The exported DOCX file or updated docx files
    */
-  async exportDocx({ isFinalDoc = false, commentsType = 'external', comments = [], getUpdatedDocs = false } = {}) {
+  async exportDocx({
+    isFinalDoc = false,
+    commentsType = 'external',
+    exportJsonOnly = false,
+    exportXmlOnly = false,
+    comments = [],
+    getUpdatedDocs = false
+  } = {}) {
 
     // Pre-process the document state to prepare for export
     const json = this.#prepareDocumentForExport(comments);
@@ -1442,7 +1453,10 @@ export class Editor extends EventEmitter {
       commentsType,
       comments,
       this,
+      exportJsonOnly,
     );
+
+    if (exportXmlOnly || exportJsonOnly) return documentXml;
 
     const customXml = this.converter.schemaToXml(this.converter.convertedXml['docProps/custom.xml'].elements[0]);
     const styles = this.converter.schemaToXml(this.converter.convertedXml['word/styles.xml'].elements[0]);
