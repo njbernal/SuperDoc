@@ -1,82 +1,78 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
+import { docxNumberigHelpers } from '@core/super-converter/v2/importer/listImporter.js';
+import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 
-/**
- * Synchronizes order attribute if lists have the same syncId.
- */
-export function orderedListSync(options = {}) {
+export const orderedListSyncPluginKey = new PluginKey('orderedListSync');
+
+const isDebugging = true;
+export function orderedListSync(editor) {
+  const docx = editor.converter.convertedXml;
   return new Plugin({
-    key: new PluginKey('orderedListSync'),
+    key: orderedListSyncPluginKey,
 
-    appendTransaction: (transactions, oldState, newState) => {
-      let docChanges = transactions.some((tr) => tr.docChanged) && !oldState.doc.eq(newState.doc);
+    appendTransaction(transactions, oldState, newState) {
+      const isFromPlugin = transactions.some(tr => tr.getMeta('orderedListSync'));
+      if (isFromPlugin || !transactions.some(tr => tr.docChanged)) {
+        return null;
+      };
 
-      if (!docChanges) {
-        return;
-      }
+      const tr = newState.tr;
+      tr.setMeta('orderedListSync', true);
 
-      let { doc, tr } = newState;
+      const listMap = new Map(); // numId -> [counts per level]
+      const levelTracker = new Map(); // numId -> current level
+      newState.doc.descendants((node, pos) => {
+        if (node.type.name !== 'listItem') return;
 
-      let listsBySyncId = {};
-      doc.descendants((node, pos) => {
-        // no need to descend into a paragraph
-        if (node.type.name === 'paragraph') {
-          return false;
+        const { level: attrLvl, numId: attrNumId, styleId, start } = node.attrs;
+        const level = parseInt(attrLvl) + 1;
+        const numId = parseInt(attrNumId);
+  
+        const currentList = listMap.get(numId) || [];
+
+        // Generate an object of levesl and counts that genereateListPath requires
+        const generatedLevels = Object.fromEntries(currentList.map((item, index) => [index, item]));
+        const path = docxNumberigHelpers.generateListPath(level - 1, numId, styleId, generatedLevels, docx);
+  
+        const {
+          lvlText,
+          customFormat,
+          listNumberingType
+        } = ListHelpers.getListDefinitionDetails({ numId, level: level - 1, editor })
+
+        if (!listMap.has(numId)) listMap.set(numId, path);
+        if (!levelTracker.has(numId)) levelTracker.set(numId, 0);
+
+        let currentListLevels = listMap.get(numId);
+        let currentLevel = levelTracker.get(numId);
+
+        if (level > currentLevel) {
+          currentListLevels.push(0); // Start new sub-level count
+        } else if (level < currentLevel) {
+          currentListLevels = currentListLevels.slice(0, level); // Truncate to current depth
         }
 
-        if (node.type.name === 'orderedList' && !!node.attrs.syncId) {
-          let syncId = node.attrs.syncId;
-          if (!listsBySyncId[syncId]) listsBySyncId[syncId] = [];
-          listsBySyncId[syncId].push({ node, pos });
-        }
-      });
+        // Increment count at this level
+        currentListLevels[level - 1] = (currentListLevels[level - 1] ?? 0) + 1;
 
-      let hasListsToSync = !!Object.keys(listsBySyncId).length;
-
-      if (!hasListsToSync) {
-        return;
-      }
-
-      let changed = false;
-      Object.entries(listsBySyncId).forEach(([_syncId, lists]) => {
-        // If there are less than 2 lists, then we have nothing to sync.
-        if (lists.length < 1) {
-          let [firstList] = lists;
-          tr.setNodeMarkup(firstList.pos, undefined, {
-            ...firstList.node.attrs,
-            syncId: null,
-          });
-
-          changed = true;
-          return;
-        }
-
-        let [firstList] = lists;
-        let currentOrder = firstList.node.attrs.order;
-
-        lists.forEach((list, index) => {
-          // Skip the first list.
-          if (index === 0) return;
-
-          let { node, pos } = list;
-          let prevList = lists[index - 1];
-          let newOrder = currentOrder + prevList.node.childCount;
-
-          if (node.attrs.order !== newOrder) {
-            tr.setNodeMarkup(pos, undefined, {
-              ...node.attrs,
-              order: newOrder,
-            });
-            changed = true;
-          }
-
-          currentOrder = newOrder;
+        listMap.set(numId, currentListLevels);
+        levelTracker.set(numId, level); // Update current level
+  
+        // Update list attrs
+        tr.setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          listLevel: [...currentListLevels],
+          level: level - 1,
+          lvlText,
+          listNumberingType,
+          customFormat,
         });
       });
 
-      return changed ? tr : null;
+      return tr;
     },
   });
-};
+}
 
 export function randomId() {
   return Math.floor(Math.random() * 0xffffffff).toString();
