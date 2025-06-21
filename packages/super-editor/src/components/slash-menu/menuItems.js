@@ -4,7 +4,7 @@ import AIWriter from '../toolbar/AIWriter.vue';
 import TableActions from '../toolbar/TableActions.vue';
 import LinkInput from '../toolbar/LinkInput.vue';
 import { selectionHasNodeOrMark } from '../cursor-helpers.js';
-import { serializeSelectionToClipboard, writeToClipboard } from '../../core/utilities/clipboardUtils.js';
+import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilities/clipboardUtils.js';
 
 /**
  * Get menu items based on context (trigger, selection, node, etc)
