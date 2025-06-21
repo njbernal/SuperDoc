@@ -1,5 +1,5 @@
-<script>
-import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed, h, markRaw } from 'vue';
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed, markRaw } from 'vue';
 import { SlashMenuPluginKey } from '@/extensions/slash-menu';
 import { getPropsByItemId } from './utils.js';
 import { moveCursorToMouseEvent } from '../cursor-helpers.js';
@@ -7,240 +7,219 @@ import { getItems } from './menuItems.js';
 import { getEditorContext } from './utils.js';
 import GenericPopover from '../popovers/GenericPopover.vue';
 
-export default {
-  name: 'SlashMenu',
-  components: {
-    GenericPopover
+const props = defineProps({
+  editor: {
+    type: Object,
+    required: true,
   },
-  props: {
-    editor: {
-      type: Object,
-      required: true,
-    },
-    openPopover: {
-      type: Function,
-      required: true,
-    },
-    closePopover: {
-      type: Function,
-      required: true,
-    },
+  openPopover: {
+    type: Function,
+    required: true,
   },
+  closePopover: {
+    type: Function,
+    required: true,
+  },
+});
 
-  setup(props) {
-    const searchInput = ref(null);
-    const searchQuery = ref('');
-    const currentTriggerType = ref('slash');
-    const isOpen = ref(false);
-    const menuPosition = ref({ left: '0px', top: '0px' });
-    const menuRef = ref(null);
-    const items = ref([]);
-    const selectedId = ref(null);
-    const filteredItems = computed(() => {
-      const baseItems = !searchQuery.value ? items.value : items.value.filter((item) =>
-        item.label?.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
+const searchInput = ref(null);
+const searchQuery = ref('');
+const currentTriggerType = ref('slash');
+const isOpen = ref(false);
+const menuPosition = ref({ left: '0px', top: '0px' });
+const menuRef = ref(null);
+const items = ref([]);
+const selectedId = ref(null);
 
-      // If we have 2 or fewer items, filter out dividers
-      if (baseItems.filter(item => !item.type || item.type !== 'divider').length <= 2) {
-        return baseItems.filter(item => !item.type || item.type !== 'divider');
-      }
+const filteredItems = computed(() => {
+  const baseItems = !searchQuery.value ? items.value : items.value.filter((item) =>
+    item.label?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
 
-      return baseItems;
-    });
+  // If we have 2 or fewer items, filter out dividers
+  if (baseItems.filter(item => !item.type || item.type !== 'divider').length <= 2) {
+    return baseItems.filter(item => !item.type || item.type !== 'divider');
+  }
 
-    const getSelectableItems = (itemsArr) => itemsArr.filter(item => !item.type || item.type !== 'divider');
+  return baseItems;
+});
 
-    watch(isOpen, (open) => {
-      if (open) {
-        nextTick(() => {
-          if (searchInput.value) {
-            searchInput.value.focus();
-          }
-        });
-      }
-    });
+const getSelectableItems = (itemsArr) => itemsArr.filter(item => !item.type || item.type !== 'divider');
 
-    watch(items, (newItems) => {
-      const selectable = getSelectableItems(newItems);
-      if (selectable.length > 0) {
-        selectedId.value = selectable[0].id;
+watch(isOpen, (open) => {
+  if (open) {
+    nextTick(() => {
+      if (searchInput.value) {
+        searchInput.value.focus();
       }
     });
+  }
+});
 
-    const handleGlobalKeyDown = (event) => {
-      // ESCAPE: always close popover or menu
-      if (event.key === 'Escape') {
+watch(items, (newItems) => {
+  const selectable = getSelectableItems(newItems);
+  if (selectable.length > 0) {
+    selectedId.value = selectable[0].id;
+  }
+});
+
+const handleGlobalKeyDown = (event) => {
+  // ESCAPE: always close popover or menu
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    closeMenu();
+    props.editor?.view?.focus();
+    return;
+  }
+
+  // Only handle navigation/selection if menu is open and input is focused
+  if (
+    isOpen.value &&
+    (event.target === searchInput.value || (menuRef.value && menuRef.value.contains(event.target)))
+  ) {
+    const currentItems = items.value;
+    const selectableItems = getSelectableItems(currentItems);
+    const currentIndex = selectableItems.findIndex(item => item.id === selectedId.value);
+    switch (event.key) {
+      case 'ArrowDown': {
         event.preventDefault();
-        event.stopPropagation();
-        closeMenu();
-        props.editor?.view?.focus();
-        return;
-      }
-
-      // Only handle navigation/selection if menu is open and input is focused
-      if (
-        isOpen.value &&
-        (event.target === searchInput.value || (menuRef.value && menuRef.value.contains(event.target)))
-      ) {
-        const currentItems = items.value;
-        const selectableItems = getSelectableItems(currentItems);
-        const currentIndex = selectableItems.findIndex(item => item.id === selectedId.value);
-        switch (event.key) {
-          case 'ArrowDown': {
-            event.preventDefault();
-            if (currentIndex < selectableItems.length - 1) {
-              selectedId.value = selectableItems[currentIndex + 1].id;
-            }
-            break;
-          }
-          case 'ArrowUp': {
-            event.preventDefault();
-            if (currentIndex > 0) {
-              selectedId.value = selectableItems[currentIndex - 1].id;
-            }
-            break;
-          }
-          case 'Enter': {
-            event.preventDefault();
-            const selectedItem = selectableItems.find(item => item.id === selectedId.value);
-            if (selectedItem) {
-              executeCommand(selectedItem);
-            }
-            break;
-          }
+        if (currentIndex < selectableItems.length - 1) {
+          selectedId.value = selectableItems[currentIndex + 1].id;
         }
+        break;
       }
-    };
-
-    const handleGlobalOutsideClick = (event) => {
-      if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
-        moveCursorToMouseEvent(event, props.editor);
-        closeMenu({ restoreCursor: false });
+      case 'ArrowUp': {
+        event.preventDefault();
+        if (currentIndex > 0) {
+          selectedId.value = selectableItems[currentIndex - 1].id;
+        }
+        break;
       }
-    };
+      case 'Enter': {
+        event.preventDefault();
+        const selectedItem = selectableItems.find(item => item.id === selectedId.value);
+        if (selectedItem) {
+          executeCommand(selectedItem);
+        }
+        break;
+      }
+    }
+  }
+};
 
-    const handleRightClick = async (event) => {
-      event.preventDefault();
-      props.editor.view.dispatch(
-        props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
-          type: 'open',
-          pos: props.editor.view.state.selection.from,
-          clientX: event.clientX,
-          clientY: event.clientY,
-        })
+const handleGlobalOutsideClick = (event) => {
+  if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
+    moveCursorToMouseEvent(event, props.editor);
+    closeMenu({ restoreCursor: false });
+  }
+};
+
+const handleRightClick = async (event) => {
+  event.preventDefault();
+  props.editor.view.dispatch(
+    props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
+      type: 'open',
+      pos: props.editor.view.state.selection.from,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    })
+  );
+  searchQuery.value = '';
+  // Set items and selectedId when menu opens
+  const context = await getEditorContext(props.editor, event);
+  items.value = getItems({ ...context, trigger: 'click' });
+  selectedId.value = items.value[0]?.id || null;
+};
+
+const executeCommand = async (item) => {
+  if (props.editor) {
+    // First call the action if needed on the item
+    item.action ? await item.action(props.editor) : null;
+
+    if (item.component) {
+      const menuElement = menuRef.value;
+      const componentProps = getPropsByItemId(item.id, props);
+      props.openPopover(markRaw(item.component), componentProps, { left: menuPosition.value.left, top: menuPosition.value.top });
+      closeMenu({ restoreCursor: false });
+    } else {
+      // For paste operations, don't restore cursor
+      const shouldRestoreCursor = item.id !== 'paste';
+      closeMenu({ restoreCursor: shouldRestoreCursor });
+    }
+  }
+};
+
+const closeMenu = (options = { restoreCursor: true }) => {
+  if (props.editor?.view) {
+    // Get plugin state to access anchorPos
+    const pluginState = SlashMenuPluginKey.getState(props.editor.view.state);
+    const { anchorPos } = pluginState;
+
+    // Update prosemirror state to close menu
+    props.editor.view.dispatch(
+      props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
+        type: 'close',
+      })
+    );
+
+    // Restore cursor position and focus only if requested
+    if (options.restoreCursor && anchorPos !== null) {
+      const tr = props.editor.view.state.tr.setSelection(
+        props.editor.view.state.selection.constructor.near(
+          props.editor.view.state.doc.resolve(anchorPos)
+        )
       );
-      searchQuery.value = '';
-      // Set items and selectedId when menu opens
-      const context = await getEditorContext(props.editor, event);
-      items.value = getItems({ ...context, trigger: 'click' });
-      selectedId.value = items.value[0]?.id || null;
+      props.editor.view.dispatch(tr);
+      props.editor.view.focus();
     }
 
-    /**
-     * Lifecycle hooks on mount and onBeforeUnmount
-     */
-    onMounted(() => {
-      if (!props.editor) return;
-
-      // Add global event listeners
-      document.addEventListener('keydown', handleGlobalKeyDown);
-      document.addEventListener('mousedown', handleGlobalOutsideClick);
-
-      // Listen for the slash menu to open
-      props.editor.on('slashMenu:open', async (event) => {
-        isOpen.value = true;
-        menuPosition.value = event.menuPosition;
-        searchQuery.value = '';
-        // Set items and selectedId when menu opens
-        const context = await getEditorContext(props.editor);
-        items.value = getItems({ ...context, trigger: 'slash' });
-        selectedId.value = items.value[0]?.id || null;
-      });
-
-      props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
-
-      props.editor.on('slashMenu:close', () => {
-        isOpen.value = false;
-        searchQuery.value = '';
-      });
-    });
-
-    // Cleanup function for event listeners
-    onBeforeUnmount(() => {
-      document.removeEventListener('keydown', handleGlobalKeyDown);
-      document.removeEventListener('mousedown', handleGlobalOutsideClick);
-      if (props.editor) {
-        props.editor.off('slashMenu:open');
-        props.editor.off('slashMenu:close');
-        props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
-      }
-    });
-
-    const executeCommand = async (item) => {
-      if (props.editor) {
-        // First call the action if needed on the item
-        item.action ? await item.action(props.editor) : null;
-
-        if (item.component) {
-          const menuElement = menuRef.value;
-          const componentProps = getPropsByItemId(item.id, props);
-          props.openPopover(markRaw(item.component), componentProps, { left:menuPosition.value.left, top:menuPosition.value.top });
-          closeMenu({ restoreCursor: false });
-        } else {
-          // For paste operations, don't restore cursor
-          const shouldRestoreCursor = item.id !== 'paste';
-          closeMenu({ restoreCursor: shouldRestoreCursor });
-        }
-      }
-    };
-
-    const closeMenu = (options = { restoreCursor: true }) => {
-      if (props.editor?.view) {
-        // Get plugin state to access anchorPos
-        const pluginState = SlashMenuPluginKey.getState(props.editor.view.state);
-        const { anchorPos } = pluginState;
-
-        // Update prosemirror state to close menu
-        props.editor.view.dispatch(
-          props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
-            type: 'close',
-          })
-        );
-
-        // Restore cursor position and focus only if requested
-        if (options.restoreCursor && anchorPos !== null) {
-          const tr = props.editor.view.state.tr.setSelection(
-            props.editor.view.state.selection.constructor.near(
-              props.editor.view.state.doc.resolve(anchorPos)
-            )
-          );
-          props.editor.view.dispatch(tr);
-          props.editor.view.focus();
-        }
-
-        // Update local state
-        isOpen.value = false;
-        searchQuery.value = '';
-        items.value = [];
-      }
-    };
-
-    return {
-      menuRef,
-      searchInput,
-      searchQuery,
-      menuPosition,
-      isOpen,
-      selectedId,
-      items,
-      filteredItems,
-      handleGlobalKeyDown,
-      executeCommand,
-      currentTriggerType,
-    };
-  },
+    // Update local state
+    isOpen.value = false;
+    searchQuery.value = '';
+    items.value = [];
+  }
 };
+
+/**
+ * Lifecycle hooks on mount and onBeforeUnmount
+ */
+onMounted(() => {
+  if (!props.editor) return;
+
+  // Add global event listeners
+  document.addEventListener('keydown', handleGlobalKeyDown);
+  document.addEventListener('mousedown', handleGlobalOutsideClick);
+
+  // Listen for the slash menu to open
+  props.editor.on('slashMenu:open', async (event) => {
+    isOpen.value = true;
+    menuPosition.value = event.menuPosition;
+    searchQuery.value = '';
+    // Set items and selectedId when menu opens
+    const context = await getEditorContext(props.editor);
+    items.value = getItems({ ...context, trigger: 'slash' });
+    selectedId.value = items.value[0]?.id || null;
+  });
+
+  props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
+
+  props.editor.on('slashMenu:close', () => {
+    isOpen.value = false;
+    searchQuery.value = '';
+  });
+});
+
+// Cleanup function for event listeners
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleGlobalKeyDown);
+  document.removeEventListener('mousedown', handleGlobalOutsideClick);
+  if (props.editor) {
+    props.editor.off('slashMenu:open');
+    props.editor.off('slashMenu:close');
+    props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
+  }
+});
 </script>
 
 <template>
