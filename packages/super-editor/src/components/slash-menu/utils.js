@@ -17,7 +17,6 @@ export const getPropsByItemId = (itemId, props) => {
 
     const baseProps = {
         editor: markRaw(props.editor),
-
     };
 
     switch (itemId) {
