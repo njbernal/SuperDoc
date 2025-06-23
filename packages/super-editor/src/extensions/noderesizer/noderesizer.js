@@ -7,7 +7,7 @@ import { Extension } from '@core/Extension.js';
  */
 export const NodeResizerKey = new PluginKey('node-resizer');
 
-const nodeResizer = (nodeNames = ['image']) => {
+const nodeResizer = (nodeNames = ['image'], editor) => {
   // Track the resize state
   let resizeState = {
     dragging: false,
@@ -41,7 +41,7 @@ const nodeResizer = (nodeNames = ['image']) => {
           return oldState;
         }
 
-        if (typeof document === 'undefined') return oldState;
+        if (typeof document === 'undefined' || editor.options.isHeadless) return oldState;
 
         const decorations = [];
         const { selection } = newState;
@@ -312,6 +312,9 @@ export const NodeResizer = Extension.create({
   name: 'nodeResizer',
 
   addPmPlugins() {
-    return [nodeResizer(['image'])];
+    const isHeadless = this.editor.options.isHeadless;
+    const hasDocument = typeof document !== 'undefined';
+    if (isHeadless || !hasDocument) return [];
+    return [nodeResizer(['image'], this.editor)];
   },
 });
