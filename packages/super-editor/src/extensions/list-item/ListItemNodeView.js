@@ -144,8 +144,7 @@ function getListItemTextStyleMarks(listItem, markType) {
  */
 function getTextStyleMarksFromLinkedStyles({ node, pos, editor }) {
   // 1. Get the “base” font + size from linked styles
-  const { font: defaultFont, size: defaultSize } =
-    getStylesFromLinkedStyles({ node, pos, editor });
+  const { font: defaultFont, size: defaultSize } = getStylesFromLinkedStyles({ node, pos, editor });
 
   // 2. Find all textStyle marks on this node
   const textStyleType = getMarkType('textStyle', editor.schema);

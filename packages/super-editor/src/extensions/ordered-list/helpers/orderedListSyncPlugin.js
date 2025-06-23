@@ -20,49 +20,62 @@ export function orderedListSync(editor) {
       tr.setMeta('orderedListSync', true);
 
       const listMap = new Map(); // numId -> [counts per level]
-      const levelTracker = new Map(); // numId -> current level
+      const listInitialized = new Map(); // Track if we've initialized each numId
+
       newState.doc.descendants((node, pos) => {
         if (node.type.name !== 'listItem') return;
 
         const { level: attrLvl, numId: attrNumId, styleId, start } = node.attrs;
-        const level = parseInt(attrLvl) + 1;
+        const level = parseInt(attrLvl);
         const numId = parseInt(attrNumId);
-  
-        const currentList = listMap.get(numId) || [];
 
-        // Generate an object of levesl and counts that genereateListPath requires
-        const generatedLevels = Object.fromEntries(currentList.map((item, index) => [index, item]));
-        const path = docxNumberigHelpers.generateListPath(level - 1, numId, styleId, generatedLevels, docx);
-  
+        // Initialize tracking for this numId if not exists
+        if (!listMap.has(numId)) {
+          // Get the initial path to understand the starting state
+          const currentList = [];
+          const generatedLevels = {};
+          const initialPath = docxNumberigHelpers.generateListPath(level, numId, styleId, generatedLevels, docx);
+
+          // Set the initial path, we'll use it as a template
+          listMap.set(numId, initialPath || []);
+          listInitialized.set(numId, false);
+        }
+
+        let currentListLevels = [...listMap.get(numId)];
+
+        // For the first item, use the generateListPath result as-is
+        if (!listInitialized.get(numId)) {
+          listInitialized.set(numId, true);
+        } else {
+          // For subsequent items, increment at the current level
+          // Ensure array is long enough for current level
+          while (currentListLevels.length <= level) {
+            currentListLevels.push(0);
+          }
+
+          // Increment count at current level
+          currentListLevels[level] = (currentListLevels[level] || 0) + 1;
+
+          // Reset deeper levels to 0 when we encounter a shallower level
+          for (let i = level + 1; i < currentListLevels.length; i++) {
+            currentListLevels[i] = 0;
+          }
+        }
+
+        // Update the map
+        listMap.set(numId, currentListLevels);
+
         const {
           lvlText,
           customFormat,
           listNumberingType
-        } = ListHelpers.getListDefinitionDetails({ numId, level: level - 1, editor })
+        } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
 
-        if (!listMap.has(numId)) listMap.set(numId, path);
-        if (!levelTracker.has(numId)) levelTracker.set(numId, 0);
-
-        let currentListLevels = listMap.get(numId);
-        let currentLevel = levelTracker.get(numId);
-
-        if (level > currentLevel) {
-          currentListLevels.push(0); // Start new sub-level count
-        } else if (level < currentLevel) {
-          currentListLevels = currentListLevels.slice(0, level); // Truncate to current depth
-        }
-
-        // Increment count at this level
-        currentListLevels[level - 1] = (currentListLevels[level - 1] ?? 0) + 1;
-
-        listMap.set(numId, currentListLevels);
-        levelTracker.set(numId, level); // Update current level
-  
         // Update list attrs
         tr.setNodeMarkup(pos, undefined, {
           ...node.attrs,
           listLevel: [...currentListLevels],
-          level: level - 1,
+          level,
           lvlText,
           listNumberingType,
           customFormat,

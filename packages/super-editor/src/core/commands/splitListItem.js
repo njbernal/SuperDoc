@@ -51,19 +51,18 @@ export const splitListItem = () => (props) => {
 
   const paragraphNode = $from.node();
   const paraOffset = $from.parentOffset;
-  const head = paragraphNode.content.cut(0, paraOffset);
   const tail = paragraphNode.content.cut(paraOffset);
 
-  const newHeadPara = editor.schema.nodes.paragraph.create(null, head);
-  const newListItemContent = listItemNode.content.replaceChild(0, newHeadPara);
-  const updatedListItem = listItemNode.copy(newListItemContent);
-
   const listItemPos = matchedListItem.pos;
-  tr.replaceWith(listItemPos, listItemPos + listItemNode.nodeSize, updatedListItem);
+  const cutPos = $from.pos;
+  const listItemEnd = listItemPos + listItemNode.nodeSize;
+
+  // This deletes the tail (everything after cursor)
+  tr.delete(cutPos, listItemEnd);
 
   // Duplicate the list and list item
-  const paragraph = editor.schema.nodes.paragraph.create(null, tail);
-  const newListItem = editor.schema.nodes.listItem.create(listItemNode.attrs, paragraph);
+  const paragraph = editor.schema.nodes.paragraph.create(paragraphNode.attrs, tail);
+  const newListItem = editor.schema.nodes.listItem.create({...listItemNode.attrs}, paragraph);
   const newList = editor.schema.nodes.orderedList.createAndFill(parentListNode.attrs, Fragment.from(newListItem));
   if (!newListItem || !newList) return false;
 
@@ -78,11 +77,10 @@ export const splitListItem = () => (props) => {
   tr.setSelection(TextSelection.near(newListResolved)).scrollIntoView();
 
   // Retain any marks
-  const marks = state.storedMarks || $from.marks();
+  const marks = state.storedMarks || $from.marks() || [];
   if (marks?.length) {
     tr.ensureMarks(marks);
   }
-
   tr.setMeta('splitListItem', true);
 
   dispatch(tr);

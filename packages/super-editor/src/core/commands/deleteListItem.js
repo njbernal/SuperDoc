@@ -24,11 +24,14 @@ export const deleteListItem = () => (props) => {
   const parentList = findParentNode((node) => listTypes.includes(node.type.name))(state.selection);
   if (!parentList) return false;
 
+  const currentParagraphNode = findParentNode((node) => node.type.name === 'paragraph')(state.selection);
+
   if (!dispatch) return true;
 
   const listFrom = parentList.pos;
   const listTo = listFrom + parentList.node.nodeSize;
   const paragraphNode = currentListItem.node.content.firstChild;
+  if (paragraphNode !== currentParagraphNode.node) return false;
 
   /**
    * Case 1: List item is empty - just remove the entire list
