@@ -62,6 +62,10 @@ export function orderedListSync(editor) {
           }
         }
 
+        if (currentListLevels.length === 0) {
+          currentListLevels = [1]; // Ensure we have at least one level
+        }
+
         // Update the map
         listMap.set(numId, currentListLevels);
 
