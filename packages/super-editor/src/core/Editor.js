@@ -13,7 +13,11 @@ import { createDocument } from './helpers/createDocument.js';
 import { isActive } from './helpers/isActive.js';
 import { trackedTransaction } from '@extensions/track-changes/trackChangesHelpers/trackedTransaction.js';
 import { TrackChangesBasePluginKey } from '@extensions/track-changes/plugins/index.js';
-import { initPaginationData, PaginationPluginKey } from '@extensions/pagination/pagination-helpers';
+import {
+  initPaginationData,
+  PaginationPluginKey,
+  toggleHeaderFooterEditMode
+} from '@extensions/pagination/pagination-helpers';
 import { CommentsPluginKey } from '@extensions/comment/comments-plugin.js';
 import { getNecessaryMigrations } from '@core/migrations/index.js';
 import { getRichTextExtensions } from '../extensions/index.js';
@@ -21,12 +25,13 @@ import { AnnotatorHelpers } from '@helpers/annotator.js';
 import { prepareCommentsForExport, prepareCommentsForImport } from '@extensions/comment/comments-helpers.js';
 import DocxZipper from '@core/DocxZipper.js';
 import { generateCollaborationData } from '@extensions/collaboration/collaboration.js';
-import { toggleHeaderFooterEditMode } from '../extensions/pagination/pagination-helpers.js';
 import { hasSomeParentWithClass } from './super-converter/helpers.js';
 import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
 import { updateYdocDocxData } from '@extensions/collaboration/collaboration-helpers.js';
 import { setWordSelection } from './helpers/setWordSelection.js';
 import { setImageNodeSelection } from './helpers/setImageNodeSelection.js';
+
+
 /**
  * @typedef {Object} FieldValue
  * @property {string} input_id The id of the input field
@@ -328,7 +333,7 @@ export class Editor extends EventEmitter {
     // Init pagination only if we are not in collaborative mode. Otherwise
     // it will be in itialized via this.#onCollaborationReady
     if (!this.options.ydoc) {
-      this.#initPagination();
+      this.initPagination();
       this.#initComments();
     }
   }
@@ -625,7 +630,7 @@ export class Editor extends EventEmitter {
     this.view.dispatch(tr);
 
     setTimeout(() => {
-      this.#initPagination();
+      this.initPagination();
       this.#initComments();
     }, 50);
   }
@@ -708,10 +713,10 @@ export class Editor extends EventEmitter {
 
   /**
    * Unregister a PM plugin
-   * @param {string|Object} nameOrPlugin - Plugin name or plugin instance
+   * @param {string|Object} nameOrPluginKey - Plugin name or plugin instance
    * @returns {void}
    */
-  unregisterPlugin(nameOrPlugin) {
+  unregisterPlugin(nameOrPluginKey) {
     if (this.isDestroyed) return;
 
     const name = typeof nameOrPluginKey === 'string' ? `${nameOrPluginKey}$` : nameOrPluginKey.key;
@@ -1039,7 +1044,7 @@ export class Editor extends EventEmitter {
   /**
    * Attach styles and attributes to the editor element
    */
-  updateEditorStyles(element, proseMirror) {
+  updateEditorStyles(element, proseMirror, hasPaginationEnabled = true) {
     const { pageSize, pageMargins } = this.converter.pageStyles ?? {};
 
     if (!proseMirror || !element) {
@@ -1089,9 +1094,12 @@ export class Editor extends EventEmitter {
     proseMirror.style.lineHeight = defaultLineHeight;
 
     // If we are not using pagination, we still need to add some padding for header/footer
-    if (!this.options.extensions.find((e) => e.name === 'pagination')) {
+    if (!hasPaginationEnabled) {
       proseMirror.style.paddingTop = '1in';
       proseMirror.style.paddingBottom = '1in';
+    } else {
+      proseMirror.style.paddingTop = '0';
+      proseMirror.style.paddingBottom = '0';
     }
   }
 
@@ -1103,12 +1111,12 @@ export class Editor extends EventEmitter {
     * @param {HTMLElement} [element=this.element] - The DOM element to apply styles to
     * @returns {void}
     */
-  initDefaultStyles(element = this.element) {
+  initDefaultStyles(element = this.element, isPaginationEnabled = true) {
     if (this.options.isHeadless || this.options.suppressDefaultDocxStyles) return;
 
     const proseMirror = element?.querySelector('.ProseMirror');
 
-    this.updateEditorStyles(element, proseMirror);
+    this.updateEditorStyles(element, proseMirror, isPaginationEnabled);
 
     this.initMobileStyles(element);
   };
@@ -1190,7 +1198,7 @@ export class Editor extends EventEmitter {
     this.options.collaborationIsReady = true;
 
     if (!this.options.isNewFile) {
-      this.#initPagination();
+      this.initPagination();
       this.#initComments();
     }
   };
@@ -1221,7 +1229,7 @@ export class Editor extends EventEmitter {
    * @async
    * @returns {Promise<void>}
    */
-  async #initPagination() {
+  async initPagination() {
     if (this.options.isHeadless || !this.extensionService || this.options.isHeaderOrFooter) {
       return;
     }
@@ -1680,7 +1688,7 @@ export class Editor extends EventEmitter {
     }
 
     if (!this.options.ydoc) {
-      this.#initPagination();
+      this.initPagination();
       this.#initComments();
     }
   }
