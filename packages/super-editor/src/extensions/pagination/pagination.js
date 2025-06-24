@@ -18,6 +18,7 @@ const cleanupFunctions = new Set();
 
 export const Pagination = Extension.create({
   name: 'pagination',
+  priority: 500,
 
   addStorage() {
     return {
@@ -80,7 +81,8 @@ export const Pagination = Extension.create({
           }
 
           const syncMeta = tr.getMeta('y-sync$');
-          if (syncMeta && syncMeta.isChangeOrigin) {
+          const listSyncMeta = tr.getMeta('orderedListSync');
+          if ((syncMeta && syncMeta.isChangeOrigin) || listSyncMeta) {
             return { ...oldState }
           }
 
