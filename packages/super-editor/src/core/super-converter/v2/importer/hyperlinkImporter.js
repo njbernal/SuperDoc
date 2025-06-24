@@ -43,7 +43,12 @@ export const handleHyperlinkNode = (params) => {
         const styleElements = elements.filter((el) => el.name === 'w:style');
         const style = styleElements.find((el) => el.attributes['w:styleId'] === 'Hyperlink');
         const styleRpr = style?.elements?.find((el) => el.name === 'w:rPr');
-        if (styleRpr) runNode.elements.unshift(styleRpr);
+        if (styleRpr) {
+          styleRpr.elements.forEach(styleEl => {
+            const hasElInRPr = rPr.elements.find((el) => el.name === styleEl.name);
+            if (!hasElInRPr) rPr.elements.push(styleEl);
+          })
+        }
       }
     }
   }

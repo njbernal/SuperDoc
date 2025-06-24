@@ -685,6 +685,12 @@ function processLinkContentNode(node) {
     name: 'w:color',
     attributes: { 'w:val': '467886' },
   };
+  const underline = {
+    name: 'w:u',
+    attributes: {
+      'w:val': 'none'
+    }
+  };
 
   if (contentNode.name === 'w:r') {
     const runProps = contentNode.elements.find((el) => el.name === 'w:rPr');
@@ -692,8 +698,10 @@ function processLinkContentNode(node) {
     if (runProps) {
       const foundColor = runProps.elements.find((el) => el.name === 'w:color');
       const foundHyperlinkStyle = runProps.elements.find((el) => el.name === 'w:rStyle');
+      const underlineMark = runProps.elements.find((el) => el.name === 'w:u');
       if (!foundColor) runProps.elements.unshift(color);
       if (!foundHyperlinkStyle) runProps.elements.unshift(hyperlinkStyle);
+      if (!underlineMark) runProps.elements.unshift(underline);
     } else {
       // we don't add underline by default
       const runProps = {
