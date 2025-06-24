@@ -5,7 +5,6 @@ import { getPropsByItemId } from './utils.js';
 import { moveCursorToMouseEvent } from '../cursor-helpers.js';
 import { getItems } from './menuItems.js';
 import { getEditorContext } from './utils.js';
-import GenericPopover from '../popovers/GenericPopover.vue';
 
 const props = defineProps({
   editor: {
@@ -24,27 +23,46 @@ const props = defineProps({
 
 const searchInput = ref(null);
 const searchQuery = ref('');
-const currentTriggerType = ref('slash');
 const isOpen = ref(false);
 const menuPosition = ref({ left: '0px', top: '0px' });
 const menuRef = ref(null);
-const items = ref([]);
+const sections = ref([]);
 const selectedId = ref(null);
 
-const filteredItems = computed(() => {
-  const baseItems = !searchQuery.value ? items.value : items.value.filter((item) =>
-    item.label?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-
-  // If we have 2 or fewer items, filter out dividers
-  if (baseItems.filter(item => !item.type || item.type !== 'divider').length <= 2) {
-    return baseItems.filter(item => !item.type || item.type !== 'divider');
-  }
-
-  return baseItems;
+// Flatten sections into items for navigation and filtering
+const flattenedItems = computed(() => {
+  const items = [];
+  sections.value.forEach(section => {
+    section.items.forEach(item => {
+      items.push(item);
+    });
+  });
+  return items;
 });
 
-const getSelectableItems = (itemsArr) => itemsArr.filter(item => !item.type || item.type !== 'divider');
+// Filter items based on search query
+const filteredItems = computed(() => {
+  if (!searchQuery.value) {
+    return flattenedItems.value;
+  }
+  
+  return flattenedItems.value.filter((item) =>
+    item.label?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// Get sections with filtered items for rendering
+const filteredSections = computed(() => {
+  if (!searchQuery.value) {
+    return sections.value;
+  }
+  
+  // If searching, return a single section with filtered items
+  return [{
+    id: 'search-results',
+    items: filteredItems.value
+  }];
+});
 
 watch(isOpen, (open) => {
   if (open) {
@@ -56,10 +74,9 @@ watch(isOpen, (open) => {
   }
 });
 
-watch(items, (newItems) => {
-  const selectable = getSelectableItems(newItems);
-  if (selectable.length > 0) {
-    selectedId.value = selectable[0].id;
+watch(flattenedItems, (newItems) => {
+  if (newItems.length > 0) {
+    selectedId.value = newItems[0].id;
   }
 });
 
@@ -78,27 +95,26 @@ const handleGlobalKeyDown = (event) => {
     isOpen.value &&
     (event.target === searchInput.value || (menuRef.value && menuRef.value.contains(event.target)))
   ) {
-    const currentItems = items.value;
-    const selectableItems = getSelectableItems(currentItems);
-    const currentIndex = selectableItems.findIndex(item => item.id === selectedId.value);
+    const currentItems = filteredItems.value;
+    const currentIndex = currentItems.findIndex(item => item.id === selectedId.value);
     switch (event.key) {
       case 'ArrowDown': {
         event.preventDefault();
-        if (currentIndex < selectableItems.length - 1) {
-          selectedId.value = selectableItems[currentIndex + 1].id;
+        if (currentIndex < currentItems.length - 1) {
+          selectedId.value = currentItems[currentIndex + 1].id;
         }
         break;
       }
       case 'ArrowUp': {
         event.preventDefault();
         if (currentIndex > 0) {
-          selectedId.value = selectableItems[currentIndex - 1].id;
+          selectedId.value = currentItems[currentIndex - 1].id;
         }
         break;
       }
       case 'Enter': {
         event.preventDefault();
-        const selectedItem = selectableItems.find(item => item.id === selectedId.value);
+        const selectedItem = currentItems.find(item => item.id === selectedId.value);
         if (selectedItem) {
           executeCommand(selectedItem);
         }
@@ -126,10 +142,10 @@ const handleRightClick = async (event) => {
     })
   );
   searchQuery.value = '';
-  // Set items and selectedId when menu opens
+  // Set sections and selectedId when menu opens
   const context = await getEditorContext(props.editor, event);
-  items.value = getItems({ ...context, trigger: 'click' });
-  selectedId.value = items.value[0]?.id || null;
+  sections.value = getItems({ ...context, trigger: 'click' });
+  selectedId.value = flattenedItems.value[0]?.id || null;
 };
 
 const executeCommand = async (item) => {
@@ -177,7 +193,7 @@ const closeMenu = (options = { restoreCursor: true }) => {
     // Update local state
     isOpen.value = false;
     searchQuery.value = '';
-    items.value = [];
+    sections.value = [];
   }
 };
 
@@ -196,10 +212,10 @@ onMounted(() => {
     isOpen.value = true;
     menuPosition.value = event.menuPosition;
     searchQuery.value = '';
-    // Set items and selectedId when menu opens
+    // Set sections and selectedId when menu opens
     const context = await getEditorContext(props.editor);
-    items.value = getItems({ ...context, trigger: 'slash' });
-    selectedId.value = items.value[0]?.id || null;
+    sections.value = getItems({ ...context, trigger: 'slash' });
+    selectedId.value = flattenedItems.value[0]?.id || null;
   });
 
   props.editor.view.dom.addEventListener('contextmenu', handleRightClick);
@@ -235,18 +251,26 @@ onBeforeUnmount(() => {
     />
 
     <div class="slash-menu-items">
-      <template v-for="(item, idx) in filteredItems" :key="item.id ? item.id : 'divider-' + idx">
-        <div v-if="item.type === 'divider'" class="slash-menu-divider" tabindex="0"></div>
-        <div
-          v-else
-          class="slash-menu-item"
-          :class="{ 'is-selected': item.id === selectedId }"
-          @click="executeCommand(item)"
-        >
-          <!-- Render the icon if it exists -->
-          <span v-if="item.icon" class="slash-menu-item-icon" v-html="item.icon"></span>
-          <span>{{ item.label }}</span>
-        </div>
+      <template v-for="(section, sectionIndex) in filteredSections" :key="section.id">
+        <!-- Render divider before section (except for first section) -->
+        <div 
+          v-if="sectionIndex > 0 && section.items.length > 0" 
+          class="slash-menu-divider" 
+          tabindex="0"
+        ></div>
+        
+        <!-- Render section items -->
+        <template v-for="item in section.items" :key="item.id">
+          <div
+            class="slash-menu-item"
+            :class="{ 'is-selected': item.id === selectedId }"
+            @click="executeCommand(item)"
+          >
+            <!-- Render the icon if it exists -->
+            <span v-if="item.icon" class="slash-menu-item-icon" v-html="item.icon"></span>
+            <span>{{ item.label }}</span>
+          </div>
+        </template>
       </template>
     </div>
   </div>
