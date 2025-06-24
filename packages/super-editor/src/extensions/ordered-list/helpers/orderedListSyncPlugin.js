@@ -22,6 +22,18 @@ export function orderedListSync(editor) {
       const listMap = new Map(); // numId -> [counts per level]
       const listInitialized = new Map(); // Track if we've initialized each numId
 
+      const shouldProcess = transactions.some(tr =>
+        tr.steps.some(step => {
+          const stepJSON = step.toJSON();
+          return (
+            stepJSON &&
+            stepJSON.slice &&
+            JSON.stringify(stepJSON).includes('"listItem"')
+          );
+        })
+      );
+      if (!shouldProcess) return null;
+
       newState.doc.descendants((node, pos) => {
         if (node.type.name !== 'listItem') return;
 
@@ -76,14 +88,23 @@ export function orderedListSync(editor) {
         } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
 
         // Update list attrs
-        tr.setNodeMarkup(pos, undefined, {
+        const updatedAttrs = {
           ...node.attrs,
           listLevel: [...currentListLevels],
           level,
           lvlText,
           listNumberingType,
           customFormat,
-        });
+        };
+
+        const keysChanged = Object.keys(updatedAttrs).some(
+          key => node.attrs[key] !== updatedAttrs[key]
+        );
+
+        if (keysChanged) {
+          tr.setNodeMarkup(pos, undefined, updatedAttrs);
+        }
+
       });
 
       return tr;
