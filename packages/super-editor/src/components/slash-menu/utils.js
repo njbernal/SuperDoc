@@ -1,6 +1,5 @@
-import { TextSelection } from 'prosemirror-state';
 import { readFromClipboard } from '../../core/utilities/clipboardUtils.js';
-import { tableActionsOptions } from '../toolbar/defaultItems.js';
+import { tableActionsOptions } from './constants.js';
 import { markRaw } from 'vue';
 /**
  * Get props by item id

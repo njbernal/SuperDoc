@@ -555,12 +555,16 @@ export class SuperToolbar extends EventEmitter {
    * Create toolbar items based on configuration
    * @private
    * @param {SuperToolbar} options.superToolbar - The toolbar instance
+   * @param {Object} options.icons - Icons to use for toolbar items
+   * @param {Object} options.texts - Texts to use for toolbar items
    * @param {Array} options.fonts - Fonts for the toolbar item
    * @param {boolean} options.isDev - Whether in development mode
    * @returns {void}
    */
   #makeToolbarItems({
     superToolbar, 
+    icons,
+    texts,
     fonts,
     hideButtons,
     isDev = false,
@@ -571,6 +575,8 @@ export class SuperToolbar extends EventEmitter {
 
     const { defaultItems, overflowItems } = makeDefaultItems({
       superToolbar,
+      toolbarIcons: icons,
+      toolbarTexts: texts,
       toolbarFonts: fonts,
       hideButtons,
       availableWidth,
@@ -724,6 +730,8 @@ export class SuperToolbar extends EventEmitter {
   onToolbarResize = () => {
     this.#makeToolbarItems({
       superToolbar: this,
+      icons: this.config.icons,
+      texts: this.config.texts,
       fonts: this.config.fonts,
       hideButtons: this.config.hideButtons,
       isDev: this.isDev,
@@ -768,7 +776,6 @@ export class SuperToolbar extends EventEmitter {
    */
   onEditorTransaction({ editor, transaction }) {
     if (!transaction.docChanged && !transaction.selectionSet) return;
-
     this.updateToolbarState();
   }
 

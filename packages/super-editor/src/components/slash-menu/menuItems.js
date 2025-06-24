@@ -1,10 +1,10 @@
-import { toolbarIcons } from '../toolbar/toolbarIcons.js';
 import TableGrid from '../toolbar/TableGrid.vue';
 import AIWriter from '../toolbar/AIWriter.vue';
 import TableActions from '../toolbar/TableActions.vue';
 import LinkInput from '../toolbar/LinkInput.vue';
 import { selectionHasNodeOrMark } from '../cursor-helpers.js';
 import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilities/clipboardUtils.js';
+import { TEXTS, ICONS, TRIGGERS } from './constants.js';
 
 /**
  * Get menu items based on context (trigger, selection, node, etc)
@@ -29,8 +29,8 @@ export function getItems(context) {
   const items = [
     {
       id: 'insert-text',
-      label: selectedText ? 'Replace Text' : 'Generate Text',
-      icon: toolbarIcons.ai,
+      label: selectedText ? TEXTS.replaceText : TEXTS.insertText,
+      icon: ICONS.ai,
       component: AIWriter,
       action: (editor) => {
         // Add AI highlight when menu item is triggered
@@ -38,36 +38,36 @@ export function getItems(context) {
           editor.commands.insertAiMark();
         }
       },
-      allowedTriggers: ['slash', 'click'],
+      allowedTriggers: [TRIGGERS.slash, TRIGGERS.click],
     },
     { type: 'divider' },
     {
       id: 'insert-link',
-      label: 'Insert Link',
-      icon: toolbarIcons.link,
+      label: TEXTS.insertLink,
+      icon: ICONS.link,
       component: LinkInput,
-      allowedTriggers: ['click'],
+      allowedTriggers: [TRIGGERS.click],
     },
     {
       id: 'insert-table',
-      label: 'Insert Table',
-      icon: toolbarIcons.table,
+      label: TEXTS.insertTable,
+      icon: ICONS.table,
       component: TableGrid,
-      allowedTriggers: ['slash', 'click'],
+      allowedTriggers: [TRIGGERS.slash, TRIGGERS.click],
     },
     { type: 'divider' },
     {
       id: 'edit-table',
-      label: 'Edit Table',
-      icon: toolbarIcons.table,
+      label: TEXTS.editTable,
+      icon: ICONS.table,
       component: TableActions,
-      allowedTriggers: ['slash', 'click'],
+      allowedTriggers: [TRIGGERS.slash, TRIGGERS.click],
       requiresTableParent: true,
     },
     {
       id: 'cut',
-      label: 'Cut',
-      icon: toolbarIcons.cut,
+      label: TEXTS.cut,
+      icon: ICONS.cut,
       action: async (editor) => {
         const { state, dispatch } = editor.view;
         const { htmlString, text } = serializeSelectionToClipboard(state);
@@ -75,25 +75,25 @@ export function getItems(context) {
         const { from, to } = state.selection;
         dispatch(state.tr.delete(from, to));
       },
-      allowedTriggers: ['click'],
+      allowedTriggers: [TRIGGERS.click],
       requiresSelection: true
     },
     {
       id: 'copy',
-      label: 'Copy',
-      icon: toolbarIcons.copy,
+      label: TEXTS.copy,
+      icon: ICONS.copy,
       action: async (editor) => {
         const { state } = editor.view;
         const { htmlString, text } = serializeSelectionToClipboard(state);
         await writeToClipboard({ htmlString, text });
       },
-      allowedTriggers: ['click'],
+      allowedTriggers: [TRIGGERS.click],
       requiresSelection: true
     },
     {
       id: 'paste',
-      label: 'Paste',
-      icon: toolbarIcons.paste,
+      label: TEXTS.paste,
+      icon: ICONS.paste,
       action: async (editor) => {
         try {
           // Use the browser's clipboard API directly
@@ -117,7 +117,7 @@ export function getItems(context) {
           console.warn('Failed to paste:', error);
         }
       },
-      allowedTriggers: ['click', 'slash'],
+      allowedTriggers: [TRIGGERS.click, TRIGGERS.slash],
       requiresClipboard: true
     }
   ];
