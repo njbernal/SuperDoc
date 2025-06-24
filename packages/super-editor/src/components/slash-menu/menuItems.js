@@ -7,6 +7,29 @@ import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilitie
 import { TEXTS, ICONS, TRIGGERS } from './constants.js';
 
 /**
+ * Check if a module is enabled based on editor options
+ * This is used for hiding menu items based on module availability
+ * 
+ * @param {Object} editorOptions - Editor options
+ * @param {string} moduleName - Name of the module to check (e.g. 'ai')
+ * @returns {boolean} Whether the module is enabled
+ */
+const isModuleEnabled = (editorOptions, moduleName) => {
+  switch (moduleName) {
+    case 'ai':
+      // isAiEnabled is a boolean set in SuperDoc.vue that passes whether or not the ai key is present on the config object
+      // For example:
+      // isAiEnabled: proxy.$superdoc.config.modules?.ai,
+      return !!editorOptions?.isAiEnabled;
+    // Example for future use cases
+    // case 'comments':
+    // return !!editorOptions?.isCommentsEnabled;
+    default:
+      return true;
+  }
+};
+
+/**
  * Get menu items based on context (trigger, selection, node, etc)
  * @param {Object} context - { editor, selectedText, pos, node, event, trigger }
  * @returns {Array<{
@@ -19,6 +42,7 @@ import { TEXTS, ICONS, TRIGGERS } from './constants.js';
  *   requiresSelection?: boolean,
  *   requiresClipboard?: boolean
  *   requiresTableParent?: boolean
+ *   requiresModule?: string
  * }>} Array of menu items
  */
 export function getItems(context) {
@@ -39,6 +63,7 @@ export function getItems(context) {
         }
       },
       allowedTriggers: [TRIGGERS.slash, TRIGGERS.click],
+      requiresModule: 'ai',
     },
     { type: 'divider' },
     {
@@ -125,6 +150,8 @@ export function getItems(context) {
   // Filter - can be extended to include more context-based filtering
   return items.filter(item => {
     if (item.type === 'divider') return true;
+    // If the item requires a specific module and that module is not enabled, return false
+    if (item.requiresModule && !isModuleEnabled(editor?.options, item.requiresModule)) return false;
     // If the item requires a selection and there is no selection, return false
     if (item.requiresSelection && !selectedText) return false;
     // If the item is not allowed to be triggered with the current trigger, return false
