@@ -154,7 +154,8 @@ export const Paragraph = Node.create({
       },
     });
 
-    return [dropcapPlugin];
+    // Disabling dropcap for now
+    return [];
   }
 });
 
