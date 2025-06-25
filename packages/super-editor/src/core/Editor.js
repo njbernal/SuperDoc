@@ -230,6 +230,9 @@ export class Editor extends EventEmitter {
     
     // Docx xml updated by User
     customUpdatedFiles: {},
+    
+    isHeaderFooterChanged: false,
+    isCustomXmlChanged: false,
   };
 
   /**
@@ -258,6 +261,14 @@ export class Editor extends EventEmitter {
     const { setHighContrastMode } = useHighContrastMode();
     this.setHighContrastMode = setHighContrastMode;
     initMode();
+  }
+
+  /**
+   * Getter which indicates if any changes happen in Editor
+   * @returns {boolean}
+   */
+  get docChanged() {
+    return this.options.isHeaderFooterChanged || this.options.isCustomXmlChanged || !this.options.initialState.doc.eq(this.state.doc);
   }
 
   /**
@@ -954,11 +965,13 @@ export class Editor extends EventEmitter {
     // Only initialize the doc if we are not using Yjs/collaboration.
     const state = { schema: this.schema };
     if (!this.options.ydoc) state.doc = doc;
+    
+    this.options.initialState = EditorState.create(state);
 
     this.view = new EditorView(element, {
       ...this.options.editorProps,
       dispatchTransaction: this.#dispatchTransaction.bind(this),
-      state: EditorState.create(state),
+      state: this.options.initialState,
       handleClick: this.#handleNodeSelection.bind(this),
       handleDoubleClick: async (view, pos, event) => {
         // Prevent edits if editor is not editable
@@ -1726,6 +1739,7 @@ export class Editor extends EventEmitter {
       const internalFileXml = this.converter.schemaToXml(updatedContent);
       this.options.customUpdatedFiles[name] = String(internalFileXml);
     }
+    this.options.isCustomXmlChanged = true;
   }
 
   /**
