@@ -46,7 +46,8 @@
   display: inline-block;
 }
 
-.ProseMirror.header-footer-edit {
+/* TODO: This is going to be enabled again */
+/* .ProseMirror.header-footer-edit {
   > p, li, span {
     color: #7e7e7e !important;
     &:before, &:after {
@@ -65,7 +66,7 @@
       opacity: 1;
     }
   }
-}
+} */
 
 /**
  * Hide marker for indented lists.
