@@ -43,8 +43,14 @@ const nodeResizer = (nodeNames = ['image']) => {
 
         if (typeof document === 'undefined') return oldState;
 
-        const decorations = [];
+        // If selection is not on a resizable node — keep current decorations
         const { selection } = newState;
+        const node = selection.node;
+        if (!node || !nodeNames.includes(node.type.name)) {
+          return DecorationSet.empty;
+        }
+
+        const decorations = [];
 
         // Only create decoration if one of the resizable nodes is selected
         if (nodeNames.includes(selection.node?.type.name)) {

@@ -1,6 +1,75 @@
 # Changelog
 
-## [0.13.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.13.3-next.9...v0.13.4) (2025-06-20)
+# [0.14.0-next.14](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.13...v0.14.0-next.14) (2025-06-26)
+
+# [0.14.0-next.13](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.12...v0.14.0-next.13) (2025-06-26)
+
+# [0.14.0-next.12](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.11...v0.14.0-next.12) (2025-06-26)
+
+
+### Reverts
+
+* Revert "Merge pull request #604 from Harbour-Enterprises/feature/lists-v2" ([0fd1dae](https://github.com/Harbour-Enterprises/SuperDoc/commit/0fd1daea2f6d29149227b1b579306a1740c75969)), closes [#604](https://github.com/Harbour-Enterprises/SuperDoc/issues/604)
+
+# [0.14.0-next.11](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.10...v0.14.0-next.11) (2025-06-25)
+
+# [0.14.0-next.10](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.9...v0.14.0-next.10) (2025-06-25)
+
+
+### Bug Fixes
+
+* add another ai selection helper ([d180f4d](https://github.com/Harbour-Enterprises/SuperDoc/commit/d180f4d97f4b450a55f4feeb5f5fbdee0b24de3b))
+* add checking for block content or inline when pasting ([4491969](https://github.com/Harbour-Enterprises/SuperDoc/commit/4491969f38efbddb62cbd4c80654727e8953b694))
+* mouse focus control on components ([325a3b9](https://github.com/Harbour-Enterprises/SuperDoc/commit/325a3b9f8ed651cf14e0f9b387bc602299c666bf))
+* restore cursor position and focus when closing slash menu ([b813e03](https://github.com/Harbour-Enterprises/SuperDoc/commit/b813e03e6c2860472a8b0b889924d89d39092b28))
+* update import for core ([6f42b4c](https://github.com/Harbour-Enterprises/SuperDoc/commit/6f42b4c5745a460c7330e8d0ca748f822cfd270b))
+* use proper props in slash menu for writer ([63dd899](https://github.com/Harbour-Enterprises/SuperDoc/commit/63dd899ce445454f6589c0d7d1ef3993ab0d2f50))
+
+
+### Features
+
+* add 'slash' trigger to paste ([38968b1](https://github.com/Harbour-Enterprises/SuperDoc/commit/38968b17ee55e028b35e12871205a9dcb2b7cea2))
+* add click menu support and enhance item actions in slash menu ([3451d56](https://github.com/Harbour-Enterprises/SuperDoc/commit/3451d56afed2917edec88ddaa8cdb7e9064fb3fa))
+* add module-based visibility for slash menu items ([2ca4c35](https://github.com/Harbour-Enterprises/SuperDoc/commit/2ca4c35218d19d7d0b8d0af859bc9ea422eb4709))
+* add new generix popover ([a026334](https://github.com/Harbour-Enterprises/SuperDoc/commit/a0263340f6dc5b58df8ce25ed9dce5daae5d4bcb))
+* add table insertion functionality to slash menu ([08c7a51](https://github.com/Harbour-Enterprises/SuperDoc/commit/08c7a51f8f675ba0494ea12f59c68fe5040c3081))
+* create clipboard utils for slash menu and click menu ([19ee79c](https://github.com/Harbour-Enterprises/SuperDoc/commit/19ee79c3d504efee60d113303be921a53304c526))
+* enhance cursor position calculation in slash menu to use event coordinates ([4178e6d](https://github.com/Harbour-Enterprises/SuperDoc/commit/4178e6d8f79a826b68590e027f3da81a468358b5))
+* enhance GenericPopover with escape key handling and customizable styles ([ada0daf](https://github.com/Harbour-Enterprises/SuperDoc/commit/ada0dafcf97b9d8ccc86de66f0ebca5ada16f62d))
+* enhance link management and popover functionality in SuperEditor ([34c7eaa](https://github.com/Harbour-Enterprises/SuperDoc/commit/34c7eaaa7b6a1b93e0114a80d2485efcc8ed954e))
+* enhance slash menu with popover management ([138f09c](https://github.com/Harbour-Enterprises/SuperDoc/commit/138f09cdc1d7220e9a75dac6a44bd6e2c9312a6e))
+* implement cooldown mechanism for slash menu activation ([efe9134](https://github.com/Harbour-Enterprises/SuperDoc/commit/efe91347b19505cd3dc68068ff66a72f823860bb))
+* implement cursor movement on right-click and enhance menu closing behavior ([e4736df](https://github.com/Harbour-Enterprises/SuperDoc/commit/e4736df9585c637a809b4c2854ee0136746de6d1))
+* implement link popover functionality in SuperEditor and cursor helpers ([515d7f3](https://github.com/Harbour-Enterprises/SuperDoc/commit/515d7f3ec36e24c6ae5ed08949c8d597678d34d2))
+* initial implementation of slash menu ([dda71c3](https://github.com/Harbour-Enterprises/SuperDoc/commit/dda71c3d7840c0040eb0c752982f2bfc6bacc2a4))
+* refactor slash menu to use context-based item generation and improve item filtering ([b2a4c5b](https://github.com/Harbour-Enterprises/SuperDoc/commit/b2a4c5befccc5c1c0a45ca47a126ffe625a71cfc))
+* remove all emits for ai writer and just use built in editor commands ([72e52a4](https://github.com/Harbour-Enterprises/SuperDoc/commit/72e52a46779a45024d5c9ab6080b5a0e51a61d52))
+* slash menu with table editing actions and improved item handling ([156e054](https://github.com/Harbour-Enterprises/SuperDoc/commit/156e0541039258ebc942625c09d50a9791611cbc))
+
+
+### Performance Improvements
+
+* remove more handlers for ai ([873b45d](https://github.com/Harbour-Enterprises/SuperDoc/commit/873b45d0199b703701b9b2585d3f76c81632105a))
+
+# [0.14.0-next.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.8...v0.14.0-next.9) (2025-06-25)
+
+# [0.14.0-next.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.7...v0.14.0-next.8) (2025-06-25)
+
+# [0.14.0-next.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.6...v0.14.0-next.7) (2025-06-24)
+
+# [0.14.0-next.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.5...v0.14.0-next.6) (2025-06-24)
+
+# [0.14.0-next.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.4...v0.14.0-next.5) (2025-06-24)
+
+# [0.14.0-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.3...v0.14.0-next.4) (2025-06-24)
+
+# [0.14.0-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.2...v0.14.0-next.3) (2025-06-24)
+
+# [0.14.0-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.1...v0.14.0-next.2) (2025-06-23)
+
+# [0.14.0-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.13.3-next.9...v0.14.0-next.1) (2025-06-23)
+
+## [0.13.3-next.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.13.3-next.8...v0.13.3-next.9) (2025-06-20)
 
 
 

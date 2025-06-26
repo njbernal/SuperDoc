@@ -46,8 +46,8 @@ export function useField(field) {
   const originalJSON = field;
   const fieldStyle = reactive({
     fontFamily: field.fontfamily || 'Arial',
-    fontSize: field.font_size || '12px',
-    originalFontSize: field.original_font_size || '12px',
+    fontSize: field.font_size || '12pt',
+    originalFontSize: field.original_font_size || '12pt',
   });
 
   const logicRules = ref(field.logicrules);

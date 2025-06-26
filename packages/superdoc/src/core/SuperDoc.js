@@ -502,6 +502,20 @@ export class SuperDoc extends EventEmitter {
     });
   }
 
+  /**
+   * Toggle pagination for SuperEditors
+   * @returns {void}
+   */
+  togglePagination() {
+    this.config.pagination = !this.config.pagination;
+    this.superdocStore.documents.forEach((doc) => {
+      const editor = doc.getEditor();
+      if (editor) {
+        editor.commands.togglePagination();
+      }
+    });
+  }
+
   #addToolbar() {
     const moduleConfig = this.config.modules?.toolbar || {};
     this.toolbarElement = this.config.modules?.toolbar?.selector || this.config.toolbar;
@@ -528,10 +542,6 @@ export class SuperDoc extends EventEmitter {
     this.toolbar = new SuperToolbar(config);
 
     this.toolbar.on('superdoc-command', this.onToolbarCommand.bind(this));
-    // AI highlight is not related to document editing, should be separate events
-    this.toolbar.on('ai-highlight', ({ type, data }) => {
-      this.emit('ai-highlight', { type, data });
-    });
     this.once('editorCreate', () => this.toolbar.updateToolbarState());
   }
 

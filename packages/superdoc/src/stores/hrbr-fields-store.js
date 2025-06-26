@@ -6,6 +6,7 @@ import ParagraphField from '@superdoc/components/HrbrFieldsLayer/ParagraphField.
 import ImageField from '@superdoc/components/HrbrFieldsLayer/ImageField.vue';
 import CheckboxField from '@superdoc/components/HrbrFieldsLayer/CheckboxField.vue';
 import SelectField from '@superdoc/components/HrbrFieldsLayer/SelectField.vue';
+import { floor } from '../helpers/floor.js';
 
 export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
   const superdocStore = useSuperdocStore();
@@ -65,9 +66,11 @@ export const useHrbrFieldsStore = defineStore('hrbr-fields', () => {
         const pageLeft = pageBounds.left - bounds.left;
 
         const mappedCoordinates = _mapAnnotation(coordinates, scale, pageBottom, pageLeft);
+        // scale ~1.333 - for 100% scale in pdf.js (it doesn't change).
         const annotationStyle = {
-          fontSize: annotation.original_font_size + 'px',
-          originalFontSize: annotation.original_font_size,
+          fontSize: floor(annotation.original_font_size * scale, 2) + 'pt',
+          fontFamily: annotation.fontfamily || 'Arial',
+          originalFontSize: floor(annotation.original_font_size * scale, 2),
           coordinates: mappedCoordinates,
         };
 
