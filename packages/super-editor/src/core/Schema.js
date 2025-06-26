@@ -2,6 +2,7 @@ import { Schema as PmSchema } from 'prosemirror-model';
 import { Attribute } from './Attribute.js';
 import { getExtensionConfigField } from './helpers/getExtensionConfigField.js';
 import { cleanSchemaItem } from './helpers/cleanSchemaItem.js';
+import { renderSpec } from './helpers/renderSpec.js';
 import { callOrGet } from './utilities/callOrGet.js';
 
 /**
@@ -56,7 +57,7 @@ export class Schema {
           ...(extendNodeSchema ? extendNodeSchema(extension) : {}),
         };
       }, {});
-      
+
       const schema = cleanSchemaItem({
         content: callOrGet(getExtensionConfigField(extension, 'content', context)),
         group: callOrGet(getExtensionConfigField(extension, 'group', context)),
@@ -81,11 +82,21 @@ export class Schema {
 
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
-        schema.toDOM = (node) =>
-          renderDOM({
+        schema.toDOM = (node) => {
+          const domOutputSpec =  renderDOM({
             node,
             htmlAttributes: Attribute.getAttributesToRender(node, extensionAttributes),
           });
+          const attrs = domOutputSpec[1];
+          if (attrs && typeof attrs == "object" && attrs.hasOwnProperty('style')) {
+              // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
+              return renderSpec(
+                window.document, // Should be options.document with fallback to window.document
+                domOutputSpec
+              );
+          }
+          return domOutputSpec;
+        }
       }
 
       const renderText = getExtensionConfigField(extension, 'renderText', context);
@@ -140,11 +151,22 @@ export class Schema {
       }
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
-        schema.toDOM = (mark) =>
-          renderDOM({
-            mark,
-            htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),
-          });
+        schema.toDOM = (mark) => {
+          const domOutputSpec =
+            renderDOM({
+              mark,
+              htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),
+            });
+          const attrs = domOutputSpec[1];
+          if (attrs && typeof attrs == "object" && attrs.hasOwnProperty('style')) {
+              // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
+              return renderSpec(
+                window.document, // Should be options.document with fallback to window.document
+                domOutputSpec
+              );
+          }
+          return domOutputSpec;
+        }
       }
 
       return [extension.name, schema];

@@ -33,7 +33,7 @@ export const createTableView = ({ editor }) => {
       updateTable(this.editor, this.node, this.table);
       updateColumns(node, this.colgroup, this.table, cellMinWidth);
       this.contentDOM = this.table.appendChild(document.createElement('tbody'));
-      
+
       // use `setTimeout` to get cells.
       setTimeout(() => {
         updateTableWrapper(this.dom, this.table);
@@ -88,7 +88,7 @@ export function updateColumns(
   if (row !== null) {
     for (let i = 0, col = 0; i < row.childCount; i++) {
       const { colspan, colwidth } = row.child(i).attrs;
-      
+
       for (let j = 0; j < colspan; j++, col++) {
         const hasWidth = overrideCol === col ? overrideValue : (colwidth && colwidth[j]);
         const cssWidth = hasWidth ? `${hasWidth}px` : '';
@@ -132,7 +132,11 @@ function updateTable(editor, node, table) {
   const tableExtensionAttrs = allExtensionsAttrs.filter((e) => e.type === 'table');
   const htmlAttributes = Attribute.getAttributesToRender(node, tableExtensionAttrs);
   Object.entries(htmlAttributes).forEach(([key, value]) => {
-    table.setAttribute(key, value);
+    if (key === "style") {
+      table.style.cssText = value;
+    } else {
+      table.setAttribute(key, value);
+    }
   });
 }
 

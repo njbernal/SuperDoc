@@ -165,7 +165,7 @@ const getDropcapDecorations = (state, view) => {
           Decoration.inline(pos, pos + node.nodeSize, { style: `margin-left: -${width}px;` }),
         );
       }
-      
+
       return false; // no need to descend into a paragraph
     }
   });

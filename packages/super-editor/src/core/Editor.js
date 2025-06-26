@@ -217,7 +217,7 @@ export class Editor extends EventEmitter {
 
     // telemetry
     telemetry: null,
-    
+
     // Docx xml updated by User
     customUpdatedFiles: {},
   };
@@ -564,7 +564,7 @@ export class Editor extends EventEmitter {
   /**
    * Replace content of editor that was created with loadFromSchema option
    * Used to replace content of other header/footer when one of it was edited
-   * 
+   *
    * @param {object} content - new editor content json (retrieved from editor.getUpdatedJson)
    * @returns {void}
    */
@@ -578,7 +578,7 @@ export class Editor extends EventEmitter {
 
     this.#createConverter();
     this.#initMedia();
-    
+
     const doc = this.#generatePmData();
     const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
     tr.setMeta('replaceContent', true);
@@ -963,7 +963,7 @@ export class Editor extends EventEmitter {
         setWordSelection(view, pos);
       }
     });
-    
+
     const newState = this.state.reconfigure({
       plugins: [...this.extensionService.plugins],
     });
@@ -1026,7 +1026,7 @@ export class Editor extends EventEmitter {
     if (!proseMirror || !pageSize || !pageMargins) {
       return;
     }
-    
+
     proseMirror.setAttribute('role', 'document');
     proseMirror.setAttribute('aria-multiline', true);
     proseMirror.setAttribute('aria-label', 'Main content area, start typing to enter text.');
@@ -1398,7 +1398,7 @@ export class Editor extends EventEmitter {
     const updatedState = newState.apply(tr);
     return updatedState.doc.toJSON();
   }
-  
+
   getUpdatedJson() {
     return this.#prepareDocumentForExport();
   }
@@ -1434,7 +1434,7 @@ export class Editor extends EventEmitter {
     const customSettings = this.converter.schemaToXml(this.converter.convertedXml['word/settings.xml'].elements[0]);
     const rels = this.converter.schemaToXml(this.converter.convertedXml['word/_rels/document.xml.rels'].elements[0]);
     const media = this.converter.addedMedia;
-    
+
     const updatedHeadersFooters = {};
     Object.entries(this.converter.convertedXml).forEach(([name, json]) => {
       if (name.includes('header') || name.includes('footer')) {
@@ -1471,14 +1471,14 @@ export class Editor extends EventEmitter {
     }
 
     const zipper = new DocxZipper();
-    
+
     if (getUpdatedDocs) {
       updatedDocs['[Content_Types].xml'] = await zipper.updateContentTypes({
         files: this.options.content
       }, media, true);
       return updatedDocs;
     }
-    
+
     const result = await zipper.updateZip({
       docx: this.options.content,
       updatedDocs: updatedDocs,
@@ -1616,13 +1616,13 @@ export class Editor extends EventEmitter {
       console.warn('Cannot find file in docx')
       return null;
     }
-    
+
     if (type === 'json') {
       return this.converter.convertedXml[name].elements[0] || null;
     }
     return this.converter.schemaToXml(this.converter.convertedXml[name].elements[0]);
   }
-  
+
   /**
    * Update internal docx file content
    * @param {string} name - File name
@@ -1677,7 +1677,7 @@ export class Editor extends EventEmitter {
   prepareForAnnotations(annotationValues = []) {
     const { tr } = this.state;
     const newTr = AnnotatorHelpers.processTables({ state: this.state, tr, annotationValues });
-    this.view.dispatch(newTr);  
+    this.view.dispatch(newTr);
   }
 
   /**
@@ -1708,9 +1708,9 @@ export class Editor extends EventEmitter {
   /**
    * Preview annotations in the editor. It stores a copy of the original state.
    * This can be reverted via closePreview()
-   * 
-   * @param {Object[]} annotationValues 
-   * @param {string[]} hiddenIds 
+   *
+   * @param {Object[]} annotationValues
+   * @param {string[]} hiddenIds
    * @returns {void}
    */
   previewAnnotations(annotationValues = [], hiddenIds = []) {
@@ -1720,8 +1720,8 @@ export class Editor extends EventEmitter {
 
   /**
    * If there is a preview active, this will revert the editor to the original state.
-   * 
-   * @returns {void} 
+   *
+   * @returns {void}
    */
   closePreview() {
     if (!this.originalState) return;
