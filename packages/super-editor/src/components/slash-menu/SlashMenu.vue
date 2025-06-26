@@ -132,6 +132,11 @@ const handleGlobalOutsideClick = (event) => {
 };
 
 const handleRightClick = async (event) => {
+  // If user is also holding control, don't open the menu
+  if (event.ctrlKey) {
+    return;
+  }
+
   event.preventDefault();
   props.editor.view.dispatch(
     props.editor.view.state.tr.setMeta(SlashMenuPluginKey, {
