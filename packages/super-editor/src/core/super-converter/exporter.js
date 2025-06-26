@@ -20,7 +20,7 @@ import { carbonCopy } from '../utilities/carbonCopy.js';
 import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
-
+import { sanitizeHtml } from '../InputRule.js';
 
 /**
  * @typedef {Object} ExportParams
@@ -1672,7 +1672,7 @@ function translateImageNode(params, imageSize) {
         attributes: {
           relativeFrom: attrs.anchorData.hRelativeFrom,
         },
-        ...(attrs.marginOffset.left && {
+        ...(attrs.marginOffset.left !== undefined && {
           elements: [{
             name: 'wp:posOffset',
             elements: [{
@@ -1691,12 +1691,13 @@ function translateImageNode(params, imageSize) {
           }]
         })
       });
+
       anchorElements.push({
         name: 'wp:positionV',
         attributes: {
           relativeFrom: attrs.anchorData.vRelativeFrom,
         },
-        ...(attrs.marginOffset.top && {
+        ...(attrs.marginOffset.top !== undefined && {
           elements: [{
             name: 'wp:posOffset',
             elements: [{
@@ -1924,14 +1925,13 @@ function prepareHtmlAnnotation(params) {
     node: { attrs = {}, marks = [] },
     editorSchema,
   } = params;
-  
-  const parser = new window.DOMParser();
-  const paragraphHtml = parser.parseFromString(attrs.rawHtml || attrs.displayLabel, 'text/html');
+
+  const paragraphHtmlContainer = sanitizeHtml(attrs.rawHtml);
   const marksFromAttrs = translateFieldAttrsToMarks(attrs);
   const allMarks = [...marks, ...marksFromAttrs]
 
   let state = EditorState.create({
-    doc: PMDOMParser.fromSchema(editorSchema).parse(paragraphHtml),
+    doc: PMDOMParser.fromSchema(editorSchema).parse(paragraphHtmlContainer),
   });
 
   if (allMarks.length) {
@@ -2061,6 +2061,7 @@ function translateFieldAnnotation(params) {
       sdtContentElements = [...processedNode.elements];
     }
   }
+  sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   return {
@@ -2488,3 +2489,19 @@ const getAutoPageJson = (type, outputMarks = []) => {
     }
   ]
 };
+
+const getFieldHighlightJson = () => {
+  return {
+    "name": "w:rPr",
+    "elements": [
+      {
+        "name": "w:shd",
+        "attributes": {
+          "w:fill": '7AA6FF',
+          "w:color": "auto",
+          "w:val": "clear"
+        }
+      }
+    ]
+  }
+}

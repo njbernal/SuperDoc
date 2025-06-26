@@ -5,7 +5,6 @@ export const PageNumber = Node.create({
   group: 'inline',
   inline: true,
   atom: true,
-  selectable: false,
   draggable: false,
   selectable: false,
   defining: true,
@@ -80,7 +79,6 @@ export const TotalPageCount = Node.create({
   group: 'inline',
   inline: true,
   atom: true,
-  selectable: false,
   draggable: false,
   selectable: false,
 
@@ -103,6 +101,13 @@ export const TotalPageCount = Node.create({
         default: null,
         rendered: false,
       }
+    }
+  },
+
+  addNodeView() {
+    return ({ node, editor, getPos, decorations }) => {
+      const htmlAttributes = this.options.htmlAttributes;
+      return new AutoPageNumberNodeView(node, getPos, decorations, editor, htmlAttributes);
     }
   },
   
@@ -145,6 +150,26 @@ export const TotalPageCount = Node.create({
   }
 });
 
+const getNodeAttributes = (nodeName, editor) => {
+  switch (nodeName) {
+    case 'page-number':
+      return {
+        text: editor.options.currentPageNumber || '1',
+        className: 'sd-editor-auto-page-number',
+        dataId: 'auto-page-number',
+        ariaLabel: 'Page number node',
+      };
+    case 'total-page-number':
+      return {
+        text: editor.options.parentEditor?.currentTotalPages || '1',
+        className: 'sd-editor-auto-total-pages',
+        dataId: 'auto-total-pages',
+        ariaLabel: 'Total page count node',
+      };
+    default: return {};
+  }
+}
+
 
 export class AutoPageNumberNodeView {
   constructor(node, getPos, decorations, editor, htmlAttributes = {}) {
@@ -158,13 +183,13 @@ export class AutoPageNumberNodeView {
   }
 
   #renderDom(node, htmlAttributes) {
-    const pageText = this.editor.options.currentPageNumber || '1';
-    const content = document.createTextNode(String(pageText));
+    const attrs = getNodeAttributes(this.node.type.name, this.editor);
+    const content = document.createTextNode(String(attrs.text));
 
     const nodeContent = document.createElement('span');
-    nodeContent.className = 'sd-editor-auto-page-number';
-    nodeContent.setAttribute('data-id', 'auto-page-number');
-    nodeContent.setAttribute('aria-label', 'Page number node');
+    nodeContent.className = attrs.className;
+    nodeContent.setAttribute('data-id', attrs.dataId);
+    nodeContent.setAttribute('aria-label', attrs.ariaLabel);
 
     const currentPos = this.getPos();
     const { styles, marks } = getMarksFromNeighbors(currentPos, this.view);
@@ -210,7 +235,7 @@ export class AutoPageNumberNodeView {
     this.node = node;
     return true;
   }
-};
+}
 
 /**
  * Get styles from the marks of the node before and after the current position.
@@ -227,13 +252,13 @@ const getMarksFromNeighbors = (currentPos, view) => {
   if (before) {
     Object.assign(styles, processMarks(before.marks));
     marks.push(...before.marks);
-  };
+  }
 
   const after = $pos.nodeAfter;
   if (after) {
     Object.assign(styles, { ...styles, ...processMarks(after.marks) });
     marks.push(...after.marks);
-  };
+  }
 
   return {
     styles,

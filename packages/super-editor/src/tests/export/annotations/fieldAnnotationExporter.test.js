@@ -27,9 +27,23 @@ describe('AnnotationNodeExporter', async () => {
     const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
 
     expect(shortFieldType.attributes['w:val']).toBe('image');
-    const extentTag = body.elements[2].elements[1].elements[1].elements[0].elements[0].elements[0].elements[0];
-    expect(extentTag.attributes.cx).toBe(4286250);
-    expect(extentTag.attributes.cy).toBe(4286250);
+
+    const node = body.elements[2].elements[1].elements[1].elements;
+    const run = node.find((el) => el.name === 'w:r');
+    const drawing = run.elements.find((el) => el.name === 'w:drawing');
+    const inline = drawing.elements.find((el) => el.name === 'wp:inline');
+    const extent = inline.elements.find((el) => el.name === 'wp:extent');
+    const docPr = inline.elements.find((el) => el.name === 'wp:docPr');
+    const graphic = inline.elements.find((el) => el.name === 'a:graphic');
+    const graphicData = graphic.elements.find((el) => el.name === 'a:graphicData');
+    const pic = graphicData.elements.find((el) => el.name === 'pic:pic');
+    const blipFill = pic.elements.find((el) => el.name === 'pic:blipFill');
+    const blip = blipFill.elements.find((el) => el.name === 'a:blip');
+    const rId = blip.attributes['r:embed'];
+    expect(rId).toBeDefined();
+
+    expect(extent.attributes.cx).toBe(4286250);
+    expect(extent.attributes.cy).toBe(4286250);
     const mediaIds = Object.keys(params.media);
     expect(mediaIds[0].replace('_', '-').startsWith(tag.elements[0].attributes['w:val'])).toBe(true);
   });
@@ -55,9 +69,19 @@ describe('AnnotationNodeExporter', async () => {
 
   it('export paragraph annotation correctly', async() => {
     const fieldElements = body.elements[8].elements[1].elements[0].elements;
+
     const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
     expect(shortFieldType.attributes['w:val']).toBe('html');
-    const text = getTextFromNode(body.elements[8].elements[1].elements[1].elements[0]);
+
+    const node = body.elements[8].elements[1].elements[1];
+    const par = node.elements.find((el) => el.name === 'w:p');
+    expect(par).toBeDefined();
+
+    const run = par.elements.find((el) => el.name === 'w:r');
+    expect(run).toBeDefined();
+
+    const textNode = run.elements.find((el) => el.name === 'w:t');
+    const text = textNode.elements[0].text;
     expect(text).toEqual('test paragraph data');
   });
 
@@ -66,9 +90,11 @@ describe('AnnotationNodeExporter', async () => {
     const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
     expect(shortFieldType.attributes['w:val']).toBe('link');
   
-    const node = body.elements[10].elements[1].elements[1].elements[0];
-    const run = node.elements.find((el) => el.name === 'w:r');
-    const text = run?.elements[1].elements[0].text;
+    const node = body.elements[10].elements[1].elements[1];
+    const hyperlink = node.elements.find((el) => el.name === 'w:hyperlink');
+    const run = hyperlink.elements.find((el) => el.name === 'w:r');
+    const textNode = run?.elements.find((el) => el.name === 'w:t');
+    const text = textNode.elements[0].text;
 
     expect(text).toEqual('https://vitest.dev/guide/coverage');
     expect(params.relationships[2].attributes.Target).toBe('https://vitest.dev/guide/coverage');
