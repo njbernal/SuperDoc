@@ -663,7 +663,7 @@ export class SuperToolbar extends EventEmitter {
     this.#initDefaultFonts();
     this.#updateHighlightColors();
 
-    // Decativate toolbar items if no active editor
+    // Deactivate toolbar items if no active editor
     // This will skip buttons that are marked as allowWithoutEditor
     if (!this.activeEditor || this.documentMode === 'viewing') {
       this.#deactivateAll();
@@ -706,7 +706,8 @@ export class SuperToolbar extends EventEmitter {
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
         if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
           const value = {
-            [item.name.value]: linkedStyles?.definition.styles[markToStyleMap[item.name.value]]
+            [item.name.value]:
+              activeMark?.attrs[item.name.value] || linkedStyles?.definition.styles[markToStyleMap[item.name.value]],
           };
           item.activate(value);
         }
