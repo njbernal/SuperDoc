@@ -19,10 +19,9 @@ describe('it correctly imports list with recursive style def', async () => {
   });
 
   it ('correctly imports list style that uses "basedOn" pointer', () => {
-    const item2 = content[2];
-    const nodes = handleListNode({ nodes: [item2], docx, nodeListHandler: defaultNodeListHandler(), lists: {} })?.nodes;
-
-    const node = nodes[0].content[0].content[0];
+    const nodes = handleListNode({ nodes: content, docx, nodeListHandler: defaultNodeListHandler(), lists: {} })?.nodes;
+    
+    const node = nodes[0].content[1].content[0];
     const text = node.content[0].text;
     expect(text).toBe('Item 2');
   });

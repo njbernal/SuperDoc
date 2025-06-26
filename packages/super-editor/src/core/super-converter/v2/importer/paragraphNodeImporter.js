@@ -20,12 +20,18 @@ export const handleParagraphNode = (params) => {
   }
 
   const node = carbonCopy(nodes[0]);
+
   let schemaNode;
 
   // We need to pre-process paragraph nodes to combine various possible elements we will find ie: lists, links.
   // Also older MS word versions store auto page numbers here
   let processedElements = preProcessNodesForFldChar(node.elements);
   node.elements = processedElements;
+
+  // Check if this paragraph node is a list
+  if (testForList(node, docx)) {
+    return { nodes: [], consumed: 0 };
+  }
 
   // If it is a standard paragraph node, process normally
   const handleStandardNode = nodeListHandler.handlerEntities.find(
@@ -111,15 +117,6 @@ export const handleParagraphNode = (params) => {
     schemaNode.attrs['rsidRDefault'] = defaultStyleId;
   }
 
-  if (docx) {
-    const { justify } = getDefaultParagraphStyle(docx, styleId);
-    if (justify) {
-      schemaNode.attrs.justify = {
-        val: justify['w:val'],
-      };
-    }
-  }
-
   if (framePr && framePr.attributes['w:dropCap']) {
     schemaNode.attrs.dropcap = {
       type: framePr.attributes['w:dropCap'],
@@ -195,7 +192,12 @@ export const getParagraphIndent = (node, docx, styleId = '') => {
 
 export const getParagraphSpacing = (node, docx, styleId = '', marks = []) => {
   // Check if we have default paragraph styles to override
-  const spacing = {};
+  const spacing = {
+    lineSpaceAfter: 0,
+    lineSpaceBefore: 0,
+    line: 0,
+    lineRule: null,
+  };
   
   const { spacing: pDefaultSpacing = {} } = getDefaultParagraphStyle(docx, styleId);
   let lineSpaceAfter, lineSpaceBefore, line, lineRuleStyle;
