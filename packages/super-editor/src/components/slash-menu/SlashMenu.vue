@@ -231,9 +231,11 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleGlobalKeyDown);
   document.removeEventListener('mousedown', handleGlobalOutsideClick);
   if (props.editor) {
-    props.editor.off('slashMenu:open');
-    props.editor.off('slashMenu:close');
-    props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
+    try {
+      props.editor.off('slashMenu:open');
+      props.editor.off('slashMenu:close');
+      props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
+    } catch (error) {}
   }
 });
 </script>
