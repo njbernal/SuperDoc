@@ -2072,70 +2072,31 @@ function translateFieldAnnotation(params) {
   sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+  // Contains only the main attributes.
+  const annotationAttrs = {
+    displayLabel: attrs.displayLabel,
+    defaultDisplayLabel: attrs.defaultDisplayLabel,
+    fieldId: attrs.fieldId,
+    fieldType: attrs.fieldType,
+    fieldTypeShort: attrs.type,
+    fieldColor: attrs.fieldColor,
+    fieldMultipleImage: attrs.multipleImage,
+    fieldFontFamily: attrs.fontFamily,
+    fieldFontSize: attrs.fontSize,
+    fieldTextColor: attrs.textColor,
+    fieldTextHighlight: attrs.textHighlight,
+  };
+  const annotationAttrsJson = JSON.stringify(annotationAttrs);
+
   return {
     name: 'w:sdt',
     elements: [
       {
         name: 'w:sdtPr',
         elements: [
-          { name: 'w:tag', attributes: { 'w:val': attrs.fieldId } },
+          { name: 'w:tag', attributes: { 'w:val': annotationAttrsJson } },
           { name: 'w:alias', attributes: { 'w:val': attrs.displayLabel } },
-          {
-            name: 'w:fieldType',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fieldType,
-            },
-          },
-          {
-            name: 'w:fieldTypeShort',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.type,
-            },
-          },
-          {
-            name: 'w:fieldColor',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fieldColor,
-            },
-          },
-          {
-            name: 'w:fieldMultipleImage',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.multipleImage,
-            },
-          },
-          {
-            name: 'w:fieldFontFamily',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fontFamily,
-            },
-          },
-          {
-            name: 'w:fieldFontSize',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fontSize,
-            },
-          },
-          {
-            name: 'w:fieldTextColor',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.textColor,
-            },
-          },
-          {
-            name: 'w:fieldTextHighlight',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.textHighlight,
-            },
-          },
         ],
       },
       {

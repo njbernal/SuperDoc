@@ -13,8 +13,11 @@ describe('AnnotationNodeExporter', async () => {
   });
   
   it('export text annotation correctly', async() => {
-    const textField = body.elements[0].elements[1].elements[0].elements.find((f) => f.name === 'w:fieldTypeShort');
-    expect(textField.attributes['w:val']).toBe('text');
+    const fieldElements = body.elements[0].elements[1].elements[0].elements;
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
+
+    expect(attrs.fieldTypeShort).toBe('text');
 
     const text = getTextFromNode(body.elements[0].elements[1].elements[1]);
     expect(text).toEqual('Vladyslava Andrushchenko');
@@ -24,9 +27,10 @@ describe('AnnotationNodeExporter', async () => {
     const tag = body.elements[2].elements[1].elements[0];
 
     const fieldElements = body.elements[2].elements[1].elements[0].elements;
-    const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
 
-    expect(shortFieldType.attributes['w:val']).toBe('image');
+    expect(attrs.fieldTypeShort).toBe('image');
 
     const node = body.elements[2].elements[1].elements[1].elements;
     const run = node.find((el) => el.name === 'w:r');
@@ -45,23 +49,28 @@ describe('AnnotationNodeExporter', async () => {
     expect(extent.attributes.cx).toBe(4286250);
     expect(extent.attributes.cy).toBe(4286250);
     const mediaIds = Object.keys(params.media);
-    expect(mediaIds[0].replace('_', '-').startsWith(tag.elements[0].attributes['w:val'])).toBe(true);
+    expect(mediaIds[0].replace('_', '-').startsWith(attrs.fieldId)).toBe(true);
   });
 
   it('export signature annotation correctly', async() => {
     const tag = body.elements[4].elements[1].elements[0];
+
     const fieldElements = body.elements[4].elements[1].elements[0].elements;
-    const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
-    expect(shortFieldType.attributes['w:val']).toBe('signature');
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
+    expect(attrs.fieldTypeShort).toBe('signature');
 
     const mediaIds = Object.keys(params.media);
-    expect(mediaIds[1].replace('_', '-').startsWith(tag.elements[0].attributes['w:val'])).toBe(true);
+    console.dir({ tag }, { depth: 5 });
+    expect(mediaIds[1].replace('_', '-').startsWith(attrs.fieldId)).toBe(true);
   });
 
   it('export checkbox annotation correctly', async() => {
     const fieldElements = body.elements[6].elements[1].elements[0].elements;
-    const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
-    expect(shortFieldType.attributes['w:val']).toBe('checkbox');
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
+
+    expect(attrs.fieldTypeShort).toBe('checkbox');
 
     const text = getTextFromNode(body.elements[6].elements[1].elements[1]);
     expect(text).toEqual('x');
@@ -69,9 +78,10 @@ describe('AnnotationNodeExporter', async () => {
 
   it('export paragraph annotation correctly', async() => {
     const fieldElements = body.elements[8].elements[1].elements[0].elements;
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
 
-    const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
-    expect(shortFieldType.attributes['w:val']).toBe('html');
+    expect(attrs.fieldTypeShort).toBe('html');
 
     const node = body.elements[8].elements[1].elements[1];
     const par = node.elements.find((el) => el.name === 'w:p');
@@ -87,9 +97,11 @@ describe('AnnotationNodeExporter', async () => {
 
   it('export url annotation correctly', async() => {
     const fieldElements = body.elements[10].elements[1].elements[0].elements;
-    const shortFieldType = fieldElements.find((f) => f.name === 'w:fieldTypeShort');
-    expect(shortFieldType.attributes['w:val']).toBe('link');
-  
+    const tagValue = fieldElements.find((f) => f.name === 'w:tag')?.attributes['w:val'];
+    const attrs = parseTagAttrsJSON(tagValue);
+
+    expect(attrs.fieldTypeShort).toBe('link');
+
     const node = body.elements[10].elements[1].elements[1];
     const hyperlink = node.elements.find((el) => el.name === 'w:hyperlink');
     const run = hyperlink.elements.find((el) => el.name === 'w:r');
@@ -100,3 +112,13 @@ describe('AnnotationNodeExporter', async () => {
     expect(params.relationships[2].attributes.Target).toBe('https://vitest.dev/guide/coverage');
   });
 });
+
+function parseTagAttrsJSON(json) {
+  try {
+    const attrs = JSON.parse(json);
+    return attrs;
+  } catch (err) {
+    console.error(err);
+    return {};
+  }
+}
