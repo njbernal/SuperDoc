@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.14.0-next.16](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.15...v0.14.0-next.16) (2025-06-27)
+
+
+### Bug Fixes
+
+* restore focus to editor when generic popover closes ([66b259f](https://github.com/Harbour-Enterprises/SuperDoc/commit/66b259f32cd744979461cb21a04b23fcb640311a))
+
 # [0.14.0-next.15](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.14...v0.14.0-next.15) (2025-06-27)
 
 
