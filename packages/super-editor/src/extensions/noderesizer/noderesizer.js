@@ -7,8 +7,6 @@ export const NodeResizerKey = new PluginKey('node-resizer');
 /**
  * Plugin key for the resize plugin
  */
-export const NodeResizerKey = new PluginKey('node-resizer');
-
 const nodeResizer = (nodeNames = ['image'], editor) => {
   // Track the resize state
   let resizeState = {
