@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.14.0-next.15](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.14...v0.14.0-next.15) (2025-06-27)
+
+
+### Features
+
+* prevent custom menu from opening when user holds control ([eb3f620](https://github.com/Harbour-Enterprises/SuperDoc/commit/eb3f620bd2c45638f48941bb555e7b1cf6edfe79))
+
 # [0.14.0-next.14](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.13...v0.14.0-next.14) (2025-06-26)
 
 # [0.14.0-next.13](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.12...v0.14.0-next.13) (2025-06-26)
