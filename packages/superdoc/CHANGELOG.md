@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.14.0-next.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.18...v0.14.0-next.19) (2025-06-27)
+
+
+### Reverts
+
+* Revert "Revert "Merge pull request #604 from Harbour-Enterprises/feature/lists-v2"" ([ec97d51](https://github.com/Harbour-Enterprises/SuperDoc/commit/ec97d511e8bee9f0b69b037b3afd4fc12cbc2c9f)), closes [#604](https://github.com/Harbour-Enterprises/SuperDoc/issues/604)
+
 # [0.14.0-next.18](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.17...v0.14.0-next.18) (2025-06-27)
 
 # [0.14.0-next.17](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.16...v0.14.0-next.17) (2025-06-27)
