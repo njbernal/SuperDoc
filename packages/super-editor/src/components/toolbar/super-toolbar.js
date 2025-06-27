@@ -705,10 +705,14 @@ export class SuperToolbar extends EventEmitter {
         };
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
         if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
+          const activeMarkItem = activeMark?.attrs?.[item.name.value];
+          const linkedStylesItem = linkedStyles?.definition.styles[markToStyleMap[item.name.value]];
+
           const value = {
             [item.name.value]:
-              activeMark?.attrs[item.name.value] || linkedStyles?.definition.styles[markToStyleMap[item.name.value]],
+              activeMarkItem || linkedStylesItem,
           };
+
           item.activate(value);
         }
       }
