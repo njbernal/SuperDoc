@@ -7,6 +7,8 @@ export const NodeResizerKey = new PluginKey('node-resizer');
 /**
  * Plugin key for the resize plugin
  */
+export const NodeResizerKey = new PluginKey('node-resizer');
+
 const nodeResizer = (nodeNames = ['image'], editor) => {
   // Track the resize state
   let resizeState = {
@@ -338,6 +340,9 @@ export const NodeResizer = Extension.create({
   name: 'nodeResizer',
 
   addPmPlugins() {
+    const isHeadless = this.editor.options.isHeadless;
+    const hasDocument = typeof document !== 'undefined';
+    if (isHeadless || !hasDocument) return [];
     return [nodeResizer(['image'], this.editor)];
   },
 });
