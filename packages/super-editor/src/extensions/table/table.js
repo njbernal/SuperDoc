@@ -12,10 +12,10 @@ import { findParentNode } from '@helpers/findParentNode.js';
 import { TextSelection } from 'prosemirror-state';
 import { isCellSelection } from './tableHelpers/isCellSelection.js';
 import {
-  addColumnBefore,
-  addColumnAfter,
-  addRowBefore,
-  addRowAfter,
+  addColumnBefore as originalAddColumnBefore,
+  addColumnAfter as originalAddColumnAfter,
+  addRowBefore as originalAddRowBefore,
+  addRowAfter as originalAddRowAfter,
   CellSelection,
   columnResizing,
   deleteColumn,
@@ -32,6 +32,7 @@ import {
   // TableView,
   tableNodeTypes,
   selectedRect,
+  TableMap,
 } from 'prosemirror-tables';
 import { cellAround } from './tableHelpers/cellAround.js';
 import { cellWrapping } from './tableHelpers/cellWrapping.js';
@@ -173,13 +174,81 @@ export const Table = Node.create({
         },
 
       addColumnBefore:
-        () => ({ state, dispatch }) => {
-          return addColumnBefore(state, dispatch);
+        () => ({ state, dispatch, chain }) => {
+          if (!originalAddColumnBefore(state)) return false;
+
+          let { rect, attrs: currentCellAttrs } = getCurrentCellAttrs(state);
+
+          return chain()
+            .command(() => originalAddColumnBefore(state, dispatch))
+            .command(({ tr }) => {
+              let table = tr.doc.nodeAt(rect.tableStart - 1);
+              if (!table) return false;
+              let updatedMap = TableMap.get(table);
+              let newColumnIndex = rect.left;
+
+              if (newColumnIndex < 0 || newColumnIndex >= updatedMap.width) {
+                return false;
+              }
+
+              for (let row = 0; row < updatedMap.height; row++) {
+                let cellIndex = row * updatedMap.width + newColumnIndex;
+                let cellPos = updatedMap.map[cellIndex];
+                let cellAbsolutePos = rect.tableStart + cellPos;
+                let cell = tr.doc.nodeAt(cellAbsolutePos);
+                if (cell) {
+                  let attrs = {
+                    ...currentCellAttrs,
+                    colspan: cell.attrs.colspan,
+                    rowspan: cell.attrs.rowspan,
+                    colwidth: cell.attrs.colwidth,
+                  };
+                  tr.setNodeMarkup(cellAbsolutePos, null, attrs);
+                }
+              }
+              
+              return true;
+            })
+            .run();
         },
 
       addColumnAfter:
-        () => ({ state, dispatch }) => {
-          return addColumnAfter(state, dispatch);
+        () => ({ state, dispatch, chain }) => {
+          if (!originalAddColumnAfter(state)) return false;
+
+          let { rect, attrs: currentCellAttrs } = getCurrentCellAttrs(state);
+
+          return chain()
+            .command(() => originalAddColumnAfter(state, dispatch))
+            .command(({ tr }) => {
+              let table = tr.doc.nodeAt(rect.tableStart - 1);
+              if (!table) return false;
+              let updatedMap = TableMap.get(table);
+              let newColumnIndex = rect.left + 1;
+
+              if (newColumnIndex < 0 || newColumnIndex >= updatedMap.width) {
+                return false;
+              }
+
+              for (let row = 0; row < updatedMap.height; row++) {
+                let cellIndex = row * updatedMap.width + newColumnIndex;
+                let cellPos = updatedMap.map[cellIndex];
+                let cellAbsolutePos = rect.tableStart + cellPos;
+                let cell = tr.doc.nodeAt(cellAbsolutePos);
+                if (cell) {
+                  let attrs = {
+                    ...currentCellAttrs,
+                    colspan: cell.attrs.colspan,
+                    rowspan: cell.attrs.rowspan,
+                    colwidth: cell.attrs.colwidth,
+                  };
+                  tr.setNodeMarkup(cellAbsolutePos, null, attrs);
+                }
+              }
+              
+              return true;
+            })
+            .run();
         },
 
       deleteColumn:
@@ -188,13 +257,79 @@ export const Table = Node.create({
         },
 
       addRowBefore:
-        () => ({ state, dispatch }) => {
-          return addRowBefore(state, dispatch);
+        () => ({ state, dispatch, chain }) => {
+          if (!originalAddRowBefore(state)) return false;
+
+          let { rect, attrs: currentCellAttrs } = getCurrentCellAttrs(state);
+
+          return chain()
+            .command(() => originalAddRowBefore(state, dispatch))
+            .command(({ tr }) => {
+              let table = tr.doc.nodeAt(rect.tableStart - 1);
+              if (!table) return false;
+              let updatedMap = TableMap.get(table);
+              let newRowIndex = rect.top;
+
+              if (newRowIndex < 0 || newRowIndex >= updatedMap.height) {
+                return false;
+              }
+
+              for (let col = 0; col < updatedMap.width; col++) {
+                let cellIndex = newRowIndex * updatedMap.width + col;
+                let cellPos = updatedMap.map[cellIndex];
+                let cellAbsolutePos = rect.tableStart + cellPos;
+                let cell = tr.doc.nodeAt(cellAbsolutePos);
+                if (cell) {
+                  let attrs = {
+                    ...currentCellAttrs,
+                    colspan: cell.attrs.colspan,
+                    rowspan: cell.attrs.rowspan,
+                    colwidth: cell.attrs.colwidth,
+                  };
+                  tr.setNodeMarkup(cellAbsolutePos, null, attrs);
+                }
+              }
+              
+              return true;
+            })
+            .run();
         },
 
       addRowAfter:
-        () => ({ state, dispatch }) => {
-          return addRowAfter(state, dispatch);
+        () => ({ state, dispatch, chain }) => {
+          if (!originalAddRowAfter(state)) return false;
+
+          let { rect, attrs: currentCellAttrs } = getCurrentCellAttrs(state);
+
+          return chain()
+            .command(() => originalAddRowAfter(state, dispatch))
+            .command(({ tr }) => {
+              let table = tr.doc.nodeAt(rect.tableStart - 1);
+              if (!table) return false;
+              let updatedMap = TableMap.get(table);
+              let newRowIndex = rect.top + 1;
+
+              if (newRowIndex >= updatedMap.height) return false;
+
+              for (let col = 0; col < updatedMap.width; col++) {
+                let cellIndex = newRowIndex * updatedMap.width + col;
+                let cellPos = updatedMap.map[cellIndex];
+                let cellAbsolutePos = rect.tableStart + cellPos;
+                let cell = tr.doc.nodeAt(cellAbsolutePos);
+                if (cell) {
+                  let attrs = {
+                    ...currentCellAttrs,
+                    colspan: cell.attrs.colspan,
+                    rowspan: cell.attrs.rowspan,
+                    colwidth: cell.attrs.colwidth,
+                  };
+                  tr.setNodeMarkup(cellAbsolutePos, null, attrs);
+                }
+              }
+              
+              return true;
+            })
+            .run();
         },
 
       deleteRow:
@@ -471,4 +606,19 @@ export const Table = Node.create({
 function getCellType({ node, state }) {
   const nodeTypes = tableNodeTypes(state.schema);
   return nodeTypes[node.type.spec.tableRole];
+}
+
+function copyCellAttrs(node) {
+  // Exclude colspan, rowspan and colwidth attrs.
+  const { colspan, rowspan, colwidth, ...attrs } = node.attrs;
+  return attrs;
+}
+
+function getCurrentCellAttrs(state) {
+  let rect = selectedRect(state);
+  let index = rect.top * rect.map.width + rect.left;
+  let pos = rect.map.map[index];
+  let cell = rect.table.nodeAt(pos);
+  let attrs = copyCellAttrs(cell);
+  return { rect, cell, attrs };
 }
