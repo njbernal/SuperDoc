@@ -709,8 +709,7 @@ export class SuperToolbar extends EventEmitter {
           const linkedStylesItem = linkedStyles?.definition.styles[markToStyleMap[item.name.value]];
 
           const value = {
-            [item.name.value]:
-              activeMarkItem || linkedStylesItem,
+            [item.name.value]: activeMarkItem || linkedStylesItem,
           };
 
           item.activate(value);
