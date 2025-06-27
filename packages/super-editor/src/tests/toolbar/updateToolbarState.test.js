@@ -149,7 +149,7 @@ describe('updateToolbarState', () => {
     toolbar.documentMode = 'editing';
   });
 
-  it.skip('should update toolbar state with active formatting marks', () => {
+  it('should update toolbar state with active formatting marks', () => {
     // Setup mock active formatting
     mockGetActiveFormatting.mockReturnValue([
       { name: 'bold', attrs: {} },
@@ -172,7 +172,7 @@ describe('updateToolbarState', () => {
     expect(mockGetActiveFormatting).toHaveBeenCalledWith(mockEditor);
   });
 
-  it.skip('should deactivate toolbar items when no active editor', () => {
+  it('should deactivate toolbar items when no active editor', () => {
     // Set no active editor
     toolbar.activeEditor = null;
 
@@ -185,7 +185,7 @@ describe('updateToolbarState', () => {
     });
   });
 
-  it.skip('should deactivate toolbar items when in viewing mode', () => {
+  it('should deactivate toolbar items when in viewing mode', () => {
     // Set viewing mode
     toolbar.documentMode = 'viewing';
 
