@@ -63,6 +63,7 @@ const closePopover = () => {
   popoverControls.visible = false;
   popoverControls.component = null;
   popoverControls.props = {};
+  editor.value.view.focus();
 };
 
 const openPopover = (component, props, position) => {
