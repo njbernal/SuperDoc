@@ -687,16 +687,15 @@ export class SuperToolbar extends EventEmitter {
       }
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
-
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
         item.deactivate();
       }
 
-      // Activate toolbar items based on linked styles
+      // Activate toolbar items based on linked styles (if there's no active mark to avoid overriding  it)
       const styleIdMark = marks.find((mark) => mark.name === 'styleId');
-      if (styleIdMark?.attrs.styleId) {
+      if (!activeMark && styleIdMark?.attrs.styleId) {
         const markToStyleMap = {
           fontSize: 'font-size',
           fontFamily: 'font-family',
@@ -705,13 +704,10 @@ export class SuperToolbar extends EventEmitter {
         };
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
         if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
-          const activeMarkItem = activeMark?.attrs?.[item.name.value];
           const linkedStylesItem = linkedStyles?.definition.styles[markToStyleMap[item.name.value]];
-
           const value = {
-            [item.name.value]: activeMarkItem || linkedStylesItem,
+            [item.name.value]: linkedStylesItem,
           };
-
           item.activate(value);
         }
       }
