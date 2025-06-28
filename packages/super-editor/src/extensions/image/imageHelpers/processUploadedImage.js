@@ -19,9 +19,9 @@ export const processUploadedImage = (fileData, editor) => {
       // Draw original image at full size
       ctx.drawImage(img, 0, 0, img.width, img.height);
 
-      // Use Hermite resize algorithm if dimensions need to be changed
+      // Use multi-step Hermite resize algorithm if dimensions need to be changed
       if (width !== img.width || height !== img.height) {
-        resample_high_quality(canvas, width, height, true);
+        multiStepResize(canvas, width, height);
       }
 
       if (typeof fileData === 'string') {
@@ -145,4 +145,48 @@ function resample_high_quality(canvas, width, height, resize_canvas) {
 
   //draw
   ctx.putImageData(img2, 0, 0);
+}
+
+/**
+ * Multi-step resize function that scales images in multiple steps for better quality
+ * @param {HTMLCanvasElement} canvas - The canvas to resize
+ * @param {number} targetWidth - Target width
+ * @param {number} targetHeight - Target height
+ */
+function multiStepResize(canvas, targetWidth, targetHeight) {
+  const originalWidth = canvas.width;
+  const originalHeight = canvas.height;
+  
+  // Calculate scale factors
+  const scaleX = targetWidth / originalWidth;
+  const scaleY = targetHeight / originalHeight;
+  const scaleFactor = Math.min(scaleX, scaleY);
+  
+  // If scaling down to more than 33%, use multi-step approach
+  // 1/2 will be one step, 1/3 will be two steps, etc.
+  // Can always change this based on performance needs
+  if (scaleFactor < 0.5) {
+    // Use simple halving steps approach (like Stack Overflow answer)
+    let currentWidth = originalWidth;
+    let currentHeight = originalHeight;
+    
+    // Keep halving until we're close to or smaller than target
+    while (currentWidth > targetWidth * 2 || currentHeight > targetHeight * 2) {
+      const nextWidth = Math.round(currentWidth / 2);
+      const nextHeight = Math.round(currentHeight / 2);
+      
+      resample_high_quality(canvas, nextWidth, nextHeight, true);
+      
+      currentWidth = nextWidth;
+      currentHeight = nextHeight;
+    }
+    
+    // Final step to exact target size
+    if (currentWidth !== targetWidth || currentHeight !== targetHeight) {
+      resample_high_quality(canvas, targetWidth, targetHeight, true);
+    }
+  } else {
+    // for smaller scale factors, use single-step resize
+    resample_high_quality(canvas, targetWidth, targetHeight, true);
+  }
 }
