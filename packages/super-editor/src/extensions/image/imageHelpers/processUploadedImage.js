@@ -185,11 +185,9 @@ function multiStepResize(canvas, targetWidth, targetHeight) {
   const scaleY = targetHeight / originalHeight;
   const scaleFactor = Math.min(scaleX, scaleY);
   
-  // If scaling down to more than 33%, use multi-step approach
-  // 1/2 will be one step, 1/3 will be two steps, etc.
-  // Can always change this based on performance needs
+  // If scaling down to more than 50%, use multi-step approach
+  // Can change this based on performance needs
   if (scaleFactor < 0.5) {
-    // Use simple halving steps approach (like Stack Overflow answer)
     let currentWidth = originalWidth;
     let currentHeight = originalHeight;
     
