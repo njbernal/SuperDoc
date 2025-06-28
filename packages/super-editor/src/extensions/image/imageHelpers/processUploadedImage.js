@@ -9,7 +9,7 @@ export const processUploadedImage = (fileData, editor) => {
 
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const { width, height } = getAllowedImageDimensions(img.width, img.height, editor);
+      const { width: logicalWidth, height: logicalHeight } = getAllowedImageDimensions(img.width, img.height, editor);
       
       // Set canvas to original image size first
       canvas.width = img.width;
@@ -19,9 +19,21 @@ export const processUploadedImage = (fileData, editor) => {
       // Draw original image at full size
       ctx.drawImage(img, 0, 0, img.width, img.height);
 
+      // We generate an image that has `devicePixelRatio` × the CSS size
+      // in real pixels, but we still tell the editor to draw it at the
+      // logical (CSS) width/height.  This keeps the image crisp while
+      // avoiding the browser's secondary up-scaling that causes blur.
+      const dpr = typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 1;
+      const targetPixelWidth = Math.round(logicalWidth * dpr);
+      const targetPixelHeight = Math.round(logicalHeight * dpr);
+
+      const finalTargetWidth = Math.min(targetPixelWidth, img.width);
+      const finalTargetHeight = Math.min(targetPixelHeight, img.height);
+
       // Use multi-step Hermite resize algorithm if dimensions need to be changed
-      if (width !== img.width || height !== img.height) {
-        multiStepResize(canvas, width, height);
+      const resizeNeeded = finalTargetWidth !== img.width || finalTargetHeight !== img.height;
+      if (resizeNeeded) {
+        multiStepResize(canvas, finalTargetWidth, finalTargetHeight);
       }
 
       if (typeof fileData === 'string') {
@@ -33,7 +45,7 @@ export const processUploadedImage = (fileData, editor) => {
             type: fileData.type,
             lastModified: Date.now(),
           });
-          resolve({ file: updatedFile, width, height });
+          resolve({ file: updatedFile, width: logicalWidth, height: logicalHeight });
         });
       }
     };
