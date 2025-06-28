@@ -16,6 +16,17 @@ export const processUploadedImage = (fileData, editor) => {
       canvas.height = img.height;
 
       const ctx = canvas.getContext('2d');
+
+      // Ensure the highest quality if the browser ever needs to resample.
+      // `imageSmoothingQuality` is not supported in every browser, so we wrap it in a try/catch.
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        try {
+          ctx.imageSmoothingQuality = 'high';
+        } catch (e) {
+        }
+      }
+
       // Draw original image at full size
       ctx.drawImage(img, 0, 0, img.width, img.height);
 
