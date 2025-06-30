@@ -1,5 +1,32 @@
 # Changelog
 
+# [0.14.0-next.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.19...v0.14.0-next.20) (2025-06-27)
+
+# [0.14.0-next.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.18...v0.14.0-next.19) (2025-06-27)
+
+
+### Reverts
+
+* Revert "Revert "Merge pull request #604 from Harbour-Enterprises/feature/lists-v2"" ([ec97d51](https://github.com/Harbour-Enterprises/SuperDoc/commit/ec97d511e8bee9f0b69b037b3afd4fc12cbc2c9f)), closes [#604](https://github.com/Harbour-Enterprises/SuperDoc/issues/604)
+
+# [0.14.0-next.18](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.17...v0.14.0-next.18) (2025-06-27)
+
+# [0.14.0-next.17](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.16...v0.14.0-next.17) (2025-06-27)
+
+# [0.14.0-next.16](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.15...v0.14.0-next.16) (2025-06-27)
+
+
+### Bug Fixes
+
+* restore focus to editor when generic popover closes ([66b259f](https://github.com/Harbour-Enterprises/SuperDoc/commit/66b259f32cd744979461cb21a04b23fcb640311a))
+
+# [0.14.0-next.15](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.14...v0.14.0-next.15) (2025-06-27)
+
+
+### Features
+
+* prevent custom menu from opening when user holds control ([eb3f620](https://github.com/Harbour-Enterprises/SuperDoc/commit/eb3f620bd2c45638f48941bb555e7b1cf6edfe79))
+
 # [0.14.0-next.14](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.13...v0.14.0-next.14) (2025-06-26)
 
 # [0.14.0-next.13](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.12...v0.14.0-next.13) (2025-06-26)

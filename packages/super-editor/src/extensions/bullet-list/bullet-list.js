@@ -1,6 +1,6 @@
 import { Node, Attribute } from '@core/index.js';
-import { generateDocxListAttributes } from '@helpers/index.js';
 import { wrappingInputRule } from '../../core/inputRules/wrappingInputRule.js';
+import { toggleList } from '@core/commands/index.js';
 
 /**
  * Matches a bullet list to a dash or asterisk.
@@ -11,6 +11,8 @@ export const BulletList = Node.create({
   name: 'bulletList',
 
   group: 'block list',
+
+  selectable: false,
 
   content() {
     return `${this.options.itemTypeName}+`;
@@ -56,9 +58,8 @@ export const BulletList = Node.create({
 
   addCommands() {
     return {
-      toggleBulletList: () => (props) => {
-        const { commands, chain } = props;
-        return commands.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks);
+      toggleBulletList: () => (params) => {
+        return toggleList(this.type)(params)
       },
     };
   },
