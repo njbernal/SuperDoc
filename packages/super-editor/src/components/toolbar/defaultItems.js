@@ -15,7 +15,7 @@ import SearchInput from './SearchInput.vue';
 import { TOOLBAR_FONTS } from './constants.js';
 
 const closeDropdown = (dropdown) => {
-  // dropdown.expand.value = false;
+  dropdown.expand.value = false;
 };
 
 export const makeDefaultItems = ({
