@@ -83,20 +83,20 @@ export class Schema {
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
         schema.toDOM = (node) => {
-          const domOutputSpec =  renderDOM({
+          const domOutputSpec = renderDOM({
             node,
             htmlAttributes: Attribute.getAttributesToRender(node, extensionAttributes),
           });
           const attrs = domOutputSpec[1];
-          if (attrs && typeof attrs == "object" && attrs.hasOwnProperty('style')) {
-              // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
-              return renderSpec(
-                window.document, // Should be options.document with fallback to window.document
-                domOutputSpec
-              );
+          if (attrs && typeof attrs == 'object' && attrs.hasOwnProperty('style')) {
+            // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
+            return renderSpec(
+              window.document, // Should be options.document with fallback to window.document
+              domOutputSpec,
+            );
           }
           return domOutputSpec;
-        }
+        };
       }
 
       const renderText = getExtensionConfigField(extension, 'renderText', context);
@@ -152,21 +152,20 @@ export class Schema {
       const renderDOM = getExtensionConfigField(extension, 'renderDOM', context);
       if (renderDOM) {
         schema.toDOM = (mark) => {
-          const domOutputSpec =
-            renderDOM({
-              mark,
-              htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),
-            });
+          const domOutputSpec = renderDOM({
+            mark,
+            htmlAttributes: Attribute.getAttributesToRender(mark, extensionAttributes),
+          });
           const attrs = domOutputSpec[1];
-          if (attrs && typeof attrs == "object" && attrs.hasOwnProperty('style')) {
-              // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
-              return renderSpec(
-                window.document, // Should be options.document with fallback to window.document
-                domOutputSpec
-              );
+          if (attrs && typeof attrs == 'object' && attrs.hasOwnProperty('style')) {
+            // style is given. We will handle conversion to DOM locally in order not to trigger CSP issue.
+            return renderSpec(
+              window.document, // Should be options.document with fallback to window.document
+              domOutputSpec,
+            );
           }
           return domOutputSpec;
-        }
+        };
       }
 
       return [extension.name, schema];
