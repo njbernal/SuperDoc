@@ -7,14 +7,16 @@
 
 
 
-export function renderSpec(doc, structure, xmlNS = false) {
+export function renderSpec(doc, structure, xmlNS = null) {
+    if (typeof structure == "string")
+      return {dom: doc.createTextNode(structure)}
     let tagName = structure[0], suspicious;
     if (typeof tagName != "string")
-        throw new RangeError("Invalid array passed to renderSpec");
+      throw new RangeError("Invalid array passed to renderSpec");
     let space = tagName.indexOf(" ");
     if (space > 0) {
-        xmlNS = tagName.slice(0, space);
-        tagName = tagName.slice(space + 1);
+      xmlNS = tagName.slice(0, space);
+      tagName = tagName.slice(space + 1);
     }
     let contentDOM;
     let dom = (xmlNS ? doc.createElementNS(xmlNS, tagName) : doc.createElement(tagName));

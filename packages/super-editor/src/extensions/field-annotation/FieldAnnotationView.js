@@ -205,7 +205,11 @@ export class FieldAnnotationView {
     });
 
     for (let [key, value] of Object.entries(mergedAttrs)) {
-      annotation.setAttribute(key, value);
+      if (key === 'style') {
+        annotation.style.cssText = value;
+      } else {
+        annotation.setAttribute(key, value);
+      }
     }
 
     return {
