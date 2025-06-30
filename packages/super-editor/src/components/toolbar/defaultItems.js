@@ -15,7 +15,7 @@ import SearchInput from './SearchInput.vue';
 import { TOOLBAR_FONTS } from './constants.js';
 
 const closeDropdown = (dropdown) => {
-  dropdown.expand.value = false;
+  // dropdown.expand.value = false;
 };
 
 export const makeDefaultItems = ({
@@ -130,7 +130,7 @@ export const makeDefaultItems = ({
     labelAttr: 'fontSize',
     tooltip: toolbarTexts.fontSize,
     hasCaret: true,
-    hasInlineTextInput: false,
+    hasInlineTextInput: true,
     inlineTextInputVisible: true,
     suppressActiveHighlight: true,
     isWide: true,
