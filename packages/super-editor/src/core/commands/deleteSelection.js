@@ -73,6 +73,8 @@ export const handleBackspaceNextToList = () => ({ state, dispatch }) => {
 
   const inlineContent = Fragment.from($from.parent.content);
   const tr = state.tr;
+  tr.setMeta('updateListSync', true);
+
   const oldParaPos = $from.before();
   
   tr.delete(oldParaPos, oldParaPos + $from.parent.nodeSize);
@@ -147,7 +149,8 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
     
     const targetInlineContent = Fragment.from(nextPara.content);
     const tr = state.tr;
-    
+    tr.setMeta('updateListSync', true);
+
     // Delete the entire next list
     tr.delete(nextListStartPos, nextListStartPos + nextNode.nodeSize);
     
@@ -182,7 +185,8 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
 
     const targetInlineContent = Fragment.from(targetPara.content);
     const tr = state.tr;
-    
+    tr.setMeta('updateListSync', true);
+
     tr.delete(listStartPos, listStartPos + afterNode.nodeSize);
     
     const insertPos = tr.mapping.map($from.pos);
@@ -193,6 +197,4 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
     dispatch(tr);
     return true;
   }
-
-  return false;
 };

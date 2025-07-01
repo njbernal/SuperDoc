@@ -21,15 +21,18 @@ export function orderedListSync(editor) {
       const listMap = new Map(); // numId -> [counts per level]
       const listInitialized = new Map(); // Track if we've initialized each numId
 
-      const shouldProcess = transactions.some(tr =>
-        tr.steps.some(step => {
-          const stepJSON = step.toJSON();
-          return (
-            stepJSON &&
-            stepJSON.slice &&
-            JSON.stringify(stepJSON).includes('"listItem"')
-          );
-        })
+      const shouldProcess = transactions.some((tr) => {
+          return tr.steps.some(step => {
+            const stepJSON = step.toJSON();
+            const hasUpdateMeta = tr.getMeta('updateListSync');
+            return (
+              hasUpdateMeta ||
+              stepJSON &&
+              stepJSON.slice &&
+              JSON.stringify(stepJSON).includes('"listItem"')
+            );
+          })
+        }
       );
       if (!shouldProcess) return null;
 

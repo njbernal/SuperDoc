@@ -1,7 +1,6 @@
-import { Fragment, Slice } from 'prosemirror-model';
+import { Fragment } from 'prosemirror-model';
 import { TextSelection } from 'prosemirror-state';
 import { Attribute } from '../Attribute.js';
-import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { findParentNode, getNodeType } from '@helpers/index.js';
 import { decreaseListIndent } from './decreaseListIndent.js';
 
@@ -19,6 +18,7 @@ export const splitListItem = () => (props) => {
   const { tr, state, editor } = props;
   const type = getNodeType('listItem', state.schema);
   const { $from, $to } = state.selection;
+  tr.setMeta('updateListSync', true);
 
   const currentListItem = findParentNode((node) => node.type.name === 'listItem')(state.selection);
   if (!currentListItem) return false;

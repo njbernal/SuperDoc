@@ -1,5 +1,6 @@
 import { Node, Attribute } from '@core/index.js';
-import { wrappingInputRule } from '../../core/inputRules/wrappingInputRule.js';
+import { InputRule } from '@core/InputRule.js'
+import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { toggleList } from '@core/commands/index.js';
 
 /**
@@ -72,25 +73,21 @@ export const BulletList = Node.create({
     };
   },
 
-  // Input rules.
   addInputRules() {
-    let inputRule = wrappingInputRule({
-      match: inputRegex,
-      type: this.type,
-    })
-
-    if (this.options.keepMarks || this.options.keepAttributes) {
-      inputRule = wrappingInputRule({
-        match: inputRegex,
-        type: this.type,
-        keepMarks: this.options.keepMarks,
-        keepAttributes: this.options.keepAttributes,
-        getAttributes: () => { return this.editor.getAttributes('textStyle') },
-        editor: this.editor,
-      })
-    }
     return [
-      inputRule,
-    ];
-  },
+      new InputRule({
+        match: inputRegex,
+        handler: ({ state, range }) => {
+          const { tr } = state
+          tr.delete(range.from, range.to)
+  
+          ListHelpers.createNewList({
+            listType: this.type,
+            tr,
+            editor: this.editor,
+          });
+        }
+      })
+    ]
+  }
 });
