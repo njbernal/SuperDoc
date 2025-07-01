@@ -39,9 +39,18 @@ export function orderedListSync(editor) {
       newState.doc.descendants((node, pos) => {
         if (node.type.name !== 'listItem') return;
 
-        const { level: attrLvl, numId: attrNumId, styleId, start } = node.attrs;
+        const { level: attrLvl, numId: attrNumId, styleId } = node.attrs;
         const level = parseInt(attrLvl);
         const numId = parseInt(attrNumId);
+
+        const {
+          lvlText,
+          customFormat,
+          listNumberingType,
+          start: numberingDefStart
+        } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
+
+        const start = parseInt(numberingDefStart) || 1;
 
         // Initialize tracking for this numId if not exists
         if (!listMap.has(numId)) {
@@ -59,6 +68,17 @@ export function orderedListSync(editor) {
         // For the first item, use the generateListPath result as-is
         if (!listInitialized.get(numId)) {
           listInitialized.set(numId, true);
+          // if there's a start override for this level, use it
+          if (typeof start === 'number') {
+            while (currentListLevels.length <= level) {
+              currentListLevels.push(0);
+            }
+            currentListLevels[level] = start;
+            // reset any deeper levels
+            for (let i = level + 1; i < currentListLevels.length; i++) {
+              currentListLevels[i] = 0;
+            }
+          }
         } else {
           // For subsequent items, increment at the current level
           // Ensure array is long enough for current level
@@ -81,12 +101,6 @@ export function orderedListSync(editor) {
 
         // Update the map
         listMap.set(numId, currentListLevels);
-
-        const {
-          lvlText,
-          customFormat,
-          listNumberingType
-        } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
 
         // Update list attrs
         const updatedAttrs = {
