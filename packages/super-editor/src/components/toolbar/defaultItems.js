@@ -130,7 +130,7 @@ export const makeDefaultItems = ({
     labelAttr: 'fontSize',
     tooltip: toolbarTexts.fontSize,
     hasCaret: true,
-    hasInlineTextInput: false,
+    hasInlineTextInput: true,
     inlineTextInputVisible: true,
     suppressActiveHighlight: true,
     isWide: true,
