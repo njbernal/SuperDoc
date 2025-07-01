@@ -2,7 +2,8 @@ import { Node, Attribute } from '@core/index.js';
 import { toKebabCase } from '@harbour-enterprises/common';
 import { findParentNode } from '@helpers/index.js';
 import { toggleList } from '@core/commands/index.js';
-import { wrappingInputRule } from '@core/inputRules/wrappingInputRule.js';
+import { InputRule } from '@core/InputRule.js'
+import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 
 const inputRegex = /^(\d+)\.\s$/;
 
@@ -174,27 +175,22 @@ export const OrderedList = Node.create({
     };
   },
 
-  addInputRules() {
-    let inputRule = wrappingInputRule({
-      match: inputRegex,
-      type: this.type,
-      getAttributes: match => ({ start: +match[1] }),
-      joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
-    })
 
-    if (this.options.keepMarks || this.options.keepAttributes) {
-      inputRule = wrappingInputRule({
-        match: inputRegex,
-        type: this.type,
-        keepMarks: this.options.keepMarks,
-        keepAttributes: this.options.keepAttributes,
-        getAttributes: match => ({ start: +match[1], ...this.editor.getAttributes('textStyle') }),
-        joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
-        editor: this.editor,
-      })
-    }
+  addInputRules() {
     return [
-      inputRule,
-    ];
-  },
+      new InputRule({
+        match: inputRegex,
+        handler: ({ state, range }) => {
+          const { tr } = state
+          tr.delete(range.from, range.to)
+  
+          ListHelpers.createNewList({
+            listType: this.type,
+            tr,
+            editor: this.editor,
+          });
+        }
+      })
+    ]
+  }
 });

@@ -220,9 +220,6 @@ onMounted(async () => {
 
       <div class="dev-app__main">
         <div class="dev-app__view">
-          <div class="comments-panel" v-show="isCommentsListOpen">
-            <div id="comments-panel" ref="commentsPanel"></div>
-          </div>
 
           <div class="dev-app__content" v-if="currentFile">
             <div class="dev-app__content-container">

@@ -784,7 +784,7 @@ function translateList(params) {
   let numPrTag;
 
   // These should exist for all imported nodes
-  if (numId) {
+  if (numId !== undefined && numId !== null) {
     numPrTag = generateNumPrTag(numId, level);
   };
 

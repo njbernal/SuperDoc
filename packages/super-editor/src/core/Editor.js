@@ -30,7 +30,7 @@ import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
 import { updateYdocDocxData } from '@extensions/collaboration/collaboration-helpers.js';
 import { setWordSelection } from './helpers/setWordSelection.js';
 import { setImageNodeSelection } from './helpers/setImageNodeSelection.js';
-import { ListHelpers } from '@helpers/list-numbering-helpers.js';
+import { migrateListsToV2IfNecessary } from '@core/migrations/0.14-listsv2/listsv2migration.js';
 
 /**
  * @typedef {Object} FieldValue
@@ -1197,9 +1197,6 @@ export class Editor extends EventEmitter {
     if (this.options.collaborationIsReady) return;
     console.debug('🔗 [super-editor] Collaboration ready');
 
-    // Add lists v2 migration for collaborative docs
-    this.migrateListsToV2IfNecessary();
-
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
 
@@ -1449,8 +1446,8 @@ export class Editor extends EventEmitter {
     return updatedState.doc;
   }
 
-  migrateListsToV2IfNecessary() {
-    return ListHelpers.migrateListsToV2IfNecessary(this);
+  migrateListsToV2() {
+    return migrateListsToV2IfNecessary(this);
   }
 
   /**
