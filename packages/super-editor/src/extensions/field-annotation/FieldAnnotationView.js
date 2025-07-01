@@ -197,10 +197,6 @@ export class FieldAnnotationView {
       `box-sizing: border-box`,
     ];
 
-    if (rawHtml) {
-      styles.push('font-weight: normal');
-    }
-
     let annotationStyle = styles.join('; ');
 
     let mergedAttrs = Attribute.mergeAttributes(this.htmlAttributes, {
