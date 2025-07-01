@@ -444,11 +444,12 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
       let isInTable = (table || tableRow) ? true : false;
 
-      if (tableRow) {
-        // If the node is in a table cell, then split the entire row.
-        currentNode = tableRow.node;
-        currentPos = tableRow.pos;
-      }
+      // if (tableRow) {
+      //   // If the node is in a table cell, then split the entire row.
+      //   console.debug('--ROW---')
+      //   currentNode = tableRow.node;
+      //   currentPos = tableRow.pos;
+      // }
 
       // The node we've found extends past our threshold
       // We need to zoom in and investigate position by position until we find the exact break point
