@@ -91,8 +91,13 @@ export class ListItemNodeView {
 
     // Place the content at the visible indent left
     let contentLeft = visibleIndent.left;
+    if (IS_DEBUGGING) {
+      console.debug('[ListItemNodeView] absoluteLeft', absoluteLeft);
+      console.debug('[ListItemNodeView] contentLeft', contentLeft);
+    }
+
     if (visibleIndent.left === absoluteLeft) {
-      contentLeft = absoluteLeft + 48;
+      absoluteLeft -= 24;
     }
     this.contentDOM.style.marginLeft = `${contentLeft}px`;
 
