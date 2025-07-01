@@ -228,10 +228,6 @@ export const ListItem = Node.create({
         return this.editor.commands.splitListItem();
       },
 
-      Backspace: () => {
-        return this.editor.commands.deleteListItem();
-      },
-
       'Shift-Enter': () => {
         return this.editor.commands.first(({ commands }) => [
           () => commands.createParagraphNear(),

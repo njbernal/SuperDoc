@@ -20,6 +20,7 @@ export const handleBackspace = (editor) => {
     },
     () => commands.deleteSelection(),
     () => commands.handleBackspaceNextToList(),
+    () => commands.deleteListItem(),
     () => commands.joinBackward(),
     () => commands.selectNodeBackward(),
   ]);
