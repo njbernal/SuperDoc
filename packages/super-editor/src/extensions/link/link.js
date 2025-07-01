@@ -65,7 +65,7 @@ export const Link = Mark.create({
       setLink:
         ({ href }) =>
         ({ chain }) => {
-          return chain().setMark(this.name, { href }).run();
+          return chain().setMark('underline').setMark(this.name, { href }).run();
         },
       unsetLink:
         () =>

@@ -1,7 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 import { createApp } from 'vue';
 import { undoDepth, redoDepth } from 'prosemirror-history';
-import { TextSelection } from 'prosemirror-state';
 import { makeDefaultItems } from './defaultItems';
 import { getActiveFormatting } from '@core/helpers/getActiveFormatting.js';
 import { vClickOutside } from '@harbour-enterprises/common';
@@ -473,41 +472,6 @@ export class SuperToolbar extends EventEmitter {
     },
 
     /**
-     * Toggles link formatting and updates cursor position
-     * @param {Object} params - Command parameters
-     * @param {CommandItem} params.item - The command item
-     * @param {*} params.argument - Command arguments
-     * @returns {void}
-     */
-    toggleLink: ({ item, argument }) => {
-      let command = item.command;
-
-      if (command in this.activeEditor.commands) {
-        this.activeEditor.commands[command](argument);
-
-        // move cursor to end
-        const { view } = this.activeEditor;
-        let { selection } = view.state;
-        if (this.activeEditor.options.isHeaderOrFooter) {
-          selection = this.activeEditor.options.lastSelection;
-        }
-        const endPos = selection.$to.pos;
-        
-        const newSelection = new TextSelection(view.state.doc.resolve(endPos));
-        const tr = view.state.tr.setSelection(newSelection);
-        const state = view.state.apply(tr);
-        view.updateState(state);
-
-        if (!this.activeEditor.options.isHeaderOrFooter) {
-          setTimeout(() => {
-            view.focus();
-          }, 100);
-        }
-      }
-      this.updateToolbarState();
-    },
-
-    /**
      * Inserts a table into the document
      * @param {Object} params - Command parameters
      * @param {CommandItem} params.item - The command item
@@ -699,7 +663,7 @@ export class SuperToolbar extends EventEmitter {
     this.#initDefaultFonts();
     this.#updateHighlightColors();
 
-    // Decativate toolbar items if no active editor
+    // Deactivate toolbar items if no active editor
     // This will skip buttons that are marked as allowWithoutEditor
     if (!this.activeEditor || this.documentMode === 'viewing') {
       this.#deactivateAll();
@@ -723,16 +687,15 @@ export class SuperToolbar extends EventEmitter {
       }
 
       const activeMark = marks.find((mark) => mark.name === item.name.value);
-
       if (activeMark) {
         item.activate(activeMark.attrs);
       } else {
         item.deactivate();
       }
 
-      // Activate toolbar items based on linked styles
+      // Activate toolbar items based on linked styles (if there's no active mark to avoid overriding  it)
       const styleIdMark = marks.find((mark) => mark.name === 'styleId');
-      if (styleIdMark?.attrs.styleId) {
+      if (!activeMark && styleIdMark?.attrs.styleId) {
         const markToStyleMap = {
           fontSize: 'font-size',
           fontFamily: 'font-family',
@@ -741,8 +704,9 @@ export class SuperToolbar extends EventEmitter {
         };
         const linkedStyles = this.activeEditor.converter?.linkedStyles.find((style) => style.id === styleIdMark.attrs.styleId);
         if (linkedStyles && markToStyleMap[item.name.value] in linkedStyles?.definition.styles) {
+          const linkedStylesItem = linkedStyles?.definition.styles[markToStyleMap[item.name.value]];
           const value = {
-            [item.name.value]: linkedStyles?.definition.styles[markToStyleMap[item.name.value]]
+            [item.name.value]: linkedStylesItem,
           };
           item.activate(value);
         }

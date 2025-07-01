@@ -2,12 +2,12 @@ import { Plugin, PluginKey } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import { Extension } from '@core/Extension.js';
 
+export const NodeResizerKey = new PluginKey('node-resizer');
+
 /**
  * Plugin key for the resize plugin
  */
-export const NodeResizerKey = new PluginKey('node-resizer');
-
-const nodeResizer = (nodeNames = ['image']) => {
+const nodeResizer = (nodeNames = ['image'], editor) => {
   // Track the resize state
   let resizeState = {
     dragging: false,
@@ -26,6 +26,8 @@ const nodeResizer = (nodeNames = ['image']) => {
   let editorView = null;
   let globalClickHandler = null;
   let globalMousedownHandler = null;
+  let scrollHandler = null;
+  let currentWrapper = null;
 
   return new Plugin({
     key: NodeResizerKey,
@@ -41,10 +43,16 @@ const nodeResizer = (nodeNames = ['image']) => {
           return oldState;
         }
 
-        if (typeof document === 'undefined') return oldState;
+        if (typeof document === 'undefined' || editor.options.isHeadless) return oldState;
+
+        // If selection is not on a resizable node — keep current decorations
+        const { selection } = newState;
+        const node = selection.node;
+        if (!node || !nodeNames.includes(node.type.name)) {
+          return DecorationSet.empty;
+        }
 
         const decorations = [];
-        const { selection } = newState;
 
         // Only create decoration if one of the resizable nodes is selected
         if (nodeNames.includes(selection.node?.type.name)) {
@@ -94,6 +102,16 @@ const nodeResizer = (nodeNames = ['image']) => {
 
       document.addEventListener('mousedown', globalMousedownHandler);
 
+      // Add scroll handler to update handle positions during scroll
+      scrollHandler = () => {
+        if (currentWrapper && resizeContainer) {
+          updateHandlePositions(currentWrapper.firstElementChild);
+        }
+      };
+
+      // Listen for scroll on both window and editor container
+      window.addEventListener('scroll', scrollHandler, true);
+
       return {
         update(view, prevState) {
           // Show/hide resize handles based on selection changes
@@ -123,6 +141,10 @@ const nodeResizer = (nodeNames = ['image']) => {
             document.removeEventListener('mousedown', globalMousedownHandler);
             globalMousedownHandler = null;
           }
+          if (scrollHandler) {
+            window.removeEventListener('scroll', scrollHandler, true);
+            scrollHandler = null;
+          }
           editorView = null;
         },
       };
@@ -136,6 +158,9 @@ const nodeResizer = (nodeNames = ['image']) => {
 
     const node = view.state.doc.nodeAt(pos);
     if (!nodeNames.includes(node?.type.name)) return;
+
+    // Store current wrapper for scroll updates
+    currentWrapper = wrapper;
 
     // Create resize container
     resizeContainer = document.createElement('div');
@@ -165,6 +190,7 @@ const nodeResizer = (nodeNames = ['image']) => {
       resizeContainer.parentNode.removeChild(resizeContainer);
       resizeContainer = null;
     }
+    currentWrapper = null; // Clear wrapper reference
   }
 
   function updateHandlePositions(resizableElement) {
@@ -312,6 +338,9 @@ export const NodeResizer = Extension.create({
   name: 'nodeResizer',
 
   addPmPlugins() {
-    return [nodeResizer(['image'])];
+    const isHeadless = this.editor.options.isHeadless;
+    const hasDocument = typeof document !== 'undefined';
+    if (isHeadless || !hasDocument) return [];
+    return [nodeResizer(['image'], this.editor)];
   },
 });

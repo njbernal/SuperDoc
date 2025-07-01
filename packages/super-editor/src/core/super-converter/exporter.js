@@ -246,7 +246,7 @@ function generateParagraphProperties(node) {
     pPrElements.push(spacingElement);
   }
   
-  if (indent) {
+  if (indent && Object.values(indent).some((v) => v !== 0)) {
     const { left, right, firstLine, hanging } = indent;
     const attributes = {};
     if (left || left === 0) attributes['w:left'] = pixelsToTwips(left);
@@ -263,7 +263,7 @@ function generateParagraphProperties(node) {
       attributes,
     };
     pPrElements.push(indentElement);
-  } else if (textIndent) {
+  } else if (textIndent && textIndent !== '0in') {
     const indentElement = {
       name: 'w:ind',
       attributes: { 
@@ -319,6 +319,9 @@ function generateParagraphProperties(node) {
     pPrElements.push(sectPr);
   }
 
+  const numPr = node.attrs?.paragraphProperties?.elements?.find((n) => n.name === 'w:numPr');
+  const hasNumPr = pPrElements.some((n) => n.name === 'w:numPr');
+  if (numPr && !hasNumPr) pPrElements.push(numPr);
   if (!pPrElements.length) return null;
 
   return {
@@ -682,6 +685,12 @@ function processLinkContentNode(node) {
     name: 'w:color',
     attributes: { 'w:val': '467886' },
   };
+  const underline = {
+    name: 'w:u',
+    attributes: {
+      'w:val': 'none'
+    }
+  };
 
   if (contentNode.name === 'w:r') {
     const runProps = contentNode.elements.find((el) => el.name === 'w:rPr');
@@ -689,8 +698,10 @@ function processLinkContentNode(node) {
     if (runProps) {
       const foundColor = runProps.elements.find((el) => el.name === 'w:color');
       const foundHyperlinkStyle = runProps.elements.find((el) => el.name === 'w:rStyle');
+      const underlineMark = runProps.elements.find((el) => el.name === 'w:u');
       if (!foundColor) runProps.elements.unshift(color);
       if (!foundHyperlinkStyle) runProps.elements.unshift(hyperlinkStyle);
+      if (!underlineMark) runProps.elements.unshift(underline);
     } else {
       // we don't add underline by default
       const runProps = {
@@ -765,6 +776,78 @@ function addNewImageRelationship(params, imagePath) {
  * @returns {XmlReadyNode} The translated list node
  */
 function translateList(params) {
+  const { node } = params;
+
+  const listItem = node.content[0];
+  const { numId, level } = listItem.attrs;
+
+  let numPrTag;
+
+  // These should exist for all imported nodes
+  if (numId !== undefined && numId !== null) {
+    numPrTag = generateNumPrTag(numId, level);
+  };
+
+  const paragraphNode = node.content[0]?.content[0];
+  const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
+  const pPr = outputNode.elements?.find((n) => n.name === 'w:pPr');
+  if (pPr && pPr.elements && numPrTag) pPr.elements.unshift(numPrTag);
+
+  const indentTag = restoreIndent(listItem.attrs.indent);
+  indentTag && pPr?.elements?.push(indentTag);
+
+  const runNode = outputNode.elements?.find((n) => n.name === 'w:r');
+  const rPr = runNode?.elements?.find((n) => n.name === 'w:rPr');
+  if (rPr) pPr.elements.push(rPr);
+
+  if (listItem.attrs.numPrType !== 'inline') {
+    const numPrIndex = pPr?.elements?.findIndex((e) => e?.name === 'w:numPr');
+    if (numPrIndex !== -1) {
+      pPr?.elements?.splice(numPrIndex, 1);
+    }
+  }
+
+  return [outputNode];
+};
+
+const restoreIndent = (indent) => {
+  const attributes = {};
+  if (!indent) indent = {};
+  if (indent.left || indent.left === 0) attributes['w:left'] = pixelsToTwips(indent.left);
+  if (indent.right || indent.right === 0) attributes['w:right'] = pixelsToTwips(indent.right);
+  if (indent.firstLine || indent.firstLine === 0) attributes['w:firstLine'] = pixelsToTwips(indent.firstLine);
+  if (indent.hanging || indent.hanging === 0) attributes['w:hanging'] = pixelsToTwips(indent.hanging);
+  if (indent.leftChars || indent.leftChars === 0) attributes['w:leftChars'] = pixelsToTwips(indent.leftChars);
+
+  if (!Object.keys(attributes).length) return;
+
+  return {
+    name: 'w:ind',
+    type: 'element',
+    attributes,
+  }
+};
+
+const generateNumPrTag = (numId, level) => {
+  return {
+    name: 'w:numPr',
+    type: 'element',
+    elements: [
+      {
+        name: 'w:numId',
+        type: 'element',
+        attributes: { 'w:val': numId },
+      },
+      {
+        name: 'w:ilvl',
+        type: 'element',
+        attributes: { 'w:val': level },
+      },
+    ],
+  };
+};
+
+function translateListOld(params) {
   const { type } = params.node;
   const flatContent = flattenContent(params);
 
@@ -1075,10 +1158,8 @@ function preProcessVerticalMergeCells(table, { editorSchema }) {
     if (!row.content) continue;
     for (let cellIndex = 0; cellIndex < row.content?.length; cellIndex++) {
       const cell = row.content[cellIndex];
-      if (!cell) {
-        console.log('no cell');
-        continue;
-      }
+      if (!cell) continue;
+
       const { attrs } = cell;
       if (attrs.rowspan > 1) {
         // const { mergedCells } = attrs;
@@ -2064,70 +2145,31 @@ function translateFieldAnnotation(params) {
   sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
 
   const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+  // Contains only the main attributes.
+  const annotationAttrs = {
+    displayLabel: attrs.displayLabel,
+    defaultDisplayLabel: attrs.defaultDisplayLabel,
+    fieldId: attrs.fieldId,
+    fieldType: attrs.fieldType,
+    fieldTypeShort: attrs.type,
+    fieldColor: attrs.fieldColor,
+    fieldMultipleImage: attrs.multipleImage,
+    fieldFontFamily: attrs.fontFamily,
+    fieldFontSize: attrs.fontSize,
+    fieldTextColor: attrs.textColor,
+    fieldTextHighlight: attrs.textHighlight,
+  };
+  const annotationAttrsJson = JSON.stringify(annotationAttrs);
+
   return {
     name: 'w:sdt',
     elements: [
       {
         name: 'w:sdtPr',
         elements: [
-          { name: 'w:tag', attributes: { 'w:val': attrs.fieldId } },
+          { name: 'w:tag', attributes: { 'w:val': annotationAttrsJson } },
           { name: 'w:alias', attributes: { 'w:val': attrs.displayLabel } },
-          {
-            name: 'w:fieldType',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fieldType,
-            },
-          },
-          {
-            name: 'w:fieldTypeShort',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.type,
-            },
-          },
-          {
-            name: 'w:fieldColor',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fieldColor,
-            },
-          },
-          {
-            name: 'w:fieldMultipleImage',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.multipleImage,
-            },
-          },
-          {
-            name: 'w:fieldFontFamily',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fontFamily,
-            },
-          },
-          {
-            name: 'w:fieldFontSize',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.fontSize,
-            },
-          },
-          {
-            name: 'w:fieldTextColor',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.textColor,
-            },
-          },
-          {
-            name: 'w:fieldTextHighlight',
-            attributes: {
-              'xmlns:w': customXmlns,
-              'w:val': attrs.textHighlight,
-            },
-          },
         ],
       },
       {

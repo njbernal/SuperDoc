@@ -155,6 +155,13 @@ const moveToPreviousButtonGroup = (e) => {
 // Set tabindex to 0 for the current focused button
 // Set tabindex to -1 for all other buttons
 const handleKeyDown = (e, item) => {
+  const isTypingField = e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA';
+  const isTypingToolbarItem = item.name.value === 'fontSize';
+  // If the user is typing in a field or textarea, and the toolbar item is a font size,
+  // don't prevent the default behavior. Allow normal typing behavior.
+  if (isTypingField && isTypingToolbarItem) {
+    return;
+  }
   e.preventDefault();
 
   switch (e.key) {

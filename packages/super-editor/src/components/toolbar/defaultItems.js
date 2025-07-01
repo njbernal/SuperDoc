@@ -1,17 +1,14 @@
 import { undoDepth, redoDepth } from 'prosemirror-history';
 import { h, ref } from 'vue';
 
-import { scrollToElement } from './scroll-helpers';
 import { sanitizeNumber } from './helpers';
 import { useToolbarItem } from './use-toolbar-item';
 import AIWriter from './AIWriter.vue';
 import AlignmentButtons from './AlignmentButtons.vue';
-import LinkInput from './LinkInput.vue';
 import DocumentMode from './DocumentMode.vue';
 import LinkedStyle from './LinkedStyle.vue';
 import { renderColorOptions } from './color-dropdown-helpers.js';
 import TableGrid from './TableGrid.vue';
-import TableActions from './TableActions.vue';
 
 import checkIconSvg from '@harbour-enterprises/common/icons/check.svg?raw';
 import SearchInput from './SearchInput.vue';
@@ -133,7 +130,7 @@ export const makeDefaultItems = ({
     labelAttr: 'fontSize',
     tooltip: toolbarTexts.fontSize,
     hasCaret: true,
-    hasInlineTextInput: false,
+    hasInlineTextInput: true,
     inlineTextInputVisible: true,
     suppressActiveHighlight: true,
     isWide: true,
@@ -296,69 +293,6 @@ export const makeDefaultItems = ({
     ]);
   };
 
-  // link
-  const link = useToolbarItem({
-    type: 'dropdown',
-    name: 'link',
-    markName: 'link',
-    icon: toolbarIcons.link,
-    active: false,
-    tooltip: toolbarTexts.link,
-    attributes: {
-      ariaLabel: 'Link dropdown',
-    },
-    options: [
-      {
-        type: 'render',
-        key: 'linkDropdown',
-        render: () => renderLinkDropdown(link),
-      },
-    ],
-    onActivate: ({ href }) => {
-      if (href) link.attributes.value = { href };
-      else link.attributes.value = {};
-      link.expand.value = true;
-    },
-    onDeactivate: () => {
-      link.attributes.value = {};
-      link.expand.value = false;
-    },
-  });
-
-  function renderLinkDropdown(link) {
-    const handleSubmit = ({ href }) => {
-      closeDropdown(link);
-      link.attributes.value.link = { href };
-      const itemWithCommand = { ...link, command: 'toggleLink' };
-      superToolbar.emitCommand({ item: itemWithCommand, argument: { href, text: '' } });
-      if (!href) link.active.value = false;
-    };
-
-    return h('div', {}, [
-      h(LinkInput, {
-        onSubmit: handleSubmit,
-        href: link.attributes.value.href,
-        goToAnchor: () => {
-          closeDropdown(link);
-          if (!superToolbar.activeEditor || !link.attributes.value?.href) return;
-          const anchorName = link.attributes.value?.href?.slice(1);
-          const container = superToolbar.activeEditor.element;
-          const anchor = container.querySelector(`a[name='${anchorName}']`);
-          if (anchor) scrollToElement(anchor);
-        },
-      }),
-    ]);
-  }
-
-  const linkInput = useToolbarItem({
-    type: 'options',
-    name: 'linkInput',
-    command: 'toggleLink',
-    active: false,
-  });
-  link.childItem = linkInput;
-  linkInput.parentItem = link;
-
   // image
   const image = useToolbarItem({
     type: 'button',
@@ -407,140 +341,6 @@ export const makeDefaultItems = ({
         onSelect: handleSelect,
       }),
     ]);
-  }
-
-  // table actions
-  const tableActionsItem = useToolbarItem({
-    type: 'dropdown',
-    name: 'tableActions',
-    command: 'executeTableCommand',
-    icon: toolbarIcons.tableActions,
-    hideLabel: true,
-    disabled: true,
-    attributes: {
-      ariaLabel: 'Table actions',
-    },
-    options: [
-      {
-        type: 'render',
-        render: () => renderTableActions(tableActionsItem),
-      },
-    ],
-  });
-
-  const tableActionsOptions = [
-    { 
-      label: toolbarTexts.addRowBefore,
-      command: 'addRowBefore',
-      icon: toolbarIcons.addRowBefore,
-      props: { 
-        'data-item': 'btn-tableActions-option', 
-        ariaLabel: 'Add row before',
-      }
-    },
-    { 
-      label: toolbarTexts.addRowAfter,
-      command: 'addRowAfter',
-      icon: toolbarIcons.addRowAfter,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add row after',
-      }
-    },
-    { 
-      label: toolbarTexts.addColumnBefore,
-      command: 'addColumnBefore',
-      icon: toolbarIcons.addColumnBefore,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add column before',
-      }
-    },
-    { 
-      label: toolbarTexts.addColumnAfter,
-      command: 'addColumnAfter',
-      icon: toolbarIcons.addColumnAfter,
-      bottomBorder: true,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Add column after',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteRow,
-      command: 'deleteRow',
-      icon: toolbarIcons.deleteRow,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete row',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteColumn,
-      command: 'deleteColumn',
-      icon: toolbarIcons.deleteColumn,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete column',
-      }
-    },
-    { 
-      label: toolbarTexts.deleteTable,
-      command: 'deleteTable',
-      icon: toolbarIcons.deleteTable,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete table',
-      }
-    },
-    { 
-      label: toolbarTexts.transparentBorders,
-      command: 'deleteCellAndTableBorders',
-      icon: toolbarIcons.deleteBorders,
-      bottomBorder: true,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Delete cell and table borders',
-      }
-    },
-    { 
-      label: toolbarTexts.mergeCells,
-      command: 'mergeCells',
-      icon: toolbarIcons.mergeCells,
-      props: { 
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Merge cells',
-      }
-    },
-    { 
-      label: toolbarTexts.splitCell,
-      command: 'splitCell',
-      icon: toolbarIcons.splitCell,
-      props: {
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Split cells',
-      }
-    },
-    { 
-      label: toolbarTexts.fixTables,
-      command: 'fixTables',
-      icon: toolbarIcons.fixTables,
-      props: {
-        'data-item': 'btn-tableActions-option',
-        ariaLabel: 'Fix tables',
-      }
-    },
-  ];
-
-  function renderTableActions(tableActionsItem) {
-    return h(TableActions, {
-      options: tableActionsOptions,
-      onSelect: (event) => {
-        closeDropdown(tableActionsItem);
-        const { command } = event;
-        superToolbar.emitCommand({ item: tableActionsItem, argument: { command } });
-      },
-    });
   }
 
   // alignment
@@ -1065,10 +865,8 @@ export const makeDefaultItems = ({
     colorButton,
     highlight,
     separator,
-    link,
     image,
     tableItem,
-    tableActionsItem,
     separator,
     alignment,
     bulletedList,

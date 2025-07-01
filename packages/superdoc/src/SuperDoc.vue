@@ -92,12 +92,10 @@ const {
   aiWriterPosition,
   aiLayer,
   initAiLayer,
-  handleAiHighlight,
   showAiWriterAtCursor,
   handleAiWriterClose,
   handleAiToolClick
 } = useAi({
-  emitAiHighlight: (params) => proxy.$superdoc.emit('ai-highlight', params),
   activeEditorRef
 });
 
@@ -164,8 +162,6 @@ const onEditorCreate = ({ editor }) => {
   doc.setEditor(editor);
   proxy.$superdoc.setActiveEditor(editor);
   proxy.$superdoc.broadcastEditorCreate(editor);
-  proxy.$superdoc.log('[SuperDoc] Editor created', proxy.$superdoc.activeEditor);
-  proxy.$superdoc.log('[SuperDoc] Page styles (pixels)', editor.getPageStyles());
   // Initialize the ai layer
   initAiLayer(true);
 };
@@ -271,6 +267,7 @@ const editorOptions = (doc) => {
     isInternal: proxy.$superdoc.config.isInternal,
     annotations: proxy.$superdoc.config.annotations,
     isCommentsEnabled: proxy.$superdoc.config.modules?.comments,
+    isAiEnabled: proxy.$superdoc.config.modules?.ai,
     onBeforeCreate: onEditorBeforeCreate,
     onCreate: onEditorCreate,
     onDestroy: onEditorDestroy,
@@ -373,12 +370,10 @@ onMounted(() => {
   if (isCommentsEnabled.value && !modules.comments.readOnly) {
     document.addEventListener('mousedown', handleDocumentMouseDown);
   }
-  proxy.$superdoc.on('ai-highlight', handleAiHighlight);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown);
-  proxy.$superdoc.off('ai-highlight', handleAiHighlight);
 });
 
 const selectionLayer = ref(null);
@@ -614,7 +609,7 @@ watch(getFloatingComments, () => {
     <div class="ai-writer-container" v-if="showAiWriter" :style="aiWriterPosition">
       <AIWriter :selected-text="selectedText" :handle-close="handleAiWriterClose" :editor="proxy.$superdoc.activeEditor"
         :api-key="proxy.$superdoc.toolbar?.config?.aiApiKey" :endpoint="proxy.$superdoc.config?.modules?.ai?.endpoint"
-        @ai-highlight="handleAiHighlight" />
+      />
     </div>
   </div>
 </template>
