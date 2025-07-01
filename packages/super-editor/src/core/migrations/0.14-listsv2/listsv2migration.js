@@ -114,7 +114,8 @@ function flattenListCompletely(listNode, editor, baseLevel = 0, sharedNumId = nu
       editor,
     });
   }
-  sharedNumId = numId;
+
+  if (!sharedNumId) sharedNumId = numId;
 
   for (const listItem of listNode.content.content) {
     // If the list item has no content, we will still add it as a single-item list
