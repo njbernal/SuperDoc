@@ -67,7 +67,13 @@ export const getBasicNumIdTag = (numId, abstractId) => {
  * @returns {number} The new list ID.
  */
 export const getNewListId = (editor, grouping = 'definitions') => {
-  return Math.max(...Object.keys(editor.converter.numbering[grouping]).map(Number)) + 1;
+  const defs = editor.converter.numbering[grouping] || {}
+  const intKeys = Object
+    .keys(defs)
+    .map((k) => Number(k))
+    .filter(n => Number.isInteger(n))
+  const max = intKeys.length ? Math.max(...intKeys) : 0;
+  return max + 1
 }
 
 /**
@@ -366,23 +372,6 @@ export const getListItemStyleDefinitions = ({ styleId, node, numId, level, edito
 
   const numDefinition = getDefinitionForLevel(abstractDefinition, level);
   const numDefPpr = numDefinition?.elements.find((el) => el.name === 'w:pPr');
-
-  if (!numDefPpr && !stylePpr) {
-    const listType = node.type.name;
-    generateNewListDefinition({
-      numId,
-      listType,
-      editor,
-    });
-    return getListItemStyleDefinitions({
-      styleId,
-      node,
-      numId,
-      level,
-      editor,
-      tries: 1,
-    });
-  };
 
   return {
     stylePpr,

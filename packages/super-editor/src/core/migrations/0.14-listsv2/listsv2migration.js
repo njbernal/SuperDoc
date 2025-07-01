@@ -19,7 +19,7 @@ export const migrateListsToV2IfNecessary = (editor) => {
   const replacements = [];
   if (!editor.options.ydoc) return replacements;
 
-  log('ATTEMPTING MIGRATIONS')
+  log('\n\n\nATTEMPTING MIGRATIONS')
 
   const numbering = editor.converter.numbering;
   if (!numbering) return replacements;
@@ -107,13 +107,14 @@ function flattenListCompletely(listNode, editor, baseLevel = 0, sharedNumId = nu
     // the list style from the list-style-type attribute.
     const currentListType = listNode.type.name;
     numId = ListHelpers.getNewListId(editor);
+    log('Genearted new list ID', numId, 'for list type', currentListType);
     ListHelpers.generateNewListDefinition({
       numId,
       listType: currentListType,
       editor,
     });
-    sharedNumId = numId;
   }
+  sharedNumId = numId;
 
   for (const listItem of listNode.content.content) {
     // If the list item has no content, we will still add it as a single-item list

@@ -73,6 +73,10 @@ export class ListItemNodeView {
     this.dom.style.fontSize = fontSize;
     this.dom.style.fontFamily = fontFamily ? fontFamily : 'inherit';
     this.dom.setAttribute("data-marker-type", orderMarker);
+    this.dom.setAttribute("data-num-id", numId);
+    this.dom.setAttribute("data-list-level", JSON.stringify(listLevel));
+    this.dom.setAttribute("data-list-numbering-type", listNumberingType);
+    this.dom.setAttribute("data-level", level);
 
     // A container for the numbering
     this.numberingDOM = document.createElement("span");
