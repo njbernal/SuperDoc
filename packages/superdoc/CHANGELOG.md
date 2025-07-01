@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.14.0-next.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.20...v0.14.0-next.21) (2025-07-01)
+
+
+### Bug Fixes
+
+* allow toolbar when typing font size ([0cac27c](https://github.com/Harbour-Enterprises/SuperDoc/commit/0cac27cc5b30d6e05a862dd4f35fed6fb2a9e15b))
+
 # [0.14.0-next.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.19...v0.14.0-next.20) (2025-06-27)
 
 # [0.14.0-next.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.18...v0.14.0-next.19) (2025-06-27)
