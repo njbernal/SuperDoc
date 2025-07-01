@@ -152,6 +152,15 @@ export const ListItem = Node.create({
         default: null,
         rendered: false,
         keepOnSplit: true,
+        parseDOM: (elem) => {
+          return elem.getAttribute('data-item-level');
+        },
+        renderDOM: (attrs) => {
+          if (!attrs.level) return {};
+          return {
+            'data-item-level': JSON.stringify(attrs.level),
+          };
+        },
       },
 
       attributes: {

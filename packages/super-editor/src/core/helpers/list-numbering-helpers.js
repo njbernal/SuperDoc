@@ -26,7 +26,7 @@ export const generateNewListDefinition = ({ numId, listType, editor }) => {
   const newNumbering = { ...numbering };
 
   // Generate the new abstractNum definition
-  const newAbstractId = getNewListId(editor);
+  const newAbstractId = getNewListId(editor, 'abstracts');
   const newAbstractDef = {
     ...definition,
     attributes: {
@@ -37,17 +37,7 @@ export const generateNewListDefinition = ({ numId, listType, editor }) => {
   newNumbering.abstracts[newAbstractId] = newAbstractDef;
 
   // Generate the new numId definition
-  const newNumDef = {
-    type: 'element',
-    name: 'w:num',
-    attributes: {
-      'w:numId': String(numId),
-      'w16cid:durableId': '485517411'
-    },
-    elements: [
-      { name: 'w:abstractNumId', attributes: { 'w:val': String(newAbstractId) } },
-    ]
-  };
+  const newNumDef = getBasicNumIdTag(numId, newAbstractId);
   newNumbering.definitions[numId] = newNumDef;
 
   // Update the editor's numbering with the new definition
@@ -56,6 +46,19 @@ export const generateNewListDefinition = ({ numId, listType, editor }) => {
   return { abstract: newAbstractDef, definition: newNumDef };
 };
 
+export const getBasicNumIdTag = (numId, abstractId) => {
+  return {
+    type: 'element',
+    name: 'w:num',
+    attributes: {
+      'w:numId': String(numId),
+    },
+    elements: [
+      { name: 'w:abstractNumId', attributes: { 'w:val': String(abstractId) } },
+    ]
+  };
+}
+
 /**
  * Get a new list ID for the editor without creating a conflict.
  * This function calculates the next available list ID by finding the maximum existing ID
@@ -63,8 +66,8 @@ export const generateNewListDefinition = ({ numId, listType, editor }) => {
  * @param {Editor} editor The editor instance where the list ID will be generated.
  * @returns {number} The new list ID.
  */
-export const getNewListId = (editor) => {
-  return Math.max(...Object.keys(editor.converter.numbering.definitions).map(Number)) + 1;
+export const getNewListId = (editor, grouping = 'definitions') => {
+  return Math.max(...Object.keys(editor.converter.numbering[grouping]).map(Number)) + 1;
 }
 
 /**
@@ -101,7 +104,7 @@ export const getListDefinitionDetails = ({ numId, level, listType, editor }) => 
   let customFormat;
   if (numFmt === 'custom') customFormat = numFmtTag?.attributes?.['w:format'];
 
-  return { start, numFmt, lvlText, listNumberingType, customFormat };
+  return { start, numFmt, lvlText, listNumberingType, customFormat, abstract };
 };
 
 /**
@@ -137,10 +140,11 @@ export const removeListDefinitions = (listId, editor) => {
  * @param {number} param0.numId - The ID of the numbering definition for the list item.
  * @param {string} param0.numFmt - The numbering format (e.g., decimal, lowerRoman).
  * @param {number} param0.start - The starting number for the list item.
+ * @param {Array} param0.listLevel - The list level array for the item.
  * @param {Object} param0.contentNode - The content node to be included in the list item.
  * @returns {Object} A JSON object representing the list item node.
  */
-export const createListItemNodeJSON = ({ level, lvlText, numId, numFmt, start, contentNode }) => {
+export const createListItemNodeJSON = ({ level, lvlText, numId, numFmt, start, listLevel, contentNode }) => {
   start = Number(start);
   if (!contentNode) {
     contentNode = {
@@ -149,20 +153,21 @@ export const createListItemNodeJSON = ({ level, lvlText, numId, numFmt, start, c
     };
   };
 
-  const listLevel = new Array(level).fill(start).map((_, i) => i);
-  listLevel.push(start);
+  if (!Array.isArray(contentNode)) contentNode = [contentNode];
+
+  const attrs = {
+    lvlText,
+    listLevel,
+    level,
+    numId,
+    numPrType: 'inline',
+    listNumberingType: numFmt,
+  };
 
   const listItem = {
     type: 'listItem',
-    attrs: {
-      lvlText,
-      listLevel,
-      level,
-      numId,
-      numPrType: 'inline',
-      listNumberingType: numFmt,
-    },
-    content: [contentNode],
+    attrs,
+    content: [...contentNode],
   };
   return listItem;
 };
@@ -178,11 +183,11 @@ export const createListItemNodeJSON = ({ level, lvlText, numId, numFmt, start, c
  * @param {Object} param0.contentNode - The content node to be included in the ordered list.
  * @returns {Object} A ProseMirror node representing the ordered list.
  */
-export const createSchemaOrderedListNode = ({ level, numId, listType, editor, contentNode }) => {
+export const createSchemaOrderedListNode = ({ level, numId, listType, editor, listLevel, contentNode }) => {
   level = Number(level);
   numId = Number(numId);
   const { start, lvlText, numFmt } = ListHelpers.getListDefinitionDetails({ numId, level, listType, editor });
-  const listNodeJSON = createListItemNodeJSON({ level, lvlText, numFmt, numId, start, contentNode });
+  const listNodeJSON = createListItemNodeJSON({ level, lvlText, numFmt, numId, start, listLevel, contentNode });
   const node = {
     type: 'orderedList',
     attrs: {
@@ -220,6 +225,7 @@ export const createNewList = ({ listType, tr, editor }) => {
     numId,
     listType,
     editor,
+    listLevel: [1],
     contentNode: content?.toJSON(),
   });
 
@@ -341,7 +347,8 @@ export const insertNewList = (tr, replaceFrom, replaceTo, listNode, marks = []) 
  * @param {Editor} param0.editor - The editor instance containing the converted XML and numbering definitions.
  * @returns {Object} An object containing the style properties and numbering definitions.
  */
-export const getListItemStyleDefinitions = ({ styleId, numId, level, editor }) => {  
+export const getListItemStyleDefinitions = ({ styleId, node, numId, level, editor, tries }) => {  
+  if (tries) return {};
   const docx = { ...editor?.converter?.convertedXml };
   const newNumbering = { ...editor?.converter?.numbering };
 
@@ -351,10 +358,31 @@ export const getListItemStyleDefinitions = ({ styleId, numId, level, editor }) =
 
   // We also check definitions for the numId which can contain styles.
   let abstractDefinition = getAbstractDefinition(numId, docx);
-  if (!abstractDefinition) abstractDefinition = newNumbering.abstracts[numId];
+  if (!abstractDefinition) {
+    const listDef = newNumbering.definitions[numId];
+    const abstractId = listDef?.elements?.find((item) => item.name === 'w:abstractNumId')?.attributes?.['w:val'];
+    abstractDefinition = newNumbering.abstracts[abstractId];
+  }
 
   const numDefinition = getDefinitionForLevel(abstractDefinition, level);
   const numDefPpr = numDefinition?.elements.find((el) => el.name === 'w:pPr');
+
+  if (!numDefPpr && !stylePpr) {
+    const listType = node.type.name;
+    generateNewListDefinition({
+      numId,
+      listType,
+      editor,
+    });
+    return getListItemStyleDefinitions({
+      styleId,
+      node,
+      numId,
+      level,
+      editor,
+      tries: 1,
+    });
+  };
 
   return {
     stylePpr,
@@ -380,184 +408,6 @@ export const addInlineTextMarks = (currentNode, filteredMarks) => {
 };
 
 /**
- * Migration for lists v1 to v2
- * This function checks if the editor has any lists that need to be migrated from v1 to v2.
- * It splits list nodes that have more than one item into single-item lists,
- * @param {Editor} editor - The editor instance containing the lists to be migrated.
- * @return {void}
- */
-export const migrateListsToV2IfNecessary = (editor) => {
-  const numbering = editor.converter.numbering;
-  if (!numbering) return;
-
-  const { state } = editor;
-  const { doc } = state;
-  const { dispatch } = editor.view;
-
-  const LIST_TYPES = ['orderedList', 'bulletList'];
-  const replacements = [];
-
-  // Collect all list nodes that need to be replaced
-  doc.descendants((node, pos) => {
-    if (!LIST_TYPES.includes(node.type.name)) return;
-
-    // Skip if it's already a single-item list (optional optimization)
-    if (node.content?.content?.length <= 1) return;
-
-    const { extracted } = splitListNodeFully(node, editor, 0);    
-    if (extracted.length > 0) {
-      replacements.push({ 
-        from: pos, 
-        to: pos + node.nodeSize, 
-        replacement: extracted 
-      });
-    }
-  });
-
-  // Apply replacements in reverse order to avoid position drift
-  if (replacements.length > 0) {
-    let tr = state.tr;
-    
-    for (let i = replacements.length - 1; i >= 0; i--) {
-      const { from, to, replacement } = replacements[i];
-      tr = tr.replaceWith(from, to, replacement);
-    }
-    
-    dispatch(tr);
-  }
-};
-
-/**
- * Extract nested lists recursively from a ProseMirror node.
- * @param {Node} node - The ProseMirror node to process.
- * @param {Editor} editor - The editor instance where the node is being processed.
- * @param {number} nestingLevel - The current nesting level of the list.
- * @param {number|null} sharedNumId - The shared numId from the parent list
- * @return {Object} An object containing the cleaned node and an array of extracted lists.
- */
-function extractNestedListsRecursively(node, editor, nestingLevel, sharedNumId) {
-  // Handle text nodes and leaf nodes
-  if (node.isText || !node.content || !node.content.content) {
-    return { cleanedNode: node, extractedLists: [] };
-  }
-
-  const extractedLists = [];
-  const cleanedContent = [];
-
-  for (const child of node.content.content) {
-    if (['orderedList', 'bulletList'].includes(child.type.name)) {
-      // Extract nested lists - pass down the shared numId
-      const { extracted: nestedSplitLists } = splitListNodeFully(child, editor, nestingLevel + 1, sharedNumId);
-      extractedLists.push(...nestedSplitLists);
-    } else {
-      // Recursively process non-list children
-      const { cleanedNode: cleanedChild, extractedLists: deepExtracted } =
-        extractNestedListsRecursively(child, editor, nestingLevel, sharedNumId);
-
-      cleanedContent.push(cleanedChild);
-      extractedLists.push(...deepExtracted);
-    }
-  }
-
-  // Create the cleaned node with nested lists removed
-  const cleanedNode = node.type.create(
-    node.attrs,
-    cleanedContent.length > 0 ? cleanedContent : undefined,
-    node.marks
-  );
-
-  return { cleanedNode, extractedLists };
-}
-
-/**
- * Split a list node fully into single-item lists.
- * @param {Node} listNode - The ProseMirror node representing the list to be split.
- * @param {Editor} editor - The editor instance where the list node is being processed.
- * @param {number} [nestingLevel=0] - The current nesting level of the list.
- * @param {number|null} [parentSharedNumId=null] - The shared numId from the parent list, if any.
- * @returns {Object} An object containing an array of extracted single-item lists.
- */
-function splitListNodeFully(listNode, editor, nestingLevel = 0, parentSharedNumId = null) {
-  const extracted = [];
-  const listType = listNode.type.name; // 'orderedList' or 'bulletList'
-
-  // Get the list numId which will be used for all children unless otherwise specified
-  let sharedNumId = parentSharedNumId;
-  if (!sharedNumId) {
-    let numId = parseInt(listNode.attrs?.listId);
-
-    // In some legacy cases, we might not find any list ID at all but we can infer
-    // the list style from the list-style-type attribute.
-    if (!numId) {
-      const listStyleType = listNode.attrs?.['list-style-type'];
-      const currentListType = listStyleType === 'bullet' ? 'bulletList' : 'orderedList';
-      numId = getNewListId(editor);
-      generateNewListDefinition({
-        numId,
-        listType: currentListType,
-        editor,
-      });
-    }
-    sharedNumId = numId;
-  }
-
-  for (const listItemNode of listNode.content.content) {
-    // Process the list item to extract any nested lists
-    const {
-      cleanedNode,
-      extractedLists
-    } = extractNestedListsRecursively(listItemNode, editor, nestingLevel, sharedNumId);
-
-    // Create a single-item list with the cleaned content
-    if (cleanedNode.content && cleanedNode.content.content.length > 0) {
-      const singleItemList = createSingleItemList(
-        listType,
-        cleanedNode,
-        listNode.attrs,
-        editor,
-        nestingLevel,
-        sharedNumId
-      );
-      extracted.push(singleItemList);
-    }
-
-    // Add any extracted nested lists
-    extracted.push(...extractedLists);
-  }
-
-  return { extracted };
-}
-
-/**
- * Create a single-item list (v2) from a list item node (v1)
- * @param {string} listType The type of the list (e.g., 'orderedList', 'bulletList').
- * @param {Node} listItemNode The ProseMirror node representing the list item.
- * @param {Object} originalAttrs The original attributes of the list item node.
- * @param {Editor} editor The editor instance where the list item will be created.
- * @param {number} [nestingLevel=0] The nesting level of the list item.
- * @param {number} sharedNumId The shared numId for the list item,
- * @returns {Node} A ProseMirror node representing a single-item list.
- */
-function createSingleItemList(listType, listItemNode, originalAttrs, editor, nestingLevel = 0, sharedNumId) {
-  const { attrs } = listItemNode;
-  const listLevel = attrs.listLevel;
-  const level = Math.max(0, listLevel?.length - 1) || nestingLevel || 0;
-
-  const contentNodes = listItemNode.content?.content || [];
-  const contentJSON = contentNodes.map(node => node.toJSON());
-  const result = createSchemaOrderedListNode({
-    level,
-    numId: sharedNumId, // Use the shared numId
-    listType,
-    editor,
-    contentNode: contentJSON[0],
-    nestingLevel,
-  });
-  return result;
-}
-
-
-/**
  * ListHelpers is a collection of utility functions for managing lists in the editor.
  * It includes functions for creating, modifying, and retrieving list items and definitions,
  * as well as handling schema nodes and styles.
@@ -573,6 +423,7 @@ export const ListHelpers = {
   insertNewList,
   getListDefinitionDetails,
   generateNewListDefinition,
+  getBasicNumIdTag,
   getNewListId,
   removeListDefinitions,
   getListItemStyleDefinitions,
@@ -582,7 +433,6 @@ export const ListHelpers = {
   createSchemaOrderedListNode,
   createListItemNodeJSON,
   addInlineTextMarks,
-  migrateListsToV2IfNecessary,
 
   // Base list definitions
   baseOrderedListDef,
