@@ -90,6 +90,8 @@ export const FieldAnnotation = Node.create({
         default: null,
         parseDOM: (elem) => {
           try {
+            const isHtmlType = elem.getAttribute('data-type') === 'html';
+            if (!isHtmlType) return null;
             return JSON.parse(elem.getAttribute('data-raw-html'));
           } catch (e) {
             console.warn('Paste parse error', e);
@@ -227,12 +229,6 @@ export const FieldAnnotation = Node.create({
         parseDOM: (elem) => elem.getAttribute('data-bold') === 'true',
         renderDOM: (attrs) => {
           if (!attrs.bold) return {};
-          if( attrs.rawHtml) {
-            return {
-              'data-bold': 'false',
-              style: 'font-weight: normal',
-            };
-          }
           return {
             'data-bold': 'true',
             style: 'font-weight: bold',
@@ -244,7 +240,7 @@ export const FieldAnnotation = Node.create({
         default: false,
         parseDOM: (elem) => elem.getAttribute('data-italic') === 'true',
         renderDOM: (attrs) => {
-          if (!attrs.italic || attrs.rawHtml) return {};
+          if (!attrs.italic) return {};
           return {
             'data-italic': 'true',
             style: 'font-style: italic',
@@ -256,7 +252,7 @@ export const FieldAnnotation = Node.create({
         default: false,
         parseDOM: (elem) => elem.getAttribute('data-underline') === 'true',
         renderDOM: (attrs) => {
-          if (!attrs.underline || attrs.rawHtml) return {};
+          if (!attrs.underline) return {};
           return {
             'data-underline': 'true',
             style: 'text-decoration: underline',
@@ -280,7 +276,7 @@ export const FieldAnnotation = Node.create({
         default: null,
         parseDOM: (elem) => elem.getAttribute('data-font-size') || elem.style.fontSize || null,
         renderDOM: (attrs) => {
-          if (!attrs.fontSize || attrs.rawHtml) return {};
+          if (!attrs.fontSize) return {};
           let [value, unit] = parseSizeUnit(attrs.fontSize);
           if (Number.isNaN(value)) return {};
           unit = unit ? unit : 'pt';
@@ -335,7 +331,7 @@ export const FieldAnnotation = Node.create({
   },
 
   renderDOM({ node, htmlAttributes }) {
-    let { type, displayLabel, imageSrc, rawHtml, linkUrl } = node.attrs;
+    let { type, displayLabel, imageSrc, linkUrl } = node.attrs;
 
     let textRenderer = () => {
       return [
