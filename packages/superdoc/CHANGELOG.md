@@ -1,5 +1,14 @@
 # Changelog
 
+# [0.14.0-next.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.21...v0.14.0-next.22) (2025-07-01)
+
+
+### Features
+
+* high-quality resampling in canvas context settings ([12a3d5d](https://github.com/Harbour-Enterprises/SuperDoc/commit/12a3d5dd543f9d09b377f6980d312cf0a6b8d195))
+* implement multi-step Hermite resize algorithm for improved image quality during uploads ([9f72765](https://github.com/Harbour-Enterprises/SuperDoc/commit/9f72765cd7e87fddc3306d8e6244a067f98ce543))
+* set canvas to original image size, implement Hermite resize algorithm for high-quality image resampling. ([4dc696f](https://github.com/Harbour-Enterprises/SuperDoc/commit/4dc696f8bff196bc0d5f59b8a3375287d4f3875c))
+
 # [0.14.0-next.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.20...v0.14.0-next.21) (2025-07-01)
 
 
