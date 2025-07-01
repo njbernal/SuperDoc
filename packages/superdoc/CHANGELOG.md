@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.14.1-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.27...v0.14.1-next.1) (2025-07-01)
+
+# [0.14.0-next.27](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.26...v0.14.0-next.27) (2025-07-01)
+
+# [0.14.0-next.26](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.25...v0.14.0-next.26) (2025-07-01)
+
+# [0.14.0-next.25](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.24...v0.14.0-next.25) (2025-07-01)
+
+# [0.14.0-next.24](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.23...v0.14.0-next.24) (2025-07-01)
+
+# [0.14.0-next.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.22...v0.14.0-next.23) (2025-07-01)
+
+
+### Bug Fixes
+
+* text mark font family precedes linked style ([33f9fdb](https://github.com/Harbour-Enterprises/SuperDoc/commit/33f9fdb8f208f00422f320dabaf9e340136fa91b))
+
+
+### Features
+
+* added initial tests for toolbar / refactor code slightly ([d3aa0c9](https://github.com/Harbour-Enterprises/SuperDoc/commit/d3aa0c91e2f0d7e01a976f5d68cd2b21b1dd50a1))
+
+# [0.14.0-next.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.21...v0.14.0-next.22) (2025-07-01)
+
+
+### Features
+
+* high-quality resampling in canvas context settings ([12a3d5d](https://github.com/Harbour-Enterprises/SuperDoc/commit/12a3d5dd543f9d09b377f6980d312cf0a6b8d195))
+* implement multi-step Hermite resize algorithm for improved image quality during uploads ([9f72765](https://github.com/Harbour-Enterprises/SuperDoc/commit/9f72765cd7e87fddc3306d8e6244a067f98ce543))
+* set canvas to original image size, implement Hermite resize algorithm for high-quality image resampling. ([4dc696f](https://github.com/Harbour-Enterprises/SuperDoc/commit/4dc696f8bff196bc0d5f59b8a3375287d4f3875c))
+
+# [0.14.0-next.21](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.20...v0.14.0-next.21) (2025-07-01)
+
+
+### Bug Fixes
+
+* allow toolbar when typing font size ([0cac27c](https://github.com/Harbour-Enterprises/SuperDoc/commit/0cac27cc5b30d6e05a862dd4f35fed6fb2a9e15b))
+
 # [0.14.0-next.20](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.19...v0.14.0-next.20) (2025-06-27)
 
 # [0.14.0-next.19](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.18...v0.14.0-next.19) (2025-06-27)

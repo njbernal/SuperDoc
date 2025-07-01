@@ -173,7 +173,7 @@ export class FieldAnnotationView {
   }
 
   #createAnnotation({ displayLabel } = {}) {
-    let { highlighted, rawHtml } = this.node.attrs;
+    let { highlighted } = this.node.attrs;
 
     let annotation = document.createElement('span');
     annotation.classList.add(this.annotationClass);

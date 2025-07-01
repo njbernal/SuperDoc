@@ -1,6 +1,6 @@
 <script setup>
 import ToolbarButtonIcon from './ToolbarButtonIcon.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { toolbarIcons } from './toolbarIcons.js';
 import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 const emit = defineEmits(['buttonClick', 'textSubmit']);
@@ -52,21 +52,25 @@ const {
   attributes,
 } = props.toolbarItem;
 
-const inlineTextInput = ref(props.defaultLabel);
+const inlineTextInput = ref(label);
 const inlineInput = ref(null);
 const { isHighContrastMode } = useHighContrastMode();
 
 const handleClick = () => {
   if (hasInlineTextInput) {
-    inlineInput.value?.focus();
-    inlineInput.value?.select();
+    nextTick(() => {
+      inlineInput.value?.focus();
+      inlineInput.value?.select();
+    });
   }
   emit('buttonClick');
 };
 
 const handleInputSubmit = () => {
-  emit('textSubmit', inlineTextInput.value);
-  inlineTextInput.value = '';
+  const value = inlineTextInput.value;
+  const cleanValue = value.replace(/[^0-9]/g, '');
+  emit('textSubmit', cleanValue);
+  inlineTextInput.value = cleanValue;
 };
 
 const getStyle = computed(() => {
@@ -109,7 +113,7 @@ const caretIcon = computed(() => {
       </div>
 
       <span v-if="inlineTextInputVisible">
-        <input v-if="name === 'fontSize'" v-model="inlineTextInput" @input="onFontSizeInput" :placeholder="label"
+        <input v-if="name === 'fontSize'" v-model="inlineTextInput"
           @keydown.enter.prevent="handleInputSubmit" type="text" class="button-text-input"
           :class="{ 'high-contrast': isHighContrastMode }" :id="'inlineTextInput-' + name" autocomplete="off" ref="inlineInput" />
         <input v-else v-model="inlineTextInput" :placeholder="label" @keydown.enter.prevent="handleInputSubmit"

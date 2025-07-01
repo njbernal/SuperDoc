@@ -6,10 +6,36 @@ import { TextSelection } from 'prosemirror-state';
  * Delete the selection, if there is one.
  */
 //prettier-ignore
-export const deleteSelection = () => ({ state, dispatch }) => {
+export const deleteSelection = () => ({ state, tr, dispatch }) => {
+  const { from, to, empty } = state.selection;
+  
+  if (empty) {
+    return originalDeleteSelection(state, dispatch);
+  }
+
+  let hasListContent = false;
+  state.doc.nodesBetween(from, to, (node) => {
+    if (node.type.name === 'orderedList' || 
+        node.type.name === 'bulletList' ||
+        node.type.name === 'listItem') {
+      hasListContent = true;
+      return false;
+    }
+  });
+
+  if (hasListContent) {
+    const transaction = tr || state.tr;
+    transaction.deleteRange(from, to);
+    
+    if (dispatch) {
+      dispatch(transaction);
+    }
+  
+    return true;
+  }
+
   return originalDeleteSelection(state, dispatch);
 };
-
 
 /**
  * Helper function to find the position of a target node in the document.
@@ -73,6 +99,8 @@ export const handleBackspaceNextToList = () => ({ state, dispatch }) => {
 
   const inlineContent = Fragment.from($from.parent.content);
   const tr = state.tr;
+  tr.setMeta('updateListSync', true);
+
   const oldParaPos = $from.before();
   
   tr.delete(oldParaPos, oldParaPos + $from.parent.nodeSize);
@@ -147,7 +175,8 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
     
     const targetInlineContent = Fragment.from(nextPara.content);
     const tr = state.tr;
-    
+    tr.setMeta('updateListSync', true);
+
     // Delete the entire next list
     tr.delete(nextListStartPos, nextListStartPos + nextNode.nodeSize);
     
@@ -182,7 +211,8 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
 
     const targetInlineContent = Fragment.from(targetPara.content);
     const tr = state.tr;
-    
+    tr.setMeta('updateListSync', true);
+
     tr.delete(listStartPos, listStartPos + afterNode.nodeSize);
     
     const insertPos = tr.mapping.map($from.pos);
@@ -193,6 +223,4 @@ export const handleDeleteNextToList = () => ({ state, dispatch }) => {
     dispatch(tr);
     return true;
   }
-
-  return false;
 };

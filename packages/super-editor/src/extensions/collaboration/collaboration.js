@@ -101,6 +101,11 @@ export const initializeMetaMap = (ydoc, editor) => {
   const metaMap = ydoc.getMap('meta');
   metaMap.set('docx', editor.options.content);
   metaMap.set('fonts', editor.options.fonts);
+
+  const mediaMap = ydoc.getMap('media');
+  Object.entries(editor.options.mediaFiles).forEach(([key, value]) => {
+    mediaMap.set(key, value);
+  });
 };
 
 const createUndoPlugin = () => {
