@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.14.0-next.23](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.22...v0.14.0-next.23) (2025-07-01)
+
+
+### Bug Fixes
+
+* text mark font family precedes linked style ([33f9fdb](https://github.com/Harbour-Enterprises/SuperDoc/commit/33f9fdb8f208f00422f320dabaf9e340136fa91b))
+
+
+### Features
+
+* added initial tests for toolbar / refactor code slightly ([d3aa0c9](https://github.com/Harbour-Enterprises/SuperDoc/commit/d3aa0c91e2f0d7e01a976f5d68cd2b21b1dd50a1))
+
 # [0.14.0-next.22](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.0-next.21...v0.14.0-next.22) (2025-07-01)
 
 
