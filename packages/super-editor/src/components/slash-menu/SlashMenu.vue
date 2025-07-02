@@ -29,6 +29,13 @@ const menuRef = ref(null);
 const sections = ref([]);
 const selectedId = ref(null);
 
+// Helper to close menu if editor becomes read-only
+const handleEditorUpdate = () => {
+  if (!props.editor?.isEditable && isOpen.value) {
+    closeMenu({ restoreCursor: false });
+  }
+};
+
 // Flatten sections into items for navigation and filtering
 const flattenedItems = computed(() => {
   const items = [];
@@ -132,8 +139,11 @@ const handleGlobalOutsideClick = (event) => {
 };
 
 const handleRightClick = async (event) => {
+  // If the document is read-only, don't open the context menu
   // If user is also holding control, don't open the menu
-  if (event.ctrlKey) {
+  const readOnly = !props.editor?.isEditable;
+  const isHoldingCtrl = event.ctrlKey;
+  if (readOnly || isHoldingCtrl) {
     return;
   }
 
@@ -212,8 +222,14 @@ onMounted(() => {
   document.addEventListener('keydown', handleGlobalKeyDown);
   document.addEventListener('mousedown', handleGlobalOutsideClick);
 
+  // Close menu if the editor becomes read-only while it's open
+  props.editor.on('update', handleEditorUpdate);
+
   // Listen for the slash menu to open
   props.editor.on('slashMenu:open', async (event) => {
+    // Prevent opening the menu in read-only mode
+    const readOnly = !props.editor?.isEditable;
+    if (readOnly) return;
     isOpen.value = true;
     menuPosition.value = event.menuPosition;
     searchQuery.value = '';
@@ -239,6 +255,7 @@ onBeforeUnmount(() => {
     try {
       props.editor.off('slashMenu:open');
       props.editor.off('slashMenu:close');
+      props.editor.off('update', handleEditorUpdate);
       props.editor.view.dom.removeEventListener('contextmenu', handleRightClick);
     } catch (error) {}
   }

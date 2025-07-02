@@ -1,4 +1,5 @@
 import { Mark, Attribute } from '@core/index.js';
+import { getMarkRange } from '@/core/helpers/getMarkRange.js';
 
 export const Link = Mark.create({
   name: 'link',
@@ -70,7 +71,11 @@ export const Link = Mark.create({
       unsetLink:
         () =>
         ({ chain }) => {
-          return chain().unsetMark('underline').unsetColor().unsetMark(this.name, { extendEmptyMarkRange: true }).run();
+          return chain()
+            .unsetMark('underline', { extendEmptyMarkRange: true })
+            .unsetColor()
+            .unsetMark('link', { extendEmptyMarkRange: true })
+            .run();
         },
       toggleLink:
         ({ href }) =>

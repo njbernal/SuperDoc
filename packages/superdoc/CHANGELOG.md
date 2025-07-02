@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.14.5-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.2...v0.14.5-next.3) (2025-07-02)
+
+
+### Bug Fixes
+
+* do not open context menu in view only mode ([3a0ae6a](https://github.com/Harbour-Enterprises/SuperDoc/commit/3a0ae6a51a95489de816fe1e3b59b5893272ece7))
+
+
+### Features
+
+* share the same paste handling logic in the slash menu ([3750b37](https://github.com/Harbour-Enterprises/SuperDoc/commit/3750b3703b30468765c083d4797c241192c00623))
+
+## [0.14.5-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.1...v0.14.5-next.2) (2025-07-02)
+
+
+### Features
+
+* add link functionality to toolbar and editor and fix styling ([632845c](https://github.com/Harbour-Enterprises/SuperDoc/commit/632845ce08a7af1031a5cca136d92b07581e6427))
+
 ## [0.14.5-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.4-next.2...v0.14.5-next.1) (2025-07-02)
 
 ## [0.14.4-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.4-next.1...v0.14.4-next.2) (2025-07-02)
