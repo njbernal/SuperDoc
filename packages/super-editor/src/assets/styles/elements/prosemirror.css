@@ -46,15 +46,10 @@
   display: inline-block;
 }
 
-/* TODO: This is going to be enabled again */
-/* .ProseMirror.header-footer-edit {
+.ProseMirror.header-footer-edit {
   > p, li, span {
-    color: #7e7e7e !important;
-    &:before, &:after {
-      color: #7e7e7e !important;
-    }
     img, a {
-      opacity: .5;
+      opacity: 1;
     }
   }
   .pagination-break-wrapper {
@@ -66,7 +61,10 @@
       opacity: 1;
     }
   }
-} */
+}
+.pagination-section-header div[contenteditable="false"] {
+  user-select: none;
+}
 
 /**
  * Hide marker for indented lists.
