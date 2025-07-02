@@ -1,4 +1,4 @@
-import { EditorState, NodeSelection, TextSelection } from 'prosemirror-state';
+import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
@@ -1212,6 +1212,7 @@ export class Editor extends EventEmitter {
 
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
+    this.options.initialState = this.state;
 
     if (!this.options.isNewFile) {
       this.initPagination();
