@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { toolbarIcons } from './toolbarIcons.js';
 import { useHighContrastMode } from '../../composables/use-high-contrast-mode';
 import { TextSelection } from 'prosemirror-state';
+import { getMarkRange } from '@/core/helpers/getMarkRange.js';
 
 const props = defineProps({
   showInput: {
@@ -116,16 +117,33 @@ onMounted(() => {
 // --- Link logic moved here ---
 const handleSubmit = () => {
   if (rawUrl.value && validUrl.value) {
-    // Insert or update link
-    if (props.editor && props.editor.commands && props.editor.commands.toggleLink) {
-      props.editor.commands.toggleLink({ href: url.value, text: text.value });
-      // Move cursor to end of link
+    // Insert new link or update existing one
+    if (props.editor && props.editor.commands) {
+      if (isEditing.value) {
+        const { state, view } = props.editor;
+        const linkMark = state.schema.marks.link;
+        let { from, to } = state.selection;
+
+        // If the selection is empty (cursor inside link), expand to full mark range
+        if (state.selection.empty) {
+          const range = getMarkRange(state.selection.$from, linkMark);
+          if (range) {
+            from = range.from;
+            to = range.to;
+          }
+        }
+
+        const tr = state.tr.removeMark(from, to, linkMark).addMark(from, to, linkMark.create({ href: url.value }));
+        view.dispatch(tr);
+      } else if (props.editor.commands.toggleLink) {
+        props.editor.commands.toggleLink({ href: url.value, text: text.value });
+      }
+
       const { view } = props.editor;
       let { selection } = view.state;
       const endPos = selection.$to.pos;
       const tr = view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(endPos)));
-      const state = view.state.apply(tr);
-      view.updateState(state);
+      view.dispatch(tr);
       setTimeout(() => {
         view.focus();
       }, 100);
@@ -133,7 +151,6 @@ const handleSubmit = () => {
     props.closePopover();
     return;
   } else if (!rawUrl.value) {
-    // Remove link
     if (props.editor && props.editor.commands && props.editor.commands.unsetLink) {
       props.editor.commands.unsetLink();
     }
