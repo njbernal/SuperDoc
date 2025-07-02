@@ -788,8 +788,11 @@ function translateList(params) {
     numPrTag = generateNumPrTag(numId, level);
   };
 
-  const paragraphNode = node.content[0]?.content[0];
-  const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
+  // Collapse multiple paragraphs into a single node for this list item
+  // In docx we need a single paragraph, but can include line breaks in a run
+  const collapsedParagraphNode = convertMultipleListItemsIntoSingleNode(listItem);
+
+  const outputNode = exportSchemaToJson({ ...params, node: collapsedParagraphNode });
   const pPr = outputNode.elements?.find((n) => n.name === 'w:pPr');
   if (pPr && pPr.elements && numPrTag) pPr.elements.unshift(numPrTag);
 
@@ -808,6 +811,50 @@ function translateList(params) {
   }
 
   return [outputNode];
+};
+
+/**
+ * Convert multiple list items into a single paragraph node
+ * This is necessary because in docx, a list item can only have one paragraph,
+ * but in PM, a list item can have multiple paragraphs.
+ * @param {SchemaNode} listItem The list item node to convert
+ * @returns {XmlReadyNode|null} The collapsed paragraph node or null if no content
+ */
+const convertMultipleListItemsIntoSingleNode = (listItem) => {
+  const { content } = listItem;
+  
+  if (!content || content.length === 0) {
+    return null;
+  }
+
+  const firstParagraph = content[0];
+  const collapsedParagraph = {
+    ...firstParagraph,
+    content: []
+  };
+
+  // Collapse all paragraphs into a single paragraph node
+  content.forEach((item, index) => {
+    if (item.type === 'paragraph') {
+      if (index > 0) {
+        collapsedParagraph.content.push({
+          type: 'lineBreak',
+          attrs: {},
+          content: []
+        });
+      }
+      
+      // Add all text nodes and other content directly from this paragraph
+      if (item.content && item.content.length > 0) {
+        collapsedParagraph.content.push(...item.content);
+      }
+    } else {
+      // For non-paragraph items, add them directly
+      collapsedParagraph.content.push(item);
+    }
+  });
+
+  return collapsedParagraph;
 };
 
 const restoreIndent = (indent) => {
