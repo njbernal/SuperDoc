@@ -755,6 +755,14 @@ export class SuperToolbar extends EventEmitter {
       if (item.name.value === 'tableActions') {
         item.disabled.value = !inTable;
       }
+
+      // Activate list buttons when selections is inside list
+      const listNumberingType = marks.find((mark) => mark.name === 'listNumberingType')?.attrs?.listNumberingType;
+      if (item.name.value === 'list' && listNumberingType === 'bullet') {
+        item.activate();
+      } else if (item.name.value === 'numberedlist' && listNumberingType && listNumberingType !== 'bullet') {
+        item.activate();
+      }
     });
   }
 
