@@ -8,8 +8,6 @@ import { ListHelpers } from '@helpers/list-numbering-helpers.js';
  */
 export const decreaseListIndent = () => ({ editor, tr }) => {
   const { state } = editor;
-  const $from = state.selection.$from;
-  const content = $from.parent;
   const currentNode = ListHelpers.getCurrentListItem(state);
   if (!currentNode) return false;
 
@@ -18,38 +16,19 @@ export const decreaseListIndent = () => ({ editor, tr }) => {
 
   const currentLevel = currentNode.node.attrs.level;
   const newLevel = currentLevel - 1;
-  const numId = currentNode.node.attrs.numId;
 
-  const replaceFrom = parentList.pos;
-  const replaceTo = parentList.pos + parentList.node.nodeSize;
-
-  if (replaceFrom < 0 || replaceTo > state.doc.content.size || replaceFrom >= replaceTo) {
-    console.warn('Invalid replace positions');
-    return false;
-  }
-
+  // Don't allow negative levels
   if (newLevel < 0) {
     return false;
   }
 
-  try {
-    const listType = parentList.node.type.name === 'orderedList' ? 'orderedList' : 'bulletList';
-    const listNode = ListHelpers.createSchemaOrderedListNode({
-      level: newLevel,
-      numId,
-      listType,
-      editor,
-      contentNode: content?.toJSON(),
-    });
-
-    const newMarks = ListHelpers.addInlineTextMarks(currentNode.node, []);
-    ListHelpers.replaceListWithNode({ tr, from: replaceFrom, to: replaceTo, newNode: listNode });
-    tr.ensureMarks(newMarks);
-    ListHelpers.setSelectionInsideNewList(tr, replaceFrom);
-
-    return true;
-  } catch (error) {
-    console.error('Error decreasing indent:', error);
-    return false;
-  }
+  const numId = currentNode.node.attrs.numId;
+  
+  tr.setNodeMarkup(currentNode.pos, null, {
+    ...currentNode.node.attrs,
+    level: newLevel,
+    numId: numId
+  });
+  
+  return true;
 };

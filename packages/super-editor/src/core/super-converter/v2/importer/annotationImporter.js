@@ -42,12 +42,10 @@ export const handleAnnotationNode = (params) => {
       textHighlight: parsedAttrs.fieldTextHighlight,
     };
     attrs = attrsFromJSON;
-    console.debug('Import annotation attrs', { asJSON: processAsJSON, attrs });
   } else {
     // IMPORTANT: FOR BACKWARD COMPATIBILITY.
     const attrsFromElements = getAttrsFromElements({ sdtPr, tag, alias });
     attrs = attrsFromElements;
-    console.debug('Import annotation attrs', { asJSON: processAsJSON, attrs });
   }
 
   const { attrs: marksAsAttrs, marks } = parseAnnotationMarks(sdtContent);

@@ -31,7 +31,7 @@ export const deleteListItem = () => (props) => {
 
     if (fullySelectedBlocks.length) {
       // delete from the end backwards so earlier deletions
-      // don’t shift the positions of later ones
+      // don't shift the positions of later ones
       fullySelectedBlocks
         .sort((a, b) => b.pos - a.pos)
         .forEach(({ pos, size }) => {
@@ -70,20 +70,23 @@ export const deleteListItem = () => (props) => {
   const listTo = listFrom + parentList.node.nodeSize
 
   // Case 1: empty list item → remove whole list
-  if (!paragraphNode || paragraphNode.content.size === 0) {
+  if (currentListItem.node.content.size === 0) {
     tr.delete(listFrom, listTo)
     return true
   }
 
-  // Case 2: non‐empty list item → replace list with a paragraph
-  const standalone = state.schema.nodes.paragraph.create(
-    paragraphNode.attrs,
-    paragraphNode.content,
-    paragraphNode.marks
-  )
-  tr.replaceWith(listFrom, listTo, standalone)
+  // Case 2: non‐empty list item → replace list with all content from the list item
+  const listItemContent = currentListItem.node.content
+  
+  // Create nodes from the list item content
+  const nodes = []
+  listItemContent.forEach((child) => {
+    nodes.push(child)
+  })
 
-  // set cursor inside the new paragraph
+  tr.replaceWith(listFrom, listTo, nodes)
+
+  // set cursor at the beginning of the first node
   const $pos = tr.doc.resolve(listFrom + 1)
   tr.setSelection(TextSelection.near($pos))
 

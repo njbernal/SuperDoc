@@ -78,9 +78,22 @@ export const BulletList = Node.create({
       new InputRule({
         match: inputRegex,
         handler: ({ state, range }) => {
+          // Check if we're currently inside a list item
+          const $pos = state.selection.$from
+          const listItemType = state.schema.nodes.listItem
+          
+          // Look up the tree to see if we're inside a list item
+          for (let depth = $pos.depth; depth >= 0; depth--) {
+            if ($pos.node(depth).type === listItemType) {
+              // We're inside a list item, don't trigger the rule
+              return null
+            }
+          }
+          
+          // Not inside a list item, proceed with creating new list
           const { tr } = state
           tr.delete(range.from, range.to)
-  
+
           ListHelpers.createNewList({
             listType: this.type,
             tr,
@@ -90,4 +103,5 @@ export const BulletList = Node.create({
       })
     ]
   }
+
 });
