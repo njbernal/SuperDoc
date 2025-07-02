@@ -725,7 +725,7 @@ export class SuperToolbar extends EventEmitter {
       const listNumberingType = marks.find((mark) => mark.name === 'listNumberingType')?.attrs?.listNumberingType;
       if (item.name.value === 'list' && listNumberingType === 'bullet') {
         item.activate();
-      } else if (item.name.value === 'numberedlist' && listNumberingType) {
+      } else if (item.name.value === 'numberedlist' && listNumberingType && listNumberingType !== 'bullet') {
         item.activate();
       }
     });
