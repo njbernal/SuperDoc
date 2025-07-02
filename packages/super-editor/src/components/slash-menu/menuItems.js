@@ -4,6 +4,7 @@ import TableActions from '../toolbar/TableActions.vue';
 import LinkInput from '../toolbar/LinkInput.vue';
 import { selectionHasNodeOrMark } from '../cursor-helpers.js';
 import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilities/clipboardUtils.js';
+import { handleClipboardPaste } from '@/core/InputRule.js';
 import { TEXTS, ICONS, TRIGGERS } from './constants.js';
 
 /**
@@ -135,23 +136,37 @@ export function getItems(context) {
           icon: ICONS.paste,
           action: async (editor) => {
             try {
-              // Use the browser's clipboard API directly
-              const clipboardData = await navigator.clipboard.read();
-              // Let ProseMirror handle the paste event
-              const event = new ClipboardEvent('paste', {
-                clipboardData: new DataTransfer(),
-                bubbles: true,
-                cancelable: true
-              });
-              // Add the clipboard data to the event
-              for (const item of clipboardData) {
-                for (const type of item.types) {
-                  const blob = await item.getType(type);
-                  event.clipboardData.setData(type, await blob.text());
+              const clipboardItems = await navigator.clipboard.read();
+              let html = '';
+              let text = '';
+
+              // Extract clipboard contents
+              for (const item of clipboardItems) {
+                if (!html && item.types.includes('text/html')) {
+                  html = await (await item.getType('text/html')).text();
+                }
+                if (!text && item.types.includes('text/plain')) {
+                  text = await (await item.getType('text/plain')).text();
                 }
               }
-              // Dispatch the paste event to ProseMirror
-              editor.view.dom.dispatchEvent(event);
+
+              // Call shared paste handler from @core/InputRule.js
+              const handled = handleClipboardPaste({ editor, view: editor.view }, html, text);
+
+              // If the paste is not handled, dispatch a native paste event
+              // only if helper didn't fully handle the paste
+              if (!handled) {
+                const dataTransfer = new DataTransfer();
+                if (html) dataTransfer.setData('text/html', html);
+                if (text) dataTransfer.setData('text/plain', text);
+
+                const event = new ClipboardEvent('paste', {
+                  clipboardData: dataTransfer,
+                  bubbles: true,
+                  cancelable: true,
+                });
+                editor.view.dom.dispatchEvent(event);
+              }
             } catch (error) {
               console.warn('Failed to paste:', error);
             }
