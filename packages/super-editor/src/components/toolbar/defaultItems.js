@@ -7,8 +7,10 @@ import AIWriter from './AIWriter.vue';
 import AlignmentButtons from './AlignmentButtons.vue';
 import DocumentMode from './DocumentMode.vue';
 import LinkedStyle from './LinkedStyle.vue';
+import LinkInput from './LinkInput.vue';
 import { renderColorOptions } from './color-dropdown-helpers.js';
 import TableGrid from './TableGrid.vue';
+import { scrollToElement } from './scroll-helpers.js';
 
 import checkIconSvg from '@harbour-enterprises/common/icons/check.svg?raw';
 import SearchInput from './SearchInput.vue';
@@ -292,6 +294,61 @@ export const makeDefaultItems = ({
       }),
     ]);
   };
+
+
+  // link
+  const link = useToolbarItem({
+    type: 'dropdown',
+    name: 'link',
+    markName: 'link',
+    icon: toolbarIcons.link,
+    active: false,
+    tooltip: toolbarTexts.link,
+    attributes: {
+      ariaLabel: 'Link dropdown',
+    },
+    options: [
+      {
+        type: 'render',
+        key: 'linkDropdown',
+        render: () => renderLinkDropdown(link),
+      },
+    ],
+    onActivate: ({ href }) => {
+      if (href) link.attributes.value = { href };
+      else link.attributes.value = {};
+    },
+    onDeactivate: () => {
+      link.attributes.value = {};
+      link.expand.value = false;
+    },
+  });
+
+  function renderLinkDropdown(link) {
+    return h('div', {}, [
+      h(LinkInput, {
+        editor: superToolbar.activeEditor,
+        closePopover: () => closeDropdown(link),
+        goToAnchor: () => {
+          closeDropdown(link);
+          if (!superToolbar.activeEditor || !link.attributes.value?.href) return;
+          const anchorName = link.attributes.value?.href?.slice(1);
+          const container = superToolbar.activeEditor.element;
+          const anchor = container.querySelector(`a[name='${anchorName}']`);
+          if (anchor) scrollToElement(anchor);
+        },
+      }),
+    ]);
+  }
+
+  const linkInput = useToolbarItem({
+    type: 'options',
+    name: 'linkInput',
+    command: 'toggleLink',
+    active: false,
+  });
+  link.childItem = linkInput;
+  linkInput.parentItem = link;
 
   // image
   const image = useToolbarItem({
@@ -865,6 +922,7 @@ export const makeDefaultItems = ({
     colorButton,
     highlight,
     separator,
+    link,
     image,
     tableItem,
     separator,
