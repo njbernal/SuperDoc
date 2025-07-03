@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.14.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-03)
+
+
+
+## [0.14.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-03)
+
+
+
+## [0.14.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-02)
+
+
+
+## [0.14.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-02)
+
+
+
+## [0.14.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-01)
+
+
+
+## [0.14.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-01)
+
+
+
+## [0.13.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-06-20)
+
+
+
+## [0.13.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-06-17)
+
+
+
+## [0.13.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-06-16)
+
+
+
+## [0.12.36](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-06-10)
+
 ## [0.14.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.4...v0.14.5) (2025-07-03)
 
 
