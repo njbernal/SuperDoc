@@ -145,11 +145,11 @@ onMounted(() => {
 // --- Link logic moved here ---
 const handleSubmit = () => {
   const editor = props.editor;
+  if (!editor) return;
 
-  // if user clears the url, remove the link
-  // pushing the remove button is different but same actions
+  // If the URL is cleared, simply remove the link.
   if (!rawUrl.value) {
-    if (editor?.commands?.unsetLink) editor.commands.unsetLink();
+    if (editor.commands?.unsetLink) editor.commands.unsetLink();
     props.closePopover();
     return;
   }
@@ -159,56 +159,19 @@ const handleSubmit = () => {
     return;
   }
 
-  // decide what text should be inserted
   const finalText = text.value || url.value;
 
-  if (!editor) return;
-
-  const { state, view } = editor;
-  const linkMark = state.schema.marks.link;
-
-  if (isEditing.value) {
-    // Editing an existing link (or selection already has link)
-    let { from, to } = state.selection;
-
-    if (state.selection.empty) {
-      const range = getMarkRange(state.selection.$from, linkMark);
-      if (range) {
-        from = range.from;
-        to = range.to;
-      }
-    }
-
-    // Replace text if changed
-    if (state.doc.textBetween(from, to, ' ') !== finalText) {
-      view.dispatch(state.tr.insertText(finalText, from, to));
-      to = from + finalText.length;
-    }
-
-    const tr = view.state.tr
-      .removeMark(from, to, linkMark)
-      .addMark(from, to, linkMark.create({ href: url.value, text: finalText }));
-
-    view.dispatch(tr);
-  } else {
-    // Inserting a new link
-    if (state.selection.empty) {
-      const { from } = state.selection;
-      // insert text
-      view.dispatch(state.tr.insertText(finalText, from));
-      // select inserted text
-      const to = from + finalText.length;
-      view.dispatch(view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(from), view.state.doc.resolve(to))));
-    }
-
-    if (editor.commands?.toggleLink) {
-      editor.commands.toggleLink({ href: url.value, text: finalText });
-    }
+  if (editor.commands?.toggleLink) {
+    editor.commands.toggleLink({ href: url.value, text: finalText });
   }
 
-  // move cursor to end of link and refocus editor
+  // Move cursor to end of link and refocus editor.
   const endPos = editor.view.state.selection.$to.pos;
-  editor.view.dispatch(editor.view.state.tr.setSelection(new TextSelection(editor.view.state.doc.resolve(endPos))));
+  editor.view.dispatch(
+    editor.view.state.tr.setSelection(
+      new TextSelection(editor.view.state.doc.resolve(endPos)),
+    ),
+  );
   setTimeout(() => editor.view.focus(), 100);
 
   props.closePopover();
