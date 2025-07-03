@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6...v0.14.7) (2025-07-03)
+
+
+### Bug Fixes
+
+* removed document lock listener ([0cd62b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/0cd62b473d9ad4df748d9c708dd1112ef3e68b81))
+
 ## [0.14.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.6...v0.14.6) (2025-07-03)
 
 
