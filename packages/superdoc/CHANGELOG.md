@@ -50,6 +50,7 @@
 
 ## [0.13.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.1...v0.14.2) (2025-06-17)
 
+## [0.13.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.4-next.2...v0.14.4) (2025-06-17)
 
 
 ## [0.13.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.1...v0.14.2) (2025-06-16)
