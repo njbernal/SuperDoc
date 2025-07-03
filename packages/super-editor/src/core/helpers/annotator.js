@@ -69,20 +69,23 @@ export const processTables = ({ state, tr, annotationValues }) => {
     if (node.type.name === 'table') tables.push({ node, pos });
   });
 
+  // Process tables in reverse order to maintain position integrity
   tables.reverse().forEach(({ pos }) => {
     const currentTableNode = tr.doc.nodeAt(pos);
     if (!currentTableNode || currentTableNode.type.name !== 'table') return;
 
-    generateTableIfNecessary({ tableNode: { node: currentTableNode, pos }, annotationValues, tr, state });
+    try {
+      generateTableIfNecessary({ tableNode: { node: currentTableNode, pos }, annotationValues, tr, state });
+    } catch (error) {
+      console.error('Error generating table at pos', pos, ':', error);
+      // Continue processing other tables even if one fails
+    }
   });
 
   return tr;
 };
 
-const generateTableIfNecessary = ({ tableNode, annotationValues, tr, state, }) => {
-  let rowNodeToGenerate = null;
-  let currentRow = null;
-
+const generateTableIfNecessary = ({ tableNode, annotationValues, tr, state }) => {
   const {
     tableRow: RowType,
     tableCell: CellType,
@@ -90,30 +93,46 @@ const generateTableIfNecessary = ({ tableNode, annotationValues, tr, state, }) =
     paragraph: ParaType
   } = state.schema.nodes;
 
-  // Find the row with fieldAnnotations that are arrays
+  // Find rows with field annotations that have array values
+  const rows = [];
   tableNode.node.descendants((node, pos) => {
-    if (rowNodeToGenerate) return true;
-    if (node.type === RowType) currentRow = { node, pos };
-    if (node.type === FieldType) {
-      const annotationValue = getAnnotationValue(node.attrs.fieldId, annotationValues);
-      if (Array.isArray(annotationValue) && node.attrs.generatorIndex === null) {
-        rowNodeToGenerate = currentRow;
-      }
+    if (node.type === RowType) {
+      rows.push({ node, pos });
     }
   });
+
+  // Check each row for field annotations with array values
+  let rowNodeToGenerate = null;
+  for (const row of rows) {
+    let hasArrayAnnotation = false;
+    
+    row.node.descendants((node, pos) => {
+      if (node.type === FieldType) {
+        const annotationValue = getAnnotationValue(node.attrs.fieldId, annotationValues);
+        if (Array.isArray(annotationValue) && node.attrs.generatorIndex === null) {
+          hasArrayAnnotation = true;
+        }
+      }
+    });
+    
+    if (hasArrayAnnotation) {
+      rowNodeToGenerate = row;
+      break;
+    }
+  }
 
   if (!rowNodeToGenerate) return;
 
   const { node: rowNode, pos: rowStartPos } = rowNodeToGenerate;
-  const absoluteRowStart = tr.mapping.map(tableNode.pos + rowStartPos);
-  const absoluteRowEnd = absoluteRowStart + rowNode.nodeSize;
-
-  const rowAnnotations = [];
+  
+  // Calculate the absolute position of the row in the document
+  const absoluteRowStart = tableNode.pos + 1 + rowStartPos; // +1 for table node itself
+  
+  // Count how many rows we need to generate based on array lengths
   let rowsToGenerate = 0;
   rowNode.descendants((childNode, childPos) => {
     if (childNode.type === FieldType) {
       const annotationValue = getAnnotationValue(childNode.attrs.fieldId, annotationValues);
-      rowAnnotations.push({ node: childNode, pos: childPos, values: annotationValue });
       if (Array.isArray(annotationValue)) {
         rowsToGenerate = Math.max(rowsToGenerate, annotationValue.length);
       }
@@ -122,45 +141,145 @@ const generateTableIfNecessary = ({ tableNode, annotationValues, tr, state, }) =
 
   if (rowsToGenerate <= 1) return;
 
-  const rebuildCell = (cellNode, rowIndex) => {
-    const updatedBlocks = cellNode.content.content.map((blockNode) => {
-      if (blockNode.type !== ParaType) return blockNode;
-
-      const updatedInlines = blockNode.content.content.map((inlineNode) => {
-        if (inlineNode.type !== FieldType) return inlineNode;
-
-        let matchedAnnotationValues = getAnnotationValue(inlineNode.attrs.fieldId, annotationValues);
-        if (!Array.isArray(matchedAnnotationValues)) matchedAnnotationValues = [matchedAnnotationValues];
-        const value = matchedAnnotationValues?.[rowIndex];
-
-        const extraAttrs = getFieldAttrs(inlineNode, value);
-        return FieldType.create(
-          { ...inlineNode.attrs, ...extraAttrs, generatorIndex: rowIndex },
-          inlineNode.content,
-          inlineNode.marks
-        );
-      });
-
-      return ParaType.create(blockNode.attrs, Fragment.from(updatedInlines), blockNode.marks);
-    });
-
-    return CellType.create(cellNode.attrs, Fragment.from(updatedBlocks), cellNode.marks);
+  // Validate and clean attributes to ensure proper rendering
+  const validateAttributes = (attrs) => {
+    const cleaned = {};
+    
+    for (const [key, value] of Object.entries(attrs)) {
+      if (value !== undefined && value !== null) {
+        // Ensure displayLabel is always a string for proper rendering
+        if (key === 'displayLabel') {
+          cleaned[key] = String(value);
+        }
+        // Ensure other string fields are strings
+        else if (key === 'rawHtml' || key === 'linkUrl' || key === 'imageSrc') {
+          cleaned[key] = String(value);
+        }
+        // Keep other values as-is if they're valid
+        else if (typeof value === 'string' && value.length > 0) {
+          cleaned[key] = value;
+        } else if (typeof value !== 'string') {
+          cleaned[key] = value;
+        }
+      }
+    }
+    
+    return cleaned;
   };
 
-  // Insert new rows in reverse *after* the current row
-  for (let rowIndex = rowsToGenerate - 1; rowIndex >= 0; rowIndex--) {
-    const mappedInsertPos = tr.mapping.map(absoluteRowEnd) + 1;
-    const newCells = rowNode.content.content.map((cellNode) => rebuildCell(cellNode, rowIndex));
-    const newRow = RowType.create(rowNode.attrs, Fragment.from(newCells), rowNode.marks);
-    tr.insert(mappedInsertPos, Fragment.from(newRow));
+  // Rebuild a cell with the correct annotation values for a specific row index
+  const rebuildCell = (cellNode, rowIndex) => {
+    try {
+      const updatedBlocks = cellNode.content.content.map((blockNode) => {
+        if (blockNode.type !== ParaType) return blockNode;
+
+        const updatedInlines = blockNode.content.content.map((inlineNode) => {
+          if (inlineNode.type !== FieldType) return inlineNode;
+
+          // Get the value for this row index
+          let matchedAnnotationValues = getAnnotationValue(inlineNode.attrs.fieldId, annotationValues);
+          if (!Array.isArray(matchedAnnotationValues)) {
+            matchedAnnotationValues = [matchedAnnotationValues];
+          }
+          const value = matchedAnnotationValues[rowIndex];
+
+          // Get extra attributes from field handlers
+          let extraAttrs = {};
+          try {
+            const rawExtraAttrs = getFieldAttrs(inlineNode, value, null);
+            extraAttrs = validateAttributes(rawExtraAttrs || {});
+          } catch (error) {
+            console.error('Error getting field attrs:', error);
+            extraAttrs = {};
+          }
+          
+          // Build new attributes
+          const baseAttrs = validateAttributes(inlineNode.attrs || {});
+          const newAttrs = { 
+            ...baseAttrs, 
+            ...extraAttrs, 
+            generatorIndex: rowIndex 
+          };
+          
+          // Create new field node
+          try {
+            return FieldType.create(
+              newAttrs,
+              inlineNode.content || Fragment.empty,
+              inlineNode.marks || []
+            );
+          } catch (error) {
+            console.error('Error creating field node:', error);
+            
+            // Fallback: minimal attributes
+            try {
+              const fallbackAttrs = {
+                ...baseAttrs,
+                generatorIndex: rowIndex,
+                displayLabel: String(value || '')
+              };
+              return FieldType.create(
+                validateAttributes(fallbackAttrs),
+                inlineNode.content || Fragment.empty,
+                inlineNode.marks || []
+              );
+            } catch (fallbackError) {
+              console.error('Fallback also failed:', fallbackError);
+              return inlineNode; // Return original node as last resort
+            }
+          }
+        });
+
+        // Create new paragraph
+        try {
+          return ParaType.create(
+            validateAttributes(blockNode.attrs || {}), 
+            Fragment.from(updatedInlines), 
+            blockNode.marks || []
+          );
+        } catch (error) {
+          console.error('Error creating paragraph node:', error);
+          return blockNode;
+        }
+      });
+
+      // Create new cell
+      return CellType.create(
+        validateAttributes(cellNode.attrs || {}), 
+        Fragment.from(updatedBlocks), 
+        cellNode.marks || []
+      );
+      
+    } catch (error) {
+      console.error(`Failed to rebuild cell for row ${rowIndex}:`, error);
+      throw error;
+    }
+  };
+
+  try {
+    // Create all the new rows
+    const newRows = [];
+    for (let rowIndex = 0; rowIndex < rowsToGenerate; rowIndex++) {
+      const newCells = rowNode.content.content.map((cellNode) => rebuildCell(cellNode, rowIndex));
+      const newRow = RowType.create(
+        validateAttributes(rowNode.attrs || {}), 
+        Fragment.from(newCells), 
+        rowNode.marks || []
+      );
+      newRows.push(newRow);
+    }
+
+    // Replace the original row with all new rows in a single atomic operation
+    const mappedRowStart = tr.mapping.map(absoluteRowStart);
+    const rowEnd = mappedRowStart + rowNode.nodeSize;
+    
+    tr.replaceWith(mappedRowStart, rowEnd, Fragment.from(newRows));
+    
+  } catch (error) {
+    console.error('Error during row generation:', error);
+    throw error;
   }
-
-  // Now delete the original row
-  const mappedDeleteStart = tr.mapping.map(absoluteRowStart);
-  const mappedDeleteEnd = mappedDeleteStart + rowNode.nodeSize;
-  tr.delete(mappedDeleteStart - 1, mappedDeleteEnd + 1);
 };
-
 
 const getAnnotationValue = (id, annotationValues) => {
   return annotationValues.find((value) => value.input_id === id)?.input_value || null;
