@@ -3,7 +3,7 @@ import AIWriter from '../toolbar/AIWriter.vue';
 import TableActions from '../toolbar/TableActions.vue';
 import LinkInput from '../toolbar/LinkInput.vue';
 import { selectionHasNodeOrMark } from '../cursor-helpers.js';
-import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilities/clipboardUtils.js';
+// import { serializeSelectionToClipboard, writeToClipboard } from '@/core/utilities/clipboardUtils.js';
 import { handleClipboardPaste } from '@/core/InputRule.js';
 import { TEXTS, ICONS, TRIGGERS } from './constants.js';
 
@@ -108,12 +108,9 @@ export function getItems(context) {
           id: 'cut',
           label: TEXTS.cut,
           icon: ICONS.cut,
-          action: async (editor) => {
-            const { state, dispatch } = editor.view;
-            const { htmlString, text } = serializeSelectionToClipboard(state);
-            await writeToClipboard({ htmlString, text });
-            const { from, to } = state.selection;
-            dispatch(state.tr.delete(from, to));
+          action: (editor) => {
+            editor.view.focus();
+            document.execCommand('cut');
           },
           allowedTriggers: [TRIGGERS.click],
           requiresSelection: true
@@ -122,10 +119,9 @@ export function getItems(context) {
           id: 'copy',
           label: TEXTS.copy,
           icon: ICONS.copy,
-          action: async (editor) => {
-            const { state } = editor.view;
-            const { htmlString, text } = serializeSelectionToClipboard(state);
-            await writeToClipboard({ htmlString, text });
+          action: (editor) => {
+            editor.view.focus();
+            document.execCommand('copy');
           },
           allowedTriggers: [TRIGGERS.click],
           requiresSelection: true

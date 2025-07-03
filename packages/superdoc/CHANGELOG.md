@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.6-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.3...v0.14.6-next.4) (2025-07-03)
+
+## [0.14.6-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.2...v0.14.6-next.3) (2025-07-03)
+
+## [0.14.6-next.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.1...v0.14.6-next.2) (2025-07-03)
+
+
+### Features
+
+* add disableContextMenu option to SuperDoc and update SlashMenu plugin ([25f3120](https://github.com/Harbour-Enterprises/SuperDoc/commit/25f31207ab53edd3356e27af4577b9bd817bed47))
+
+## [0.14.6-next.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.4...v0.14.6-next.1) (2025-07-03)
+
 ## [0.14.5-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.3...v0.14.5-next.4) (2025-07-02)
 
 ## [0.14.5-next.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.5-next.2...v0.14.5-next.3) (2025-07-02)

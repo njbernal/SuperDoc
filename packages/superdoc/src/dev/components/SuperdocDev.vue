@@ -56,6 +56,7 @@ const init = async () => {
     annotations: true,
     isInternal,
     telemetry: false,
+    // disableContextMenu: true,
     // format: 'docx',
     // html: '<p>Hello world</p>',
     // isDev: true,
