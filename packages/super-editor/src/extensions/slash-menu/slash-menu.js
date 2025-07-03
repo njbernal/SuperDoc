@@ -33,6 +33,9 @@ export const SlashMenu = Extension.create({
   name: 'slashMenu',
 
   addPmPlugins() {
+    if (this.editor.options?.disableContextMenu) {
+      return [];
+    }
     const editor = this.editor;
 
     // Cooldown flag and timeout for slash menu

@@ -288,6 +288,7 @@ const editorOptions = (doc) => {
     telemetry: proxy.$superdoc.telemetry,
     externalExtensions: proxy.$superdoc.config.editorExtensions || [],
     suppressDefaultDocxStyles: proxy.$superdoc.config.suppressDefaultDocxStyles,
+    disableContextMenu: proxy.$superdoc.config.disableContextMenu,
     jsonOverride: proxy.$superdoc.config.jsonOverride,
   };
 

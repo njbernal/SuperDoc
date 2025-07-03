@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
       @mousedown="handleMarginClick"
     >
       <div ref="editorElem" class="editor-element super-editor__element" role="presentation"></div>
-      <SlashMenu v-if="editorReady && editor" :editor="editor" :popoverControls="popoverControls" :openPopover="openPopover" :closePopover="closePopover" />
+      <SlashMenu v-if="!props.options.disableContextMenu && editorReady && editor" :editor="editor" :popoverControls="popoverControls" :openPopover="openPopover" :closePopover="closePopover" />
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">
