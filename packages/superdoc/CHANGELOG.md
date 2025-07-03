@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.6-next.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.5...v0.14.6-next.6) (2025-07-03)
+
+
+### Features
+
+* add LinkInput popover for cmd/ctrl + K shortcut in SuperEditor ([408a181](https://github.com/Harbour-Enterprises/SuperDoc/commit/408a181f4ad2adc83b31db22291f36e51b73894d))
+* enhance link input handling and validation in LinkInput component ([7cf5e00](https://github.com/Harbour-Enterprises/SuperDoc/commit/7cf5e00c51e8a8979fae511c31433d5b8da860a1))
+
 ## [0.14.6-next.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.4...v0.14.6-next.5) (2025-07-03)
 
 ## [0.14.6-next.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.6-next.3...v0.14.6-next.4) (2025-07-03)
