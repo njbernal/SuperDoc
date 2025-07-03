@@ -64,9 +64,9 @@ export const Link = Mark.create({
   addCommands() {
     return {
       setLink:
-        ({ href }) =>
+        ({ href, text } = {}) =>
         ({ chain }) => {
-          return chain().setMark('underline').setMark(this.name, { href }).run();
+          return chain().setMark('underline').setMark(this.name, { href, text }).run();
         },
       unsetLink:
         () =>
@@ -78,10 +78,10 @@ export const Link = Mark.create({
             .run();
         },
       toggleLink:
-        ({ href }) =>
+        ({ href, text } = {}) =>
         ({ commands }) => {
           if (!href) return commands.unsetLink();
-          return commands.setLink({ href });
+          return commands.setLink({ href, text });
         },
     };
   },

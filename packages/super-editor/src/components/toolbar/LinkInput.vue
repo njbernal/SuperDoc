@@ -32,11 +32,34 @@ const { isHighContrastMode } = useHighContrastMode();
 const urlError = ref(false);
 
 // --- Derive selected text and link href from editor ---
+// Three cases:
+// 1. Empty selection: return text between link marks (if any - likely empty)
+// 2. Non-empty selection: return text between link marks
+// 3. No link boundaries involved → return selected text as-is.
 const getSelectedText = () => {
   if (!props.editor || !props.editor.state) return '';
   const { state } = props.editor;
-  const { from, to } = state.selection;
-  return state.doc.textBetween(from, to, ' ');
+  const { selection } = state;
+
+  const linkMark = state.schema.marks.link;
+
+  // 1. If the selection is empty, try to expand to link mark text.
+  if (selection.empty) {
+    const range = getMarkRange(selection.$from, linkMark);
+    return range ? state.doc.textBetween(range.from, range.to, ' ') : '';
+  }
+
+  // 2. Non-empty selection: check if either boundary lies inside a link mark. If so, return that full link text.
+  const rangeFrom = getMarkRange(selection.$from, linkMark);
+  const rangeTo = getMarkRange(selection.$to, linkMark);
+
+  if (rangeFrom || rangeTo) {
+    const linkRange = rangeFrom || rangeTo;
+    return state.doc.textBetween(linkRange.from, linkRange.to, ' ');
+  }
+
+  // 3. No link boundaries involved → return selected text as-is.
+  return state.doc.textBetween(selection.from, selection.to, ' ');
 };
 
 const getLinkHrefAtSelection = () => {
@@ -67,12 +90,17 @@ const text = ref('');
 const rawUrl = ref('');
 const isAnchor = ref(false);
 
+// Prepend http if missing
 const url = computed(() => {
-  if (!rawUrl.value?.startsWith('http')) return 'http://' + rawUrl.value;
+  if (!rawUrl.value) return '';
+  if (!rawUrl.value.startsWith('http') && !rawUrl.value.startsWith('#')) return 'http://' + rawUrl.value;
   return rawUrl.value;
 });
 
 const validUrl = computed(() => {
+  // anchors (starting with #) are always considered valid
+  if (url.value.startsWith('#')) return true;
+
   const urlSplit = url.value.split('.').filter(Boolean);
   return url.value.includes('.') && urlSplit.length > 1;
 });
@@ -116,48 +144,74 @@ onMounted(() => {
 
 // --- Link logic moved here ---
 const handleSubmit = () => {
-  if (rawUrl.value && validUrl.value) {
-    // Insert new link or update existing one
-    if (props.editor && props.editor.commands) {
-      if (isEditing.value) {
-        const { state, view } = props.editor;
-        const linkMark = state.schema.marks.link;
-        let { from, to } = state.selection;
+  const editor = props.editor;
 
-        // If the selection is empty (cursor inside link), expand to full mark range
-        if (state.selection.empty) {
-          const range = getMarkRange(state.selection.$from, linkMark);
-          if (range) {
-            from = range.from;
-            to = range.to;
-          }
-        }
-
-        const tr = state.tr.removeMark(from, to, linkMark).addMark(from, to, linkMark.create({ href: url.value }));
-        view.dispatch(tr);
-      } else if (props.editor.commands.toggleLink) {
-        props.editor.commands.toggleLink({ href: url.value, text: text.value });
-      }
-
-      const { view } = props.editor;
-      let { selection } = view.state;
-      const endPos = selection.$to.pos;
-      const tr = view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(endPos)));
-      view.dispatch(tr);
-      setTimeout(() => {
-        view.focus();
-      }, 100);
-    }
-    props.closePopover();
-    return;
-  } else if (!rawUrl.value) {
-    if (props.editor && props.editor.commands && props.editor.commands.unsetLink) {
-      props.editor.commands.unsetLink();
-    }
+  // if user clears the url, remove the link
+  // pushing the remove button is different but same actions
+  if (!rawUrl.value) {
+    if (editor?.commands?.unsetLink) editor.commands.unsetLink();
     props.closePopover();
     return;
   }
-  urlError.value = true;
+
+  if (!validUrl.value) {
+    urlError.value = true;
+    return;
+  }
+
+  // decide what text should be inserted
+  const finalText = text.value || url.value;
+
+  if (!editor) return;
+
+  const { state, view } = editor;
+  const linkMark = state.schema.marks.link;
+
+  if (isEditing.value) {
+    // Editing an existing link (or selection already has link)
+    let { from, to } = state.selection;
+
+    if (state.selection.empty) {
+      const range = getMarkRange(state.selection.$from, linkMark);
+      if (range) {
+        from = range.from;
+        to = range.to;
+      }
+    }
+
+    // Replace text if changed
+    if (state.doc.textBetween(from, to, ' ') !== finalText) {
+      view.dispatch(state.tr.insertText(finalText, from, to));
+      to = from + finalText.length;
+    }
+
+    const tr = view.state.tr
+      .removeMark(from, to, linkMark)
+      .addMark(from, to, linkMark.create({ href: url.value, text: finalText }));
+
+    view.dispatch(tr);
+  } else {
+    // Inserting a new link
+    if (state.selection.empty) {
+      const { from } = state.selection;
+      // insert text
+      view.dispatch(state.tr.insertText(finalText, from));
+      // select inserted text
+      const to = from + finalText.length;
+      view.dispatch(view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(from), view.state.doc.resolve(to))));
+    }
+
+    if (editor.commands?.toggleLink) {
+      editor.commands.toggleLink({ href: url.value, text: finalText });
+    }
+  }
+
+  // move cursor to end of link and refocus editor
+  const endPos = editor.view.state.selection.$to.pos;
+  editor.view.dispatch(editor.view.state.tr.setSelection(new TextSelection(editor.view.state.doc.resolve(endPos))));
+  setTimeout(() => editor.view.focus(), 100);
+
+  props.closePopover();
 };
 
 const handleRemove = () => {
@@ -174,8 +228,21 @@ const handleRemove = () => {
     <div class="link-title" v-else-if="isEditing">Edit link</div>
     <div class="link-title" v-else>Add link</div>
 
-    <div v-if="showInput && !isAnchor">
-      <div class="input-row">
+    <div v-if="showInput && !isAnchor" class="link-input-wrapper">
+      <!-- Text input -->
+      <div class="input-row text-input-row">
+        <div class="input-icon text-input-icon">T</div>
+        <input
+          type="text"
+          name="text"
+          placeholder="Text"
+          v-model="text"
+          @keydown.enter.stop.prevent="handleSubmit"
+        />
+      </div>
+
+      <!-- URL input -->
+      <div class="input-row url-input-row">
         <div class="input-icon" v-html="toolbarIcons.linkInput"></div>
         <input
           type="text"
@@ -210,6 +277,12 @@ const handleRemove = () => {
 </template>
 
 <style scoped>
+.link-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .link-input-ctn {
   width: 320px;
   display: flex;
@@ -254,12 +327,15 @@ const handleRemove = () => {
 
 .input-icon {
   position: absolute;
-  transform: rotate(45deg);
   left: 25px;
   width: auto;
-  height: 12px;
   color: #999;
   pointer-events: none;
+}
+
+.input-icon:not(.text-input-icon) {
+  transform: rotate(45deg);
+  height: 12px;
 }
 
 &.high-contrast {
