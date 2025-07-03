@@ -106,6 +106,7 @@ import { initSuperdocYdoc, initCollaborationComments, makeDocumentsCollaborative
  * @property {boolean} [rulers] Whether to show the ruler in the editor
  * @property {boolean} [suppressDefaultDocxStyles] Whether to suppress default styles in docx mode
  * @property {boolean} [jsonOverride] Whether to override content with provided JSON
+ * @property {boolean} [disableContextMenu] Whether to disable slash / right-click custom context menu
  */
 
 /**
@@ -185,6 +186,9 @@ export class SuperDoc extends EventEmitter {
     // Image upload handler
     // async (file) => url;
     handleImageUpload: null,
+
+    // Disable context menus (slash and right-click) globally
+    disableContextMenu: false,
   };
 
   /**
