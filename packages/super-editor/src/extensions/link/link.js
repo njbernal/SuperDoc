@@ -6,17 +6,27 @@ import { getMarkRange } from '@/core/helpers/getMarkRange.js';
  * non-whitespace character is reached.
  */
 const trimRange = (doc, from, to) => {
-  // trim leading spaces until a non-space character is found
-  while (from < to && !/\S/.test(doc.textBetween(from, from + 1, ''))) {
+  /*
+   * A "non-user" position is one that produces **no text** when we ask
+   * `doc.textBetween(pos, pos + 1, '')`.
+   * That happens at node boundaries (between the doc node and its first child,
+   * between paragraphs, etc.).
+   *
+   * A regular space typed by the user **does** produce text (" "), so it will
+   * NOT be trimmed.
+   */
+
+  // Skip positions that produce no text output (node boundaries).
+  while (from < to && doc.textBetween(from, from + 1, '') === '') {
     from += 1;
   }
-  // trim trailing spaces until a non-space character is found
-  while (to > from && !/\S/.test(doc.textBetween(to - 1, to, ''))) {
+
+  while (to > from && doc.textBetween(to - 1, to, '') === '') {
     to -= 1;
   }
 
   // This should now normalize the from and to selections to require
-  // starting and ending without whitespace
+  // starting and ending without doc specific whitespace
   return { from, to };
 };
 
@@ -121,7 +131,7 @@ export const Link = Mark.create({
 
           const currentText = state.doc.textBetween(from, to);
           const computedText = text ?? currentText;
-          const finalText = (computedText || href || '').trim();
+          const finalText = computedText && computedText.length > 0 ? computedText : href || '';
           let tr = state.tr;
 
           // Replace the text if it has changed (or if there was no text yet).
