@@ -410,7 +410,6 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
     const endPos= currentPos + currentNode.nodeSize;
     const endCoords = view.coordsAtPos(endPos);   // bottom of the block
-
     let shouldAddPageBreak =
         currentNode.isBlock
             ? endCoords && endCoords.bottom > pageHeightThreshold
@@ -465,10 +464,10 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
         bottom: actualBreakBottom,
         pos: breakPos,
       } = getActualBreakCoords(view, currentPos, pageHeightThreshold);
-
       const $breakPos = view.state.doc.resolve(breakPos);
-      breakPos = getSafeBreakPos($breakPos);
-
+      if ($breakPos.parent.type.name === 'listItem') {
+        breakPos = $breakPos.before($breakPos.depth);
+      }
 
       if (isDebugging) {
         console.debug('----- [pagination page break] ----');
@@ -539,23 +538,6 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
   // Return the widget decorations array
   return decorations;
-}
-
-/**
- * Helper function to not split inside creation blocks
- * @param {Number} pos The position of the outermost node that exceeds threshold
- * @returns {Number} safe pos to insert page break
- */
-function getSafeBreakPos(pos) {
-  const UNSPLITTABLE = new Set(['listItem', 'tableRow', 'table']);
-
-  for (let depth = pos.depth; depth > 0; depth--) {
-    const node = pos.node(depth);
-    if (UNSPLITTABLE.has(node.type.name) || node.type.isBlock) {
-      return pos.before(depth);
-    }
-  }
-  return pos.pos;
 }
 
 /**
