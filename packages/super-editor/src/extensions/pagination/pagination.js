@@ -408,7 +408,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
     coords = view?.coordsAtPos(currentPos);
     if (!coords) return;
 
-    const endPos    = currentPos + currentNode.nodeSize;
+    const endPos= currentPos + currentNode.nodeSize;
     const endCoords = view.coordsAtPos(endPos);   // bottom of the block
 
     let shouldAddPageBreak =
@@ -555,7 +555,7 @@ function getSafeBreakPos(pos) {
       return pos.before(depth);
     }
   }
-  return pos.pos; // fallback
+  return pos.pos;
 }
 
 /**
