@@ -404,11 +404,17 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   doc.descendants((node, pos) => {
     let currentNode = node;
     let currentPos = pos;
-  
+
     coords = view?.coordsAtPos(currentPos);
     if (!coords) return;
-    
-    let shouldAddPageBreak = coords.bottom > pageHeightThreshold;
+
+    const endPos    = currentPos + currentNode.nodeSize;
+    const endCoords = view.coordsAtPos(endPos);   // bottom of the block
+
+    let shouldAddPageBreak =
+        currentNode.isBlock
+            ? endCoords && endCoords.bottom > pageHeightThreshold
+            : coords.bottom > pageHeightThreshold;
     let isHardBreakNode = currentNode.type.name === 'hardBreak';
 
     const paragraphSectPrBreak = currentNode.attrs?.pageBreakSource;
@@ -454,11 +460,15 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       // The node we've found extends past our threshold
       // We need to zoom in and investigate position by position until we find the exact break point
       // And we get the actual top and bottom of the break
-      const {
+      let {
         top: actualBreakTop,
         bottom: actualBreakBottom,
         pos: breakPos,
       } = getActualBreakCoords(view, currentPos, pageHeightThreshold);
+
+      const $breakPos = view.state.doc.resolve(breakPos);
+      breakPos = getSafeBreakPos($breakPos);
+
 
       if (isDebugging) {
         console.debug('----- [pagination page break] ----');
@@ -529,6 +539,23 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
 
   // Return the widget decorations array
   return decorations;
+}
+
+/**
+ * Helper function to not split inside creation blocks
+ * @param {Number} pos The position of the outermost node that exceeds threshold
+ * @returns {Number} safe pos to insert page break
+ */
+function getSafeBreakPos(pos) {
+  const UNSPLITTABLE = new Set(['listItem', 'tableRow', 'table']);
+
+  for (let depth = pos.depth; depth > 0; depth--) {
+    const node = pos.node(depth);
+    if (UNSPLITTABLE.has(node.type.name) || node.type.isBlock) {
+      return pos.before(depth);
+    }
+  }
+  return pos.pos; // fallback
 }
 
 /**
