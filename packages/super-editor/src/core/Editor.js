@@ -1819,7 +1819,8 @@ export class Editor extends EventEmitter {
    */
   async migrateParagraphFields(annotationValues = []) {
     if (!Array.isArray(annotationValues) || !annotationValues.length) return annotationValues;
-    return await migrateParagraphFieldsListsV2(annotationValues, this);
+    const result = await migrateParagraphFieldsListsV2(annotationValues, this);
+    return result;
   }
 
   /**
