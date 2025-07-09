@@ -19,45 +19,6 @@
   padding: 0;
   margin: 0;
 }
-/* CSS isolation for SuperEditor - resets all properties and makes elements 
-only use programmatic and inline styles */
-.super-editor p,
-.super-editor h1,
-.super-editor h2,
-.super-editor h3,
-.super-editor h4,
-.super-editor h5,
-.super-editor h6,
-.super-editor li,
-.super-editor strong,
-.super-editor em,
-.super-editor b,
-.super-editor i,
-.super-editor u,
-.super-editor a,
-.super-editor blockquote,
-.super-editor ul,
-.super-editor ol {
-  margin: 0 !important;
-  padding: 0 !important;
-  color: unset !important;
-  background-color: unset !important;
-  outline: none !important;
-  border: none !important;
-}
-
-/* Handle spans separately - reset all except track changes */
-.super-editor span {
-  margin: 0 !important;
-  padding: 0 !important;
-  outline: none !important;
-  border: none !important;
-}
-
-/* Reset background color only for non-track-change spans */
-.super-editor span:not(.track-insert):not(.track-delete) {
-  background-color: unset !important;
-}
 
 .sd-button {
   border-radius: 8px;
