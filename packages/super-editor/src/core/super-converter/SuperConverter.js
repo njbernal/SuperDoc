@@ -670,8 +670,6 @@ class SuperConverter {
     });
 
     relationships.elements = [...relationships.elements, ...newRels];
-
-    this.convertedXml['word/_rels/document.xml.rels'] = relsData;
   };
 
   async #exportProcessMediaFiles(media, editor) {
@@ -681,6 +679,8 @@ class SuperConverter {
       const name = filePath.split('/').pop();
       processedData[name] = await getArrayBufferFromUrl(media[filePath], editor.options.isHeadless);
     }
+
+    console.log('MEDIA BEFORE', this.convertedXml.media);
 
     this.convertedXml.media = {
       ...this.convertedXml.media,
