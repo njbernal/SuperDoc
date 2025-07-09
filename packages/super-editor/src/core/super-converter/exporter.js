@@ -1771,7 +1771,6 @@ function translateImageNode(params, imageSize) {
     const imageUrl = `media/${imageName}_${attrs.hash}.${type}`;
 
     imageId = addNewImageRelationship(params, imageUrl);
-    params.annotationImagesIds[`${attrs.fieldId}_${attrs.hash}`] = imageId;
     params.media[`${imageName}_${attrs.hash}.${type}`] = src;
   }
 
@@ -2189,7 +2188,6 @@ function translateFieldAnnotation(params) {
 
   let processedNode;
   let sdtContentElements;
-  let imageId;
   
   if (isFinalDoc) {
     return annotationHandler(params);

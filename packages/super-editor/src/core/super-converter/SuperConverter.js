@@ -680,8 +680,6 @@ class SuperConverter {
       processedData[name] = await getArrayBufferFromUrl(media[filePath], editor.options.isHeadless);
     }
 
-    console.log('MEDIA BEFORE', this.convertedXml.media);
-
     this.convertedXml.media = {
       ...this.convertedXml.media,
       ...processedData,
