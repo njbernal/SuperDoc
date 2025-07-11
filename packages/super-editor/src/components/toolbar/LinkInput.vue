@@ -236,7 +236,7 @@ const handleRemove = () => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .link-input-wrapper {
   display: flex;
   flex-direction: column;
