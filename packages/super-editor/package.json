@@ -56,7 +56,7 @@
     "prosemirror-gapcursor": "^1.3.2",
     "prosemirror-history": "^1.4.0",
     "prosemirror-keymap": "^1.2.2",
-    "prosemirror-model": "git://github.com/ProseMirror/prosemirror-model.git#e73b74ca17cc2e1ca8d7a6a608310278502e9370",
+    "prosemirror-model": "^1.25.2",
     "prosemirror-schema-basic": "^1.2.2",
     "prosemirror-schema-list": "^1.3.0",
     "prosemirror-search": "^1.1.0",
