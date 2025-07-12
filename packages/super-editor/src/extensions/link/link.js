@@ -1,4 +1,5 @@
 import { Mark, Attribute } from '@core/index.js';
+import { getMarkRange } from '@/core/helpers/getMarkRange.js';
 
 export const Link = Mark.create({
   name: 'link',
@@ -63,20 +64,62 @@ export const Link = Mark.create({
   addCommands() {
     return {
       setLink:
-        ({ href }) =>
-        ({ chain }) => {
-          return chain().setMark('underline').setMark(this.name, { href }).run();
+        ({ href, text } = {}) =>
+        ({ state, dispatch, editor }) => {
+          // Determine the text range we need to operate on.
+          const { selection } = state;
+          const linkMarkType = editor.schema.marks.link;
+          const underlineMarkType = editor.schema.marks.underline;
+
+          let from = selection.from;
+          let to = selection.to;
+
+          // If the cursor is inside an existing link with an empty selection,
+          // expand the range to cover the whole link so we can edit it.
+          if (selection.empty) {
+            const range = getMarkRange(selection.$from, linkMarkType);
+            if (range) {
+              from = range.from;
+              to = range.to;
+            }
+          }
+
+          const currentText = state.doc.textBetween(from, to, ' ');
+          const finalText = (text ?? currentText) || href || '';
+
+          let tr = state.tr;
+
+          // Replace the text if it has changed (or if there was no text yet).
+          if (finalText && currentText !== finalText) {
+            tr = tr.insertText(finalText, from, to);
+            to = from + finalText.length;
+          }
+
+          // Remove existing link and underline marks in the affected range.
+          // Then add the new link and underline marks.
+          if (linkMarkType) tr = tr.removeMark(from, to, linkMarkType);
+          if (underlineMarkType) tr = tr.removeMark(from, to, underlineMarkType);
+
+          if (underlineMarkType) tr = tr.addMark(from, to, underlineMarkType.create());
+          tr = tr.addMark(from, to, linkMarkType.create({ href, text: finalText }));
+
+          dispatch(tr.scrollIntoView());
+          return true;
         },
       unsetLink:
         () =>
         ({ chain }) => {
-          return chain().unsetMark('underline').unsetColor().unsetMark(this.name, { extendEmptyMarkRange: true }).run();
+          return chain()
+            .unsetMark('underline', { extendEmptyMarkRange: true })
+            .unsetColor()
+            .unsetMark('link', { extendEmptyMarkRange: true })
+            .run();
         },
       toggleLink:
-        ({ href }) =>
+        ({ href, text } = {}) =>
         ({ commands }) => {
           if (!href) return commands.unsetLink();
-          return commands.setLink({ href });
+          return commands.setLink({ href, text });
         },
     };
   },

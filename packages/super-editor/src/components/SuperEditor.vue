@@ -1,7 +1,7 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, onMounted, onBeforeUnmount, computed, shallowRef, reactive, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, shallowRef, reactive, nextTick, markRaw } from 'vue';
 import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import SlashMenu from './slash-menu/SlashMenu.vue';
@@ -9,6 +9,7 @@ import { adjustPaginationBreaks } from './pagination-helpers.js';
 import { onMarginClickCursorChange } from './cursor-helpers.js';
 import Ruler from './rulers/Ruler.vue';
 import GenericPopover from './popovers/GenericPopover.vue';
+import LinkInput from './toolbar/LinkInput.vue';
 import { checkNodeSpecificClicks } from './cursor-helpers.js';
 
 const emit = defineEmits([
@@ -175,9 +176,35 @@ const handleSuperEditorKeydown = (event) => {
       }
     }
   }
+
+  // cmd/ctrl + K → Open LinkInput popover
+  if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && (event.key === 'k' || event.key === 'K')) {
+    event.preventDefault();
+
+    if (!editor.value) return;
+
+    const view = editor.value.view;
+    const { state } = view;
+
+    // Compute cursor position relative to the super-editor container
+    const container = editorWrapper.value;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const cursorCoords = view.coordsAtPos(state.selection.head);
+
+    const left = `${cursorCoords.left - containerRect.left}px`;
+    const top = `${cursorCoords.bottom - containerRect.top + 6}px`; // small offset below selection
+
+    openPopover(
+      markRaw(LinkInput),
+      {},
+      { left, top }
+    );
+  }
+
   emit('editor-keydown', { editor: editor.value });
 };
-
 
 const handleSuperEditorClick = (event) => {
   emit('editor-click', { editor: editor.value });
@@ -254,7 +281,7 @@ onBeforeUnmount(() => {
       @mousedown="handleMarginClick"
     >
       <div ref="editorElem" class="editor-element super-editor__element" role="presentation"></div>
-      <SlashMenu v-if="editorReady && editor" :editor="editor" :popoverControls="popoverControls" :openPopover="openPopover" :closePopover="closePopover" />
+      <SlashMenu v-if="!props.options.disableContextMenu && editorReady && editor" :editor="editor" :popoverControls="popoverControls" :openPopover="openPopover" :closePopover="closePopover" />
     </div>
 
     <div class="placeholder-editor" v-if="!editorReady">
@@ -276,7 +303,8 @@ onBeforeUnmount(() => {
     </div>
 
     <GenericPopover
-      :editor="editor ?? {}"
+      v-if="editor"
+      :editor="editor"
       :visible="popoverControls.visible"
       :position="popoverControls.position"
       @close="closePopover"

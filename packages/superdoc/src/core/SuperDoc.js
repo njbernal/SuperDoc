@@ -94,6 +94,7 @@ import { initSuperdocYdoc, initCollaborationComments, makeDocumentsCollaborative
  * @property {(params: { editor: Editor }) => void} [onEditorUpdate] Callback when document is updated
  * @property {(params: { error: Error }) => void} [onException] Callback when an exception is thrown
  * @property {(params: { isRendered: boolean }) => void} [onCommentsListChange] Callback when the comments list is rendered
+ * @property {(params: {})} [onListDefinitionsChange] Callback when the list definitions change
  * @property {string} [format] The format of the document (docx, pdf, html)
  * @property {Object[]} [editorExtensions] The extensions to load for the editor
  * @property {boolean} [isInternal] Whether the SuperDoc is internal
@@ -106,6 +107,7 @@ import { initSuperdocYdoc, initCollaborationComments, makeDocumentsCollaborative
  * @property {boolean} [rulers] Whether to show the ruler in the editor
  * @property {boolean} [suppressDefaultDocxStyles] Whether to suppress default styles in docx mode
  * @property {boolean} [jsonOverride] Whether to override content with provided JSON
+ * @property {boolean} [disableContextMenu] Whether to disable slash / right-click custom context menu
  */
 
 /**
@@ -181,10 +183,14 @@ export class SuperDoc extends EventEmitter {
     onEditorUpdate: () => null,
     onCommentsListChange: () => null,
     onException: () => null,
+    onListDefinitionsChange: () => null,
 
     // Image upload handler
     // async (file) => url;
     handleImageUpload: null,
+
+    // Disable context menus (slash and right-click) globally
+    disableContextMenu: false,
   };
 
   /**
@@ -336,6 +342,7 @@ export class SuperDoc extends EventEmitter {
     this.on('editor-update', this.config.onEditorUpdate);
     this.on('content-error', this.onContentError);
     this.on('exception', this.config.onException);
+    this.on('list-definitions-change', this.config.onListDefinitionsChange);
   }
 
   /**
@@ -693,7 +700,7 @@ export class SuperDoc extends EventEmitter {
    * Get the HTML content of all editors
    * @returns {Array<string>} The HTML content of all editors
    */
-  getHTML() {
+  getHTML(options = {}) {
     const editors = [];
     this.superdocStore.documents.forEach((doc) => {
       const editor = doc.getEditor();
@@ -702,7 +709,7 @@ export class SuperDoc extends EventEmitter {
       }
     });
 
-    return editors.map((editor) => editor.getHTML());
+    return editors.map((editor) => editor.getHTML(options));
   }
 
   /**

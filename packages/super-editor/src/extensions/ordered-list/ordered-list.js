@@ -69,18 +69,7 @@ export const OrderedList = Node.create({
 
       'list-style-type': {
         default: 'decimal',
-        renderDOM: (attrs) => {
-          let listStyleType = attrs['list-style-type'];
-          if (!listStyleType) return {};
-
-          if (listStyleType === 'lowerLetter') {
-            listStyleType = 'lowerAlpha';
-          }
-
-          return {
-            style: `list-style-type: ${toKebabCase(listStyleType)};`,
-          };
-        },
+        rendered: false,
       },
 
       attributes: {
@@ -175,15 +164,27 @@ export const OrderedList = Node.create({
     };
   },
 
-
   addInputRules() {
     return [
       new InputRule({
         match: inputRegex,
         handler: ({ state, range }) => {
+          // Check if we're currently inside a list item
+          const $pos = state.selection.$from
+          const listItemType = state.schema.nodes.listItem
+          
+          // Look up the tree to see if we're inside a list item
+          for (let depth = $pos.depth; depth >= 0; depth--) {
+            if ($pos.node(depth).type === listItemType) {
+              // We're inside a list item, don't trigger the rule
+              return null
+            }
+          }
+          
+          // Not inside a list item, proceed with creating new list
           const { tr } = state
           tr.delete(range.from, range.to)
-  
+
           ListHelpers.createNewList({
             listType: this.type,
             tr,
@@ -193,4 +194,5 @@ export const OrderedList = Node.create({
       })
     ]
   }
+
 });

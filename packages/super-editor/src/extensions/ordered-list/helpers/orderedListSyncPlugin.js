@@ -1,19 +1,26 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { docxNumberigHelpers } from '@core/super-converter/v2/importer/listImporter.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
+import { refreshAllListItemNodeViews } from '@extensions/list-item/ListItemNodeView.js';
 
 export const orderedListSyncPluginKey = new PluginKey('orderedListSync');
 
 export function orderedListSync(editor) {
+  let hasInitialized = false;
   const docx = editor.converter.convertedXml;
   return new Plugin({
     key: orderedListSyncPluginKey,
 
     appendTransaction(transactions, oldState, newState) {
-      const isFromPlugin = transactions.some(tr => tr.getMeta('orderedListSync'));
-      if (isFromPlugin || !transactions.some(tr => tr.docChanged)) {
+      const updateNodeViews = transactions.some((tr) => tr.getMeta('updatedListItemNodeViews'));
+      if (updateNodeViews || !hasInitialized) refreshAllListItemNodeViews();
+
+      const isFromPlugin = transactions.some((tr) => tr.getMeta('orderedListSync'));
+      if (isFromPlugin || !transactions.some((tr) => tr.docChanged)) {
         return null;
       };
+
+      hasInitialized = true;
 
       const tr = newState.tr;
       tr.setMeta('orderedListSync', true);
@@ -39,9 +46,18 @@ export function orderedListSync(editor) {
       newState.doc.descendants((node, pos) => {
         if (node.type.name !== 'listItem') return;
 
-        const { level: attrLvl, numId: attrNumId, styleId, start } = node.attrs;
+        const { level: attrLvl, numId: attrNumId, styleId } = node.attrs;
         const level = parseInt(attrLvl);
         const numId = parseInt(attrNumId);
+
+        const {
+          lvlText,
+          customFormat,
+          listNumberingType,
+          start: numberingDefStart
+        } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
+
+        const start = parseInt(numberingDefStart) || 1;
 
         // Initialize tracking for this numId if not exists
         if (!listMap.has(numId)) {
@@ -59,6 +75,17 @@ export function orderedListSync(editor) {
         // For the first item, use the generateListPath result as-is
         if (!listInitialized.get(numId)) {
           listInitialized.set(numId, true);
+          // if there's a start override for this level, use it
+          if (typeof start === 'number') {
+            while (currentListLevels.length <= level) {
+              currentListLevels.push(0);
+            }
+            currentListLevels[level] = start;
+            // reset any deeper levels
+            for (let i = level + 1; i < currentListLevels.length; i++) {
+              currentListLevels[i] = 0;
+            }
+          }
         } else {
           // For subsequent items, increment at the current level
           // Ensure array is long enough for current level
@@ -81,12 +108,6 @@ export function orderedListSync(editor) {
 
         // Update the map
         listMap.set(numId, currentListLevels);
-
-        const {
-          lvlText,
-          customFormat,
-          listNumberingType
-        } = ListHelpers.getListDefinitionDetails({ numId, level, editor });
 
         // Update list attrs
         const updatedAttrs = {

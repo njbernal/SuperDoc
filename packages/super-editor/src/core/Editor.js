@@ -1,4 +1,4 @@
-import { EditorState, NodeSelection, TextSelection } from 'prosemirror-state';
+import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { DOMParser, DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
@@ -30,7 +30,9 @@ import { useHighContrastMode } from '../composables/use-high-contrast-mode.js';
 import { updateYdocDocxData } from '@extensions/collaboration/collaboration-helpers.js';
 import { setWordSelection } from './helpers/setWordSelection.js';
 import { setImageNodeSelection } from './helpers/setImageNodeSelection.js';
-import { migrateListsToV2IfNecessary } from '@core/migrations/0.14-listsv2/listsv2migration.js';
+import { migrateListsToV2IfNecessary, migrateParagraphFieldsListsV2 } from '@core/migrations/0.14-listsv2/listsv2migration.js';
+import { createLinkedChildEditor } from '@core/child-editor/index.js';
+import { unflattenListsInHtml } from './inputRules/html/html-helpers.js';
 
 /**
  * @typedef {Object} FieldValue
@@ -109,6 +111,7 @@ import { migrateListsToV2IfNecessary } from '@core/migrations/0.14-listsv2/lists
  * @property {Function} [onCollaborationReady] - Called when collaboration is ready
  * @property {Function} [onPaginationUpdate] - Called when pagination updates
  * @property {Function} [onException] - Called when an exception occurs
+ * @property {Function} [onListDefinitionsChange] - Called when list definitions change
  * @property {Function} [handleImageUpload] - Handler for image uploads
  * @property {Object} [telemetry] - Telemetry configuration
  * @property {boolean} [suppressDefaultDocxStyles] - Prevent default styles from being applied in docx mode
@@ -222,6 +225,7 @@ export class Editor extends EventEmitter {
     onCollaborationReady: () => null,
     onPaginationUpdate: () => null,
     onException: () => null,
+    onListDefinitionsChange: () => null,
     // async (file) => url;
     handleImageUpload: null,
 
@@ -230,6 +234,9 @@ export class Editor extends EventEmitter {
     
     // Docx xml updated by User
     customUpdatedFiles: {},
+    
+    isHeaderFooterChanged: false,
+    isCustomXmlChanged: false,
   };
 
   /**
@@ -258,6 +265,14 @@ export class Editor extends EventEmitter {
     const { setHighContrastMode } = useHighContrastMode();
     this.setHighContrastMode = setHighContrastMode;
     initMode();
+  }
+
+  /**
+   * Getter which indicates if any changes happen in Editor
+   * @returns {boolean}
+   */
+  get docChanged() {
+    return this.options.isHeaderFooterChanged || this.options.isCustomXmlChanged || !this.options.initialState.doc.eq(this.state.doc);
   }
 
   /**
@@ -307,9 +322,6 @@ export class Editor extends EventEmitter {
 
     this.mount(this.options.element);
 
-    // If we are running headless, we can stop here
-    if (this.options.isHeadless) return;
-
     this.on('create', this.options.onCreate);
     this.on('update', this.options.onUpdate);
     this.on('selectionUpdate', this.options.onSelectionUpdate);
@@ -325,19 +337,24 @@ export class Editor extends EventEmitter {
     this.on('collaborationReady', this.#onCollaborationReady);
     this.on('paginationUpdate', this.options.onPaginationUpdate);
     this.on('comment-positions', this.options.onCommentLocationsUpdate);
+    this.on('list-definitions-change', this.options.onListDefinitionsChange);
 
-    this.initializeCollaborationData();
-    this.initDefaultStyles();
+    if (!this.options.isHeadless) {
+      this.initializeCollaborationData();
+      this.initDefaultStyles();
+    };
 
-    setTimeout(() => {
-      this.setDocumentMode(this.options.documentMode);
-    }, 50)
+    if (!this.options.ydoc) this.migrateListsToV2();
+
+    this.setDocumentMode(this.options.documentMode);      
 
     // Init pagination only if we are not in collaborative mode. Otherwise
     // it will be in itialized via this.#onCollaborationReady
     if (!this.options.ydoc) {
-      this.initPagination();
-      this.#initComments();
+      if (!this.options.isChildEditor) {
+        this.initPagination();
+        this.#initComments();
+      }
     }
   }
 
@@ -372,7 +389,7 @@ export class Editor extends EventEmitter {
     this.on('commentsLoaded', this.options.onCommentsLoaded);
     this.on('commentClick', this.options.onCommentClicked);
     this.on('locked', this.options.onDocumentLocked);
-
+    this.on('list-definitions-change', this.options.onListDefinitionsChange);
   }
 
   mount(el) {
@@ -519,7 +536,7 @@ export class Editor extends EventEmitter {
    */
   setDocumentMode(documentMode) {
     let cleanedMode = documentMode?.toLowerCase() || 'editing';
-    if (!this.extensionService) return;
+    if (!this.extensionService || !this.state) return;
 
     if (this.options.role === 'viewer') cleanedMode = 'viewing';
     if (this.options.role === 'suggester' && cleanedMode === 'editing') cleanedMode = 'suggesting';
@@ -646,7 +663,7 @@ export class Editor extends EventEmitter {
    */
   #registerPluginByNameIfNotExists(name) {
     const plugin = this.extensionService?.plugins.find((p) => p.key.startsWith(name));
-    const hasPlugin = this.state.plugins.find((p) => p.key.startsWith(name));
+    const hasPlugin = this.state?.plugins?.find((p) => p.key.startsWith(name));
     if (plugin && !hasPlugin) this.registerPlugin(plugin);
     return plugin?.key;
   }
@@ -705,6 +722,7 @@ export class Editor extends EventEmitter {
    * @returns {void}
    */
   registerPlugin(plugin, handlePlugins) {
+    if (!this.state?.plugins) return;
     const plugins =
       typeof handlePlugins === 'function'
         ? handlePlugins(plugin, [...this.state.plugins])
@@ -954,11 +972,13 @@ export class Editor extends EventEmitter {
     // Only initialize the doc if we are not using Yjs/collaboration.
     const state = { schema: this.schema };
     if (!this.options.ydoc) state.doc = doc;
+    
+    this.options.initialState = EditorState.create(state);
 
     this.view = new EditorView(element, {
       ...this.options.editorProps,
       dispatchTransaction: this.#dispatchTransaction.bind(this),
-      state: EditorState.create(state),
+      state: this.options.initialState,
       handleClick: this.#handleNodeSelection.bind(this),
       handleDoubleClick: async (view, pos, event) => {
         // Prevent edits if editor is not editable
@@ -1199,6 +1219,7 @@ export class Editor extends EventEmitter {
 
     this.options.onCollaborationReady({ editor, ydoc });
     this.options.collaborationIsReady = true;
+    this.options.initialState = this.state;
 
     const { tr } = this.state;
     tr.setMeta('collaborationReady', true);
@@ -1353,9 +1374,6 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * Get the document as JSON.
-   */
-  /**
    * Get the editor content as JSON
    * @returns {Object} Editor content as JSON
    */
@@ -1364,23 +1382,32 @@ export class Editor extends EventEmitter {
   }
 
   /**
-   * Get HTML string of the document
-   */
-  /**
    * Get the editor content as HTML
    * @returns {string} Editor content as HTML
    */
-  getHTML() {
-    const div = document.createElement('div');
+  getHTML({ unflattenLists = false } = {}) {
+    const tempDocument = document.implementation.createHTMLDocument();
+    const container = tempDocument.createElement('div');
     const fragment = DOMSerializer.fromSchema(this.schema).serializeFragment(this.state.doc.content);
-
-    div.appendChild(fragment);
-    return div.innerHTML;
+    container.appendChild(fragment);
+    let html = container.innerHTML;
+    if (unflattenLists) {
+      html = unflattenListsInHtml(html);
+    }
+    return html;
   }
 
   /**
-   * Get page styles
+   * Create a child editor linked to this editor.
+   * This is useful for creating header/footer editors that are linked to the main editor.
+   * Or paragraph fields that rely on the same underlying document and list defintions
+   * @param {EditorOptions} options - Options for the child editor
+   * @returns {Editor} A new child editor instance linked to this editor
    */
+  createChildEditor(options) {
+    return createLinkedChildEditor(this, options);
+  }
+
   /**
    * Get page styles
    * @returns {Object} Page styles
@@ -1447,7 +1474,9 @@ export class Editor extends EventEmitter {
   }
 
   migrateListsToV2() {
-    return migrateListsToV2IfNecessary(this);
+    if (this.options.isHeaderOrFooter) return [];
+    const replacements = migrateListsToV2IfNecessary(this);
+    return replacements;
   }
 
   /**
@@ -1733,6 +1762,7 @@ export class Editor extends EventEmitter {
       const internalFileXml = this.converter.schemaToXml(updatedContent);
       this.options.customUpdatedFiles[name] = String(internalFileXml);
     }
+    this.options.isCustomXmlChanged = true;
   }
 
   /**
@@ -1775,7 +1805,18 @@ export class Editor extends EventEmitter {
   prepareForAnnotations(annotationValues = []) {
     const { tr } = this.state;
     const newTr = AnnotatorHelpers.processTables({ state: this.state, tr, annotationValues });
-    this.view.dispatch(newTr);  
+    this.view.dispatch(newTr);
+  }
+
+  /**
+   * Migrate paragraph fields to lists V2 structure if necessary.
+   * @param {FieldValue[]} annotationValues - List of field values to migrate.
+   * @returns {Promise<FieldValue[]>} - Returns a promise that resolves to the migrated
+   */
+  async migrateParagraphFields(annotationValues = []) {
+    if (!Array.isArray(annotationValues) || !annotationValues.length) return annotationValues;
+    const result = await migrateParagraphFieldsListsV2(annotationValues, this);
+    return result;
   }
 
   /**

@@ -1,11 +1,12 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
-import { Fragment, DOMParser } from 'prosemirror-model';
+import { Fragment, DOMParser as PMDOMParser } from 'prosemirror-model';
 import { CommandService } from './CommandService.js';
 import { chainableEditorState } from './helpers/chainableEditorState.js';
 import { getHTMLFromFragment } from './helpers/getHTMLFromFragment.js';
 import { getTextContentFromNodes } from './helpers/getTextContentFromNodes.js';
 import { isRegExp } from './utilities/isRegExp.js';
 import { handleDocxPaste } from './inputRules/docx-paste/docx-paste.js';
+import { flattenListsInHtml } from './inputRules/html/html-helpers.js';
 
 
 export class InputRule {
@@ -212,37 +213,18 @@ export const inputRulesPlugin = ({ editor, rules }) => {
       // Paste handler
       handlePaste(view, event, slice) {
         const clipboard = event.clipboardData;
-        const html = clipboard.getData("text/html");
-        const text = clipboard.getData("text/plain");
-        const fieldAnnotationContent = slice.content.content.filter((item) => item.type.name === 'fieldAnnotation');
+        const html = clipboard.getData('text/html');
+        const text = clipboard.getData('text/plain');
 
+        // Allow specialised plugins (e.g., field-annotation) first shot.
+        const fieldAnnotationContent = slice.content.content.filter(
+          (item) => item.type.name === 'fieldAnnotation',
+        );
         if (fieldAnnotationContent.length) {
-          // The paste event will be handled here.
-          // packages/super-editor/src/extensions/field-annotation/FieldAnnotationPlugin.js
           return false;
         }
 
-        let source;
-        if (!html) {
-          source = "plain-text";
-        } else if (isWordHtml(html)) {
-          source = "word-html";
-        } else {
-          source = "browser-html";
-        }
-
-        switch (source) {
-          case "plain-text":
-            break;
-          case "word-html":
-            if (editor.options.mode === "docx") {
-              return handleDocxPaste(html, editor, view, plugin);
-            }
-          case "browser-html":
-            return handleHtmlPaste(html, editor);
-        }
-
-        return false;
+        return handleClipboardPaste({ editor, view }, html, text);
       }
     },
 
@@ -251,7 +233,7 @@ export const inputRulesPlugin = ({ editor, rules }) => {
   return plugin;
 }
 
-function isWordHtml(html) {
+export function isWordHtml(html) {
   return /class=["']?Mso|xmlns:o=["']?urn:schemas-microsoft-com|<!--\[if gte mso|<meta[^>]+name=["']?Generator["']?[^>]+Word/i.test(html);
 }
 
@@ -262,10 +244,12 @@ function isWordHtml(html) {
  * @param {Editor} editor The editor instance.
  * @returns {Boolean} Returns true if the paste was handled.
  */
-const handleHtmlPaste = (html, editor) => {
-  const htmlWithPtSizing = convertEmToPt(html);
+export function handleHtmlPaste(html, editor) {
+  const flatHtml = flattenListsInHtml(html, editor);
+
+  const htmlWithPtSizing = convertEmToPt(flatHtml);
   const cleanedHtml = sanitizeHtml(htmlWithPtSizing);
-  const doc = DOMParser.fromSchema(editor.schema).parse(cleanedHtml);
+  const doc = PMDOMParser.fromSchema(editor.schema).parse(cleanedHtml);
 
   const { dispatch, state } = editor.view;
   if (!dispatch) return false;
@@ -351,4 +335,44 @@ export function sanitizeHtml(html, forbiddenTags = ['meta', 'svg', 'script', 'st
 
   walkAndClean(container);
   return container;
+}
+
+/**
+ * Reusable paste-handling utility that replicates the logic formerly held only
+ * inside the `inputRulesPlugin` paste handler. This allows other components
+ * (e.g. slash-menu items) to invoke the same paste logic without duplicating
+ * code.
+ *
+ * @param {Object}   params
+ * @param {Editor}   params.editor  The SuperEditor instance.
+ * @param {View}     params.view    The ProseMirror view associated with the editor.
+ * @param {String}   html           HTML clipboard content (may be empty).
+ * @param {String}   text           Plain text clipboard content (may be empty).
+ * @returns {Boolean}               Whether the paste was handled.
+ */
+export function handleClipboardPaste({ editor, view }, html, text) {
+  let source;
+  if (!html) {
+    source = 'plain-text';
+  } else if (isWordHtml(html)) {
+    source = 'word-html';
+  } else {
+    source = 'browser-html';
+  }
+
+  switch (source) {
+    case 'plain-text':
+      // Let native/plain text paste fall through so ProseMirror handles it.
+      // Will hit the Fallback when boolean is returned false
+      return false;
+    case 'word-html':
+      if (editor.options.mode === 'docx') {
+        return handleDocxPaste(html, editor, view);
+      }
+    // falls through to browser-html handling when not in DOCX mode
+    case 'browser-html':
+      return handleHtmlPaste(html, editor);
+  }
+
+  return false;
 }

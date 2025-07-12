@@ -472,6 +472,41 @@ export class SuperToolbar extends EventEmitter {
     },
 
     /**
+     * Toggles link formatting and updates cursor position
+     * @param {Object} params - Command parameters
+     * @param {CommandItem} params.item - The command item
+     * @param {*} params.argument - Command arguments
+     * @returns {void}
+     */
+    toggleLink: ({ item, argument }) => {
+      let command = item.command;
+
+      if (command in this.activeEditor.commands) {
+        this.activeEditor.commands[command](argument);
+
+        // move cursor to end
+        const { view } = this.activeEditor;
+        let { selection } = view.state;
+        if (this.activeEditor.options.isHeaderOrFooter) {
+          selection = this.activeEditor.options.lastSelection;
+        }
+        const endPos = selection.$to.pos;
+        
+        const newSelection = new TextSelection(view.state.doc.resolve(endPos));
+        const tr = view.state.tr.setSelection(newSelection);
+        const state = view.state.apply(tr);
+        view.updateState(state);
+
+        if (!this.activeEditor.options.isHeaderOrFooter) {
+          setTimeout(() => {
+            view.focus();
+          }, 100);
+        }
+      }
+      this.updateToolbarState();
+    },
+
+    /**
      * Inserts a table into the document
      * @param {Object} params - Command parameters
      * @param {CommandItem} params.item - The command item
@@ -719,6 +754,14 @@ export class SuperToolbar extends EventEmitter {
 
       if (item.name.value === 'tableActions') {
         item.disabled.value = !inTable;
+      }
+
+      // Activate list buttons when selections is inside list
+      const listNumberingType = marks.find((mark) => mark.name === 'listNumberingType')?.attrs?.listNumberingType;
+      if (item.name.value === 'list' && listNumberingType === 'bullet') {
+        item.activate();
+      } else if (item.name.value === 'numberedlist' && listNumberingType && listNumberingType !== 'bullet') {
+        item.activate();
       }
     });
   }

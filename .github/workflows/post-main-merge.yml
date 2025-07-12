@@ -18,6 +18,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.SUPERDOC_PAT }}
 
       - name: Fetch develop branch
         run: git fetch origin develop:develop

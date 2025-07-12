@@ -21,6 +21,9 @@ import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-l
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
 import { sanitizeHtml } from '../InputRule.js';
+import { ListHelpers } from '@helpers/list-numbering-helpers.js';
+import { flattenListsInHtml } from '@core/inputRules/html/html-helpers.js';
+
 
 /**
  * @typedef {Object} ExportParams
@@ -776,10 +779,19 @@ function addNewImageRelationship(params, imagePath) {
  * @returns {XmlReadyNode} The translated list node
  */
 function translateList(params) {
-  const { node } = params;
+  const { node, editor } = params;
 
   const listItem = node.content[0];
   const { numId, level } = listItem.attrs;
+  const listType = node.type.name;
+  const listDef = ListHelpers.getListDefinitionDetails({ numId, level, listType, editor });
+  if (!listDef) {
+    ListHelpers.generateNewListDefinition({
+      numId,
+      listType,
+      editor,
+    })
+  }
 
   let numPrTag;
 
@@ -788,8 +800,11 @@ function translateList(params) {
     numPrTag = generateNumPrTag(numId, level);
   };
 
-  const paragraphNode = node.content[0]?.content[0];
-  const outputNode = exportSchemaToJson({ ...params, node: paragraphNode });
+  // Collapse multiple paragraphs into a single node for this list item
+  // In docx we need a single paragraph, but can include line breaks in a run
+  const collapsedParagraphNode = convertMultipleListItemsIntoSingleNode(listItem);
+
+  const outputNode = exportSchemaToJson({ ...params, node: collapsedParagraphNode });
   const pPr = outputNode.elements?.find((n) => n.name === 'w:pPr');
   if (pPr && pPr.elements && numPrTag) pPr.elements.unshift(numPrTag);
 
@@ -808,6 +823,50 @@ function translateList(params) {
   }
 
   return [outputNode];
+};
+
+/**
+ * Convert multiple list items into a single paragraph node
+ * This is necessary because in docx, a list item can only have one paragraph,
+ * but in PM, a list item can have multiple paragraphs.
+ * @param {SchemaNode} listItem The list item node to convert
+ * @returns {XmlReadyNode|null} The collapsed paragraph node or null if no content
+ */
+const convertMultipleListItemsIntoSingleNode = (listItem) => {
+  const { content } = listItem;
+  
+  if (!content || content.length === 0) {
+    return null;
+  }
+
+  const firstParagraph = content[0];
+  const collapsedParagraph = {
+    ...firstParagraph,
+    content: []
+  };
+
+  // Collapse all paragraphs into a single paragraph node
+  content.forEach((item, index) => {
+    if (item.type === 'paragraph') {
+      if (index > 0) {
+        collapsedParagraph.content.push({
+          type: 'lineBreak',
+          attrs: {},
+          content: []
+        });
+      }
+      
+      // Add all text nodes and other content directly from this paragraph
+      if (item.content && item.content.length > 0) {
+        collapsedParagraph.content.push(...item.content);
+      }
+    } else {
+      // For non-paragraph items, add them directly
+      collapsedParagraph.content.push(item);
+    }
+  });
+
+  return collapsedParagraph;
 };
 
 const restoreIndent = (indent) => {
@@ -1672,6 +1731,7 @@ function translateImageNode(params, imageSize) {
   
   const src = attrs.src || attrs.imageSrc;
   const { originalWidth, originalHeight } = getPngDimensions(src);
+  const imageName = params.node.type === 'image' ? src?.split('word/media/')[1] : attrs.fieldId?.replace('-', '_');
   
   let size = attrs.size
     ? {
@@ -1708,12 +1768,10 @@ function translateImageNode(params, imageSize) {
       return prepareTextAnnotation(params);
     }
     
-    const hash = generateDocxRandomId(4);
-    const cleanUrl = attrs.fieldId.replace('-', '_');
-    const imageUrl = `media/${cleanUrl}_${hash}.${type}`;
+    const imageUrl = `media/${imageName}_${attrs.hash}.${type}`;
 
     imageId = addNewImageRelationship(params, imageUrl);
-    params.media[`${cleanUrl}_${hash}.${type}`] = src;
+    params.media[`${imageName}_${attrs.hash}.${type}`] = src;
   }
 
   let inlineAttrs = attrs.originalPadding || {
@@ -1848,8 +1906,7 @@ function translateImageNode(params, imageSize) {
               name: 'wp:docPr',
               attributes: {
                 id: attrs.id || 0,
-                name: attrs.alt,
-                descr: attrs.title,
+                name: attrs.alt || `Picture ${imageName}`,
               },
             },
             {
@@ -1883,7 +1940,7 @@ function translateImageNode(params, imageSize) {
                               name: 'pic:cNvPr',
                               attributes: {
                                 id: attrs.id || 0,
-                                name: attrs.title,
+                                name: attrs.title || `Picture ${imageName}`,
                               },
                             },
                             {
@@ -2143,8 +2200,6 @@ function translateFieldAnnotation(params) {
     }
   }
   sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
-
-  const customXmlns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
   // Contains only the main attributes.
   const annotationAttrs = {

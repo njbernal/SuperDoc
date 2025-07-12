@@ -56,6 +56,7 @@ const init = async () => {
     annotations: true,
     isInternal,
     telemetry: false,
+    // disableContextMenu: true,
     // format: 'docx',
     // html: '<p>Hello world</p>',
     // isDev: true,
@@ -161,6 +162,7 @@ const exportDocxBlob = async () => {
 
 const onEditorCreate = ({ editor }) => {
   activeEditor.value = editor;
+  window.editor = editor;
 
   editor.on('fieldAnnotationClicked', (params) => {
     console.log('fieldAnnotationClicked', { params });

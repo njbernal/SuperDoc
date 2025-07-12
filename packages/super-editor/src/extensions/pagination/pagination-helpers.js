@@ -134,9 +134,12 @@ export const createHeaderFooterEditor = ({
     annotations: true,
     currentPageNumber,
     parentEditor: editor,
+    editable: false,
+    documentMode: 'viewing',
     onCreate: (evt) => setEditorToolbar(evt, editor),
     onBlur: (evt) => onHeaderFooterDataUpdate(evt, editor, sectionId, type),
   });
+  headerFooterEditor.setEditable(false, false);
 
   const pm = editorContainer.querySelector('.ProseMirror');
   if (pm) {
@@ -211,6 +214,7 @@ export const onHeaderFooterDataUpdate = async ({ editor, transaction }, mainEdit
     });
   });
   mainEditor.converter[`${type}s`][sectionId] = updatedData;
+  mainEditor.setOptions({ isHeaderFooterChanged: editor.docChanged });
 
   await updateYdocDocxData(mainEditor);
 };
