@@ -134,7 +134,7 @@ export class FieldAnnotationView {
 
   buildHTMLView() {
     let { displayLabel, rawHtml } = this.node.attrs;
-  
+
     if (!this.editor.options.isHeadless && !!rawHtml) {
       try {
         const tempDiv = document.createElement('div');
@@ -327,4 +327,3 @@ export class FieldAnnotationView {
     });
   }
 }
-
