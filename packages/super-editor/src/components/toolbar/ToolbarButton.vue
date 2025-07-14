@@ -50,7 +50,6 @@ const {
   minWidth,
   style,
   attributes,
-  getActiveEditor,
 } = props.toolbarItem;
 
 const inlineTextInput = ref(label);
@@ -59,14 +58,9 @@ const { isHighContrastMode } = useHighContrastMode();
 
 const handleClick = () => {
   if (hasInlineTextInput) {
-    
-    const editor = getActiveEditor();
-    const selection = editor ? editor.view.state.selection : null;
     nextTick(() => {
       inlineInput.value?.focus();
       inlineInput.value?.select();
-
-      if (editor) editor.toggleCustomSelectionDecorations(selection);
     });
   }
   emit('buttonClick');

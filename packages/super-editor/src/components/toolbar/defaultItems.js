@@ -132,7 +132,6 @@ export const makeDefaultItems = ({
     suppressActiveHighlight: true,
     isWide: true,
     command: 'setFontSize',
-    getActiveEditor: () => superToolbar.activeEditor,
     attributes: {
       ariaLabel: 'Font size',
     },
