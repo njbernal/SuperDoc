@@ -1,5 +1,64 @@
 # Changelog
 
+## [0.14.10](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-15)
+
+
+
+## [0.14.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-04)
+
+
+
+## [0.14.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-04)
+
+
+
+## [0.14.7](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-03)
+
+
+### Bug Fixes
+
+* removed document lock listener ([0cd62b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/0cd62b473d9ad4df748d9c708dd1112ef3e68b81))
+
+
+
+## [0.14.6](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-03)
+
+
+
+## [0.14.5](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-03)
+
+
+
+## [0.14.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-02)
+
+
+
+## [0.14.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-02)
+
+
+
+## [0.14.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-01)
+
+
+
+## [0.14.1](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-01)
+
+
+
+## [0.13.4](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-06-20)
+
+
+
+## [0.13.3](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-06-17)
+
+
+
+## [0.13.2](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-06-16)
+
+
+
+## [0.12.36](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-06-10)
+
 ## [0.14.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.8...v0.14.9) (2025-07-04)
 
 ## [0.14.8](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.8-next.2...v0.14.8) (2025-07-04)
