@@ -50,10 +50,10 @@ export function parseMarks(property, unknownMarks = [], docx = null) {
       // Marks with attrs: we need to get their values
       if (Object.keys(attributes).length) {
         const value = getMarkValue(m.type, attributes, docx);
-        
+
         // If there is no value for mark it can't be applied
         if (value === null || value === undefined) return;
-        
+
         newMark.attrs = {};
         newMark.attrs[m.property] = value;
       }
@@ -163,7 +163,6 @@ function getFontFamilyValue(attributes, docx) {
   const latin = majorFont.elements.find((el) => el.name === 'a:latin');
   const typeface = latin.attributes['typeface'];
   return typeface;
-
 }
 
 function getIndentValue(attributes) {
@@ -181,7 +180,7 @@ function getLineHeightValue(attributes) {
   // if (!value) value = attributes['w:after'];
   // if (!value) value = attributes['w:before'];
   if (!value || value === '0') return null;
-  
+
   if (lineRule === 'exact') return `${twipsToPt(value)}pt`;
   return `${twipsToLines(value)}`;
 }

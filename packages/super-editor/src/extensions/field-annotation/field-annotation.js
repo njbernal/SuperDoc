@@ -1,7 +1,11 @@
 import { Node, Attribute } from '@core/index.js';
 import { FieldAnnotationView } from './FieldAnnotationView.js';
 import { FieldAnnotationPlugin } from './FieldAnnotationPlugin.js';
-import { findFieldAnnotationsByFieldId, getAllFieldAnnotations, findFieldAnnotationsBetween } from './fieldAnnotationHelpers/index.js';
+import {
+  findFieldAnnotationsByFieldId,
+  getAllFieldAnnotations,
+  findFieldAnnotationsBetween,
+} from './fieldAnnotationHelpers/index.js';
 import { toHex } from 'color2k';
 import { parseSizeUnit, minMax } from '@core/utilities/index.js';
 import { NodeSelection, Selection } from 'prosemirror-state';
@@ -28,7 +32,7 @@ export const FieldAnnotation = Node.create({
     return {
       htmlAttributes: {
         class: annotationClass,
-        'aria-label': 'Field annotation node'
+        'aria-label': 'Field annotation node',
       },
       annotationClass,
       annotationContentClass,
@@ -293,7 +297,7 @@ export const FieldAnnotation = Node.create({
         default: null,
         parseDOM: (element) => element.getAttribute('data-text-highlight'),
         renderDOM: (attrs) => {
-          if (!attrs.textHighlight)  return {};
+          if (!attrs.textHighlight) return {};
           return {
             'data-text-highlight': attrs.textHighlight,
             // takes precedence over the fieldColor.
@@ -306,7 +310,7 @@ export const FieldAnnotation = Node.create({
         default: null,
         parseDOM: (element) => element.getAttribute('data-text-color'),
         renderDOM: (attrs) => {
-          if (!attrs.textColor)  return {};
+          if (!attrs.textColor) return {};
           return {
             'data-text-color': attrs.textColor,
             style: `color: ${attrs.textColor}`,
@@ -323,7 +327,7 @@ export const FieldAnnotation = Node.create({
       hash: {
         rendered: false,
         default: null,
-      }
+      },
     };
   },
 
@@ -450,21 +454,21 @@ export const FieldAnnotation = Node.create({
             let formatAttrs = getFormatAttrsFromMarks(currentMarks);
             ///
 
-            let defaultDisplayLabel = attrs.defaultDisplayLabel 
-              ? attrs.defaultDisplayLabel 
-              : (attrs.displayLabel || '');
+            let defaultDisplayLabel = attrs.defaultDisplayLabel ? attrs.defaultDisplayLabel : attrs.displayLabel || '';
 
             attrs.hash = generateDocxRandomId(4);
 
-            let node = schema.nodes[this.name].create({ 
-              ...attrs, 
-              ...formatAttrs, 
-              defaultDisplayLabel, 
-            }, null, null);
+            let node = schema.nodes[this.name].create(
+              {
+                ...attrs,
+                ...formatAttrs,
+                defaultDisplayLabel,
+              },
+              null,
+              null,
+            );
 
-            state.tr
-              .insert(newPos, node)
-              .setSelection(Selection.near(tr.doc.resolve(newPos + node.nodeSize)));
+            state.tr.insert(newPos, node).setSelection(Selection.near(tr.doc.resolve(newPos + node.nodeSize)));
 
             if (editorFocus) {
               this.editor.view.focus();
@@ -506,16 +510,18 @@ export const FieldAnnotation = Node.create({
             let newPosFrom = tr.mapping.map(from);
             let newPosTo = tr.mapping.map(to);
 
-            let defaultDisplayLabel = attrs.defaultDisplayLabel 
-              ? attrs.defaultDisplayLabel 
-              : (attrs.displayLabel || '');
+            let defaultDisplayLabel = attrs.defaultDisplayLabel ? attrs.defaultDisplayLabel : attrs.displayLabel || '';
 
             attrs.hash = generateDocxRandomId(4);
 
-            let node = schema.nodes[this.name].create({ 
-              ...attrs,
-              defaultDisplayLabel, 
-            }, null, null);
+            let node = schema.nodes[this.name].create(
+              {
+                ...attrs,
+                defaultDisplayLabel,
+              },
+              null,
+              null,
+            );
 
             tr.replaceWith(newPosFrom, newPosTo, node);
           });
@@ -537,7 +543,7 @@ export const FieldAnnotation = Node.create({
             isInSelection: true,
           });
         },
-      
+
       /**
        * Replace annotations with a label (as text node).
        * @param fieldIdOrArray The field ID or array of field IDs.
@@ -548,22 +554,16 @@ export const FieldAnnotation = Node.create({
        * editor.commands.replaceFieldAnnotationsWithLabel(['1', '2'])
        */
       replaceFieldAnnotationsWithLabel:
-        (fieldIdOrArray, {
-          isInSelection = false,
-          addToHistory = false,
-          types = annotationTypes,
-        } = {}) =>
+        (fieldIdOrArray, { isInSelection = false, addToHistory = false, types = annotationTypes } = {}) =>
         ({ dispatch, state, tr }) => {
           let { from, to } = state.selection;
 
-          let annotations = isInSelection 
-            ? findFieldAnnotationsBetween(from, to, state.doc) 
+          let annotations = isInSelection
+            ? findFieldAnnotationsBetween(from, to, state.doc)
             : findFieldAnnotationsByFieldId(fieldIdOrArray, state);
 
-          annotations = types.length 
-            ? annotations.filter(({ node }) => types.includes(node.attrs.type))
-            : annotations;
-                        
+          annotations = types.length ? annotations.filter(({ node }) => types.includes(node.attrs.type)) : annotations;
+
           if (!annotations.length) {
             return true;
           }
@@ -597,7 +597,7 @@ export const FieldAnnotation = Node.create({
 
           return true;
         },
-      
+
       /**
        * Resets all annotations to default values.
        * @example
@@ -694,7 +694,7 @@ export const FieldAnnotation = Node.create({
                 newTr.setMeta('forceUpdatePagination', true);
                 this.editor.view.dispatch(newTr);
               }, 50);
-            };
+            }
             return true;
           }
 
@@ -804,7 +804,7 @@ export const FieldAnnotation = Node.create({
               tr.delete(newPosFrom, newPosTo);
             }
           }
-          
+
           return true;
         },
 
@@ -972,148 +972,150 @@ export const FieldAnnotation = Node.create({
           return true;
         },
 
-        /// Formatting commands for y-prosemirror support.
-        toggleFieldAnnotationsFormat:
-          (name, setSelection = false) =>
-          ({ dispatch, tr, state, commands }) => {
-            let formats = this.options.toggleFormatNames;
+      /// Formatting commands for y-prosemirror support.
+      toggleFieldAnnotationsFormat:
+        (name, setSelection = false) =>
+        ({ dispatch, tr, state, commands }) => {
+          let formats = this.options.toggleFormatNames;
 
-            if (!formats.includes(name)) {
-              return false;
-            }
+          if (!formats.includes(name)) {
+            return false;
+          }
 
-            let { from, to, node } = state.selection;
-            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+          let { from, to, node } = state.selection;
+          let annotations = findFieldAnnotationsBetween(from, to, state.doc);
 
-            if (!annotations.length) {
-              return true;
-            }
-
-            if (dispatch) {
-              annotations.forEach((annotation) => {
-                commands.updateFieldAnnotationsAttributes([annotation], {
-                  [name]: !annotation.node.attrs[name],
-                });
-              });
-
-              if (setSelection && node?.type.name === this.name) {
-                tr.setSelection(NodeSelection.create(tr.doc, from));
-              }
-            }
-
+          if (!annotations.length) {
             return true;
-          },
+          }
 
-        setFieldAnnotationsFontFamily: 
-          (fontFamily, setSelection = false) =>
-          ({ dispatch, tr, state, commands }) => {
-            let { from, to, node } = state.selection;
-            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
-
-            if (!annotations.length) {
-              return true;
-            }
-
-            if (dispatch) {
-              annotations.forEach((annotation) => {
-                commands.updateFieldAnnotationsAttributes([annotation], {
-                  fontFamily,
-                });
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              commands.updateFieldAnnotationsAttributes([annotation], {
+                [name]: !annotation.node.attrs[name],
               });
+            });
 
-              if (setSelection && node?.type.name === this.name) {
-                tr.setSelection(NodeSelection.create(tr.doc, from));
-              }
+            if (setSelection && node?.type.name === this.name) {
+              tr.setSelection(NodeSelection.create(tr.doc, from));
             }
+          }
 
+          return true;
+        },
+
+      setFieldAnnotationsFontFamily:
+        (fontFamily, setSelection = false) =>
+        ({ dispatch, tr, state, commands }) => {
+          let { from, to, node } = state.selection;
+          let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+          if (!annotations.length) {
             return true;
-          },
+          }
 
-        setFieldAnnotationsFontSize:
-          (fontSize, setSelection = false) =>
-          ({ dispatch, tr, state, commands }) => {
-            let { from, to, node } = state.selection;
-            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
-
-            if (!annotations.length) {
-              return true;
-            }
-
-            let [value, unit] = parseSizeUnit(fontSize);
-            let min = 8, max = 96, defaultUnit = 'pt';
-  
-            if (Number.isNaN(value)) {
-              return false;
-            }
-
-            value = minMax(value, min, max);
-            unit = unit ? unit : defaultUnit;
-
-            if (dispatch) {
-              annotations.forEach((annotation) => {
-                commands.updateFieldAnnotationsAttributes([annotation], {
-                  fontSize: `${value}${unit}`,
-                });
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              commands.updateFieldAnnotationsAttributes([annotation], {
+                fontFamily,
               });
+            });
 
-              if (setSelection && node?.type.name === this.name) {
-                tr.setSelection(NodeSelection.create(tr.doc, from));
-              }
+            if (setSelection && node?.type.name === this.name) {
+              tr.setSelection(NodeSelection.create(tr.doc, from));
             }
+          }
 
+          return true;
+        },
+
+      setFieldAnnotationsFontSize:
+        (fontSize, setSelection = false) =>
+        ({ dispatch, tr, state, commands }) => {
+          let { from, to, node } = state.selection;
+          let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+          if (!annotations.length) {
             return true;
-          },
+          }
 
-        setFieldAnnotationsTextHighlight: 
-          (color, setSelection = false) =>
-          ({ dispatch, tr, state, commands }) => {
-            let { from, to, node } = state.selection;
-            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+          let [value, unit] = parseSizeUnit(fontSize);
+          let min = 8,
+            max = 96,
+            defaultUnit = 'pt';
 
-            if (!annotations.length) {
-              return true;
-            }
+          if (Number.isNaN(value)) {
+            return false;
+          }
 
-            if (dispatch) {
-              annotations.forEach((annotation) => {
-                commands.updateFieldAnnotationsAttributes([annotation], {
-                  textHighlight: color,
-                });
+          value = minMax(value, min, max);
+          unit = unit ? unit : defaultUnit;
+
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              commands.updateFieldAnnotationsAttributes([annotation], {
+                fontSize: `${value}${unit}`,
               });
+            });
 
-              if (setSelection && node?.type.name === this.name) {
-                tr.setSelection(NodeSelection.create(tr.doc, from));
-              }
+            if (setSelection && node?.type.name === this.name) {
+              tr.setSelection(NodeSelection.create(tr.doc, from));
             }
+          }
 
+          return true;
+        },
+
+      setFieldAnnotationsTextHighlight:
+        (color, setSelection = false) =>
+        ({ dispatch, tr, state, commands }) => {
+          let { from, to, node } = state.selection;
+          let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+          if (!annotations.length) {
             return true;
-          },
-        
-        setFieldAnnotationsTextColor: 
-          (color, setSelection = false) =>
-          ({ dispatch, tr, state, commands }) => {
-            let { from, to, node } = state.selection;
-            let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+          }
 
-            if (!annotations.length) {
-              return true;
-            }
-
-            if (dispatch) {
-              annotations.forEach((annotation) => {
-                commands.updateFieldAnnotationsAttributes([annotation], { 
-                  textColor: color,
-                });
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              commands.updateFieldAnnotationsAttributes([annotation], {
+                textHighlight: color,
               });
+            });
 
-              if (setSelection && node?.type.name === this.name) {
-                tr.setSelection(NodeSelection.create(tr.doc, from));
-              }
+            if (setSelection && node?.type.name === this.name) {
+              tr.setSelection(NodeSelection.create(tr.doc, from));
             }
+          }
 
+          return true;
+        },
+
+      setFieldAnnotationsTextColor:
+        (color, setSelection = false) =>
+        ({ dispatch, tr, state, commands }) => {
+          let { from, to, node } = state.selection;
+          let annotations = findFieldAnnotationsBetween(from, to, state.doc);
+
+          if (!annotations.length) {
             return true;
-          },
-        /// Formatting commands - end.
+          }
+
+          if (dispatch) {
+            annotations.forEach((annotation) => {
+              commands.updateFieldAnnotationsAttributes([annotation], {
+                textColor: color,
+              });
+            });
+
+            if (setSelection && node?.type.name === this.name) {
+              tr.setSelection(NodeSelection.create(tr.doc, from));
+            }
+          }
+
+          return true;
+        },
+      /// Formatting commands - end.
     };
   },
 
