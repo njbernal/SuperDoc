@@ -1,5 +1,19 @@
 # Changelog
 
+## <small>0.14.13 (2025-07-16)</small>
+
+- chore: bump version → 0.14.12-next.0 ([75c4ef4](https://github.com/Harbour-Enterprises/SuperDoc/commit/75c4ef4))
+- chore: manually update package version ([f45bdcd](https://github.com/Harbour-Enterprises/SuperDoc/commit/f45bdcd))
+- chore: re-add table actions button to default buttons in toolbar ([f70ac8c](https://github.com/Harbour-Enterprises/SuperDoc/commit/f70ac8c))
+- chore: release v0.14.12-next.1 [skip ci] ([62d45af](https://github.com/Harbour-Enterprises/SuperDoc/commit/62d45af))
+- chore: release v0.14.12-next.2 [skip ci] ([503ccc2](https://github.com/Harbour-Enterprises/SuperDoc/commit/503ccc2))
+- chore: release v0.14.12-next.4 [skip ci] ([2ea4054](https://github.com/Harbour-Enterprises/SuperDoc/commit/2ea4054))
+- chore: release v0.14.12-next.5 [skip ci] ([327ae1b](https://github.com/Harbour-Enterprises/SuperDoc/commit/327ae1b))
+- HAR-10020 Fix word selection on double click ([eb60f61](https://github.com/Harbour-Enterprises/SuperDoc/commit/eb60f61))
+- HAR-10078 Set custom text selection when default can't be applied ([8147689](https://github.com/Harbour-Enterprises/SuperDoc/commit/8147689))
+- update selection approach ([5de55f2](https://github.com/Harbour-Enterprises/SuperDoc/commit/5de55f2))
+- update table cellMinWidth ([a8551ac](https://github.com/Harbour-Enterprises/SuperDoc/commit/a8551ac))
+
 ## <small>0.14.12 (2025-07-16)</small>
 
 - chore: fix github release for latest ([66aec83](https://github.com/Harbour-Enterprises/SuperDoc/commit/66aec83))
