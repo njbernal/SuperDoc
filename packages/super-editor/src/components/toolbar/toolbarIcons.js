@@ -91,4 +91,4 @@ export const toolbarIcons = {
   copy: copyIconSvg,
   paste: pasteIconSvg,
   strikethrough: strikethroughSvg,
-}
+};
