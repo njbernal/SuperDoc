@@ -2,6 +2,14 @@
 
 ## <small>0.14.14 (2025-07-16)</small>
 
+- chore: bump version → 0.14.13-next.0 ([e29702b](https://github.com/Harbour-Enterprises/SuperDoc/commit/e29702b))
+- chore: changes to release-it config ([301c3b0](https://github.com/Harbour-Enterprises/SuperDoc/commit/301c3b0))
+- chore: release v0.14.13-next.1 [skip ci] ([a5400ca](https://github.com/Harbour-Enterprises/SuperDoc/commit/a5400ca))
+- chore: release v0.14.13-next.2 [skip ci] ([194d95d](https://github.com/Harbour-Enterprises/SuperDoc/commit/194d95d))
+- chore: release v0.14.14 [skip ci] ([6dda18d](https://github.com/Harbour-Enterprises/SuperDoc/commit/6dda18d))
+
+## <small>0.14.14 (2025-07-16)</small>
+
 ## <small>0.14.13 (2025-07-16)</small>
 
 - chore: bump version → 0.14.12-next.0 ([75c4ef4](https://github.com/Harbour-Enterprises/SuperDoc/commit/75c4ef4))
