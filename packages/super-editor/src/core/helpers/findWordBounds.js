@@ -53,6 +53,6 @@ export const findWordBounds = (doc, pos) => {
     from = $pos.start() + nodeStart + start;
     to = $pos.start() + nodeStart + end;
   }
-  
+
   return { from, to };
 };
