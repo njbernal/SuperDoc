@@ -1,5 +1,7 @@
 # Changelog
 
+## <small>0.14.14 (2025-07-16)</small>
+
 ## <small>0.14.13 (2025-07-16)</small>
 
 - chore: bump version → 0.14.12-next.0 ([75c4ef4](https://github.com/Harbour-Enterprises/SuperDoc/commit/75c4ef4))

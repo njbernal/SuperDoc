@@ -1,4 +1,5 @@
 {
+  "dryRun": true,
   "git": {
     "commitMessage": "chore: release v${version} [skip ci]",
     "tagName": "v${version}",
@@ -6,19 +7,11 @@
     "push": true,
     "requireCleanWorkingDir": false
   },
-  "npm": {
-    "publish": true,
-    "skipChecks": true
-  },
   "plugins": {
     "@release-it/conventional-changelog": {
       "preset": "angular",
       "infile": "CHANGELOG.md"
     }
-  },
-  "hooks": {
-    "after:bump": ["npm run build"],
-    "after:release": "echo Successfully released v${version}"
   },
   "github": {
     "release": true,
