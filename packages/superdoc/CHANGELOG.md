@@ -1,5 +1,57 @@
 # Changelog
 
+## <small>0.14.11 (2025-07-16)</small>
+
+- chore: release v0.14.11-next.7 [skip ci] ([7e7ec71](https://github.com/Harbour-Enterprises/SuperDoc/commit/7e7ec71))
+- chore: update next release-it config ([cb493ec](https://github.com/Harbour-Enterprises/SuperDoc/commit/cb493ec))
+
+## <small>0.14.10 (2025-07-15)</small>
+
+- chore: release v0.14.10 [skip ci] ([e1a8edf](https://github.com/Harbour-Enterprises/SuperDoc/commit/e1a8edf))
+- Releases/v0.14.9 (#645) ([ce9fe79](https://github.com/Harbour-Enterprises/SuperDoc/commit/ce9fe79)), closes [#645](https://github.com/Harbour-Enterprises/SuperDoc/issues/645) [#653](https://github.com/Harbour-Enterprises/SuperDoc/issues/653)
+- Strikethrough toolbar item fix (#658) ([82a784a](https://github.com/Harbour-Enterprises/SuperDoc/commit/82a784a)), closes [#658](https://github.com/Harbour-Enterprises/SuperDoc/issues/658)
+- Update version ([a53bfe2](https://github.com/Harbour-Enterprises/SuperDoc/commit/a53bfe2))
+
+## <small>0.14.9 (2025-07-04)</small>
+
+- chore: release v0.14.9 [skip ci] ([f53e688](https://github.com/Harbour-Enterprises/SuperDoc/commit/f53e688))
+- Fix element mount for migrateParagraphFieldsListsV2 ([732a314](https://github.com/Harbour-Enterprises/SuperDoc/commit/732a314))
+
+## <small>0.14.8 (2025-07-04)</small>
+
+- chore: release v0.14.8 [skip ci] ([63a57ef](https://github.com/Harbour-Enterprises/SuperDoc/commit/63a57ef))
+
+## <small>0.14.7 (2025-07-03)</small>
+
+- chore: release v0.14.7 [skip ci] ([5b0beb3](https://github.com/Harbour-Enterprises/SuperDoc/commit/5b0beb3))
+- fix: removed document lock listener ([0cd62b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/0cd62b4))
+
+## <small>0.14.6 (2025-07-03)</small>
+
+- chore: release v0.14.6 [skip ci] ([201ff87](https://github.com/Harbour-Enterprises/SuperDoc/commit/201ff87))
+
+## <small>0.14.5 (2025-07-03)</small>
+
+- chore: release v0.14.5 [skip ci] ([5a3b5e9](https://github.com/Harbour-Enterprises/SuperDoc/commit/5a3b5e9))
+
+## <small>0.14.4 (2025-07-02)</small>
+
+- chore: release v0.14.4 [skip ci] ([0de3757](https://github.com/Harbour-Enterprises/SuperDoc/commit/0de3757))
+
+## <small>0.14.3 (2025-07-02)</small>
+
+- chore: release v0.14.3 [skip ci] ([a613dab](https://github.com/Harbour-Enterprises/SuperDoc/commit/a613dab))
+
+## <small>0.14.2 (2025-07-01)</small>
+
+- chore: release v0.14.2 [skip ci] ([3c1240f](https://github.com/Harbour-Enterprises/SuperDoc/commit/3c1240f))
+- Bump patch ([38e54b4](https://github.com/Harbour-Enterprises/SuperDoc/commit/38e54b4))
+
+## <small>0.14.1 (2025-07-01)</small>
+
+- chore: release v0.14.1 [skip ci] ([a599c1a](https://github.com/Harbour-Enterprises/SuperDoc/commit/a599c1a))
+- Clean up and increase version to 0.14.0 ([fbd3d42](https://github.com/Harbour-Enterprises/SuperDoc/commit/fbd3d42))
+
 ## [0.14.10](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-15)
 
 ## [0.14.9](https://github.com/Harbour-Enterprises/SuperDoc/compare/v0.14.9-next.15...v0.14.10) (2025-07-04)
