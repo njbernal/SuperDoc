@@ -9,9 +9,9 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/superdoc.es.js",
-      "require": "./dist/superdoc.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/superdoc.cjs"
     },
     "./converter": {
       "import": "./dist/super-editor/converter.es.js"
@@ -20,9 +20,9 @@
       "import": "./dist/super-editor/docx-zipper.es.js"
     },
     "./super-editor": {
+      "types": "./dist/super-editor/index.d.ts",
       "import": "./dist/super-editor.es.js",
-      "require": "./dist/super-editor.cjs",
-      "types": "./dist/super-editor/index.d.ts"
+      "require": "./dist/super-editor.cjs"
     },
     "./super-editor/style.css": {
       "import": "./dist/super-editor/style.css"
@@ -35,9 +35,9 @@
     },
     "./style.css": "./dist/style.css"
   },
+  "types": "./dist/index.d.ts",
   "main": "./dist/superdoc.umd.js",
   "module": "./dist/superdoc.es.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "cd ../super-editor && npm run build && cd ../superdoc && vite build && tsc && npm run build:umd",

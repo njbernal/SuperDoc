@@ -1,7 +1,3 @@
-// TODO: side-effect with styles
-import '../style.css';
-import '@harbour-enterprises/super-editor/style.css';
-
 import { EventEmitter } from 'eventemitter3';
 import { v4 as uuidv4 } from 'uuid';
 import { HocuspocusProviderWebsocket } from '@hocuspocus/provider';

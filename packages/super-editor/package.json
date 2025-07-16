@@ -8,8 +8,8 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/super-editor.es.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/super-editor.es.js"
     },
     "./converter": {
       "import": "./dist/converter.es.js"
@@ -88,6 +88,7 @@
     "tippy.js": "^6.3.7",
     "typescript": "^5.7.3",
     "vite": "^6.3.5",
+    "vite-plugin-node-polyfills": "^0.24.0",
     "vitest": "^3.2.4",
     "vue-draggable-next": "^2.2.1",
     "which": "^5.0.0"
