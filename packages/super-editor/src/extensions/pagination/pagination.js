@@ -427,16 +427,20 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
   doc.descendants((node, pos) => {
     let currentNode = node;
     let currentPos = pos;
-
+  
     coords = view?.coordsAtPos(currentPos);
     if (!coords) return;
 
-    const endPos = currentPos + currentNode.nodeSize;
-    const endCoords = view.coordsAtPos(endPos); // bottom of the block
-    let shouldAddPageBreak = currentNode.isBlock
-      ? endCoords && endCoords.bottom > pageHeightThreshold
-      : coords.bottom > pageHeightThreshold;
+
     let isHardBreakNode = currentNode.type.name === 'hardBreak';
+    let isListItemNode = currentNode.type.name === 'listItem';
+
+    const endPos= currentPos + currentNode.nodeSize;
+    const endCoords = view.coordsAtPos(endPos);   // bottom of the block
+    let shouldAddPageBreak =
+        currentNode.isBlock && isListItemNode
+            ? endCoords && endCoords.bottom > pageHeightThreshold
+            : coords.bottom > pageHeightThreshold;
 
     const paragraphSectPrBreak = currentNode.attrs?.pageBreakSource;
     if (paragraphSectPrBreak === 'sectPr') {
@@ -494,6 +498,7 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
         bottom: actualBreakBottom,
         pos: breakPos,
       } = getActualBreakCoords(view, currentPos, pageHeightThreshold);
+
       const $breakPos = view.state.doc.resolve(breakPos);
       if ($breakPos.parent.type.name === 'listItem') {
         breakPos = $breakPos.before($breakPos.depth);

@@ -164,16 +164,17 @@ const editor = new SuperEditor({
 
 ### Methods
 
-| Method            | Parameters | Return          | Description                   |
-| :---------------- | :--------- | :-------------- | :---------------------------- |
-| `destroy()`       | -          | -               | Destroys the editor instance  |
-| `getHTML()`       | -          | `string`        | Gets document content as HTML |
-| `getJSON()`       | -          | `object`        | Gets document content as JSON |
-| `getPageStyles()` | -          | `object`        | Gets page style information   |
-| `focus()`         | -          | -               | Focuses the editor            |
-| `blur()`          | -          | -               | Removes focus from the editor |
-| `exportDocx()`    | -          | `Promise<Blob>` | Exports as DOCX               |
-
+| Method            | Parameters   | Return       | Description                                                                                                                                                                  |
+| :---------------- |:-------------|:-------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `destroy()`       | -            | -            | Destroys the editor instance                                                                                                                                                 |
+| `getHTML()`       | -            | `string`     | Gets document content as HTML                                                                                                                                                |
+| `getJSON()`       | -            | `object`     | Gets document content as JSON                                                                                                                                                |
+| `getPageStyles()` | -            | `object`     | Gets page style information                                                                                                                                                  |
+| `focus()`         | -            | -            | Focuses the editor                                                                                                                                                           |
+| `blur()`          | -            | -            | Removes focus from the editor                                                                                                                                                |
+| `exportDocx()`    | -            | `Promise<Blob>` | Exports as DOCX                                                                                                                                                              |
+| `getInternalXmlFile()`| `{name, type}`           | `string/object` | Returns internal docx file content.<br/>_name_ param is a full path;<br/>_type_: 'string', 'json'.                                                                                                     |
+| `updateInternalXmlFile()`| `{name, updatedContent}` | -            | Updates content of internal xml file.<br/> _name_ param is a full path;<br/>_updatedContent_ could be string or json.<br/>**Pay attention that we do not execute any validations of updated content.** |
 ### Hooks
 
 SuperEditor has a variety of hooks

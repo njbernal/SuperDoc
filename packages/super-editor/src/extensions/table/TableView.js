@@ -120,7 +120,11 @@ function updateTable(editor, node, table) {
   const tableExtensionAttrs = allExtensionsAttrs.filter((e) => e.type === 'table');
   const htmlAttributes = Attribute.getAttributesToRender(node, tableExtensionAttrs);
   Object.entries(htmlAttributes).forEach(([key, value]) => {
-    table.setAttribute(key, value);
+    if (key === 'style') {
+      table.style.cssText = value;
+    } else {
+      table.setAttribute(key, value);
+    }
   });
 }
 

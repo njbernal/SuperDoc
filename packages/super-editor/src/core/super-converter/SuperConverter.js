@@ -45,7 +45,7 @@ class SuperConverter {
     { name: 'w:i', type: 'italic' },
     { name: 'w:iCs', type: 'italic' },
     { name: 'w:u', type: 'underline', mark: 'underline', property: 'underlineType' },
-    { name: 'w:strike', type: 'strike' },
+    { name: 'w:strike', type: 'strike', mark: 'strike' },
     { name: 'w:color', type: 'color', mark: 'textStyle', property: 'color' },
     { name: 'w:sz', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
     { name: 'w:szCs', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
@@ -688,9 +688,7 @@ class SuperConverter {
     });
 
     relationships.elements = [...relationships.elements, ...newRels];
-
-    this.convertedXml['word/_rels/document.xml.rels'] = relsData;
-  }
+  };
 
   async #exportProcessMediaFiles(media, editor) {
     const processedData = {};

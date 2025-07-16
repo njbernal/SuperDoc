@@ -39,7 +39,7 @@ export const Image = Node.create({
       },
 
       alt: {
-        default: null,
+        default: 'Uploaded picture',
       },
 
       id: { rendered: false },
