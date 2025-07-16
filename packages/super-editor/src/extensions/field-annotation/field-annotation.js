@@ -323,7 +323,7 @@ export const FieldAnnotation = Node.create({
         rendered: false,
         default: null,
       },
-      
+
       hash: {
         rendered: false,
         default: null,

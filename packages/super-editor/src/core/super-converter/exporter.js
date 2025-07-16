@@ -23,7 +23,6 @@ import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js
 import { sanitizeHtml } from '../InputRule.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 
-
 /**
  * @typedef {Object} ExportParams
  * @property {Object} node JSON node to translate (from PM schema)
@@ -1731,7 +1730,7 @@ function translateImageNode(params, imageSize) {
   const src = attrs.src || attrs.imageSrc;
   const { originalWidth, originalHeight } = getPngDimensions(src);
   const imageName = params.node.type === 'image' ? src?.split('word/media/')[1] : attrs.fieldId?.replace('-', '_');
-  
+
   let size = attrs.size
     ? {
         w: pixelsToEmu(attrs.size.width),
@@ -1767,7 +1766,7 @@ function translateImageNode(params, imageSize) {
     if (!type) {
       return prepareTextAnnotation(params);
     }
-    
+
     const imageUrl = `media/${imageName}_${attrs.hash}.${type}`;
 
     imageId = addNewImageRelationship(params, imageUrl);
@@ -2227,7 +2226,7 @@ function translateFieldAnnotation(params) {
       sdtContentElements = [...processedNode.elements];
     }
   }
-  sdtContentElements = [ getFieldHighlightJson(), ...sdtContentElements ];
+  sdtContentElements = [getFieldHighlightJson(), ...sdtContentElements];
 
   // Contains only the main attributes.
   const annotationAttrs = {

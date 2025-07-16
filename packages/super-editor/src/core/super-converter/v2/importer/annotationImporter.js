@@ -70,7 +70,7 @@ export const handleAnnotationNode = (params) => {
       attrs: allAttrs,
     };
   }
-  
+
   return {
     nodes: [result],
     consumed: 1,

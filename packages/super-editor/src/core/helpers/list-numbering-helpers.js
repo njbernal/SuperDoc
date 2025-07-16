@@ -71,7 +71,7 @@ export const changeNumIdSameAbstract = (numId, level, listType, editor) => {
     attributes: {
       ...abstract.attributes,
       'w:abstractNumId': String(newAbstractId),
-    }
+    },
   };
   newNumbering.abstracts[newAbstractId] = newAbstractDef;
 

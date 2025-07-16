@@ -208,7 +208,7 @@ export const makeDefaultItems = ({
       ariaLabel: 'Strikethrough',
     },
   });
-  
+
   // highlight
   const highlight = useToolbarItem({
     type: 'dropdown',

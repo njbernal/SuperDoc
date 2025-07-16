@@ -132,7 +132,7 @@ function getMarkValue(markType, attributes, docx) {
     bold: () => attributes?.['w:val'] || null,
     italic: () => attributes?.['w:val'] || null,
     highlight: () => getHighLightValue(attributes),
-    strike: () => getStrikeValue(attributes)
+    strike: () => getStrikeValue(attributes),
   };
 
   if (!(markType in markValueMapper)) {
