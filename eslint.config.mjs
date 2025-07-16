@@ -20,6 +20,14 @@ export default [
       '**/*.spec.js',
       '**/tests/**',
       '**/test/**',
+      // Docs generated files
+      'docs/.vitepress/cache/**',
+      // Examples (different environments and coding styles)
+      'examples/**',
+      '**/examples/**',
+      // Config files (CommonJS/different environments)
+      '**/*.config.js',
+      '**/commitlint.config.js',
     ],
   },
   {
@@ -56,6 +64,7 @@ export default [
         DataTransfer: 'readonly',
         ClipboardEvent: 'readonly',
         TextSelection: 'readonly',
+        CustomEvent: 'readonly',
 
         // Prosemirror library APIs
         ReplaceAroundStep: 'readonly',
