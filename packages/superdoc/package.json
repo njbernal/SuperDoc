@@ -44,7 +44,7 @@
     "build:es": "cd ../super-editor && npm run build && cd ../superdoc && vite build",
     "build:umd": "vite build --config vite.config.umd.js",
     "release": "release-it --ci --increment=patch",
-    "release:next": "release-it --ci --no.conventional-changelog --preRelease=next --npm.tag=next",
+    "release:next": "release-it --config .release-it.next.json",
     "clean": "rm -rf dist",
     "pack:local": "npm run build:es && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz",
     "pack": "npm run build:es && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz"
@@ -67,8 +67,8 @@
     "yjs": "13.6.19"
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.1",
     "@hocuspocus/provider": "^2.13.6",
-    "@release-it/conventional-changelog": "^10.0.0",
     "@rollup/plugin-replace": "^6.0.2",
     "@vitejs/plugin-vue": "^5.2.1",
     "pdfjs-dist": "4.3.136",
