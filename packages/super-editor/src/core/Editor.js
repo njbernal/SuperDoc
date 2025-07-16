@@ -1448,6 +1448,10 @@ export class Editor extends EventEmitter {
    * Handles image node selection for header/footer editor
    */
   #handleNodeSelection(view, pos) {
+    this.setOptions({
+      lastSelection: null
+    });
+    
     if (this.options.isHeaderOrFooter) {
       return setImageNodeSelection(view, pos);
     }
