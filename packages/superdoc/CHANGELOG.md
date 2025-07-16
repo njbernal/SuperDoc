@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.14.12 (2025-07-16)</small>
+
+- chore: fix github release for latest ([66aec83](https://github.com/Harbour-Enterprises/SuperDoc/commit/66aec83))
+
 ## <small>0.14.11 (2025-07-16)</small>
 
 - chore: release v0.14.11-next.7 [skip ci] ([7e7ec71](https://github.com/Harbour-Enterprises/SuperDoc/commit/7e7ec71))
