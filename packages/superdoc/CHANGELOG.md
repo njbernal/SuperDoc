@@ -1,7 +1,13 @@
 # Changelog
 
-- Merge pull request #674 from Harbour-Enterprises/fix/fix-style-file-name-change-from-vite (259c359c)
-- chore: revert to using style.css post vite 6 upgrade (33585f97)
+## <small>0.14.16 (2025-07-17)</small>
+
+- chore: fix hooks in release-it config ([3d86319](https://github.com/Harbour-Enterprises/SuperDoc/commit/3d86319))
+- chore: release v0.14.15 [skip ci] ([547a404](https://github.com/Harbour-Enterprises/SuperDoc/commit/547a404))
+- chore: revert to using style.css post vite 6 upgrade ([33585f9](https://github.com/Harbour-Enterprises/SuperDoc/commit/33585f9))
+
+* Merge pull request #674 from Harbour-Enterprises/fix/fix-style-file-name-change-from-vite (259c359c)
+* chore: revert to using style.css post vite 6 upgrade (33585f97)
 
 ## <small>0.14.15 (2025-07-17)</small>
 
