@@ -1,5 +1,10 @@
 # Changelog
 
+## <small>0.14.15 (2025-07-17)</small>
+
+- fix(har-10122): toolbar styles are missing ([08365df](https://github.com/Harbour-Enterprises/SuperDoc/commit/08365df))
+- fix(har-10122): update compiler options ([2e108f0](https://github.com/Harbour-Enterprises/SuperDoc/commit/2e108f0))
+
 ## <small>0.14.14 (2025-07-16)</small>
 
 - chore: bump version → 0.14.13-next.0 ([e29702b](https://github.com/Harbour-Enterprises/SuperDoc/commit/e29702b))
