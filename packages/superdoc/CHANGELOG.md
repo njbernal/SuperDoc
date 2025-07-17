@@ -1,5 +1,8 @@
 # Changelog
 
+- Merge pull request #674 from Harbour-Enterprises/fix/fix-style-file-name-change-from-vite (259c359c)
+- chore: revert to using style.css post vite 6 upgrade (33585f97)
+
 ## <small>0.14.15 (2025-07-17)</small>
 
 - fix(har-10122): toolbar styles are missing ([08365df](https://github.com/Harbour-Enterprises/SuperDoc/commit/08365df))
