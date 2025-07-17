@@ -1,7 +1,7 @@
 {
   "name": "@harbour-enterprises/superdoc",
   "type": "module",
-  "version": "0.14.13",
+  "version": "0.14.14",
   "license": "AGPL-3.0",
   "readme": "../../README.md",
   "files": [
@@ -33,7 +33,7 @@
     "./file-zipper": {
       "import": "./dist/super-editor/file-zipper.es.js"
     },
-    "./style.css": "./dist/superdoc.css"
+    "./style.css": "./dist/style.css"
   },
   "types": "./dist/index.d.ts",
   "main": "./dist/superdoc.umd.js",
@@ -43,7 +43,7 @@
     "build": "cd ../super-editor && npm run build && cd ../superdoc && vite build && tsc && npm run build:umd",
     "build:es": "cd ../super-editor && npm run build && cd ../superdoc && vite build",
     "build:umd": "vite build --config vite.config.umd.js",
-    "release": "release-it --ci --increment=patch --no-npm",
+    "release": "release-it --ci --increment=patch",
     "release:next": "release-it --config .release-it.next.json",
     "clean": "rm -rf dist",
     "pack:local": "npm run build:es && npm pack && mv $(ls harbour-enterprises-superdoc-*.tgz) ./superdoc.tgz",
