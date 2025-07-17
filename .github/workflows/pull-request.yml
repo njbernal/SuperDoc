@@ -25,6 +25,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SD_TESTS_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             -d '{"ref": "main", "inputs": {"superdoc-branch": "${{ github.head_ref }}"}}' \
-            https://api.github.com/repos/Harbour-Enterprises/superdoc-tests/actions/workflows/173620104/dispatches
+            ${{ secrets.SD_TESTS_URL }}
 
 
