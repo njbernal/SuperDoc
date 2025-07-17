@@ -7,6 +7,6 @@
     "outDir": "dist",
     "declarationMap": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "typeRoots": ["./node_modules/@types/*"]
   }
 }
