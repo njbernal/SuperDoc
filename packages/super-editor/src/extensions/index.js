@@ -104,7 +104,7 @@ const getRichTextExtensions = () => {
     AiPlugin,
     Image,
     NodeResizer,
-    CustomSelection
+    CustomSelection,
   ];
 };
 
@@ -172,7 +172,7 @@ const getStarterExtensions = () => {
     Search,
     StructuredContent,
     NodeResizer,
-    CustomSelection
+    CustomSelection,
   ];
 };
 
@@ -236,5 +236,5 @@ export {
   Search,
   StructuredContent,
   NodeResizer,
-  CustomSelection
+  CustomSelection,
 };

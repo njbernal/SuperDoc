@@ -18,18 +18,18 @@ export const CustomSelection = Extension.create({
         apply(tr, oldDecorationSet, oldState, newState) {
           const sel = tr.selection;
           let newDecos = [];
-          
+
           // Only apply to text selections
           if (sel.from !== sel.to && tr.doc.resolve(sel.from).parent.isTextblock) {
             newDecos.push(
               Decoration.inline(sel.from, sel.to, {
-                class: 'sd-custom-selection'
-              })
+                class: 'sd-custom-selection',
+              }),
             );
           }
-          
+
           return DecorationSet.create(newState.doc, newDecos);
-        }
+        },
       },
       props: {
         handleDOMEvents: {
@@ -38,9 +38,7 @@ export const CustomSelection = Extension.create({
               this.editor.setOptions({
                 lastSelection: view.state.selection,
               });
-              const clearSelectionTr = view.state.tr.setSelection(
-                TextSelection.create(view.state.doc, 0)
-              );
+              const clearSelectionTr = view.state.tr.setSelection(TextSelection.create(view.state.doc, 0));
 
               view.dispatch(clearSelectionTr);
             }
@@ -49,8 +47,8 @@ export const CustomSelection = Extension.create({
         },
         decorations(state) {
           return CustomSelectionPluginKey.getState(state);
-        }
-      }
+        },
+      },
     });
 
     return [customSelectionPlugin];

@@ -52,8 +52,7 @@ const handleCommand = ({ item, argument, option }) => {
 
 const restoreSelection = () => {
   proxy.$toolbar.activeEditor?.commands?.restoreSelection();
-}
-
+};
 </script>
 
 <template>

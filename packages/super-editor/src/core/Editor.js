@@ -1449,9 +1449,9 @@ export class Editor extends EventEmitter {
    */
   #handleNodeSelection(view, pos) {
     this.setOptions({
-      lastSelection: null
+      lastSelection: null,
     });
-    
+
     if (this.options.isHeaderOrFooter) {
       return setImageNodeSelection(view, pos);
     }
@@ -1667,9 +1667,9 @@ export class Editor extends EventEmitter {
    * @returns {boolean} Whether migrations are needed
    */
   static checkIfMigrationsNeeded(data) {
-    if (!version) version = 'initial';
-    const migrations = getNecessaryMigrations(version) || [];
-    console.debug('[checkVersionMigrations] Migrations needed:', version, migrations.length);
+    const dataVersion = version || 'initial';
+    const migrations = getNecessaryMigrations(dataVersion) || [];
+    console.debug('[checkVersionMigrations] Migrations needed:', dataVersion, migrations.length);
     return migrations.length > 0;
   }
 
