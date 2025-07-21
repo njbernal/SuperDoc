@@ -1233,6 +1233,7 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile) {
       this.initPagination();
       this.#initComments();
+      this.updateYdocDocxData(this);
     }
   }
 
