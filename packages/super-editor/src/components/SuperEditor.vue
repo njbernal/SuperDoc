@@ -225,7 +225,7 @@ const handleSuperEditorClick = (event) => {
 
 const handleClickOutside = (event) => {
   const pmElement = editorElem.value?.querySelector('.ProseMirror');
-  const isInsideEditor = pmElement.contains(event.target);
+  const isInsideEditor = pmElement?.contains(event.target);
 
   if (!isInsideEditor) {
     editor.value.setOptions({
