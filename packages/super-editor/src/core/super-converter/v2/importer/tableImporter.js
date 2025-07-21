@@ -85,7 +85,7 @@ export function handleTableNode(node, params) {
 
   const rows = node.elements.filter((el) => el.name === 'w:tr');
   const refStylesBorders = referencedStyles?.borders || {};
-  const refStylesRowBorders = refStylesBorders?.rowBorders || {};
+  const refStylesRowBorders = referencedStyles?.rowBorders || {};
 
   const borderData = Object.keys(borders)?.length ? Object.assign(refStylesBorders, borders) : refStylesBorders;
   const borderRowData = Object.keys(rowBorders)?.length

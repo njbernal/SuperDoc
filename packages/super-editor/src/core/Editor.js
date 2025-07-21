@@ -561,7 +561,7 @@ export class Editor extends EventEmitter {
         isEditMode: false,
         documentMode: cleanedMode,
       });
-      if (!this.options.isHeaderOrFooter) pm.classList.add('view-mode');
+      if (!this.options.isHeaderOrFooter && pm) pm.classList.add('view-mode');
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
@@ -572,7 +572,7 @@ export class Editor extends EventEmitter {
       this.commands.enableTrackChanges();
       this.setOptions({ documentMode: 'suggesting' });
       this.setEditable(true, false);
-      pm.classList.remove('view-mode');
+      if (pm) pm.classList.remove('view-mode');
     }
 
     // Editing: Editable, tracked changes plguin disabled, comments
@@ -589,7 +589,7 @@ export class Editor extends EventEmitter {
         isEditMode: false,
         documentMode: cleanedMode,
       });
-      pm.classList.remove('view-mode');
+      if (pm) pm.classList.remove('view-mode');
     }
   }
 
