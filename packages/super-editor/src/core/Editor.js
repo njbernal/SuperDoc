@@ -815,6 +815,7 @@ export class Editor extends EventEmitter {
    * @returns {void}
    */
   #initMedia() {
+    if (this.options.isChildEditor) return;
     if (!this.options.ydoc) return (this.storage.image.media = this.options.mediaFiles);
 
     const mediaMap = this.options.ydoc.getMap('media');
@@ -1233,6 +1234,7 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile) {
       this.initPagination();
       this.#initComments();
+      updateYdocDocxData(this);
     }
   }
 
@@ -1667,9 +1669,9 @@ export class Editor extends EventEmitter {
    * @returns {boolean} Whether migrations are needed
    */
   static checkIfMigrationsNeeded(data) {
-    if (!version) version = 'initial';
-    const migrations = getNecessaryMigrations(version) || [];
-    console.debug('[checkVersionMigrations] Migrations needed:', version, migrations.length);
+    const dataVersion = version || 'initial';
+    const migrations = getNecessaryMigrations(dataVersion) || [];
+    console.debug('[checkVersionMigrations] Migrations needed:', dataVersion, migrations.length);
     return migrations.length > 0;
   }
 
