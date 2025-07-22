@@ -804,8 +804,8 @@ export class SuperToolbar extends EventEmitter {
 
     if (this.activeEditor.options.ydoc) {
       const undoManager = yUndoPluginKey.getState(this.activeEditor.state)?.undoManager;
-      this.undoDepth = undoManager?.undoStack.length;
-      this.redoDepth = undoManager?.redoStack.length;
+      this.undoDepth = undoManager?.undoStack.length || 0;
+      this.redoDepth = undoManager?.redoStack.length || 0;
     } else {
       this.undoDepth = undoDepth(this.activeEditor.state);
       this.redoDepth = redoDepth(this.activeEditor.state);
