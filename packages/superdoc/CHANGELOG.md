@@ -1,5 +1,20 @@
 # Changelog
 
+## <small>0.14.18 (2025-07-22)</small>
+
+- chore: bump version → 0.14.18-next.0 ([ddba2ed](https://github.com/Harbour-Enterprises/SuperDoc/commit/ddba2ed))
+- chore: release v0.14.18-next.1 [skip ci] ([30c598f](https://github.com/Harbour-Enterprises/SuperDoc/commit/30c598f))
+- chore: release v0.14.18-next.2 [skip ci] ([a253b34](https://github.com/Harbour-Enterprises/SuperDoc/commit/a253b34))
+- chore: release v0.14.18-next.3 [skip ci] ([48038d6](https://github.com/Harbour-Enterprises/SuperDoc/commit/48038d6))
+- chore(deps): bump the npm_and_yarn group across 2 directories with 3 updates ([bde2c4d](https://github.com/Harbour-Enterprises/SuperDoc/commit/bde2c4d))
+- fix: add check for missing var ([539b49b](https://github.com/Harbour-Enterprises/SuperDoc/commit/539b49b))
+- fix: convert var to zero when undefined ([ccf3478](https://github.com/Harbour-Enterprises/SuperDoc/commit/ccf3478))
+- fix: make tests pass ([1f4f8f1](https://github.com/Harbour-Enterprises/SuperDoc/commit/1f4f8f1))
+- fix: page number styling + table import fixes ([3f785dd](https://github.com/Harbour-Enterprises/SuperDoc/commit/3f785dd))
+- fix: select whole doc ([e72ba3d](https://github.com/Harbour-Enterprises/SuperDoc/commit/e72ba3d))
+- fix: selections is lost when toolbar dropdown item is clicked ([2b59a56](https://github.com/Harbour-Enterprises/SuperDoc/commit/2b59a56))
+- fix: undo/redo buttons are disabled in colaborative mode ([b76a20b](https://github.com/Harbour-Enterprises/SuperDoc/commit/b76a20b))
+
 ## <small>0.14.17 (2025-07-22)</small>
 
 - chore: add ESLint configuration and CI workflow for linting and testing ([5dceff1](https://github.com/Harbour-Enterprises/SuperDoc/commit/5dceff1))
