@@ -660,7 +660,8 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile) return;
     this.options.isNewFile = false;
     const doc = this.#generatePmData();
-    const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
+    // hiding this transaction from history so it doesn't appear in undo stack
+    const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc).setMeta('addToHistory', false);
     this.view.dispatch(tr);
 
     setTimeout(() => {
