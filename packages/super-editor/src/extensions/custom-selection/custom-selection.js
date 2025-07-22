@@ -1,5 +1,5 @@
 import { Extension } from '@core/Extension.js';
-import { Plugin, PluginKey, TextSelection } from 'prosemirror-state';
+import { AllSelection, Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 
 export const CustomSelectionPluginKey = new PluginKey('CustomSelection');
@@ -12,15 +12,15 @@ export const CustomSelection = Extension.create({
       key: CustomSelectionPluginKey,
 
       state: {
-        init(_, { doc }) {
+        init() {
           return DecorationSet.empty;
         },
         apply(tr, oldDecorationSet, oldState, newState) {
           const sel = tr.selection;
           let newDecos = [];
 
-          // Only apply to text selections
-          if (sel.from !== sel.to && tr.doc.resolve(sel.from).parent.isTextblock) {
+          // Only apply to text selections or whole doc selections
+          if (sel.from !== sel.to && (tr.doc.resolve(sel.from).parent.isTextblock || sel instanceof AllSelection)) {
             newDecos.push(
               Decoration.inline(sel.from, sel.to, {
                 class: 'sd-custom-selection',
@@ -34,7 +34,8 @@ export const CustomSelection = Extension.create({
       props: {
         handleDOMEvents: {
           focusout: (view, event) => {
-            if (document.activeElement && !event.relatedTarget) {
+            const isDropDownOption = this.editor.options.focusTarget?.getAttribute('data-dropdown-option');
+            if (document.activeElement && !event.relatedTarget && !view.state.selection.empty && !isDropDownOption) {
               this.editor.setOptions({
                 lastSelection: view.state.selection,
               });
