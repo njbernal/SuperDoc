@@ -207,6 +207,58 @@ export const DocumentSection = Node.create({
 
           return true;
         },
+
+      /**
+       * Update a document section by its ID.
+       * You can pass in options like id, html, json, or attrs.
+       * The attrs include json, title, description, etc.
+       * If html is provided, it will be parsed and converted to ProseMirror nodes
+       * If json is provided, it will be used to create the content of the block.
+       * @param {Object} params - The command parameters
+       * @param {string} params.id - The ID of the section to update
+       * @param {string} [params.html] - The HTML content to set for the section
+       * @param {Object} [params.json] - The JSON content to set for the section
+       * @param {Object} [params.attrs] - Additional attributes to update (e.g., title, description)
+       * @returns {Function} A command function that takes the editor state and dispatch function
+       */
+      updateSectionById:
+        ({ id, html, json, attrs } = {}) =>
+        ({ tr, dispatch, editor }) => {
+          const sections = SectionHelpers.getAllSections(editor || this.editor);
+          const sectionToUpdate = sections.find(({ node }) => node.attrs.id === id);
+          if (!sectionToUpdate) return false;
+
+          const { pos, node } = sectionToUpdate;
+          let newContent = null;
+
+          // If HTML is provided, parse it and convert to ProseMirror nodes
+          if (html) {
+            const htmlDoc = htmlHandler(html, editor || this.editor);
+            const doc = PMDOMParser.fromSchema((editor || this.editor).schema).parse(htmlDoc);
+            newContent = doc.content;
+          }
+
+          // JSON takes priority over HTML
+          if (json) {
+            newContent = (editor || this.editor).schema.nodeFromJSON(json);
+          }
+
+          // If no new content, keep the old content
+          if (!newContent) {
+            newContent = node.content;
+          }
+
+          const updatedNode = node.type.create({ ...node.attrs, ...attrs }, newContent, node.marks);
+
+          tr.replaceWith(pos, pos + node.nodeSize, updatedNode);
+
+          if (dispatch) {
+            tr.setMeta('documentSection', { action: 'update', id, attrs });
+            dispatch(tr);
+          }
+
+          return true;
+        },
     };
   },
 });
