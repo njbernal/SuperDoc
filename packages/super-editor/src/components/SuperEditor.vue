@@ -228,7 +228,7 @@ const handleClickOutside = (event) => {
   const isInsideEditor = pmElement?.contains(event.target);
 
   if (!isInsideEditor) {
-    editor.value.setOptions({
+    editor.value?.setOptions({
       focusTarget: event.target,
     });
   }
