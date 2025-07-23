@@ -9,6 +9,8 @@ export const DocumentSection = Node.create({
   name: 'documentSection',
   group: 'block',
   content: 'block*',
+  atom: true,
+  isolating: true,
 
   addOptions() {
     return {
