@@ -179,7 +179,8 @@ onMounted(() => init());
             />
             No
           </label>
-          <div v-if="activeSections.html2" class="section-title">
+          <!-- Locking will be added in a future iteration -->
+          <!-- <div v-if="activeSections.html2" class="section-title">
             <label for="section2-lock" class="lock-toggle">
               <input
                 type="checkbox"
@@ -189,7 +190,7 @@ onMounted(() => init());
               />
               Lock
             </label>
-          </div>
+          </div> -->
           <div id="section2-editor" class="sub-editor"></div>
         </div>
 
