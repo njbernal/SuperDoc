@@ -1,6 +1,6 @@
 import { Node, Attribute } from '@core/index.js';
 import { DocumentSectionView } from './document-section/DocumentSectionView.js';
-import { htmlHandler } from '@core/inputRule.js';
+import { htmlHandler } from '@core/InputRule.js';
 import { Selection } from 'prosemirror-state';
 import { DOMParser as PMDOMParser } from 'prosemirror-model';
 import { findParentNode, SectionHelpers } from '@helpers/index.js';
