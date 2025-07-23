@@ -166,10 +166,8 @@ export const DocumentSection = Node.create({
       removeSectionById:
         (id) =>
         ({ tr, dispatch }) => {
-          console.debug('removeSectionById', id);
           const sections = SectionHelpers.getAllSections(this.editor);
           const sectionToRemove = sections.find(({ node }) => node.attrs.id === id);
-          console.debug('sectionToRemove', sectionToRemove);
           if (!sectionToRemove) return false;
 
           const { pos, node } = sectionToRemove;
