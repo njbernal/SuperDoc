@@ -1,5 +1,14 @@
 # Changelog
 
+## <small>0.14.19 (2025-07-23)</small>
+
+- fix: missing styles import ([4a216f4](https://github.com/Harbour-Enterprises/SuperDoc/commit/4a216f4))
+- chore: bump version → 0.14.19-next.0 ([d9e4fb8](https://github.com/Harbour-Enterprises/SuperDoc/commit/d9e4fb8))
+- chore: fix editor handleClickOutside when editor has been destroyed ([c77cbe2](https://github.com/Harbour-Enterprises/SuperDoc/commit/c77cbe2))
+- chore: release v0.14.19-next.1 [skip ci] ([689acbd](https://github.com/Harbour-Enterprises/SuperDoc/commit/689acbd))
+- chore: release v0.14.19-next.2 [skip ci] ([e4acb71](https://github.com/Harbour-Enterprises/SuperDoc/commit/e4acb71))
+- chore: update README on custom node example ([62612e4](https://github.com/Harbour-Enterprises/SuperDoc/commit/62612e4))
+
 ## <small>0.14.18 (2025-07-22)</small>
 
 - chore: bump version → 0.14.18-next.0 ([ddba2ed](https://github.com/Harbour-Enterprises/SuperDoc/commit/ddba2ed))
