@@ -45,6 +45,13 @@ export const translateDocumentSection = (params) => {
   };
 };
 
+/**
+ * Generate the sdtPr tag for a document section.
+ * @param {string} id - The unique identifier for the section.
+ * @param {string} title - The title of the section.
+ * @param {string} tag - The tag containing section metadata.
+ * @returns {Object} The sdtPr tag object.
+ */
 const generateSdtPrTagForDocumentSection = (id, title, tag) => {
   return {
     name: 'w:sdtPr',
