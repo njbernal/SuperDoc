@@ -17,11 +17,12 @@ import { generateDocxRandomId } from '@helpers/generateDocxRandomId.js';
 import { DEFAULT_DOCX_DEFS } from './exporter-docx-defs.js';
 import { TrackDeleteMarkName, TrackFormatMarkName, TrackInsertMarkName } from '@extensions/track-changes/constants.js';
 import { carbonCopy } from '../utilities/carbonCopy.js';
-import { baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/base-list.definitions.js';
 import { translateCommentNode } from './v2/exporter/commentsExporter.js';
 import { createColGroup } from '@extensions/table/tableHelpers/createColGroup.js';
 import { sanitizeHtml } from '../InputRule.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
+import { translateChildNodes, baseBulletList, baseOrderedListDef } from './v2/exporter/helpers/index.js';
+import { translateDocumentSection } from './v2/exporter/index.js';
 
 /**
  * @typedef {Object} ExportParams
@@ -93,6 +94,7 @@ export function exportSchemaToJson(params) {
     shapeTextbox: translateShapeTextbox,
     contentBlock: translateContentBlock,
     structuredContent: translateStructuredContent,
+    documentSection: translateDocumentSection,
     'page-number': translatePageNumberNode,
     'total-page-number': translateTotalPageNumberNode,
   };
@@ -191,11 +193,13 @@ export function translateParagraphNode(params) {
     attributes['w:rsidRDefault'] = params.node.attrs.rsidRDefault;
   }
 
-  return {
+  const result = {
     name: 'w:p',
     elements,
     attributes,
   };
+
+  return result;
 }
 
 /**
@@ -373,31 +377,6 @@ function processAttributes(attrs) {
     processedAttrs = { ...processedAttrs, ...newAttr };
   });
   return processedAttrs;
-}
-
-/**
- * Process child nodes, ignoring any that are not valid
- *
- * @param {SchemaNode[]} nodes The input nodes
- * @returns {XmlReadyNode[]} The processed child nodes
- */
-function translateChildNodes(params) {
-  const { content: nodes } = params.node;
-  if (!nodes) return [];
-
-  const translatedNodes = [];
-  nodes.forEach((node) => {
-    let translatedNode = exportSchemaToJson({ ...params, node });
-
-    const nodeType = translatedNode?.name || translatedNode?.type;
-    // if (nodeType !== 'w:sdt') translatedNode = isolateAnnotations(translatedNode);
-
-    if (translatedNode instanceof Array) translatedNodes.push(...translatedNode);
-    else translatedNodes.push(translatedNode);
-  });
-
-  // Filter out any null nodes
-  return translatedNodes.filter((n) => n);
 }
 
 /**
