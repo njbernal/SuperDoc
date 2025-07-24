@@ -1,5 +1,34 @@
 # Changelog
 
+## <small>0.15.1 (2025-07-24)</small>
+
+- chore: add missing JSDOC ([d49b3f4](https://github.com/Harbour-Enterprises/SuperDoc/commit/d49b3f4))
+- chore: add npm run watch to root and npm run watch:es to superdoc package ([117bcff](https://github.com/Harbour-Enterprises/SuperDoc/commit/117bcff))
+- chore: add updateSectionById to documentSection api ([048516f](https://github.com/Harbour-Enterprises/SuperDoc/commit/048516f))
+- chore: bump version → 0.14.20-next.0 ([6ab4515](https://github.com/Harbour-Enterprises/SuperDoc/commit/6ab4515))
+- chore: clean up before document sections additions ([1522061](https://github.com/Harbour-Enterprises/SuperDoc/commit/1522061))
+- chore: clean up extra logs ([b0c149b](https://github.com/Harbour-Enterprises/SuperDoc/commit/b0c149b))
+- chore: hide lock for now, update sd version ([6d6056d](https://github.com/Harbour-Enterprises/SuperDoc/commit/6d6056d))
+- chore: increase minor to 0.15 ([b3224dc](https://github.com/Harbour-Enterprises/SuperDoc/commit/b3224dc))
+- chore: make document section node atomic and isolating ([ecf5aa1](https://github.com/Harbour-Enterprises/SuperDoc/commit/ecf5aa1))
+- chore: manual bump patch ([cc5a3e6](https://github.com/Harbour-Enterprises/SuperDoc/commit/cc5a3e6))
+- chore: release v0.14.20-next.1 [skip ci] ([0087c0c](https://github.com/Harbour-Enterprises/SuperDoc/commit/0087c0c))
+- chore: release v0.14.20-next.3 [skip ci] ([939741f](https://github.com/Harbour-Enterprises/SuperDoc/commit/939741f))
+- chore: release v0.14.20-next.4 [skip ci] ([7b0923a](https://github.com/Harbour-Enterprises/SuperDoc/commit/7b0923a))
+- chore: release v0.14.20-next.5 [skip ci] ([a4594b3](https://github.com/Harbour-Enterprises/SuperDoc/commit/a4594b3))
+- chore: release v0.14.20-next.6 [skip ci] ([31ea580](https://github.com/Harbour-Enterprises/SuperDoc/commit/31ea580))
+- feat: add context menu document section options ([eeee4f0](https://github.com/Harbour-Enterprises/SuperDoc/commit/eeee4f0))
+- feat: add editor sections example ([6b9b0f2](https://github.com/Harbour-Enterprises/SuperDoc/commit/6b9b0f2))
+- feat: add external plugin example ([efc5012](https://github.com/Harbour-Enterprises/SuperDoc/commit/efc5012))
+- feat: initial document sections node ([7def5d4](https://github.com/Harbour-Enterprises/SuperDoc/commit/7def5d4))
+- fix list item node view update, apply marks for new items ([79969bf](https://github.com/Harbour-Enterprises/SuperDoc/commit/79969bf))
+- fix lists and linked styles ([7c782b8](https://github.com/Harbour-Enterprises/SuperDoc/commit/7c782b8))
+- fix ydoc update ([4c4413c](https://github.com/Harbour-Enterprises/SuperDoc/commit/4c4413c))
+- fix: capitalize InputRule in broken import ([73e16cb](https://github.com/Harbour-Enterprises/SuperDoc/commit/73e16cb))
+- fix: comments focus ([cbd3d3e](https://github.com/Harbour-Enterprises/SuperDoc/commit/cbd3d3e))
+- fix: setWordSelection if no word selected ([b5209c7](https://github.com/Harbour-Enterprises/SuperDoc/commit/b5209c7))
+- fix: update ydoc when generating collaborative data ([160fae0](https://github.com/Harbour-Enterprises/SuperDoc/commit/160fae0))
+
 ## <small>0.14.19 (2025-07-23)</small>
 
 - fix: missing styles import ([4a216f4](https://github.com/Harbour-Enterprises/SuperDoc/commit/4a216f4))
