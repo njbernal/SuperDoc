@@ -30,7 +30,8 @@
     "docs:build": "vuepress build docs",
     "pack": "npm run build:super-editor && npm --prefix ./packages/superdoc run pack",
     "prepare": "husky",
-    "lint:staged": "lint-staged"
+    "lint:staged": "lint-staged",
+    "watch": "npm run watch:es --workspace=packages/superdoc"
   },
   "lint-staged": {
     "*.{js,jsx}": [
