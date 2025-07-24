@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => {
       exclude: [
         '**/src/tests/e2e/**',
         '**/*.spec.js',
-        '**/src/tests/playwright/**',
       ],
     },
     define: {
