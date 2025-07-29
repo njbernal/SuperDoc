@@ -264,6 +264,7 @@ const getDefaultParagraphStyle = (docx, styleId = '') => {
   const pPrNormal = stylesNormal?.elements?.find((el) => el.name === 'w:pPr');
   const pPrNormalSpacingTag = pPrNormal?.elements?.find((el) => el.name === 'w:spacing') || {};
   const pPrNormalIndentTag = pPrNormal?.elements?.find((el) => el.name === 'w:ind') || {};
+  const isNormalAsDefault = stylesNormal?.attributes?.['w:default'] === '1';
 
   // Styles based on styleId
   let pPrStyleIdSpacingTag = {};
@@ -299,9 +300,17 @@ const getDefaultParagraphStyle = (docx, styleId = '') => {
   const { attributes: pPrNormalIndentAttr } = pPrNormalIndentTag;
   const { attributes: pPrByIdIndentAttr } = pPrStyleIdIndentTag;
 
+  const spacingRest = isNormalAsDefault 
+    ? (pPrNormalSpacingAttr || pPrDefaultSpacingAttr)
+    : (pPrDefaultSpacingAttr || pPrNormalSpacingAttr);
+
+  const indentRest = isNormalAsDefault
+    ? (pPrNormalIndentAttr || pPrDefaultIndentAttr)
+    : (pPrDefaultIndentAttr || pPrNormalIndentAttr);
+
   return {
-    spacing: pPrByIdSpacingAttr || pPrDefaultSpacingAttr || pPrNormalSpacingAttr,
-    indent: pPrByIdIndentAttr || pPrDefaultIndentAttr || pPrNormalIndentAttr,
+    spacing: pPrByIdSpacingAttr || spacingRest,
+    indent: pPrByIdIndentAttr || indentRest,
     justify: pPrByIdJcAttr,
     textCase,
   };
