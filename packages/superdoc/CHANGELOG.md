@@ -1,5 +1,38 @@
 # Changelog
 
+## <small>0.15.2 (2025-07-29)</small>
+
+- chore: add comment to .rels fix ([0142642](https://github.com/Harbour-Enterprises/SuperDoc/commit/0142642))
+- chore: bump version → 0.14.21-next.0 ([7259f52](https://github.com/Harbour-Enterprises/SuperDoc/commit/7259f52))
+- chore: generate new list definitions for copy pasted lists ([6aa518a](https://github.com/Harbour-Enterprises/SuperDoc/commit/6aa518a))
+- chore: increase minor to 0.15 ([aa0ef6c](https://github.com/Harbour-Enterprises/SuperDoc/commit/aa0ef6c))
+- chore: release v0.14.20-next.7 [skip ci] ([ee63abe](https://github.com/Harbour-Enterprises/SuperDoc/commit/ee63abe))
+- chore: release v0.14.21-next.1 [skip ci] ([cb7f54c](https://github.com/Harbour-Enterprises/SuperDoc/commit/cb7f54c))
+- chore: release v0.15.2-next.1 [skip ci] ([8587e28](https://github.com/Harbour-Enterprises/SuperDoc/commit/8587e28))
+- chore: release v0.15.2-next.2 [skip ci] ([511960f](https://github.com/Harbour-Enterprises/SuperDoc/commit/511960f))
+- chore: release v0.15.2-next.3 [skip ci] ([b5d859d](https://github.com/Harbour-Enterprises/SuperDoc/commit/b5d859d))
+- chore: release v0.15.2-next.4 [skip ci] ([956c334](https://github.com/Harbour-Enterprises/SuperDoc/commit/956c334))
+- chore: release v0.15.2-next.5 [skip ci] ([b136329](https://github.com/Harbour-Enterprises/SuperDoc/commit/b136329))
+- chore: release v0.15.2-next.6 [skip ci] ([8c64342](https://github.com/Harbour-Enterprises/SuperDoc/commit/8c64342))
+- chore: release v0.15.2-next.7 [skip ci] ([c93b7d6](https://github.com/Harbour-Enterprises/SuperDoc/commit/c93b7d6))
+- chore: release v0.15.2-next.8 [skip ci] ([abafcdb](https://github.com/Harbour-Enterprises/SuperDoc/commit/abafcdb))
+- chore: release v0.15.2-next.9 [skip ci] ([a70584b](https://github.com/Harbour-Enterprises/SuperDoc/commit/a70584b))
+- chore: use editor.options.element in handleClickOutside ([284838d](https://github.com/Harbour-Enterprises/SuperDoc/commit/284838d))
+- fix: consider code review comments ([4360b4d](https://github.com/Harbour-Enterprises/SuperDoc/commit/4360b4d))
+- fix: don't prevent default from CMD+F when no search icon in toolbar ([ce5dc2b](https://github.com/Harbour-Enterprises/SuperDoc/commit/ce5dc2b))
+- fix: error when importing wp:anchor drawing that is an unsupported shape drawing ([dfd17ab](https://github.com/Harbour-Enterprises/SuperDoc/commit/dfd17ab))
+- fix: filter out .rels files from header/footer processing ([b16f183](https://github.com/Harbour-Enterprises/SuperDoc/commit/b16f183))
+- fix: har-10158 - fix comments highlighting and identify ([3dfae1c](https://github.com/Harbour-Enterprises/SuperDoc/commit/3dfae1c))
+- fix: paragaph fields inside lists for export ([a492e4f](https://github.com/Harbour-Enterprises/SuperDoc/commit/a492e4f))
+- fix: prevent footer/header rels files from being added to content types - it breaks validation ([fd48db4](https://github.com/Harbour-Enterprises/SuperDoc/commit/fd48db4))
+- fix(lists paste): make lists work when paste into sd ([3f87332](https://github.com/Harbour-Enterprises/SuperDoc/commit/3f87332))
+- superdoc examples: nodejs example document replaced ([be5a7be](https://github.com/Harbour-Enterprises/SuperDoc/commit/be5a7be))
+- Update package.json ([4106edd](https://github.com/Harbour-Enterprises/SuperDoc/commit/4106edd))
+- refactor: remove e2e tests ([0d7a5f7](https://github.com/Harbour-Enterprises/SuperDoc/commit/0d7a5f7))
+- refactor: remove missing reference to e2e ([c8ee227](https://github.com/Harbour-Enterprises/SuperDoc/commit/c8ee227))
+- refactor: removed missing e2e references ([4cdad7f](https://github.com/Harbour-Enterprises/SuperDoc/commit/4cdad7f))
+- refactor(selection): new approach ([e836d02](https://github.com/Harbour-Enterprises/SuperDoc/commit/e836d02))
+
 ## <small>0.15.1 (2025-07-24)</small>
 
 - chore: add missing JSDOC ([d49b3f4](https://github.com/Harbour-Enterprises/SuperDoc/commit/d49b3f4))
