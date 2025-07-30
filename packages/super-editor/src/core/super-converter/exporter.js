@@ -1305,7 +1305,16 @@ function generateTableProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { tableWidth, tableWidthType, tableStyleId, borders, tableIndent, tableLayout, tableCellSpacing } = attrs;
+  const { 
+    tableWidth, 
+    tableWidthType, 
+    tableStyleId, 
+    borders, 
+    tableIndent, 
+    tableLayout, 
+    tableCellSpacing, 
+    justification, 
+  } = attrs;
 
   if (tableStyleId) {
     const tableStyleElement = {
@@ -1355,6 +1364,14 @@ function generateTableProperties(node) {
     });
   }
 
+  if (justification) {
+    const justificationElement = {
+      name: 'w:jc',
+      attributes: { 'w:val': justification },
+    };
+    elements.push(justificationElement);
+  }
+  
   return {
     name: 'w:tblPr',
     elements,
