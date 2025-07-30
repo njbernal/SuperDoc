@@ -175,7 +175,8 @@ export const generateLinkedStyleString = (linkedStyle, basedOnStyle, node, paren
         if (rightIndent) markValue['margin-right'] = rightIndent + 'px';
         if (firstLine) markValue['text-indent'] = firstLine + 'px';
       } else if (key === 'bold') {
-        if (!listTypes.includes(node.type.name)) {
+        const val = value?.value;
+        if (!listTypes.includes(node.type.name) && val !== '0') {
           markValue['font-weight'] = 'bold';
         }
       } else if (key === 'text-transform') {
