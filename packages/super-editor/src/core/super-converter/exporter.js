@@ -1676,9 +1676,17 @@ function translateMark(mark) {
 
   const { attrs } = mark;
   let value;
-
+  
   switch (mark.type) {
     case 'bold':
+      if (attrs?.value) {
+        markElement.attributes['w:val'] = attrs.value;
+      } else {
+        delete markElement.attributes;
+      }
+      markElement.type = 'element';
+      break;
+
     case 'italic':
       delete markElement.attributes;
       markElement.type = 'element';
@@ -1717,6 +1725,15 @@ function translateMark(mark) {
 
     case 'textIndent':
       markElement.attributes['w:firstline'] = inchesToTwips(attrs.textIndent);
+      break;
+    
+    case 'textTransform':
+      if (attrs?.textTransform === 'none') {
+        markElement.attributes['w:val'] = '0';
+      } else {
+        delete markElement.attributes;
+      }
+      markElement.type = 'element';
       break;
 
     case 'lineHeight':
