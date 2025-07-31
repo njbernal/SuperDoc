@@ -88,5 +88,7 @@ export const cleanUpListsWithAnnotations =
         tr.delete(pos, pos + node.nodeSize);
       });
 
+    // Ensure sync lists updates after this transaction
+    tr.setMeta('updateListSync', true);
     return true;
   };
