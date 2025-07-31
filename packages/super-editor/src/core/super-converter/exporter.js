@@ -1435,7 +1435,7 @@ function generateTableGrid(node, params) {
 
   try {
     const pmNode = editorSchema.nodeFromJSON(node);
-    const cellMinWidth = 25;
+    const cellMinWidth = 10;
     const { colgroupValues } = createColGroup(pmNode, cellMinWidth);
 
     colgroup = colgroupValues;
@@ -2111,7 +2111,7 @@ function translateImageNode(params, imageSize) {
     },
     [],
   );
-  
+
   return textNode;
 }
 
