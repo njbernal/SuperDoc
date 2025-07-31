@@ -40,15 +40,15 @@ class SuperConverter {
   });
 
   static markTypes = [
-    { name: 'w:b', type: 'bold' },
-    { name: 'w:bCs', type: 'bold' },
+    { name: 'w:b', type: 'bold', property: 'value' },
+    // { name: 'w:bCs', type: 'bold' },
     { name: 'w:i', type: 'italic' },
-    { name: 'w:iCs', type: 'italic' },
+    // { name: 'w:iCs', type: 'italic' },
     { name: 'w:u', type: 'underline', mark: 'underline', property: 'underlineType' },
     { name: 'w:strike', type: 'strike', mark: 'strike' },
     { name: 'w:color', type: 'color', mark: 'textStyle', property: 'color' },
     { name: 'w:sz', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
-    { name: 'w:szCs', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
+    // { name: 'w:szCs', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
     { name: 'w:rFonts', type: 'fontFamily', mark: 'textStyle', property: 'fontFamily' },
     { name: 'w:jc', type: 'textAlign', mark: 'textStyle', property: 'textAlign' },
     { name: 'w:ind', type: 'textIndent', mark: 'textStyle', property: 'textIndent' },
@@ -56,6 +56,7 @@ class SuperConverter {
     { name: 'link', type: 'link', mark: 'link', property: 'href' },
     { name: 'w:highlight', type: 'highlight', mark: 'highlight', property: 'color' },
     { name: 'w:shd', type: 'highlight', mark: 'highlight', property: 'color' },
+    { name: 'w:caps', type: 'textTransform', mark: 'textStyle', property: 'textTransform' },
   ];
 
   static propertyTypes = Object.freeze({
@@ -693,7 +694,7 @@ class SuperConverter {
   async #exportProcessMediaFiles(media, editor) {
     const processedData = {};
     for (const filePath in media) {
-      if (typeof media[filePath] !== 'string') return;
+      if (typeof media[filePath] !== 'string') continue;
       const name = filePath.split('/').pop();
       processedData[name] = await getArrayBufferFromUrl(media[filePath], editor.options.isHeadless);
     }

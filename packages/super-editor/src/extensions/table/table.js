@@ -55,7 +55,7 @@ export const Table = Node.create({
       },
       resizable: true,
       handleWidth: 5,
-      cellMinWidth: 25,
+      cellMinWidth: 10,
       lastColumnResizable: true,
       allowTableNodeSelection: false,
     };
@@ -105,6 +105,22 @@ export const Table = Node.create({
           return {
             style: `border-collapse: ${borderCollapse || 'collapse'}`,
           };
+        },
+      },
+
+      justification: {
+        default: null,
+        renderDOM: (attrs) => {
+          if (!attrs.justification) return {};
+
+          if (attrs.justification === 'center') {
+            return { style: `margin: 0 auto` };
+          }
+          if (attrs.justification === 'right') {
+            return  { style: `margin-left: auto` };
+          }
+
+          return {};
         },
       },
 

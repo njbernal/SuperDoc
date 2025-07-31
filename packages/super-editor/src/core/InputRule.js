@@ -240,10 +240,7 @@ export function isWordHtml(html) {
  * @returns {Boolean} Returns true if the paste was handled.
  */
 export function handleHtmlPaste(html, editor) {
-  const flatHtml = flattenListsInHtml(html, editor);
-
-  const htmlWithPtSizing = convertEmToPt(flatHtml);
-  const cleanedHtml = sanitizeHtml(htmlWithPtSizing);
+  const cleanedHtml = htmlHandler(html, editor);
   const doc = PMDOMParser.fromSchema(editor.schema).parse(cleanedHtml);
 
   const { dispatch, state } = editor.view;
@@ -261,12 +258,48 @@ export function handleHtmlPaste(html, editor) {
     const paragraphContent = doc.firstChild.content;
     const tr = state.tr.replaceSelectionWith(paragraphContent, false);
     dispatch(tr);
+  } else if (isInParagraph) {
+    // We're in a paragraph but pasting multiple nodes, extract content from all paragraph nodes
+    const allContent = [];
+    doc.content.forEach((node, index) => {
+      if (node.type.name === 'paragraph') {
+        // Add the paragraph content
+        allContent.push(...node.content.content);
+
+        // Add a line break between paragraphs (except for the last one)
+        if (index < doc.content.childCount - 1) {
+          allContent.push(editor.schema.text('\n'));
+        }
+      }
+    });
+
+    if (allContent.length > 0) {
+      const fragment = Fragment.from(allContent);
+      const tr = state.tr.replaceSelectionWith(fragment, false);
+      dispatch(tr);
+    } else {
+      // Fallback to original behavior if no paragraph content found
+      dispatch(state.tr.replaceSelectionWith(doc, true));
+    }
   } else {
     // Use the original behavior for other cases
     dispatch(state.tr.replaceSelectionWith(doc, true));
   }
 
   return true;
+}
+/**
+ * Handle HTML content before it is inserted into the editor.
+ * This function is used to clean and sanitize HTML content,
+ * converting em units to pt and removing unnecessary tags.
+ * @param {String} html The HTML string to be processed.
+ * @param {Editor} editor The editor instance.
+ * @returns {String} The processed HTML string.
+ */
+export function htmlHandler(html, editor) {
+  const flatHtml = flattenListsInHtml(html, editor);
+  const htmlWithPtSizing = convertEmToPt(flatHtml);
+  return sanitizeHtml(htmlWithPtSizing);
 }
 
 /**

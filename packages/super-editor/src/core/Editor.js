@@ -240,6 +240,8 @@ export class Editor extends EventEmitter {
 
     isHeaderFooterChanged: false,
     isCustomXmlChanged: false,
+
+    focusTarget: null,
   };
 
   /**
@@ -545,6 +547,8 @@ export class Editor extends EventEmitter {
     let cleanedMode = documentMode?.toLowerCase() || 'editing';
     if (!this.extensionService || !this.state) return;
 
+    const pm = document.querySelector('.ProseMirror');
+
     if (this.options.role === 'viewer') cleanedMode = 'viewing';
     if (this.options.role === 'suggester' && cleanedMode === 'editing') cleanedMode = 'suggesting';
     // Viewing mode: Not editable, no tracked changes, no comments
@@ -559,6 +563,7 @@ export class Editor extends EventEmitter {
         isEditMode: false,
         documentMode: cleanedMode,
       });
+      if (!this.options.isHeaderOrFooter && pm) pm.classList.add('view-mode');
     }
 
     // Suggesting: Editable, tracked changes plugin enabled, comments
@@ -569,6 +574,7 @@ export class Editor extends EventEmitter {
       this.commands.enableTrackChanges();
       this.setOptions({ documentMode: 'suggesting' });
       this.setEditable(true, false);
+      if (pm) pm.classList.remove('view-mode');
     }
 
     // Editing: Editable, tracked changes plguin disabled, comments
@@ -585,15 +591,16 @@ export class Editor extends EventEmitter {
         isEditMode: false,
         documentMode: cleanedMode,
       });
+      if (pm) pm.classList.remove('view-mode');
     }
   }
 
   /**
    * Export the yjs binary from the current state.
-   * @returns {Uint8Array} The exported yjs binary
+   * @returns {Promise<Uint8Array>} The exported yjs binary
    */
-  generateCollaborationUpdate() {
-    return generateCollaborationData(this);
+  async generateCollaborationUpdate() {
+    return await generateCollaborationData(this);
   }
 
   /**
@@ -653,7 +660,8 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile) return;
     this.options.isNewFile = false;
     const doc = this.#generatePmData();
-    const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc);
+    // hiding this transaction from history so it doesn't appear in undo stack
+    const tr = this.state.tr.replaceWith(0, this.state.doc.content.size, doc).setMeta('addToHistory', false);
     this.view.dispatch(tr);
 
     setTimeout(() => {
@@ -815,6 +823,7 @@ export class Editor extends EventEmitter {
    * @returns {void}
    */
   #initMedia() {
+    if (this.options.isChildEditor) return;
     if (!this.options.ydoc) return (this.storage.image.media = this.options.mediaFiles);
 
     const mediaMap = this.options.ydoc.getMap('media');
@@ -1083,6 +1092,7 @@ export class Editor extends EventEmitter {
     proseMirror.setAttribute('aria-multiline', true);
     proseMirror.setAttribute('aria-label', 'Main content area, start typing to enter text.');
     proseMirror.setAttribute('aria-description', '');
+    proseMirror.classList.remove('view-mode');
 
     // Set fixed dimensions and padding that won't change with scaling
     if (pageSize) {
@@ -1233,6 +1243,7 @@ export class Editor extends EventEmitter {
     if (!this.options.isNewFile) {
       this.initPagination();
       this.#initComments();
+      updateYdocDocxData(this);
     }
   }
 
@@ -1448,6 +1459,10 @@ export class Editor extends EventEmitter {
    * Handles image node selection for header/footer editor
    */
   #handleNodeSelection(view, pos) {
+    this.setOptions({
+      lastSelection: null,
+    });
+
     if (this.options.isHeaderOrFooter) {
       return setImageNodeSelection(view, pos);
     }
@@ -1663,9 +1678,9 @@ export class Editor extends EventEmitter {
    * @returns {boolean} Whether migrations are needed
    */
   static checkIfMigrationsNeeded(data) {
-    if (!version) version = 'initial';
-    const migrations = getNecessaryMigrations(version) || [];
-    console.debug('[checkVersionMigrations] Migrations needed:', version, migrations.length);
+    const dataVersion = version || 'initial';
+    const migrations = getNecessaryMigrations(dataVersion) || [];
+    console.debug('[checkVersionMigrations] Migrations needed:', dataVersion, migrations.length);
     return migrations.length > 0;
   }
 

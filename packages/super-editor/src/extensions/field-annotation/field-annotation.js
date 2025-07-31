@@ -456,13 +456,12 @@ export const FieldAnnotation = Node.create({
 
             let defaultDisplayLabel = attrs.defaultDisplayLabel ? attrs.defaultDisplayLabel : attrs.displayLabel || '';
 
-            attrs.hash = generateDocxRandomId(4);
-
             let node = schema.nodes[this.name].create(
               {
                 ...attrs,
                 ...formatAttrs,
                 defaultDisplayLabel,
+                hash: attrs.hash || generateDocxRandomId(4),
               },
               null,
               null,
@@ -518,6 +517,7 @@ export const FieldAnnotation = Node.create({
               {
                 ...attrs,
                 defaultDisplayLabel,
+                hash: attrs.hash || generateDocxRandomId(4),
               },
               null,
               null,
@@ -630,10 +630,11 @@ export const FieldAnnotation = Node.create({
                   ...node.attrs,
                   // reset displayLabel to default.
                   displayLabel,
-                  // reset attrs ​​for specific types.
+                  // reset attrs for specific types.
                   imageSrc: null,
                   rawHtml: null,
                   linkUrl: null,
+                  hash: null,
                 });
               }
             });

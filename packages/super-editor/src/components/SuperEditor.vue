@@ -1,7 +1,7 @@
 <script setup>
 import 'tippy.js/dist/tippy.css';
 import { NSkeleton } from 'naive-ui';
-import { ref, onMounted, onBeforeUnmount, computed, shallowRef, reactive, nextTick, markRaw } from 'vue';
+import { ref, onMounted, onBeforeUnmount, shallowRef, reactive, markRaw } from 'vue';
 import { Editor } from '@/index.js';
 import { getStarterExtensions } from '@extensions/index.js';
 import SlashMenu from './slash-menu/SlashMenu.vue';
