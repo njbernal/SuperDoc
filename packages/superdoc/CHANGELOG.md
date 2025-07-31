@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.15.3 (2025-07-31)</small>
+
+- fix: prevent editor selection logic when right-clicking ([4bb1600](https://github.com/Harbour-Enterprises/SuperDoc/commit/4bb1600))
+
 ## <small>0.15.2 (2025-07-29)</small>
 
 - chore: add comment to .rels fix ([0142642](https://github.com/Harbour-Enterprises/SuperDoc/commit/0142642))
