@@ -694,7 +694,7 @@ class SuperConverter {
   async #exportProcessMediaFiles(media, editor) {
     const processedData = {};
     for (const filePath in media) {
-      if (typeof media[filePath] !== 'string') return;
+      if (typeof media[filePath] !== 'string') continue;
       const name = filePath.split('/').pop();
       processedData[name] = await getArrayBufferFromUrl(media[filePath], editor.options.isHeadless);
     }

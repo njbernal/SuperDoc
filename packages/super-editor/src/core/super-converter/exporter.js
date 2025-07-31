@@ -1305,15 +1305,15 @@ function generateTableProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { 
-    tableWidth, 
-    tableWidthType, 
-    tableStyleId, 
-    borders, 
-    tableIndent, 
-    tableLayout, 
-    tableCellSpacing, 
-    justification, 
+  const {
+    tableWidth,
+    tableWidthType,
+    tableStyleId,
+    borders,
+    tableIndent,
+    tableLayout,
+    tableCellSpacing,
+    justification,
   } = attrs;
 
   if (tableStyleId) {
@@ -1371,7 +1371,7 @@ function generateTableProperties(node) {
     };
     elements.push(justificationElement);
   }
-  
+
   return {
     name: 'w:tblPr',
     elements,
@@ -2294,6 +2294,10 @@ function translateFieldAnnotation(params) {
   let processedNode;
   let sdtContentElements;
 
+  if ((attrs.type === 'image' || attrs.type === 'signature') && !attrs.hash) {
+    attrs.hash = generateDocxRandomId(4);
+  }
+
   if (isFinalDoc) {
     return annotationHandler(params);
   } else {
@@ -2319,6 +2323,7 @@ function translateFieldAnnotation(params) {
     fieldFontSize: attrs.fontSize,
     fieldTextColor: attrs.textColor,
     fieldTextHighlight: attrs.textHighlight,
+    hash: attrs.hash,
   };
   const annotationAttrsJson = JSON.stringify(annotationAttrs);
 
