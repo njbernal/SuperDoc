@@ -783,8 +783,20 @@ function translateList(params) {
   // Collapse multiple paragraphs into a single node for this list item
   // In docx we need a single paragraph, but can include line breaks in a run
   const collapsedParagraphNode = convertMultipleListItemsIntoSingleNode(listItem);
-
   let outputNode = exportSchemaToJson({ ...params, node: collapsedParagraphNode });
+
+  if (!outputNode) {
+    console.warn('translateList: exportSchemaToJson returned null/undefined');
+    return [
+      {
+        name: 'w:p',
+        elements: [
+          { name: 'w:pPr', elements: numPrTag ? [numPrTag] : [] },
+          { name: 'w:r', elements: [{ name: 'w:t', elements: [{ text: '', type: 'text' }] }] },
+        ],
+      },
+    ];
+  }
 
   /**
    * MS Word does not allow paragraphs inside lists (which are just paragraphs in OOXML)
@@ -795,21 +807,18 @@ function translateList(params) {
    *  2. Not final doc (keep w:sdt node, process its content)
    */
   let nodesToFlatten = [];
+
   if (Array.isArray(outputNode) && params.isFinalDoc) {
     const parsedElements = [];
     outputNode?.forEach((node, index) => {
       if (node?.elements) {
-        const runs = node.elements?.filter((n) => n.name === 'w:r');
+        const runs = node.elements?.filter((n) => n.name === 'w:r') || [];
         parsedElements.push(...runs);
-
         if (node.name === 'w:p' && index < outputNode.length - 1) {
-          parsedElements.push({
-            name: 'w:br',
-          });
+          parsedElements.push({ name: 'w:br' });
         }
       }
     });
-
     outputNode = {
       name: 'w:p',
       elements: [{ name: 'w:pPr', elements: [] }, ...parsedElements],
@@ -817,21 +826,18 @@ function translateList(params) {
   }
 
   /** Case 2: Process w:sdt content */
-  const sdtNodes = outputNode.elements?.filter((n) => n.name === 'w:sdt');
-  if (sdtNodes && sdtNodes.length > 0) {
+  const sdtNodes = outputNode?.elements?.filter((n) => n.name === 'w:sdt') || [];
+  if (sdtNodes.length > 0) {
     nodesToFlatten = sdtNodes;
     nodesToFlatten?.forEach((sdtNode) => {
-      const sdtContent = sdtNode.elements.find((n) => n.name === 'w:sdtContent');
-      if (sdtContent && sdtContent.elements) {
+      const sdtContent = sdtNode.elements?.find((n) => n.name === 'w:sdtContent');
+      if (sdtContent?.elements) {
         const parsedElements = [];
         sdtContent.elements.forEach((element, index) => {
-          const runs = element.elements?.filter((n) => n.name === 'w:r');
+          const runs = element.elements?.filter((n) => n.name === 'w:r') || [];
           parsedElements.push(...runs);
-
           if (element.name === 'w:p' && index < sdtContent.elements.length - 1) {
-            parsedElements.push({
-              name: 'w:br',
-            });
+            parsedElements.push({ name: 'w:br' });
           }
         });
         sdtContent.elements = parsedElements;
@@ -839,22 +845,26 @@ function translateList(params) {
     });
   }
 
-  const pPr = outputNode.elements?.find((n) => n.name === 'w:pPr');
-  if (pPr && pPr.elements && numPrTag) {
+  const pPr = outputNode?.elements?.find((n) => n.name === 'w:pPr');
+  if (pPr?.elements && numPrTag) {
     pPr.elements.unshift(numPrTag);
   }
 
   const indentTag = restoreIndent(listItem.attrs.indent);
-  indentTag && pPr?.elements?.push(indentTag);
+  if (indentTag && pPr?.elements) {
+    pPr.elements.push(indentTag);
+  }
 
-  const runNode = outputNode.elements?.find((n) => n.name === 'w:r');
+  const runNode = outputNode?.elements?.find((n) => n.name === 'w:r');
   const rPr = runNode?.elements?.find((n) => n.name === 'w:rPr');
-  if (rPr) pPr.elements.push(rPr);
+  if (rPr && pPr?.elements) {
+    pPr.elements.push(rPr);
+  }
 
   if (listItem.attrs.numPrType !== 'inline') {
     const numPrIndex = pPr?.elements?.findIndex((e) => e?.name === 'w:numPr');
-    if (numPrIndex !== -1) {
-      pPr?.elements?.splice(numPrIndex, 1);
+    if (numPrIndex !== -1 && pPr?.elements) {
+      pPr.elements.splice(numPrIndex, 1);
     }
   }
 
@@ -1676,7 +1686,7 @@ function translateMark(mark) {
 
   const { attrs } = mark;
   let value;
-  
+
   switch (mark.type) {
     case 'bold':
       if (attrs?.value) {
@@ -1726,7 +1736,7 @@ function translateMark(mark) {
     case 'textIndent':
       markElement.attributes['w:firstline'] = inchesToTwips(attrs.textIndent);
       break;
-    
+
     case 'textTransform':
       if (attrs?.textTransform === 'none') {
         markElement.attributes['w:val'] = '0';
