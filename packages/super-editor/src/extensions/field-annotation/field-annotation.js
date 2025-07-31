@@ -10,6 +10,7 @@ import { toHex } from 'color2k';
 import { parseSizeUnit, minMax } from '@core/utilities/index.js';
 import { NodeSelection, Selection } from 'prosemirror-state';
 import { generateDocxRandomId } from '../../core/helpers/index.js';
+import { commands as cleanupCommands } from './cleanup-commands/index.js';
 
 export const fieldAnnotationName = 'fieldAnnotation';
 export const annotationClass = 'annotation';
@@ -1117,6 +1118,9 @@ export const FieldAnnotation = Node.create({
           return true;
         },
       /// Formatting commands - end.
+
+      // Clean up commands (after field deletion)
+      ...cleanupCommands,
     };
   },
 
