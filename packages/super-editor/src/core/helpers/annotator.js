@@ -1,7 +1,5 @@
 import { Fragment } from 'prosemirror-model';
-import { fieldAnnotationHelpers } from '@extensions/index.js';
 import { createHeaderFooterEditor, onHeaderFooterDataUpdate } from '@extensions/pagination/pagination-helpers.js';
-import { findParentNodeClosestToPos } from './findParentNodeClosestToPos';
 
 /**
  * Get the field attributes based on the field type and value
