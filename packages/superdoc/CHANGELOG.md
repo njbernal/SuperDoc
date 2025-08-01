@@ -1,5 +1,39 @@
 # Changelog
 
+## <small>0.15.5 (2025-08-01)</small>
+
+- chore: bump version → 0.15.3-next.0 ([f3ff0a2](https://github.com/Harbour-Enterprises/SuperDoc/commit/f3ff0a2))
+- chore: release v0.15.3-next.1 [skip ci] ([96ad57a](https://github.com/Harbour-Enterprises/SuperDoc/commit/96ad57a))
+- chore: release v0.15.3-next.2 [skip ci] ([130150a](https://github.com/Harbour-Enterprises/SuperDoc/commit/130150a))
+- chore: release v0.15.3-next.3 [skip ci] ([5036301](https://github.com/Harbour-Enterprises/SuperDoc/commit/5036301))
+- chore: release v0.15.3-next.4 [skip ci] ([94dc572](https://github.com/Harbour-Enterprises/SuperDoc/commit/94dc572))
+- chore: release v0.15.3-next.5 [skip ci] ([eae5350](https://github.com/Harbour-Enterprises/SuperDoc/commit/eae5350))
+- chore: release v0.15.3-next.6 [skip ci] ([15de97c](https://github.com/Harbour-Enterprises/SuperDoc/commit/15de97c))
+- chore: release v0.15.3-next.7 [skip ci] ([3785373](https://github.com/Harbour-Enterprises/SuperDoc/commit/3785373))
+- chore: release v0.15.4-next.1 [skip ci] ([48779f6](https://github.com/Harbour-Enterprises/SuperDoc/commit/48779f6))
+- chore: release v0.15.5-next.1 [skip ci] ([edb16fa](https://github.com/Harbour-Enterprises/SuperDoc/commit/edb16fa))
+- chore: release v0.15.5-next.2 [skip ci] ([948c8ea](https://github.com/Harbour-Enterprises/SuperDoc/commit/948c8ea))
+- chore: release v0.15.5-next.3 [skip ci] ([55eed1c](https://github.com/Harbour-Enterprises/SuperDoc/commit/55eed1c))
+- chore: release v0.15.5-next.4 [skip ci] ([5ca1e54](https://github.com/Harbour-Enterprises/SuperDoc/commit/5ca1e54))
+- chore: release v0.15.5-next.5 [skip ci] ([7bf4d94](https://github.com/Harbour-Enterprises/SuperDoc/commit/7bf4d94))
+- chore: update patch ([05753ae](https://github.com/Harbour-Enterprises/SuperDoc/commit/05753ae))
+- chore: update patch ([47dc5d0](https://github.com/Harbour-Enterprises/SuperDoc/commit/47dc5d0))
+- fix: create document section node selection ([60b7b26](https://github.com/Harbour-Enterprises/SuperDoc/commit/60b7b26))
+- fix: ensure updateListSync meta is added to run list sync plugin after list clean up ([8485e9a](https://github.com/Harbour-Enterprises/SuperDoc/commit/8485e9a))
+- fix: fix issue with moved cleanUpListsWithAnnotations, move both clean up functions ([72689cd](https://github.com/Harbour-Enterprises/SuperDoc/commit/72689cd))
+- fix: html paste processing ([1777394](https://github.com/Harbour-Enterprises/SuperDoc/commit/1777394))
+- fix: prevent editor selection logic when right-clicking ([a452b2e](https://github.com/Harbour-Enterprises/SuperDoc/commit/a452b2e))
+- fix: remove dry run in release-it.next config ([d8c4acb](https://github.com/Harbour-Enterprises/SuperDoc/commit/d8c4acb))
+- fix: remove new code from orderedListSyncPlugin breaking list numbering ([bfa77af](https://github.com/Harbour-Enterprises/SuperDoc/commit/bfa77af))
+- fix: remove w:szCs for now since we don't support special characters ([44d0e29](https://github.com/Harbour-Enterprises/SuperDoc/commit/44d0e29))
+- fix(image annotations): missed image on export ([077cea6](https://github.com/Harbour-Enterprises/SuperDoc/commit/077cea6))
+- fix bold ([fb1cacf](https://github.com/Harbour-Enterprises/SuperDoc/commit/fb1cacf))
+- formatting fixes ([946a037](https://github.com/Harbour-Enterprises/SuperDoc/commit/946a037))
+- formatting fixes ([0c4faa9](https://github.com/Harbour-Enterprises/SuperDoc/commit/0c4faa9))
+- HAR-10010 Cleanup empty paragraphs when annotation deleted ([c0a5d60](https://github.com/Harbour-Enterprises/SuperDoc/commit/c0a5d60))
+- move cleanup to commands ([e2e7fce](https://github.com/Harbour-Enterprises/SuperDoc/commit/e2e7fce))
+- update table cellMinWidth ([b9a090f](https://github.com/Harbour-Enterprises/SuperDoc/commit/b9a090f))
+
 ## <small>0.15.4 (2025-07-31)</small>
 
 - fix: create document section node selection ([dfd2e81](https://github.com/Harbour-Enterprises/SuperDoc/commit/dfd2e81))
