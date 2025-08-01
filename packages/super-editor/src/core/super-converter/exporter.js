@@ -1305,7 +1305,16 @@ function generateTableProperties(node) {
   const elements = [];
 
   const { attrs } = node;
-  const { tableWidth, tableWidthType, tableStyleId, borders, tableIndent, tableLayout, tableCellSpacing } = attrs;
+  const {
+    tableWidth,
+    tableWidthType,
+    tableStyleId,
+    borders,
+    tableIndent,
+    tableLayout,
+    tableCellSpacing,
+    justification,
+  } = attrs;
 
   if (tableStyleId) {
     const tableStyleElement = {
@@ -1353,6 +1362,14 @@ function generateTableProperties(node) {
         'w:type': tableCellSpacing.type,
       },
     });
+  }
+
+  if (justification) {
+    const justificationElement = {
+      name: 'w:jc',
+      attributes: { 'w:val': justification },
+    };
+    elements.push(justificationElement);
   }
 
   return {
@@ -1418,7 +1435,7 @@ function generateTableGrid(node, params) {
 
   try {
     const pmNode = editorSchema.nodeFromJSON(node);
-    const cellMinWidth = 25;
+    const cellMinWidth = 10;
     const { colgroupValues } = createColGroup(pmNode, cellMinWidth);
 
     colgroup = colgroupValues;
@@ -1662,6 +1679,14 @@ function translateMark(mark) {
 
   switch (mark.type) {
     case 'bold':
+      if (attrs?.value) {
+        markElement.attributes['w:val'] = attrs.value;
+      } else {
+        delete markElement.attributes;
+      }
+      markElement.type = 'element';
+      break;
+
     case 'italic':
       delete markElement.attributes;
       markElement.type = 'element';
@@ -1700,6 +1725,15 @@ function translateMark(mark) {
 
     case 'textIndent':
       markElement.attributes['w:firstline'] = inchesToTwips(attrs.textIndent);
+      break;
+
+    case 'textTransform':
+      if (attrs?.textTransform === 'none') {
+        markElement.attributes['w:val'] = '0';
+      } else {
+        delete markElement.attributes;
+      }
+      markElement.type = 'element';
       break;
 
     case 'lineHeight':
@@ -2260,6 +2294,10 @@ function translateFieldAnnotation(params) {
   let processedNode;
   let sdtContentElements;
 
+  if ((attrs.type === 'image' || attrs.type === 'signature') && !attrs.hash) {
+    attrs.hash = generateDocxRandomId(4);
+  }
+
   if (isFinalDoc) {
     return annotationHandler(params);
   } else {
@@ -2285,6 +2323,7 @@ function translateFieldAnnotation(params) {
     fieldFontSize: attrs.fontSize,
     fieldTextColor: attrs.textColor,
     fieldTextHighlight: attrs.textHighlight,
+    hash: attrs.hash,
   };
   const annotationAttrsJson = JSON.stringify(annotationAttrs);
 
