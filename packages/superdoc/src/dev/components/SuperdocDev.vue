@@ -70,7 +70,6 @@ const init = async () => {
       {
         data: currentFile.value,
         id: testId,
-        isNewFile: true,
         type: 'docx',
       },
     ],

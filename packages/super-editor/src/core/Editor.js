@@ -1903,7 +1903,7 @@ export class Editor extends EventEmitter {
     if (this.options.isHeaderOrFooter || this.options.isChildEditor) return;
 
     /** @type {import('./super-validator/index.js').SuperValidator} */
-    const validator = new SuperValidator({ editor: this, dryRun: false, debug: true });
+    const validator = new SuperValidator({ editor: this, dryRun: false, debug: false });
     validator.validateActiveDocument();
   }
 }
