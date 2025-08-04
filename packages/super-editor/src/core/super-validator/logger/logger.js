@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * Create special debug logger for SuperValidator and validataors.
+ * Create special debug logger for SuperValidator and validators.
  * @param {boolean} debug
  * @param {string[]} [additionalPrefixes]
  * @returns {import('../types.js').ValidatorLogger}
