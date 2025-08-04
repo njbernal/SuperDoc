@@ -6,6 +6,7 @@
  * @typedef {import('../../../../types.js').ValidatorLogger} ValidatorLogger
  * @typedef {import('../../../../types.js').Editor} Editor
  * @typedef {import('../../../../types.js').ValidatorFunction} ValidatorFunction
+ * @typedef {import('../../../../types.js').ElementInfo} ElementInfo
  */
 
 /**
@@ -38,10 +39,10 @@ export function createImageNodeValidator({ editor, logger }) {
 }
 
 /**
- * Ensure all image nodes have a valid rId attribute.
- * @param {Array<{ node: Node, pos: number }>} images
+ * Ensure all link marks have a valid rId attribute.
+ * @param {ElementInfo[]} images
  * @param {Editor} editor
- * @param {import('prosemirror-state').Transaction} tr
+ * @param {Transaction} tr
  * @param {ValidatorLogger} logger
  * @returns {{ modified: boolean, results: string[] }}
  */
