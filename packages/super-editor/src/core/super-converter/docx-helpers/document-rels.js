@@ -10,11 +10,16 @@ import { RELATIONSHIP_TYPES } from './docx-constants.js';
  * @param {Editor} editor The editor instance
  * @returns {XmlRelationshipElement[]} An array of relationship elements
  */
-const getDocumentRelationshipElements = (editor) => {
-  const docx = editor.converter.convertedXml;
+export const getDocumentRelationshipElements = (editor) => {
+  const docx = editor.converter?.convertedXml;
+  if (!docx) return [];
+
   const documentRels = docx['word/_rels/document.xml.rels'];
-  const relationshipTag = documentRels?.elements.find((el) => el.name === 'Relationships');
-  return relationshipTag.elements || [];
+  const elements = documentRels?.elements;
+  if (!Array.isArray(elements)) return [];
+
+  const relationshipTag = elements.find((el) => el.name === 'Relationships');
+  return relationshipTag?.elements || [];
 };
 
 /**
@@ -22,7 +27,7 @@ const getDocumentRelationshipElements = (editor) => {
  * @param {XmlRelationshipElement[]} relationships The array of relationship elements
  * @returns {number} The maximum relationship ID integer
  */
-const getMaxRelationshipIdInt = (relationships) => {
+export const getMaxRelationshipIdInt = (relationships) => {
   const ids = [];
   relationships.forEach((rel) => {
     const splitId = rel.attributes.Id.split('rId');
@@ -31,6 +36,8 @@ const getMaxRelationshipIdInt = (relationships) => {
       ids.push(parsedInt);
     }
   });
+
+  if (ids.length === 0) return 0;
   return Math.max(...ids);
 };
 
