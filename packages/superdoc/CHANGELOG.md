@@ -1,5 +1,31 @@
 # Changelog
 
+## <small>0.15.6 (2025-08-04)</small>
+
+- fix: add missing id generation call to image validator, fix tests for image validator ([c337647](https://github.com/Harbour-Enterprises/SuperDoc/commit/c337647))
+- fix: consider code feedback ([a5c1147](https://github.com/Harbour-Enterprises/SuperDoc/commit/a5c1147))
+- fix: extend custom selection plugin again to fix font size, context menu and linked styles cases ([f906f23](https://github.com/Harbour-Enterprises/SuperDoc/commit/f906f23))
+- fix: har-10195 highlight tracked changes comment ([1c7be69](https://github.com/Harbour-Enterprises/SuperDoc/commit/1c7be69))
+- fix: improve null handling and clean up code in translateList and related functions ([09c88e4](https://github.com/Harbour-Enterprises/SuperDoc/commit/09c88e4))
+- fix: jsdoc for image validator ([453f2c1](https://github.com/Harbour-Enterprises/SuperDoc/commit/453f2c1))
+- fix: null export for line height breaking docs ([e040d05](https://github.com/Harbour-Enterprises/SuperDoc/commit/e040d05))
+- fix: null values in w:line spacing, invalid content types at export ([d4cf9c3](https://github.com/Harbour-Enterprises/SuperDoc/commit/d4cf9c3))
+- chore: add safety checks to docx helpers and 100% tests for document rels ([cdd2692](https://github.com/Harbour-Enterprises/SuperDoc/commit/cdd2692))
+- chore: add test data folder to prettier ignore ([68fe36d](https://github.com/Harbour-Enterprises/SuperDoc/commit/68fe36d))
+- chore: bump version → 0.15.6-next.0 ([14c839c](https://github.com/Harbour-Enterprises/SuperDoc/commit/14c839c))
+- chore: clean up ([7ccfe14](https://github.com/Harbour-Enterprises/SuperDoc/commit/7ccfe14))
+- chore: fix spelling ([fb91661](https://github.com/Harbour-Enterprises/SuperDoc/commit/fb91661))
+- chore: release v0.15.6-next.1 [skip ci] ([2f43532](https://github.com/Harbour-Enterprises/SuperDoc/commit/2f43532))
+- chore: release v0.15.6-next.2 [skip ci] ([3f0ab0a](https://github.com/Harbour-Enterprises/SuperDoc/commit/3f0ab0a))
+- chore: release v0.15.6-next.3 [skip ci] ([0e23e27](https://github.com/Harbour-Enterprises/SuperDoc/commit/0e23e27))
+- chore: release v0.15.6-next.4 [skip ci] ([d45663f](https://github.com/Harbour-Enterprises/SuperDoc/commit/d45663f))
+- chore: release v0.15.6-next.5 [skip ci] ([be0b186](https://github.com/Harbour-Enterprises/SuperDoc/commit/be0b186))
+- chore: run prettier and lint ([03ca19b](https://github.com/Harbour-Enterprises/SuperDoc/commit/03ca19b))
+- feat: add 100% test coverage to validator, change directory structure for individual validator rules ([574000b](https://github.com/Harbour-Enterprises/SuperDoc/commit/574000b))
+- feat: super validator infrastructure and first two validators ([721b476](https://github.com/Harbour-Enterprises/SuperDoc/commit/721b476))
+- Revert "fix: improve null handling and clean up code in translateList" ([1df6abf](https://github.com/Harbour-Enterprises/SuperDoc/commit/1df6abf))
+- refactor: clean up whitespace and formatting in importer and extension files ([f6724a6](https://github.com/Harbour-Enterprises/SuperDoc/commit/f6724a6))
+
 ## <small>0.15.5 (2025-08-01)</small>
 
 - chore: bump version → 0.15.3-next.0 ([f3ff0a2](https://github.com/Harbour-Enterprises/SuperDoc/commit/f3ff0a2))
