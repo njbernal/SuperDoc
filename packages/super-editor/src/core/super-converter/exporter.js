@@ -1676,7 +1676,7 @@ function translateMark(mark) {
 
   const { attrs } = mark;
   let value;
-  
+
   switch (mark.type) {
     case 'bold':
       if (attrs?.value) {
@@ -1726,7 +1726,7 @@ function translateMark(mark) {
     case 'textIndent':
       markElement.attributes['w:firstline'] = inchesToTwips(attrs.textIndent);
       break;
-    
+
     case 'textTransform':
       if (attrs?.textTransform === 'none') {
         markElement.attributes['w:val'] = '0';

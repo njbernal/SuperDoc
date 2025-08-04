@@ -18,4 +18,12 @@ vite.config.js
 packages/superdoc/src/components/PdfViewer/worker.js
 packages/superdoc/src/components/PdfViewer/helpers/pdfjs-worker.js
 
+# Test data directories
 **/data/**
+**/data
+packages/super-editor/src/tests/data
+packages/super-editor/src/tests/data/**
+src/tests/data
+src/tests/data/**
+tests/data
+tests/data/**
