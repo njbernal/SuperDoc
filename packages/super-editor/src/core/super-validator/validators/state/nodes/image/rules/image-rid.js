@@ -27,7 +27,7 @@ export function ensureValidImageRID(images, editor, tr, logger) {
 
       // If we still don't have an rId, create a new relationship
       if (!newId) {
-        newId = editor.converter.docxHelpers.getNewRelationshipId(editor);
+        newId = editor.converter.docxHelpers.insertNewRelationship(src, 'image', editor);
         logger.debug('Creating new rId for image at pos:', pos, 'with src:', src);
       }
 

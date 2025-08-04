@@ -1,71 +1,127 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createImageNodeValidator } from './image-validator.js';
-import * as rules from './rules/image-rid.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ensureValidImageRID } from './rules/index.js';
 
-describe('createImageNodeValidator', () => {
-  const mockEditor = {};
-  const mockLogger = { debug: vi.fn() };
-  const mockTransaction = {};
+describe('ensureValidImageRID', () => {
+  let mockEditor;
+  let mockTransaction;
+  let mockLogger;
 
   beforeEach(() => {
-    vi.spyOn(rules, 'ensureValidImageRID').mockImplementation(() => ({
-      modified: false,
-      results: [],
-    }));
+    mockTransaction = {
+      setNodeMarkup: vi.fn(),
+    };
+
+    mockLogger = {
+      debug: vi.fn(),
+    };
+
+    mockEditor = {
+      converter: {
+        docxHelpers: {
+          findRelationshipIdFromTarget: vi.fn(),
+          insertNewRelationship: vi.fn(),
+        },
+      },
+    };
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  it('does nothing when rId is already present', () => {
+    const images = [
+      {
+        node: { attrs: { rId: 'r1', src: 'image.png' } },
+        pos: 0,
+      },
+    ];
+
+    const result = ensureValidImageRID(images, mockEditor, mockTransaction, mockLogger);
+
+    expect(result.modified).toBe(false);
+    expect(result.results).toHaveLength(0);
+    expect(mockTransaction.setNodeMarkup).not.toHaveBeenCalled();
   });
 
-  it('should define requiredElements with image node', () => {
-    const validator = createImageNodeValidator({ editor: mockEditor, logger: mockLogger });
-    expect(validator.requiredElements).toEqual({
-      nodes: ['image'],
+  it('reuses existing rId when found', () => {
+    mockEditor.converter.docxHelpers.findRelationshipIdFromTarget.mockReturnValue('existing-rId');
+
+    const images = [
+      {
+        node: { attrs: { src: 'image1.png' } },
+        pos: 5,
+      },
+    ];
+
+    const result = ensureValidImageRID(images, mockEditor, mockTransaction, mockLogger);
+
+    expect(result.modified).toBe(true);
+    expect(result.results[0]).toContain('Added missing rId to image at pos 5');
+    expect(mockTransaction.setNodeMarkup).toHaveBeenCalledWith(5, undefined, {
+      src: 'image1.png',
+      rId: 'existing-rId',
     });
+
+    expect(mockLogger.debug).toHaveBeenCalledWith('Reusing existing rId for image:', 'existing-rId', 'at pos:', 5);
   });
 
-  it('should call ensureValidImageRID with image array', () => {
-    const validator = createImageNodeValidator({ editor: mockEditor, logger: mockLogger });
+  it('creates new rId when not found', () => {
+    mockEditor.converter.docxHelpers.findRelationshipIdFromTarget.mockReturnValue(null);
+    mockEditor.converter.docxHelpers.insertNewRelationship.mockReturnValue('new-rId');
 
-    const analysis = { image: [{ attrs: { rId: 'r1' } }] };
-    validator(mockTransaction, analysis);
+    const images = [
+      {
+        node: { attrs: { src: 'new-image.png' } },
+        pos: 2,
+      },
+    ];
 
-    expect(rules.ensureValidImageRID).toHaveBeenCalledWith(analysis.image, mockEditor, mockTransaction, mockLogger);
-  });
+    const result = ensureValidImageRID(images, mockEditor, mockTransaction, mockLogger);
 
-  it('should return modified = false and empty results if rule returns no issues', () => {
-    const validator = createImageNodeValidator({ editor: mockEditor, logger: mockLogger });
+    expect(result.modified).toBe(true);
+    expect(result.results[0]).toBe('Added missing rId to image at pos 2');
 
-    const result = validator(mockTransaction, { image: [] });
-
-    expect(result).toEqual({
-      modified: false,
-      results: [],
-    });
-  });
-
-  it('should return correct modified and results from rule', () => {
-    rules.ensureValidImageRID.mockReturnValueOnce({
-      modified: true,
-      results: [{ message: 'Missing rId', nodePos: 5 }],
+    expect(mockTransaction.setNodeMarkup).toHaveBeenCalledWith(2, undefined, {
+      src: 'new-image.png',
+      rId: 'new-rId',
     });
 
-    const validator = createImageNodeValidator({ editor: mockEditor, logger: mockLogger });
-
-    const result = validator(mockTransaction, { image: [{ attrs: {} }] });
-
-    expect(result).toEqual({
-      modified: true,
-      results: [{ message: 'Missing rId', nodePos: 5 }],
-    });
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      'Creating new rId for image at pos:',
+      2,
+      'with src:',
+      'new-image.png',
+    );
   });
 
-  it('should not fail if analysis.image is undefined', () => {
-    const validator = createImageNodeValidator({ editor: mockEditor, logger: mockLogger });
+  it('skips images with no src', () => {
+    const images = [
+      {
+        node: { attrs: {} },
+        pos: 3,
+      },
+    ];
 
-    validator(mockTransaction, {}); // no image key
+    const result = ensureValidImageRID(images, mockEditor, mockTransaction, mockLogger);
 
-    expect(rules.ensureValidImageRID).toHaveBeenCalledWith([], mockEditor, mockTransaction, mockLogger);
+    expect(result.modified).toBe(false);
+    expect(result.results).toHaveLength(0);
+    expect(mockTransaction.setNodeMarkup).not.toHaveBeenCalled();
+  });
+
+  it('handles multiple images with mixed outcomes', () => {
+    mockEditor.converter.docxHelpers.findRelationshipIdFromTarget
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce('reused-rId');
+
+    mockEditor.converter.docxHelpers.insertNewRelationship.mockReturnValue('created-rId');
+
+    const images = [
+      { node: { attrs: { src: 'img-a.png' } }, pos: 0 },
+      { node: { attrs: { src: 'img-b.png' } }, pos: 10 },
+    ];
+
+    const result = ensureValidImageRID(images, mockEditor, mockTransaction, mockLogger);
+
+    expect(result.modified).toBe(true);
+    expect(result.results).toHaveLength(2);
+    expect(mockTransaction.setNodeMarkup).toHaveBeenCalledTimes(2);
   });
 });
