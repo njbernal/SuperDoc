@@ -815,7 +815,6 @@ function translateList(params) {
    *  1. Final doc (keep paragraph field content inside list item)
    *  2. Not final doc (keep w:sdt node, process its content)
    */
-  let nodesToFlatten = [];
   if (Array.isArray(outputNode) && params.isFinalDoc) {
     const parsedElements = [];
     outputNode?.forEach((node, index) => {
@@ -838,16 +837,24 @@ function translateList(params) {
   }
 
   /** Case 2: Process w:sdt content */
+  let nodesToFlatten = [];
   const sdtNodes = outputNode.elements?.filter((n) => n.name === 'w:sdt');
   if (sdtNodes && sdtNodes.length > 0) {
     nodesToFlatten = sdtNodes;
     nodesToFlatten?.forEach((sdtNode) => {
       const sdtContent = sdtNode.elements.find((n) => n.name === 'w:sdtContent');
-      if (sdtContent && sdtContent.elements) {
+      const foundRun = sdtContent.elements?.find((el) => el.name === 'w:r'); // this is a regular text field.
+      if (sdtContent && sdtContent.elements && !foundRun) {
         const parsedElements = [];
         sdtContent.elements.forEach((element, index) => {
+          if (element.name === 'w:rPr' && element.elements?.length) {
+            parsedElements.push(element);
+          }
+
           const runs = element.elements?.filter((n) => n.name === 'w:r');
-          parsedElements.push(...runs);
+          if (runs && runs.length) {
+            parsedElements.push(...runs);
+          }
 
           if (element.name === 'w:p' && index < sdtContent.elements.length - 1) {
             parsedElements.push({
@@ -1617,7 +1624,7 @@ function generateTableCellProperties(node) {
     const cellBordersElement = {
       name: 'w:tcBorders',
       elements: Object.entries(borders).map(([key, value]) => {
-        if (!value.size) {
+        if (!value.size || value.val === 'none') {
           return {
             name: `w:${key}`,
             attributes: {
