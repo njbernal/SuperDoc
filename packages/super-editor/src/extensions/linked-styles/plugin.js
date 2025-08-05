@@ -1,7 +1,5 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
-
-import { getLineHeightValueString } from '@core/super-converter/helpers.js';
 import { generateLinkedStyleString, getLinkedStyle } from './helpers.js';
 
 export const LinkedStylesPluginKey = new PluginKey('linkedStyles');
@@ -70,23 +68,4 @@ const generateDecorations = (state, styles) => {
     decorations.push(decoration);
   });
   return DecorationSet.create(doc, decorations);
-};
-
-/**
- * Get the spacing style for a given spacing object
- * @param {Object} spacing The spacing object
- * @property {Number} spacing.lineSpaceBefore The space before the line
- * @property {Number} spacing.lineSpaceAfter The space after the line
- * @property {Number} spacing.line The line height
- * @property {String} spacing.lineRule The line rule (e.g., 'auto', 'exact', 'multiple')
- * @property {Boolean} spacing.isLineHeight Whether to include line height in the style
- * @returns {Object} The spacing style object
- */
-export const getSpacingStyle = (spacing) => {
-  const { lineSpaceBefore, lineSpaceAfter, line, lineRule } = spacing;
-  return {
-    'margin-top': lineSpaceBefore + 'px',
-    'margin-bottom': lineSpaceAfter + 'px',
-    ...getLineHeightValueString(line, '', lineRule, true),
-  };
 };
