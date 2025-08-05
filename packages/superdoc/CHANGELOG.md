@@ -1,5 +1,11 @@
 # Changelog
 
+## <small>0.15.8 (2025-08-05)</small>
+
+- fix: field vs sdt import issue is fixed with new tests, fix issue in test module with comments ([825e647](https://github.com/Harbour-Enterprises/SuperDoc/commit/825e647))
+- chore: bump version → 0.15.8-next.0 ([e2dfe29](https://github.com/Harbour-Enterprises/SuperDoc/commit/e2dfe29))
+- chore: release v0.15.8-next.1 [skip ci] ([63c8de0](https://github.com/Harbour-Enterprises/SuperDoc/commit/63c8de0))
+
 ## <small>0.15.7 (2025-08-05)</small>
 
 - chore: bump version → 0.15.7-next.0 ([0a5ba36](https://github.com/Harbour-Enterprises/SuperDoc/commit/0a5ba36))
