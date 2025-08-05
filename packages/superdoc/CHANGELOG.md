@@ -1,5 +1,21 @@
 # Changelog
 
+## <small>0.15.7 (2025-08-05)</small>
+
+- chore: bump version → 0.15.7-next.0 ([0a5ba36](https://github.com/Harbour-Enterprises/SuperDoc/commit/0a5ba36))
+- chore: release v0.15.7-next.2 [skip ci] ([f848280](https://github.com/Harbour-Enterprises/SuperDoc/commit/f848280))
+- chore: release v0.15.7-next.3 [skip ci] ([a005fea](https://github.com/Harbour-Enterprises/SuperDoc/commit/a005fea))
+- chore: update patch ([27ff6f5](https://github.com/Harbour-Enterprises/SuperDoc/commit/27ff6f5))
+- chore: update patch ([1c05469](https://github.com/Harbour-Enterprises/SuperDoc/commit/1c05469))
+- fix: breaking structured document node import ([a470070](https://github.com/Harbour-Enterprises/SuperDoc/commit/a470070))
+- fix: breaking structured document node import (#733) ([ce9b29a](https://github.com/Harbour-Enterprises/SuperDoc/commit/ce9b29a)), closes [#733](https://github.com/Harbour-Enterprises/SuperDoc/issues/733)
+- fix: node example document corrupted on dl (#729) ([43bb4b0](https://github.com/Harbour-Enterprises/SuperDoc/commit/43bb4b0)), closes [#729](https://github.com/Harbour-Enterprises/SuperDoc/issues/729)
+- fix(lists paste): create custom num definitions for pasted lists (#724) ([b8a7c47](https://github.com/Harbour-Enterprises/SuperDoc/commit/b8a7c47)), closes [#724](https://github.com/Harbour-Enterprises/SuperDoc/issues/724)
+- fix annotations export in list (#731) ([92a22d1](https://github.com/Harbour-Enterprises/SuperDoc/commit/92a22d1)), closes [#731](https://github.com/Harbour-Enterprises/SuperDoc/issues/731)
+- fix table border export (#727) ([74b2a53](https://github.com/Harbour-Enterprises/SuperDoc/commit/74b2a53)), closes [#727](https://github.com/Harbour-Enterprises/SuperDoc/issues/727)
+- remove displayLabel check when importing annotations ([f031363](https://github.com/Harbour-Enterprises/SuperDoc/commit/f031363))
+- refactor: add fallback logging for init routine (#728) ([1351421](https://github.com/Harbour-Enterprises/SuperDoc/commit/1351421)), closes [#728](https://github.com/Harbour-Enterprises/SuperDoc/issues/728)
+
 ## <small>0.15.6 (2025-08-04)</small>
 
 - fix: add missing id generation call to image validator, fix tests for image validator ([c337647](https://github.com/Harbour-Enterprises/SuperDoc/commit/c337647))
