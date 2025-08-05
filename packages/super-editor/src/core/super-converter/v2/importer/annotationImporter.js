@@ -54,7 +54,7 @@ export const handleAnnotationNode = (params) => {
   const allAttrs = { ...attrs, ...marksAsAttrs };
   if (!allAttrs.hash) allAttrs.hash = generateDocxRandomId(4);
 
-  if (!attrs.fieldId || !attrs.displayLabel) {
+  if (!attrs.fieldId) {
     return { nodes: [], consumed: 0 };
   }
 
