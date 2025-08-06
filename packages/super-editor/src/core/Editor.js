@@ -45,6 +45,16 @@ import { SuperValidator } from '@core/super-validator/index.js';
  */
 
 /**
+ * A map of plugin names to their helper API objects.
+ * Each plugin defines its own helper methods.
+ *
+ * Example:
+ * editor.helpers.linkedStyles.getStyles()
+ *
+ * @typedef {Object<string, Object<string, Function>>} EditorHelpers
+ */
+
+/**
  * Editor main class.
  *
  * Expects a config object.
@@ -492,6 +502,14 @@ export class Editor extends EventEmitter {
    */
   get commands() {
     return this.#commandService?.commands;
+  }
+
+  /**
+   * Get extension helpers.
+   * @returns {EditorHelpers} Object with helper methods for extensions
+   */
+  get helpers() {
+    return this.extensionService.helpers;
   }
 
   /**
