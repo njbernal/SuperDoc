@@ -1,4 +1,4 @@
-import { LinkedStylesPluginKey } from '../linked-styles/linked-styles.js';
+import { LinkedStylesPluginKey } from '../linked-styles/index.js';
 import { getMarkType } from '@core/helpers/index.js';
 import { parseSizeUnit } from '@core/utilities/index.js';
 import { parseIndentElement, combineIndents } from '@core/super-converter/v2/importer/listImporter.js';
