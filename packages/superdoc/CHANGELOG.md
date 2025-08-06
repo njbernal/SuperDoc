@@ -1,5 +1,15 @@
 # Changelog
 
+## <small>0.15.9 (2025-08-06)</small>
+
+- fix: remove unused function ([59fa2ca](https://github.com/Harbour-Enterprises/SuperDoc/commit/59fa2ca))
+- feat: adds w:numStyleLink support to getListDefinitionDetails, complete unit tests ([c45c32f](https://github.com/Harbour-Enterprises/SuperDoc/commit/c45c32f))
+- feat: extend editor to allow addHelpers in extensions ([b3df90d](https://github.com/Harbour-Enterprises/SuperDoc/commit/b3df90d))
+- feat: extend linked styles api and reorganize folder ([09aee5f](https://github.com/Harbour-Enterprises/SuperDoc/commit/09aee5f))
+- chore: bump version → 0.15.9-next.0 ([aa8f5d2](https://github.com/Harbour-Enterprises/SuperDoc/commit/aa8f5d2))
+- chore: release v0.15.8-next.2 [skip ci] ([6af7788](https://github.com/Harbour-Enterprises/SuperDoc/commit/6af7788))
+- chore: release v0.15.9-next.1 [skip ci] ([1ef882e](https://github.com/Harbour-Enterprises/SuperDoc/commit/1ef882e))
+
 ## <small>0.15.8 (2025-08-05)</small>
 
 - fix: field vs sdt import issue is fixed with new tests, fix issue in test module with comments ([825e647](https://github.com/Harbour-Enterprises/SuperDoc/commit/825e647))
