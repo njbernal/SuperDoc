@@ -1,5 +1,22 @@
 # Changelog
 
+## <small>0.15.10 (2025-08-07)</small>
+
+- chore: add package.json to gha paths-ignore ([983fa92](https://github.com/Harbour-Enterprises/SuperDoc/commit/983fa92))
+- chore: bump version → 0.15.10-next.0 ([94ea03a](https://github.com/Harbour-Enterprises/SuperDoc/commit/94ea03a))
+- chore: release v0.15.10-next.1 [skip ci] ([737ca16](https://github.com/Harbour-Enterprises/SuperDoc/commit/737ca16))
+- chore: release v0.15.10-next.2 [skip ci] ([7d5b058](https://github.com/Harbour-Enterprises/SuperDoc/commit/7d5b058))
+- chore: release v0.15.10-next.3 [skip ci] ([512e23f](https://github.com/Harbour-Enterprises/SuperDoc/commit/512e23f))
+- chore: release v0.15.10-next.4 [skip ci] ([0b90303](https://github.com/Harbour-Enterprises/SuperDoc/commit/0b90303))
+- chore: release v0.15.10-next.5 [skip ci] ([7736412](https://github.com/Harbour-Enterprises/SuperDoc/commit/7736412))
+- chore: update dependabot.yml ([211280f](https://github.com/Harbour-Enterprises/SuperDoc/commit/211280f))
+- chore(deps-dev): bump lint-staged from 16.1.2 to 16.1.4 (#746) ([a5333c0](https://github.com/Harbour-Enterprises/SuperDoc/commit/a5333c0)), closes [#746](https://github.com/Harbour-Enterprises/SuperDoc/issues/746)
+- chore(deps-dev): bump rollup from 4.45.1 to 4.46.2 (#745) ([015bc01](https://github.com/Harbour-Enterprises/SuperDoc/commit/015bc01)), closes [#745](https://github.com/Harbour-Enterprises/SuperDoc/issues/745)
+- fix: prettier and new dependabot config ([7f4ac1b](https://github.com/Harbour-Enterprises/SuperDoc/commit/7f4ac1b))
+- fix: removed duplicate unit tests on CI/CD (#739) ([a31501c](https://github.com/Harbour-Enterprises/SuperDoc/commit/a31501c)), closes [#739](https://github.com/Harbour-Enterprises/SuperDoc/issues/739)
+- apply font to list item from annotation (#737) ([a3d2684](https://github.com/Harbour-Enterprises/SuperDoc/commit/a3d2684)), closes [#737](https://github.com/Harbour-Enterprises/SuperDoc/issues/737)
+- HAR-10241 - fix table import (#738) ([b338be6](https://github.com/Harbour-Enterprises/SuperDoc/commit/b338be6)), closes [#738](https://github.com/Harbour-Enterprises/SuperDoc/issues/738)
+
 ## <small>0.15.9 (2025-08-06)</small>
 
 - fix: remove unused function ([59fa2ca](https://github.com/Harbour-Enterprises/SuperDoc/commit/59fa2ca))
