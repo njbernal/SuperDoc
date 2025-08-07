@@ -216,11 +216,11 @@ function getTextStyleMarksFromLinkedStyles({ node, pos, editor }) {
 
   // 5. Compute final fontFamily (or fall back)
   let fontFamily = familyMark?.attrs.fontFamily ?? defaultFont;
-  
+
   const firstChild = node.firstChild;
   const hasOnlyOnePar = node.childCount === 1 && firstChild?.type.name === 'paragraph';
-  
-  // If a list item contains only one annotation, 
+
+  // If a list item contains only one annotation,
   // then we try to take the font from there.
   if (hasOnlyOnePar) {
     const par = firstChild;
@@ -232,7 +232,7 @@ function getTextStyleMarksFromLinkedStyles({ node, pos, editor }) {
       if (!familyMark && aFontFamily) fontFamily = aFontFamily;
     }
   }
-  
+
   return { fontSize, fontFamily };
 }
 
