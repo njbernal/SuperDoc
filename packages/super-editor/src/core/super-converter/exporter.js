@@ -2143,8 +2143,14 @@ function translateShapeTextbox(params) {
 
 function translateContentBlock(params) {
   const { node } = params;
-  const { drawingContent } = node.attrs;
+  const { drawingContent, vmlAttributes, horizontalRule } = node.attrs;
 
+  // Handle VML v:rect elements (like horizontal rules)
+  if (vmlAttributes || horizontalRule) {
+    return translateVRectContentBlock(params);
+  }
+
+  // Handle modern DrawingML content (existing logic)
   const drawing = {
     name: 'w:drawing',
     elements: [...(drawingContent ? [...(drawingContent.elements || [])] : [])],
@@ -2161,12 +2167,56 @@ function translateContentBlock(params) {
     elements: [choice],
   };
 
-  const par = {
-    name: 'w:p',
-    elements: [wrapTextInRun(alternateContent)],
+  return wrapTextInRun(alternateContent);
+}
+
+function translateVRectContentBlock(params) {
+  const { node } = params;
+  const { vmlAttributes, background, attributes, style } = node.attrs;
+
+  const rectAttrs = {
+    id: attributes?.id || `_x0000_i${Math.floor(Math.random() * 10000)}`,
   };
 
-  return par;
+  if (style) {
+    rectAttrs.style = style;
+  }
+
+  if (background) {
+    rectAttrs.fillcolor = background;
+  }
+
+  if (vmlAttributes) {
+    if (vmlAttributes.hralign) rectAttrs['o:hralign'] = vmlAttributes.hralign;
+    if (vmlAttributes.hrstd) rectAttrs['o:hrstd'] = vmlAttributes.hrstd;
+    if (vmlAttributes.hr) rectAttrs['o:hr'] = vmlAttributes.hr;
+    if (vmlAttributes.stroked) rectAttrs.stroked = vmlAttributes.stroked;
+  }
+
+  if (attributes) {
+    Object.entries(attributes).forEach(([key, value]) => {
+      if (!rectAttrs[key] && value !== undefined) {
+        rectAttrs[key] = value;
+      }
+    });
+  }
+
+  // Create the v:rect element
+  const rect = {
+    name: 'v:rect',
+    attributes: rectAttrs,
+  };
+
+  // Wrap in w:pict
+  const pict = {
+    name: 'w:pict',
+    attributes: {
+      'w14:anchorId': Math.floor(Math.random() * 0xffffffff).toString(),
+    },
+    elements: [rect],
+  };
+
+  return wrapTextInRun(pict);
 }
 
 export class DocxExporter {
