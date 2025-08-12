@@ -12,6 +12,8 @@ export function parseMarks(property, unknownMarks = [], docx = null) {
   const seen = new Set();
 
   const lang = property?.elements?.find((el) => el.name === 'w:lang');
+
+  // eslint-disable-next-line no-unused-vars
   const langAttrs = lang?.attributes || {};
 
   property?.elements?.forEach((element) => {
@@ -36,7 +38,27 @@ export function parseMarks(property, unknownMarks = [], docx = null) {
       }
     }
 
-    marksForType.forEach((m) => {
+    let filteredMarksForType = marksForType;
+
+    /**
+     * Now that we have 2 marks named 'spacing' we need to determine if its
+     * for line height or letter spacing.
+     *
+     * If the spacing has a w:val attribute, it's for letter spacing.
+     * If the spacing has a w:line, w:lineRule, w:before, w:after attribute, it's for line height.
+     */
+    if (element.name === 'w:spacing') {
+      const attrs = element.attributes || {};
+      const hasLetterSpacing = attrs['w:val'];
+      filteredMarksForType = marksForType.filter((m) => {
+        if (hasLetterSpacing) {
+          return m.type === 'letterSpacing';
+        }
+        return m.type === 'lineHeight';
+      });
+    }
+
+    filteredMarksForType.forEach((m) => {
       if (!m || seen.has(m.type)) return;
       seen.add(m.type);
 
@@ -143,6 +165,7 @@ function getMarkValue(markType, attributes, docx) {
     textIndent: () => getIndentValue(attributes),
     fontFamily: () => getFontFamilyValue(attributes, docx),
     lineHeight: () => getLineHeightValue(attributes),
+    letterSpacing: () => `${twipsToPt(attributes['w:val'])}pt`,
     textAlign: () => attributes['w:val'],
     link: () => attributes['href'],
     underline: () => attributes['w:val'],
@@ -158,7 +181,6 @@ function getMarkValue(markType, attributes, docx) {
 
   // Returned the mapped mark value
   if (markType in markValueMapper) {
-    const f = markValueMapper[markType];
     return markValueMapper[markType]();
   }
 }

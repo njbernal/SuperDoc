@@ -51,9 +51,11 @@ class SuperConverter {
     { name: 'w:sz', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
     // { name: 'w:szCs', type: 'fontSize', mark: 'textStyle', property: 'fontSize' },
     { name: 'w:rFonts', type: 'fontFamily', mark: 'textStyle', property: 'fontFamily' },
+    { name: 'w:rStyle', type: 'styleId', mark: 'textStyle', property: 'styleId' },
     { name: 'w:jc', type: 'textAlign', mark: 'textStyle', property: 'textAlign' },
     { name: 'w:ind', type: 'textIndent', mark: 'textStyle', property: 'textIndent' },
     { name: 'w:spacing', type: 'lineHeight', mark: 'textStyle', property: 'lineHeight' },
+    { name: 'w:spacing', type: 'letterSpacing', mark: 'textStyle', property: 'letterSpacing' },
     { name: 'link', type: 'link', mark: 'link', property: 'href' },
     { name: 'w:highlight', type: 'highlight', mark: 'highlight', property: 'color' },
     { name: 'w:shd', type: 'highlight', mark: 'highlight', property: 'color' },
@@ -499,7 +501,7 @@ class SuperConverter {
     return { result, params };
   }
 
-  #exportNumberingFile(params) {
+  #exportNumberingFile() {
     const numberingPath = 'word/numbering.xml';
     let numberingXml = this.convertedXml[numberingPath];
 
@@ -736,7 +738,7 @@ function storeSuperdocVersion(docx) {
   let pid = 2;
   try {
     pid = cleanProperties.length ? Math.max(...elements.map((el) => el.attributes.pid)) + 1 : 2;
-  } catch (error) {}
+  } catch {}
 
   cleanProperties.push(generateSuperdocVersion(pid));
   properties.elements = cleanProperties;

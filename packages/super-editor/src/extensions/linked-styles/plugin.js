@@ -8,7 +8,7 @@ export const createLinkedStylesPlugin = (editor) => {
   return new Plugin({
     key: LinkedStylesPluginKey,
     state: {
-      init(_, { doc, selection }) {
+      init() {
         if (!editor.converter || editor.options.mode !== 'docx') return {};
         const styles = editor.converter?.linkedStyles || [];
         return {
@@ -50,11 +50,17 @@ const generateDecorations = (state, styles) => {
   doc.descendants((node, pos) => {
     const { name } = node.type;
 
-    // Track the current StyleId
     if (node?.attrs?.styleId) lastStyleId = node.attrs.styleId;
     if (name === 'paragraph' && !node.attrs?.styleId) lastStyleId = null;
     if (name !== 'text' && name !== 'listItem' && name !== 'orderedList') return;
 
+    // Get the last styleId from the node marks
+    // This allows run-level styles and styleIds to override paragraph-level styles
+    for (const mark of node.marks) {
+      if (mark.type.name === 'textStyle' && mark.attrs.styleId) {
+        lastStyleId = mark.attrs.styleId;
+      }
+    }
     const { linkedStyle, basedOnStyle } = getLinkedStyle(lastStyleId, styles);
     if (!linkedStyle) return;
 
