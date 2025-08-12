@@ -1,5 +1,25 @@
 # Changelog
 
+## <small>0.15.11 (2025-08-12)</small>
+
+- chore: bump version → 0.15.11-next.0 ([e4c3c24](https://github.com/Harbour-Enterprises/SuperDoc/commit/e4c3c24))
+- chore: release v0.15.11-next.1 [skip ci] ([e64ad2e](https://github.com/Harbour-Enterprises/SuperDoc/commit/e64ad2e))
+- chore: release v0.15.11-next.2 [skip ci] ([049f7d5](https://github.com/Harbour-Enterprises/SuperDoc/commit/049f7d5))
+- chore: release v0.15.11-next.3 [skip ci] ([ad32fc4](https://github.com/Harbour-Enterprises/SuperDoc/commit/ad32fc4))
+- chore: release v0.15.11-next.4 [skip ci] ([e349fdc](https://github.com/Harbour-Enterprises/SuperDoc/commit/e349fdc))
+- chore: release v0.15.11-next.5 [skip ci] ([5939de1](https://github.com/Harbour-Enterprises/SuperDoc/commit/5939de1))
+- chore: release v0.15.11-next.6 [skip ci] ([44b3095](https://github.com/Harbour-Enterprises/SuperDoc/commit/44b3095))
+- chore: release v0.15.11-next.7 [skip ci] ([ddddf67](https://github.com/Harbour-Enterprises/SuperDoc/commit/ddddf67))
+- chore: test e2e visual tests ([6b796ce](https://github.com/Harbour-Enterprises/SuperDoc/commit/6b796ce))
+- fix: add support for vrect nodes (#758) ([acabf81](https://github.com/Harbour-Enterprises/SuperDoc/commit/acabf81)), closes [#758](https://github.com/Harbour-Enterprises/SuperDoc/issues/758)
+- fix: annotations import (#755) ([b6135ac](https://github.com/Harbour-Enterprises/SuperDoc/commit/b6135ac)), closes [#755](https://github.com/Harbour-Enterprises/SuperDoc/issues/755)
+- fix: clean up lint warnings and remove unused code (#754) ([df73156](https://github.com/Harbour-Enterprises/SuperDoc/commit/df73156)), closes [#754](https://github.com/Harbour-Enterprises/SuperDoc/issues/754)
+- fix: position out of range crash in cleanUpParagraphWithAnnotations ([49acd8f](https://github.com/Harbour-Enterprises/SuperDoc/commit/49acd8f))
+- fix: prevent processing of text nodes in AutoPageNumberNodeView (#768) ([e257949](https://github.com/Harbour-Enterprises/SuperDoc/commit/e257949)), closes [#768](https://github.com/Harbour-Enterprises/SuperDoc/issues/768)
+- fix(runs): add ability to store an export run styleIds (#765) ([ea3748e](https://github.com/Harbour-Enterprises/SuperDoc/commit/ea3748e)), closes [#765](https://github.com/Harbour-Enterprises/SuperDoc/issues/765)
+- feat: add tab stop support (#730) ([fb1f0c1](https://github.com/Harbour-Enterprises/SuperDoc/commit/fb1f0c1)), closes [#730](https://github.com/Harbour-Enterprises/SuperDoc/issues/730)
+- feat: linked editors example config + assets (#764) ([37b68e6](https://github.com/Harbour-Enterprises/SuperDoc/commit/37b68e6)), closes [#764](https://github.com/Harbour-Enterprises/SuperDoc/issues/764)
+
 ## <small>0.15.10 (2025-08-07)</small>
 
 - chore: add package.json to gha paths-ignore ([983fa92](https://github.com/Harbour-Enterprises/SuperDoc/commit/983fa92))
