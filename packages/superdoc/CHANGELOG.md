@@ -1,5 +1,14 @@
 # Changelog
 
+## <small>0.15.12 (2025-08-13)</small>
+
+- fix: default field export background transparent, allow config on export (#770) ([1ab87d1](https://github.com/Harbour-Enterprises/SuperDoc/commit/1ab87d1)), closes [#770](https://github.com/Harbour-Enterprises/SuperDoc/issues/770)
+- fix: list items (#771) ([50666d3](https://github.com/Harbour-Enterprises/SuperDoc/commit/50666d3)), closes [#771](https://github.com/Harbour-Enterprises/SuperDoc/issues/771)
+- chore: add constants in node view, lint and format (#772) ([c591032](https://github.com/Harbour-Enterprises/SuperDoc/commit/c591032)), closes [#772](https://github.com/Harbour-Enterprises/SuperDoc/issues/772)
+- chore: bump version → 0.15.12-next.0 ([df40836](https://github.com/Harbour-Enterprises/SuperDoc/commit/df40836))
+- chore: release v0.15.12-next.1 [skip ci] ([d1c9d26](https://github.com/Harbour-Enterprises/SuperDoc/commit/d1c9d26))
+- chore: release v0.15.12-next.2 [skip ci] ([7748de9](https://github.com/Harbour-Enterprises/SuperDoc/commit/7748de9))
+
 ## <small>0.15.11 (2025-08-12)</small>
 
 - chore: bump version → 0.15.11-next.0 ([e4c3c24](https://github.com/Harbour-Enterprises/SuperDoc/commit/e4c3c24))
