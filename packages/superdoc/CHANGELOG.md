@@ -1,5 +1,14 @@
 # Changelog
 
+## <small>0.15.13 (2025-08-14)</small>
+
+- chore: bump version → 0.15.13-next.0 ([50573ab](https://github.com/Harbour-Enterprises/SuperDoc/commit/50573ab))
+- chore: bump version → 0.15.14-next.0 ([4e07f42](https://github.com/Harbour-Enterprises/SuperDoc/commit/4e07f42))
+- chore: release v0.15.13-next.1 [skip ci] ([456f05d](https://github.com/Harbour-Enterprises/SuperDoc/commit/456f05d))
+- chore: update patch ([34ec252](https://github.com/Harbour-Enterprises/SuperDoc/commit/34ec252))
+- fix: formatting issues (#773) ([a992f68](https://github.com/Harbour-Enterprises/SuperDoc/commit/a992f68)), closes [#773](https://github.com/Harbour-Enterprises/SuperDoc/issues/773)
+- Add roadmap to README ([ecdd54c](https://github.com/Harbour-Enterprises/SuperDoc/commit/ecdd54c))
+
 ## <small>0.15.12 (2025-08-13)</small>
 
 - fix: default field export background transparent, allow config on export (#770) ([1ab87d1](https://github.com/Harbour-Enterprises/SuperDoc/commit/1ab87d1)), closes [#770](https://github.com/Harbour-Enterprises/SuperDoc/issues/770)
