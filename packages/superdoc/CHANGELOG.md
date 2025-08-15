@@ -1,5 +1,12 @@
 # Changelog
 
+## <small>0.15.14 (2025-08-15)</small>
+
+- chore: bump version → 0.15.14-next.0 ([5056aed](https://github.com/Harbour-Enterprises/SuperDoc/commit/5056aed))
+- chore: release v0.15.14-next.1 [skip ci] ([031227d](https://github.com/Harbour-Enterprises/SuperDoc/commit/031227d))
+- fix: preserve empty spaces in XML parsing and handle temporary wrappers in text node importer (#775) ([1a6a34e](https://github.com/Harbour-Enterprises/SuperDoc/commit/1a6a34e)), closes [#775](https://github.com/Harbour-Enterprises/SuperDoc/issues/775)
+- feat: add word addin example (#757) ([2ee08c4](https://github.com/Harbour-Enterprises/SuperDoc/commit/2ee08c4)), closes [#757](https://github.com/Harbour-Enterprises/SuperDoc/issues/757)
+
 ## <small>0.15.13 (2025-08-14)</small>
 
 - chore: bump version → 0.15.13-next.0 ([50573ab](https://github.com/Harbour-Enterprises/SuperDoc/commit/50573ab))
