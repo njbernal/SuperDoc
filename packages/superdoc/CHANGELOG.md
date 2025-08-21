@@ -1,5 +1,23 @@
 # Changelog
 
+## <small>0.15.15 (2025-08-21)</small>
+
+- chore: bump version → 0.15.15-next.0 ([42e0982](https://github.com/Harbour-Enterprises/SuperDoc/commit/42e0982))
+- chore: clean up logs ([5ee44c2](https://github.com/Harbour-Enterprises/SuperDoc/commit/5ee44c2))
+- chore: release v0.15.15-next.1 [skip ci] ([be340e0](https://github.com/Harbour-Enterprises/SuperDoc/commit/be340e0))
+- chore: release v0.15.15-next.2 [skip ci] ([a44ad1c](https://github.com/Harbour-Enterprises/SuperDoc/commit/a44ad1c))
+- chore: release v0.15.15-next.3 [skip ci] ([5905936](https://github.com/Harbour-Enterprises/SuperDoc/commit/5905936))
+- chore: release v0.15.15-next.4 [skip ci] ([07796cd](https://github.com/Harbour-Enterprises/SuperDoc/commit/07796cd))
+- chore: release v0.15.15-next.5 [skip ci] ([5e944d2](https://github.com/Harbour-Enterprises/SuperDoc/commit/5e944d2))
+- chore: release v0.15.15-next.6 [skip ci] ([b1fcd4d](https://github.com/Harbour-Enterprises/SuperDoc/commit/b1fcd4d))
+- chore: release v0.15.15-next.7 [skip ci] ([4e8309c](https://github.com/Harbour-Enterprises/SuperDoc/commit/4e8309c))
+- fix: toolbar overflow command error (#787) ([5650b2a](https://github.com/Harbour-Enterprises/SuperDoc/commit/5650b2a)), closes [#787](https://github.com/Harbour-Enterprises/SuperDoc/issues/787)
+- fix(line-break): make gdocs compatible line breaks (#789) ([3690c6e](https://github.com/Harbour-Enterprises/SuperDoc/commit/3690c6e)), closes [#789](https://github.com/Harbour-Enterprises/SuperDoc/issues/789)
+- fix(text indent): parse unit on export (#782) ([9819380](https://github.com/Harbour-Enterprises/SuperDoc/commit/9819380)), closes [#782](https://github.com/Harbour-Enterprises/SuperDoc/issues/782)
+- feat: added duration to transaction callback (#778) ([4cb21a3](https://github.com/Harbour-Enterprises/SuperDoc/commit/4cb21a3)), closes [#778](https://github.com/Harbour-Enterprises/SuperDoc/issues/778)
+- feat(lists paste): handle paste from Google docs (#779) ([f891c40](https://github.com/Harbour-Enterprises/SuperDoc/commit/f891c40)), closes [#779](https://github.com/Harbour-Enterprises/SuperDoc/issues/779)
+- test: tests for getTextIndentExportValue (#784) ([a406e73](https://github.com/Harbour-Enterprises/SuperDoc/commit/a406e73)), closes [#784](https://github.com/Harbour-Enterprises/SuperDoc/issues/784)
+
 ## <small>0.15.14 (2025-08-15)</small>
 
 - chore: bump version → 0.15.14-next.0 ([5056aed](https://github.com/Harbour-Enterprises/SuperDoc/commit/5056aed))
