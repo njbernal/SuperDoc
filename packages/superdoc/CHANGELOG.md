@@ -1,5 +1,32 @@
 # Changelog
 
+## <small>0.15.16 (2025-08-25)</small>
+
+- feat: integrate markdown parsing into SuperDoc (#796) ([f1a2cf4](https://github.com/Harbour-Enterprises/SuperDoc/commit/f1a2cf4)), closes [#796](https://github.com/Harbour-Enterprises/SuperDoc/issues/796) [#797](https://github.com/Harbour-Enterprises/SuperDoc/issues/797)
+- feat: programmatic text selection example (#792) ([b06e394](https://github.com/Harbour-Enterprises/SuperDoc/commit/b06e394)), closes [#792](https://github.com/Harbour-Enterprises/SuperDoc/issues/792)
+- chore: add jsdocs + extension docs auto-gen (#783) ([a943c94](https://github.com/Harbour-Enterprises/SuperDoc/commit/a943c94)), closes [#783](https://github.com/Harbour-Enterprises/SuperDoc/issues/783) [#798](https://github.com/Harbour-Enterprises/SuperDoc/issues/798)
+- chore: add test to document-sections updateSectionById ([96cc3b7](https://github.com/Harbour-Enterprises/SuperDoc/commit/96cc3b7))
+- chore: bump version → 0.15.16-next.0 ([c14bf4d](https://github.com/Harbour-Enterprises/SuperDoc/commit/c14bf4d))
+- chore: lint fixes ([66cc7ba](https://github.com/Harbour-Enterprises/SuperDoc/commit/66cc7ba))
+- chore: release v0.15.16-next.1 [skip ci] ([7407524](https://github.com/Harbour-Enterprises/SuperDoc/commit/7407524))
+- chore: release v0.15.16-next.10 [skip ci] ([4186627](https://github.com/Harbour-Enterprises/SuperDoc/commit/4186627))
+- chore: release v0.15.16-next.11 [skip ci] ([2dcbdb5](https://github.com/Harbour-Enterprises/SuperDoc/commit/2dcbdb5))
+- chore: release v0.15.16-next.2 [skip ci] ([83607ba](https://github.com/Harbour-Enterprises/SuperDoc/commit/83607ba))
+- chore: release v0.15.16-next.3 [skip ci] ([62daad3](https://github.com/Harbour-Enterprises/SuperDoc/commit/62daad3))
+- chore: release v0.15.16-next.4 [skip ci] ([baf01f5](https://github.com/Harbour-Enterprises/SuperDoc/commit/baf01f5))
+- chore: release v0.15.16-next.5 [skip ci] ([76b240a](https://github.com/Harbour-Enterprises/SuperDoc/commit/76b240a))
+- chore: release v0.15.16-next.6 [skip ci] ([d4ad898](https://github.com/Harbour-Enterprises/SuperDoc/commit/d4ad898))
+- chore: release v0.15.16-next.7 [skip ci] ([eab0864](https://github.com/Harbour-Enterprises/SuperDoc/commit/eab0864))
+- chore: release v0.15.16-next.8 [skip ci] ([ab2b2f3](https://github.com/Harbour-Enterprises/SuperDoc/commit/ab2b2f3))
+- chore: release v0.15.16-next.9 [skip ci] ([4da470d](https://github.com/Harbour-Enterprises/SuperDoc/commit/4da470d))
+- fix: creating list definitions with null ids (#804) ([e6511b9](https://github.com/Harbour-Enterprises/SuperDoc/commit/e6511b9)), closes [#804](https://github.com/Harbour-Enterprises/SuperDoc/issues/804)
+- fix: guarding replaceSpecialCharacters against non-strings (#794) ([7f18834](https://github.com/Harbour-Enterprises/SuperDoc/commit/7f18834)), closes [#794](https://github.com/Harbour-Enterprises/SuperDoc/issues/794)
+- fix: improve marker width calculation for server-side rendering (#801) ([85205c1](https://github.com/Harbour-Enterprises/SuperDoc/commit/85205c1)), closes [#801](https://github.com/Harbour-Enterprises/SuperDoc/issues/801)
+- fix: strikethrough not active on toolbar (#803) ([dfcaf18](https://github.com/Harbour-Enterprises/SuperDoc/commit/dfcaf18)), closes [#803](https://github.com/Harbour-Enterprises/SuperDoc/issues/803)
+- HAR-10208 - Trackable id (#788) ([7a696c6](https://github.com/Harbour-Enterprises/SuperDoc/commit/7a696c6)), closes [#788](https://github.com/Harbour-Enterprises/SuperDoc/issues/788) [#793](https://github.com/Harbour-Enterprises/SuperDoc/issues/793)
+- refactor: check isheadless mode before canvas ([d085d87](https://github.com/Harbour-Enterprises/SuperDoc/commit/d085d87))
+- refactor: streamline marker width calculation with improved canvas fallback handling ([536d9ac](https://github.com/Harbour-Enterprises/SuperDoc/commit/536d9ac))
+
 ## <small>0.15.15 (2025-08-21)</small>
 
 - chore: bump version → 0.15.15-next.0 ([42e0982](https://github.com/Harbour-Enterprises/SuperDoc/commit/42e0982))
