@@ -11,7 +11,7 @@
  */
 
 import { Mark, Attribute } from '@core/index.js';
-import { getMarkRange } from '@/core/helpers/getMarkRange.js';
+import { getMarkRange } from '@core/helpers/getMarkRange.js';
 
 /**
  * @module Link
@@ -76,7 +76,7 @@ export const Link = Mark.create({
        * Create or update a link
        * @category Command
        * @param {Object} options - Link configuration
-       * @param {string} options.href - URL for the link
+       * @param {string} [options.href] - URL for the link
        * @param {string} [options.text] - Display text (uses selection if omitted)
        * @returns {Function} Command - Creates link with underline
        * @example
@@ -162,7 +162,7 @@ export const Link = Mark.create({
        * Toggle link on selection
        * @category Command
        * @param {Object} [options] - Link configuration
-       * @param {string} options.href - URL for the link
+       * @param {string} [options.href] - URL for the link
        * @param {string} [options.text] - Display text
        * @returns {Function} Command - Creates link if href provided, removes otherwise
        * @example
@@ -213,7 +213,7 @@ function isAllowedUri(uri, protocols) {
 /**
  * Trim node boundaries from range
  * @private
- * @param {Node} doc - Document node
+ * @param {import("prosemirror-model").Node} doc - Document node
  * @param {number} from - Start position
  * @param {number} to - End position
  * @returns {{from: number, to: number}} Trimmed range
