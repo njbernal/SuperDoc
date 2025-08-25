@@ -1,6 +1,6 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { DOMParser, DOMSerializer } from 'prosemirror-model';
+import { DOMSerializer } from 'prosemirror-model';
 import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
 import { helpers } from '@core/index.js';
 import { EventEmitter } from './EventEmitter.js';
@@ -37,6 +37,7 @@ import {
 import { createLinkedChildEditor } from '@core/child-editor/index.js';
 import { unflattenListsInHtml } from './inputRules/html/html-helpers.js';
 import { SuperValidator } from '@core/super-validator/index.js';
+import { createDocFromMarkdown, createDocFromHTML } from '@core/helpers/index.js';
 
 /**
  * @typedef {Object} FieldValue
@@ -131,6 +132,7 @@ import { SuperValidator } from '@core/super-validator/index.js';
  * @property {boolean} [suppressDefaultDocxStyles] - Prevent default styles from being applied in docx mode
  * @property {boolean} [jsonOverride] - Whether to override content with provided json
  * @property {string} [html] - HTML content to initialize the editor with
+ * @property {string} [markdown] - Markdown content to initialize the editor with
  */
 
 /**
@@ -365,7 +367,7 @@ export class Editor extends EventEmitter {
     // it will be in itialized via this.#onCollaborationReady
     if (!this.options.ydoc) {
       if (!this.options.isChildEditor) {
-        this.initPagination();
+        this.#initPagination();
         this.#initComments();
 
         this.#validateDocumentInit();
@@ -679,7 +681,7 @@ export class Editor extends EventEmitter {
     this.view.dispatch(tr);
 
     setTimeout(() => {
-      this.initPagination();
+      this.#initPagination();
       this.#initComments();
     }, 50);
   }
@@ -949,8 +951,12 @@ export class Editor extends EventEmitter {
           // Perform any additional document processing prior to finalizing the doc here
           doc = this.#prepareDocumentForImport(doc);
 
+          // Check for markdown BEFORE html (since markdown gets converted to HTML)
+          if (this.options.markdown) {
+            doc = createDocFromMarkdown(this.options.markdown, this.schema);
+          }
           // If we have a new doc, and have html data, we initialize from html
-          if (this.options.html) doc = this.#createDocFromHTML(this.options.html);
+          else if (this.options.html) doc = createDocFromHTML(this.options.html, this.schema);
           else if (this.options.jsonOverride) doc = this.schema.nodeFromJSON(this.options.jsonOverride);
 
           if (fragment) doc = yXmlFragmentToProseMirrorRootNode(fragment, this.schema);
@@ -960,7 +966,7 @@ export class Editor extends EventEmitter {
       // If we are in HTML mode, we initialize from either content or html (or blank)
       else if (mode === 'text' || mode === 'html') {
         if (loadFromSchema) doc = this.schema.nodeFromJSON(content);
-        else if (content) doc = this.#createDocFromHTML(content);
+        else if (content) doc = createDocFromHTML(content, this.schema);
         else doc = this.schema.topNodeType.createAndFill();
       }
     } catch (err) {
@@ -969,24 +975,6 @@ export class Editor extends EventEmitter {
     }
 
     return doc;
-  }
-
-  /**
-   * Create a document from HTML content
-   * @private
-   * @param {string} content - HTML content
-   * @returns {Object} Document node
-   */
-  #createDocFromHTML(content) {
-    let parsedContent = content;
-    if (typeof content === 'string') {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      parsedContent = tempDiv;
-      tempDiv.remove();
-    }
-
-    return DOMParser.fromSchema(this.schema).parse(parsedContent);
   }
 
   /**
@@ -1257,7 +1245,7 @@ export class Editor extends EventEmitter {
     this.view.dispatch(tr);
 
     if (!this.options.isNewFile) {
-      this.initPagination();
+      this.#initPagination();
       this.#initComments();
       updateYdocDocxData(this);
     }
@@ -1285,11 +1273,10 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize pagination, if the pagination extension is enabled.
-   * @private
    * @async
    * @returns {Promise<void>}
    */
-  async initPagination() {
+  async #initPagination() {
     if (this.options.isHeadless || !this.extensionService || this.options.isHeaderOrFooter) {
       return;
     }
@@ -1771,7 +1758,7 @@ export class Editor extends EventEmitter {
     }
 
     if (!this.options.ydoc) {
-      this.initPagination();
+      this.#initPagination();
       this.#initComments();
     }
   }
@@ -1832,7 +1819,7 @@ export class Editor extends EventEmitter {
     if (!targetNode || !html) return;
     const start = targetNode.pos;
     const end = start + targetNode.node.nodeSize;
-    const htmlNode = this.#createDocFromHTML(html);
+    const htmlNode = createDocFromHTML(html, this.schema);
     tr.replaceWith(start, end, htmlNode);
     dispatch(tr);
   }
