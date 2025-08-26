@@ -143,7 +143,7 @@ import { createDocFromMarkdown, createDocFromHTML } from '@core/helpers/index.js
 export class Editor extends EventEmitter {
   /**
    * Command service for handling editor commands
-   * @private
+   * @type {CommandService}
    */
   #commandService;
 
@@ -293,7 +293,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize the container element for the editor
-   * @private
    * @param {EditorOptions} options - Editor options
    * @returns {void}
    */
@@ -316,7 +315,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize the editor with the given options
-   * @private
    * @returns {void}
    */
   #init() {
@@ -377,7 +375,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize the editor in rich text mode
-   * @private
    * @param {EditorOptions} options - Editor options
    * @returns {void}
    */
@@ -428,7 +425,6 @@ export class Editor extends EventEmitter {
 
   /**
    *
-   * @private
    * @param {Object} param0
    * @param {Object} param0.editor
    * @param {Object} param0.event
@@ -450,7 +446,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Check if the editor should run in headless mode
-   * @private
    * @param {EditorOptions} options - Editor options
    * @returns {void}
    */
@@ -493,7 +488,7 @@ export class Editor extends EventEmitter {
 
   /**
    * Get object of registered commands.
-   * @returns {Object} Commands object
+   * @returns {import('./commands/types/index.js').EditorCommands} Commands object
    */
   get commands() {
     return this.#commandService?.commands;
@@ -669,7 +664,6 @@ export class Editor extends EventEmitter {
    */
   /**
    * Insert data for a new file
-   * @private
    * @returns {void}
    */
   #insertNewFileData() {
@@ -688,7 +682,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Register a plugin by name if it doesn't already exist
-   * @private
    * @param {string} name - Plugin name
    * @returns {string|void}
    */
@@ -782,7 +775,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Creates extension service.
-   * @private
    * @returns {void}
    */
   #createExtensionService() {
@@ -800,7 +792,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Creates a command service.
-   * @private
    * @returns {void}
    */
   #createCommandService() {
@@ -814,7 +805,6 @@ export class Editor extends EventEmitter {
    */
   /**
    * Create the document converter as this.converter.
-   * @private
    * @returns {void}
    */
   #createConverter() {
@@ -835,7 +825,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize media.
-   * @private
    * @returns {void}
    */
   #initMedia() {
@@ -862,7 +851,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize fonts
-   * @private
    * @returns {void}
    */
   #initFonts() {
@@ -923,7 +911,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Creates document PM schema.
-   * @private
    * @returns {void
    */
   #createSchema() {
@@ -932,7 +919,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Generate ProseMirror data from file
-   * @private
    * @returns {Object} ProseMirror data
    */
   #generatePmData() {
@@ -979,7 +965,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Create the PM editor view
-   * @private
    * @returns {void}
    */
   #createView(element) {
@@ -1224,7 +1209,6 @@ export class Editor extends EventEmitter {
    * Handler called when collaboration is ready.
    * Initializes pagination and comments if not a new file.
    *
-   * @private
    * @param {Object} params - Collaboration parameters
    * @param {Editor} params.editor - The editor instance
    * @param {Object} params.ydoc - The Yjs document
@@ -1253,7 +1237,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Initialize comments plugin
-   * @private
    * @returns {void}
    */
   #initComments() {
@@ -1295,7 +1278,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Dispatch a transaction to update the editor state
-   * @private
    * @param {Object} transaction - ProseMirror transaction
    */
   #dispatchTransaction(transaction) {
@@ -1477,7 +1459,6 @@ export class Editor extends EventEmitter {
   /**
    * Perform any post conversion pre prosemirror import processing.
    * Comments are processed here.
-   * @private
    * @param {Object} doc The prosemirror document
    * @returns {Object} The updated prosemirror document
    */
@@ -1505,7 +1486,6 @@ export class Editor extends EventEmitter {
   /**
    * Prepare the document for export. Any necessary pre-export processing to the state
    * can happen here.
-   * @private
    * @returns {Object} The updated document in JSON
    */
   #prepareDocumentForExport(comments = []) {
@@ -1642,7 +1622,6 @@ export class Editor extends EventEmitter {
 
   /**
    * Destroy collaboration provider and ydoc
-   * @private
    * @returns {void}
    */
   #endCollaboration() {

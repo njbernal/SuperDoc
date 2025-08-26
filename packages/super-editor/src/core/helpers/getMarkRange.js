@@ -1,3 +1,4 @@
+// @ts-check
 import { objectIncludes } from '../utilities/objectIncludes.js';
 
 /**
