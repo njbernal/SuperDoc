@@ -36,7 +36,8 @@ import { DocumentSectionView } from './document-section/DocumentSectionView.js';
 import { htmlHandler } from '@core/InputRule.js';
 import { Selection } from 'prosemirror-state';
 import { DOMParser as PMDOMParser } from 'prosemirror-model';
-import { findParentNode, SectionHelpers } from '@helpers/index.js';
+import { findParentNode } from '@helpers/index.js';
+import { SectionHelpers } from './document-section/helpers.js';
 
 /**
  * @module DocumentSection
@@ -376,6 +377,12 @@ export const DocumentSection = Node.create({
 
           return true;
         },
+    };
+  },
+
+  addHelpers() {
+    return {
+      ...SectionHelpers,
     };
   },
 });
