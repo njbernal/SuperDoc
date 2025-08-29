@@ -1,34 +1,34 @@
 // @ts-check
 
 /**
- * Base section attributes
+ * Document section attributes
  * @typedef {Object} SectionAttributes
- * @property {number} [id] - Section identifier
- * @property {string} [title] - Section title
- * @property {string} [description] - Section description
- * @property {string} [sectionType] - Type of section
- * @property {boolean} [isLocked] - Whether section is locked
+ * @property {number} [id] - Unique section identifier
+ * @property {string} [title] - Display label (becomes w:alias in Word)
+ * @property {string} [description] - Additional metadata stored in w:tag
+ * @property {string} [sectionType] - Business type for filtering/logic (e.g., 'legal', 'pricing')
+ * @property {boolean} [isLocked] - Lock state (maps to w:lock="sdtContentLocked")
  */
 
 /**
- * Options for creating a section
+ * Create a new document section
  * @typedef {Object} SectionCreate
- * @property {number} [id] - Section identifier (auto-generated if not provided)
- * @property {string} [title] - Section title (defaults to "Document section")
- * @property {string} [description] - Section description
- * @property {string} [sectionType] - Type of section
- * @property {boolean} [isLocked] - Whether section is locked
- * @property {string} [html] - HTML content to parse
- * @property {Object} [json] - ProseMirror JSON content (takes precedence over html)
+ * @property {number} [id] - Unique ID. Auto-increments from existing sections if omitted
+ * @property {string} [title="Document section"] - Label shown in section header
+ * @property {string} [description] - Metadata for tracking (stored in Word's w:tag)
+ * @property {string} [sectionType] - Business classification
+ * @property {boolean} [isLocked=false] - Prevent editing when true
+ * @property {string} [html] - HTML content to insert
+ * @property {Object} [json] - ProseMirror JSON (overrides html if both provided)
  */
 
 /**
- * Options for updating a section
+ * Update an existing section
  * @typedef {Object} SectionUpdate
- * @property {number} id - Section ID to update (required)
- * @property {string} [html] - HTML content to parse
- * @property {Object} [json] - ProseMirror JSON content (takes precedence over html)
- * @property {Partial<SectionAttributes>} [attrs] - Attributes to update
+ * @property {number} id - Target section ID (required)
+ * @property {string} [html] - Replace content with HTML
+ * @property {Object} [json] - Replace content with ProseMirror JSON (overrides html)
+ * @property {Partial<SectionAttributes>} [attrs] - Update attributes only (preserves content)
  */
 
 import { Node, Attribute } from '@core/index.js';
@@ -36,11 +36,13 @@ import { DocumentSectionView } from './document-section/DocumentSectionView.js';
 import { htmlHandler } from '@core/InputRule.js';
 import { Selection } from 'prosemirror-state';
 import { DOMParser as PMDOMParser } from 'prosemirror-model';
-import { findParentNode, SectionHelpers } from '@helpers/index.js';
+import { findParentNode } from '@helpers/index.js';
+import { SectionHelpers } from './document-section/helpers.js';
 
 /**
- * Document Section - Structured content blocks
  * @module DocumentSection
+ * @sidebarTitle Document Section
+ * @snippetPath /snippets/extensions/document-section.mdx
  */
 export const DocumentSection = Node.create({
   name: 'documentSection',
@@ -73,7 +75,16 @@ export const DocumentSection = Node.create({
 
   addAttributes() {
     return {
+      /**
+       * @category Attribute
+       * @param {number} [id] - Unique section identifier
+       */
       id: {},
+      /**
+       * @private
+       * @category Attribute
+       * @param {string} [sdBlockId] - Internal block tracking
+       */
       sdBlockId: {
         default: null,
         keepOnSplit: false,
@@ -82,9 +93,25 @@ export const DocumentSection = Node.create({
           return attrs.sdBlockId ? { 'data-sd-block-id': attrs.sdBlockId } : {};
         },
       },
+      /**
+       * @category Attribute
+       * @param {string} [title] - Section display label
+       */
       title: {},
+      /**
+       * @category Attribute
+       * @param {string} [description] - Section metadata
+       */
       description: {},
+      /**
+       * @category Attribute
+       * @param {string} [sectionType] - Business classification (e.g., 'legal', 'pricing')
+       */
       sectionType: {},
+      /**
+       * @category Attribute
+       * @param {boolean} [isLocked=false] - Lock state preventing edits
+       */
       isLocked: { default: false },
     };
   },
@@ -98,10 +125,17 @@ export const DocumentSection = Node.create({
   addCommands() {
     return {
       /**
-       * Create a new document section
+       * Create a lockable content section
        * @category Command
-       * @param {SectionCreate} [options={}]
-       * @returns {Function} Command function - returns true if section was created successfully
+       * @param {SectionCreate} [options={}] - Section configuration
+       * @returns {Function} Command - true if created, false if position invalid
+       * @example
+       * createDocumentSection({
+       *   id: 'legal-1',
+       *   title: 'Terms & Conditions',
+       *   isLocked: true,
+       *   html: '<p>Legal content...</p>'
+       * })
        */
       createDocumentSection:
         (options = {}) =>
@@ -214,9 +248,12 @@ export const DocumentSection = Node.create({
         },
 
       /**
-       * Remove section at current selection, keeping content
+       * Remove section wrapper at cursor, preserving its content
        * @category Command
-       * @returns {Function} Command function - returns true if section was removed, false if none found
+       * @returns {Function} Command - true if removed, false if no section at position
+       * @example
+       * removeSectionAtSelection()
+       * @note Content stays in document, only section wrapper is removed
        */
       removeSectionAtSelection:
         () =>
@@ -254,10 +291,12 @@ export const DocumentSection = Node.create({
         },
 
       /**
-       * Remove section by ID
+       * Delete section and all its content
        * @category Command
-       * @param {number} id - Section ID to remove
-       * @returns {Function} Command function - returns true if section was removed, false if not found
+       * @param {number} id - Section to delete
+       * @returns {Function} Command - true if deleted, false if ID doesn't exist
+       * @example
+       * removeSectionById(123)
        */
       removeSectionById:
         (id) =>
@@ -282,11 +321,12 @@ export const DocumentSection = Node.create({
         },
 
       /**
-       * Lock section by ID
+       * Lock section against edits
        * @category Command
-       * @param {number} id - Section ID to lock
-       * @returns {Function} Command function - returns true if section was locked, false if not found
-       * @private
+       * @param {number} id - Section to lock
+       * @returns {Function} Command - true if locked, false if ID doesn't exist
+       * @example
+       * lockSectionById(123)
        */
       lockSectionById:
         (id) =>
@@ -306,10 +346,23 @@ export const DocumentSection = Node.create({
         },
 
       /**
-       * Update section by ID
+       * Modify section attributes or content
        * @category Command
-       * @param {SectionUpdate} options
-       * @returns {Function} Command function - returns true if section was updated, false if not found
+       * @param {SectionUpdate} options - Changes to apply
+       * @returns {Function} Command - true if updated, false if ID doesn't exist
+       * @example
+       * // Toggle lock
+       * updateSectionById({ id: 123, attrs: { isLocked: false } })
+       *
+       * // Replace content
+       * updateSectionById({ id: 123, html: '<p>New content</p>' })
+       *
+       * // Both
+       * updateSectionById({
+       *   id: 123,
+       *   html: '<p>Updated</p>',
+       *   attrs: { title: 'New Title' }
+       * })
        */
       updateSectionById:
         ({ id, html, json, attrs }) =>
@@ -349,6 +402,12 @@ export const DocumentSection = Node.create({
 
           return true;
         },
+    };
+  },
+
+  addHelpers() {
+    return {
+      ...SectionHelpers,
     };
   },
 });

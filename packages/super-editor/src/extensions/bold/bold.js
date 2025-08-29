@@ -1,5 +1,13 @@
+// @ts-check
 import { Mark, Attribute } from '@core/index.js';
 
+/**
+ * @module Bold
+ * @sidebarTitle Bold
+ * @snippetPath /snippets/extensions/bold.mdx
+ * @shortcut Mod-b | toggleBold | Toggle bold formatting
+ * @shortcut Mod-B | toggleBold | Toggle bold formatting (uppercase)
+ */
 export const Bold = Mark.create({
   name: 'bold',
 
@@ -11,11 +19,14 @@ export const Bold = Mark.create({
 
   addAttributes() {
     return {
+      /**
+       * @category Attribute
+       * @param {string} [value] - Bold weight value ('0' renders as normal)
+       */
       value: {
         default: null,
         renderDOM: (attrs) => {
           if (!attrs.value) return {};
-
           if (attrs.value === '0') {
             return { style: 'font-weight: normal' };
           }
@@ -38,12 +49,44 @@ export const Bold = Mark.create({
     return ['strong', Attribute.mergeAttributes(this.options.htmlAttributes, htmlAttributes), 0];
   },
 
-  //prettier-ignore
   addCommands() {
     return {
-      setBold: () => ({ commands }) => commands.setMark(this.name),
-      unsetBold: () => ({ commands }) => commands.unsetMark(this.name),
-      toggleBold: () => ({ commands }) => commands.toggleMark(this.name),
+      /**
+       * Apply bold formatting
+       * @category Command
+       * @returns {Function} Command
+       * @example
+       * setBold()
+       * @note '0' renders as normal weight
+       */
+      setBold:
+        () =>
+        ({ commands }) =>
+          commands.setMark(this.name),
+
+      /**
+       * Remove bold formatting
+       * @category Command
+       * @returns {Function} Command
+       * @example
+       * unsetBold()
+       */
+      unsetBold:
+        () =>
+        ({ commands }) =>
+          commands.unsetMark(this.name),
+
+      /**
+       * Toggle bold formatting
+       * @category Command
+       * @returns {Function} Command
+       * @example
+       * toggleBold()
+       */
+      toggleBold:
+        () =>
+        ({ commands }) =>
+          commands.toggleMark(this.name),
     };
   },
 
