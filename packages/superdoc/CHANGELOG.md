@@ -1,5 +1,36 @@
 # Changelog
 
+## <small>0.15.17 (2025-08-29)</small>
+
+- chore: add Extensions to superdoc exports, update example ([4965561](https://github.com/Harbour-Enterprises/SuperDoc/commit/4965561))
+- chore: add types to CommandService ([98a375b](https://github.com/Harbour-Enterprises/SuperDoc/commit/98a375b))
+- chore: bump version → 0.15.17-next.0 ([793c9f0](https://github.com/Harbour-Enterprises/SuperDoc/commit/793c9f0))
+- chore: fix ts types in link.js ([b9de2d5](https://github.com/Harbour-Enterprises/SuperDoc/commit/b9de2d5))
+- chore: move document section helpers into addHelpers(), update example ([43d807a](https://github.com/Harbour-Enterprises/SuperDoc/commit/43d807a))
+- chore: release v0.15.17-next.1 [skip ci] ([4900714](https://github.com/Harbour-Enterprises/SuperDoc/commit/4900714))
+- chore: release v0.15.17-next.10 [skip ci] ([28ca017](https://github.com/Harbour-Enterprises/SuperDoc/commit/28ca017))
+- chore: release v0.15.17-next.11 [skip ci] ([251b102](https://github.com/Harbour-Enterprises/SuperDoc/commit/251b102))
+- chore: release v0.15.17-next.12 [skip ci] ([23b2910](https://github.com/Harbour-Enterprises/SuperDoc/commit/23b2910))
+- chore: release v0.15.17-next.2 [skip ci] ([6dec1fc](https://github.com/Harbour-Enterprises/SuperDoc/commit/6dec1fc))
+- chore: release v0.15.17-next.3 [skip ci] ([f57ea0f](https://github.com/Harbour-Enterprises/SuperDoc/commit/f57ea0f))
+- chore: release v0.15.17-next.4 [skip ci] ([4ea6d92](https://github.com/Harbour-Enterprises/SuperDoc/commit/4ea6d92))
+- chore: release v0.15.17-next.5 [skip ci] ([36c27a8](https://github.com/Harbour-Enterprises/SuperDoc/commit/36c27a8))
+- chore: release v0.15.17-next.6 [skip ci] ([649663b](https://github.com/Harbour-Enterprises/SuperDoc/commit/649663b))
+- chore: release v0.15.17-next.7 [skip ci] ([7e9563d](https://github.com/Harbour-Enterprises/SuperDoc/commit/7e9563d))
+- chore: release v0.15.17-next.8 [skip ci] ([da7bca9](https://github.com/Harbour-Enterprises/SuperDoc/commit/da7bca9))
+- chore: release v0.15.17-next.9 [skip ci] ([6bbd01b](https://github.com/Harbour-Enterprises/SuperDoc/commit/6bbd01b))
+- chore(deps-dev): bump eslint from 9.31.0 to 9.34.0 (#807) ([59a0c25](https://github.com/Harbour-Enterprises/SuperDoc/commit/59a0c25)), closes [#807](https://github.com/Harbour-Enterprises/SuperDoc/issues/807)
+- chore(deps): bump vue from 3.5.17 to 3.5.20 (#806) ([6033c55](https://github.com/Harbour-Enterprises/SuperDoc/commit/6033c55)), closes [#806](https://github.com/Harbour-Enterprises/SuperDoc/issues/806)
+- HAR-10410 - fix: editor crash and structured content node (#820) ([b788d10](https://github.com/Harbour-Enterprises/SuperDoc/commit/b788d10)), closes [#820](https://github.com/Harbour-Enterprises/SuperDoc/issues/820)
+- feature: ooxml-inspector dev tool CLI and lib (#815) ([0de3986](https://github.com/Harbour-Enterprises/SuperDoc/commit/0de3986)), closes [#815](https://github.com/Harbour-Enterprises/SuperDoc/issues/815)
+- docs: document other extensions (#819) ([5fca478](https://github.com/Harbour-Enterprises/SuperDoc/commit/5fca478)), closes [#819](https://github.com/Harbour-Enterprises/SuperDoc/issues/819)
+- feat: add table module documentation + keyboard shortcuts (#818) ([2130716](https://github.com/Harbour-Enterprises/SuperDoc/commit/2130716)), closes [#818](https://github.com/Harbour-Enterprises/SuperDoc/issues/818)
+- feat: enhance text formatting extensions with detailed command documentation (#811) ([80652eb](https://github.com/Harbour-Enterprises/SuperDoc/commit/80652eb)), closes [#811](https://github.com/Harbour-Enterprises/SuperDoc/issues/811)
+- fix: add relationship and rId (#776) ([46beadb](https://github.com/Harbour-Enterprises/SuperDoc/commit/46beadb)), closes [#776](https://github.com/Harbour-Enterprises/SuperDoc/issues/776)
+- fix(track changes): fix permissions issue and group replace changes (#816) ([f61c52b](https://github.com/Harbour-Enterprises/SuperDoc/commit/f61c52b)), closes [#816](https://github.com/Harbour-Enterprises/SuperDoc/issues/816)
+- fix(underline): remove invalid underline nodes (#812) ([5606384](https://github.com/Harbour-Enterprises/SuperDoc/commit/5606384)), closes [#812](https://github.com/Harbour-Enterprises/SuperDoc/issues/812)
+- refactor: enhance documentation for section attributes and commands in DocumentSection (#805) ([37a4a6a](https://github.com/Harbour-Enterprises/SuperDoc/commit/37a4a6a)), closes [#805](https://github.com/Harbour-Enterprises/SuperDoc/issues/805)
+
 ## <small>0.15.16 (2025-08-25)</small>
 
 - feat: integrate markdown parsing into SuperDoc (#796) ([f1a2cf4](https://github.com/Harbour-Enterprises/SuperDoc/commit/f1a2cf4)), closes [#796](https://github.com/Harbour-Enterprises/SuperDoc/issues/796) [#797](https://github.com/Harbour-Enterprises/SuperDoc/issues/797)
