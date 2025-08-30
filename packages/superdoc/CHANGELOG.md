@@ -1,5 +1,18 @@
 # Changelog
 
+## <small>0.15.18 (2025-08-30)</small>
+
+- fix: add error notice if invalid docx is opened, fallback to blank ([0af7a7d](https://github.com/Harbour-Enterprises/SuperDoc/commit/0af7a7d))
+- fix: jsonOverride documentation (#821) ([f983b6a](https://github.com/Harbour-Enterprises/SuperDoc/commit/f983b6a)), closes [#821](https://github.com/Harbour-Enterprises/SuperDoc/issues/821)
+- fix: missing tooltip for linked styles ([349e0ac](https://github.com/Harbour-Enterprises/SuperDoc/commit/349e0ac))
+- feat: add load from json example (#824) ([ce3a737](https://github.com/Harbour-Enterprises/SuperDoc/commit/ce3a737)), closes [#824](https://github.com/Harbour-Enterprises/SuperDoc/issues/824)
+- feat: added content replace html/json example (#822) ([82625fd](https://github.com/Harbour-Enterprises/SuperDoc/commit/82625fd)), closes [#822](https://github.com/Harbour-Enterprises/SuperDoc/issues/822)
+- chore: bump version → 0.15.18-next.0 ([0a86a34](https://github.com/Harbour-Enterprises/SuperDoc/commit/0a86a34))
+- chore: release v0.15.18-next.1 [skip ci] ([d6ee757](https://github.com/Harbour-Enterprises/SuperDoc/commit/d6ee757))
+- chore: release v0.15.18-next.2 [skip ci] ([46a9373](https://github.com/Harbour-Enterprises/SuperDoc/commit/46a9373))
+- chore: release v0.15.18-next.3 [skip ci] ([f3bb9c0](https://github.com/Harbour-Enterprises/SuperDoc/commit/f3bb9c0))
+- HAR-10247: add validator rules to clean up numberingxml (#800) ([07d472a](https://github.com/Harbour-Enterprises/SuperDoc/commit/07d472a)), closes [#800](https://github.com/Harbour-Enterprises/SuperDoc/issues/800)
+
 ## <small>0.15.17 (2025-08-29)</small>
 
 - chore: add Extensions to superdoc exports, update example ([4965561](https://github.com/Harbour-Enterprises/SuperDoc/commit/4965561))
