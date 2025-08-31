@@ -1,10 +1,52 @@
+// @ts-check
 import { Fragment } from 'prosemirror-model';
 import { TextSelection } from 'prosemirror-state';
 import { Attribute } from '../Attribute.js';
 import { findParentNode, getNodeType } from '@helpers/index.js';
+import { decreaseListIndent } from './decreaseListIndent.js'; // adjust path if needed
 
+/**
+ * Check if a paragraph node is visually empty.
+ * A paragraph is considered visually empty if it has no text content
+ * (ignoring empty <run> wrappers) and no hardBreak.
+ * @param {import('prosemirror-model').Node} node
+ * @returns {boolean}
+ */
+function isVisuallyEmptyParagraph(node) {
+  if (!node || node.type.name !== 'paragraph') return false;
+
+  // hardBreak means it's not empty
+  let hasHardBreak = false;
+  node.descendants((n) => {
+    if (n.type && n.type.name === 'hardBreak') {
+      hasHardBreak = true;
+      return false; // stop
+    }
+    return true;
+  });
+  if (hasHardBreak) return false;
+
+  // textContent collapses inline wrappers (e.g., run)
+  const text = (node.textContent || '').replace(/\u200b/g, '').trim();
+  return text.length === 0;
+}
+
+/**
+ * Try to outdent one level using SuperDoc's list indent helper.
+ * Return true if indentation was decreased.
+ * @param {Object} props
+ * @returns {boolean}
+ */
+function tryOutdentOneLevel(props) {
+  return decreaseListIndent()(props);
+}
+
+/**
+ * Split the current list item into two separate items.
+ * @returns {Function} A command function that performs the split operation.
+ */
 export const splitListItem = () => (props) => {
-  const { tr, state, editor, dispatch } = props;
+  const { tr, state, dispatch } = props;
   const type = getNodeType('listItem', state.schema);
   const { $from, $to, empty } = state.selection;
 
@@ -19,8 +61,23 @@ export const splitListItem = () => (props) => {
     return false;
   }
 
-  // Empty-block special case (unchanged)
-  if ($from.parent.content.size === 0 && $from.node(-1).childCount === $from.indexAfter(-1)) {
+  // Empty-block special case with "visual emptiness" + Word-like outdent
+  const parentPara = $from.parent;
+  const isEmptyPara = isVisuallyEmptyParagraph(parentPara);
+  const atEndOfListItem = $from.node(-1).childCount === $from.indexAfter(-1);
+
+  if (isEmptyPara && atEndOfListItem) {
+    // If level > 0, outdent one level first
+    const currentLevel = typeof listItemNode?.attrs?.level === 'number' ? listItemNode.attrs.level : 0;
+    if (currentLevel > 0) {
+      const outdented = tryOutdentOneLevel(props);
+      if (outdented) {
+        tr.scrollIntoView();
+        if (dispatch) dispatch(tr);
+        return true;
+      }
+      // If outdent failed, fall through to default empty-block handler
+    }
     return handleSplitInEmptyBlock(props, listItemPM);
   }
 
@@ -42,6 +99,20 @@ export const splitListItem = () => (props) => {
 
   const beforeCursor = paragraphNode.content.cut(0, Math.max(0, offsetInParagraph));
   const afterCursor = paragraphNode.content.cut(Math.max(0, offsetInParagraph));
+
+  // If visually empty (e.g., only run wrappers), treat as empty-block path
+  if (isVisuallyEmptyParagraph(paragraphNode)) {
+    const currentLevel = typeof listItemNode?.attrs?.level === 'number' ? listItemNode.attrs.level : 0;
+    if (currentLevel > 0) {
+      const outdented = tryOutdentOneLevel(props);
+      if (outdented) {
+        tr.scrollIntoView();
+        if (dispatch) dispatch(tr);
+        return true;
+      }
+    }
+    return handleSplitInEmptyBlock(props, listItemPM);
+  }
 
   // Multi-paragraph vs single-paragraph listItem
   const paragraphIndex = $from.index(-1);
@@ -110,7 +181,12 @@ export const splitListItem = () => (props) => {
 
 /**
  * Handle the case where we are splitting a list item in an empty block.
- * (kept as you had it, but creates a NEW list after the current list)
+ * Word-like behavior is layered above: if level>0 we already tried to outdent.
+ * If we reach here and the item is empty at level 0, exit/destroy the list.
+ * If the item has other content and we're at its end, create a *new list after*.
+ * @param {Object} props
+ * @param {Object} currentListItem
+ * @returns {boolean}
  */
 const handleSplitInEmptyBlock = (props, currentListItem) => {
   const { state, editor, tr } = props;
@@ -119,7 +195,7 @@ const handleSplitInEmptyBlock = (props, currentListItem) => {
   const extensionAttrs = editor.extensionService.attributes;
 
   const listItemNode = currentListItem.node;
-  const isEmptyParagraph = $from.parent.content.size === 0;
+  const isEmptyParagraph = isVisuallyEmptyParagraph($from.parent);
   const listItemHasOtherContent = listItemNode.content.size > $from.parent.nodeSize;
   const isAtEndOfListItem = $from.indexAfter(-1) === $from.node(-1).childCount;
 
@@ -154,7 +230,7 @@ const handleSplitInEmptyBlock = (props, currentListItem) => {
   // If empty but not at end, let normal split handle it
   if (isEmptyParagraph && listItemHasOtherContent && !isAtEndOfListItem) return false;
 
-  // Destroy list when completely empty (unchanged)
+  // Destroy list when completely empty (level 0 exit)
   const listTypes = ['orderedList', 'bulletList'];
   const parentList = findParentNode((n) => listTypes.includes(n.type.name))(state.selection);
   if (!parentList) return false;

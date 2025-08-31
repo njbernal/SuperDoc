@@ -7,7 +7,7 @@ import { ListHelpers } from '@helpers/list-numbering-helpers.js';
  * @param {import("prosemirror-model").ResolvedPos} $pos
  * @param {import("prosemirror-model").NodeType} OrderedType
  * @param {import("prosemirror-model").NodeType} BulletType
- * @returns {{ node: import("prosemirror-model").Node, pos: number } | null}
+ * @returns {{ node: import("prosemirror-model").Node, pos: number, depth: number } | null}
  */
 export function nearestListAt($pos, OrderedType, BulletType) {
   for (let d = $pos.depth; d >= 0; d--) {
@@ -20,13 +20,34 @@ export function nearestListAt($pos, OrderedType, BulletType) {
 }
 
 /**
+ * Determine the effective list kind, accounting for lists styled as bullets.
+ * @param {import("prosemirror-model").Node} node
+ * @returns {'ordered' | 'bullet' | null}
+ */
+function getEffectiveListKind(node) {
+  if (!node) return null;
+  const typeName = node.type?.name;
+  const style = node.attrs?.['list-style-type'];
+
+  if (typeName === 'bulletList') return 'bullet';
+  if (typeName === 'orderedList') {
+    if (style === 'bullet') return 'bullet';
+    const firstLI = node.firstChild;
+    const liFmt = firstLI?.attrs?.listNumberingType;
+    if (liFmt === 'bullet') return 'bullet';
+    return 'ordered';
+  }
+  return null;
+}
+
+/**
  * Collect all top-level list nodes that intersect with the given selection.
  * @param {Object} param0
- * @param {import("prosemirror-model").Node} param0.doc - The ProseMirror document.
- * @param {import("prosemirror-state").Selection} param0.selection - The ProseMirror selection.
- * @param {import("prosemirror-model").NodeType} param0.OrderedType - The ordered list node type.
- * @param {import("prosemirror-model").NodeType} param0.BulletType - The bullet list node type.
- * @returns {Array} An array of intersecting list nodes.
+ * @param {import("prosemirror-model").Node} param0.doc
+ * @param {import("prosemirror-state").Selection} param0.selection
+ * @param {import("prosemirror-model").NodeType} param0.OrderedType
+ * @param {import("prosemirror-model").NodeType} param0.BulletType
+ * @returns {Array<{ node: import("prosemirror-model").Node, pos: number, depth: number | null }>}
  */
 export function collectIntersectingTopLists({ doc, selection, OrderedType, BulletType }) {
   const { from, to, $from, $to } = selection;
@@ -50,60 +71,166 @@ export function collectIntersectingTopLists({ doc, selection, OrderedType, Bulle
 }
 
 /**
+ * Compute hierarchical counters (listLevel) for ordered lists.
+ * Produces [1], [2], ... for level 0; [1,1], [1,2] for deeper levels, etc.
+ * @param {Array<import("prosemirror-model").Node>} liNodes
+ * @returns {Array<number[]>}
+ */
+function computeListLevels(liNodes) {
+  const levelsOut = [];
+  const counters = [];
+
+  for (let i = 0; i < liNodes.length; i++) {
+    const lvl = Math.max(0, Number(liNodes[i]?.attrs?.level ?? 0));
+    while (counters.length <= lvl) counters.push(0);
+    counters.splice(lvl + 1);
+    counters[lvl] = (counters[lvl] ?? 0) + 1;
+    levelsOut.push(counters.slice(0, lvl + 1));
+  }
+
+  return levelsOut;
+}
+
+/**
  * Rebuild a list node with a new numbering scheme.
+ * Preserves full item content and merges original attrs (run/paragraph props),
+ * then overrides numbering-related fields for both ordered and bullet lists.
  * @param {Object} param0
- * @param {import("prosemirror-model").Node} param0.oldList - The old list node to rebuild.
- * @param {import("prosemirror-model").NodeType} param0.toType - The target list node type.
- * @param {import("prosemirror-view").EditorView} param0.editor - The ProseMirror editor view.
- * @param {import("prosemirror-model").Schema} param0.schema - The ProseMirror schema.
- * @param {String|null} param0.fixedNumId - A fixed numbering ID, if any.
+ * @param {import("prosemirror-model").Node} param0.oldList
+ * @param {import("prosemirror-model").NodeType} param0.toType
+ * @param {import("prosemirror-view").EditorView} param0.editor
+ * @param {import("prosemirror-model").Schema} param0.schema
+ * @param {String|null} param0.fixedNumId
  * @returns {import("prosemirror-model").Node}
  */
 export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fixedNumId }) {
   const OrderedType = schema.nodes.orderedList;
+  const isOrdered = toType === OrderedType;
 
+  // Always create a list definition + numId for the target kind (bullet or ordered)
   const numId = fixedNumId ?? ListHelpers.getNewListId(editor);
   if (fixedNumId == null) {
-    ListHelpers.generateNewListDefinition({ numId, listType: toType, editor });
+    ListHelpers.generateNewListDefinition?.({ numId, listType: toType, editor });
   }
 
-  const items = [];
+  // Collect list items
+  const liNodes = [];
   for (let i = 0; i < oldList.childCount; i++) {
     const li = oldList.child(i);
-    if (li.type.name !== 'listItem') continue;
-
-    const level = Number(li.attrs?.level ?? 0);
-    const listLevel = Array.isArray(li.attrs?.listLevel) ? li.attrs.listLevel : [level + 1];
-
-    const { numFmt, lvlText } = ListHelpers.getListDefinitionDetails({
-      numId,
-      level,
-      listType: toType,
-      editor,
-    });
-
-    const contentJSON = li.content ? li.content.toJSON() : [];
-    const firstBlock = contentJSON?.[0] ?? { type: 'paragraph', content: [] };
-
-    items.push(
-      ListHelpers.createListItemNodeJSON({
-        level,
-        listLevel,
-        numId,
-        numFmt: numFmt ?? (toType === OrderedType ? 'decimal' : 'bullet'),
-        lvlText: lvlText ?? (toType === OrderedType ? '%1.' : '•'),
-        contentNode: firstBlock,
-      }),
-    );
+    if (li?.type?.name === 'listItem') liNodes.push(li);
   }
 
-  const isOrdered = toType === OrderedType;
+  const computedLevels = isOrdered ? computeListLevels(liNodes) : [];
+
+  const items = [];
+  for (let i = 0; i < liNodes.length; i++) {
+    const li = liNodes[i];
+
+    const level = Math.max(0, Number(li.attrs?.level ?? 0));
+    const listLevel = isOrdered
+      ? (computedLevels[i] ?? [i + 1])
+      : Array.isArray(li.attrs?.listLevel)
+        ? li.attrs.listLevel
+        : [level + 1];
+
+    const details = ListHelpers.getListDefinitionDetails?.({ numId, level, listType: toType, editor }) || {};
+
+    const effectiveFmt = isOrdered ? details.numFmt || 'decimal' : details.numFmt || 'bullet';
+    const effectiveLvlText = isOrdered ? details.lvlText || '%1.' : details.lvlText || '•';
+
+    const baseAttrs = li.attrs || {};
+    const itemAttrs = {
+      ...baseAttrs,
+      level,
+      listLevel,
+      numId,
+      numPrType: 'inline',
+      listNumberingType: effectiveFmt,
+      lvlText: effectiveLvlText,
+    };
+
+    const contentJSON = li.content && li.content.size > 0 ? li.content.toJSON() : [{ type: 'paragraph', content: [] }];
+
+    items.push({
+      type: 'listItem',
+      attrs: itemAttrs,
+      content: contentJSON,
+    });
+  }
+
   const containerJSON = {
     type: isOrdered ? 'orderedList' : 'bulletList',
     attrs: {
       listId: numId,
-      'list-style-type': isOrdered ? (items[0]?.attrs?.listNumberingType ?? 'decimal') : 'bullet',
-      ...(isOrdered ? { order: 0 } : {}),
+      'list-style-type': isOrdered
+        ? (items[0]?.attrs?.listNumberingType ?? 'decimal')
+        : (items[0]?.attrs?.listNumberingType ?? 'bullet'),
+      ...(isOrdered ? { order: 1 } : {}),
+    },
+    content: items,
+  };
+
+  return editor.schema.nodeFromJSON(containerJSON);
+}
+
+/**
+ * Build a single list container from multiple paragraph nodes using helpers.
+ * Each paragraph becomes one listItem that preserves its runs.
+ * We generate a definition and numId for both bullet and ordered.
+ * @param {Object} param0
+ * @param {Array<{ node: import("prosemirror-model").Node, pos: number }>} param0.paragraphs
+ * @param {'ordered'|'bullet'} param0.targetKind
+ * @param {import("prosemirror-view").EditorView} param0.editor
+ * @param {import("prosemirror-model").Schema} param0.schema
+ * @returns {import("prosemirror-model").Node}
+ */
+function buildListFromParagraphs({ paragraphs, targetKind, editor, schema }) {
+  const OrderedType = schema.nodes.orderedList;
+  const BulletType = schema.nodes.bulletList;
+  const toType = targetKind === 'ordered' ? OrderedType : BulletType;
+
+  // Always create a definition + numId even for bullets
+  const numId = ListHelpers.getNewListId(editor);
+  ListHelpers.generateNewListDefinition?.({ numId, listType: toType, editor });
+
+  const isOrdered = targetKind === 'ordered';
+
+  const items = paragraphs.map(({ node }, idx) => {
+    const level = 0;
+    const listLevel = isOrdered ? [idx + 1] : [1];
+    const numFmt = isOrdered ? 'decimal' : 'bullet';
+    const lvlText = isOrdered ? '%1.' : '•';
+
+    // Use the helper so all expected attrs for listItem are present
+    const itemJSON = ListHelpers.createListItemNodeJSON({
+      level,
+      listLevel,
+      numId,
+      numFmt,
+      lvlText,
+      contentNode: node.toJSON(),
+    });
+
+    // Ensure runtime-critical attrs are present (in case helper is conservative)
+    itemJSON.attrs = {
+      ...(itemJSON.attrs || {}),
+      level,
+      listLevel,
+      numId,
+      numPrType: 'inline',
+      listNumberingType: numFmt,
+      lvlText,
+    };
+
+    return itemJSON;
+  });
+
+  const containerJSON = {
+    type: isOrdered ? 'orderedList' : 'bulletList',
+    attrs: {
+      listId: numId,
+      'list-style-type': isOrdered ? 'decimal' : 'bullet',
+      ...(isOrdered ? { order: 1 } : {}),
     },
     content: items,
   };
@@ -113,9 +240,9 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
 
 /**
  * Set the selection span in the transaction to match the original span.
- * @param {import("prosemirror-state").Transaction} tr The ProseMirror transaction.
- * @param {number} fromBefore The start position of the original span.
- * @param {number} toBefore The end position of the original span.
+ * @param {import("prosemirror-state").Transaction} tr
+ * @param {number} fromBefore
+ * @param {number} toBefore
  */
 export function setMappedSelectionSpan(tr, fromBefore, toBefore) {
   const mappedFrom = tr.mapping.map(fromBefore, -1);
@@ -127,44 +254,55 @@ export function setMappedSelectionSpan(tr, fromBefore, toBefore) {
 
 /**
  * Toggle a list type in the editor.
- * @param {String} listType The type of list to toggle (e.g., "bulletList" or "orderedList").
- * @returns {Function} The command function.
+ * Unwrap only when the effective kind already matches the target kind.
+ * Otherwise, convert touched list container(s). For multi-paragraph wraps, build one container.
+ * @param {String|import("prosemirror-model").NodeType} listType
+ * @returns {Function}
  */
 export const toggleList =
   (listType) =>
   ({ editor, state, tr, dispatch }) => {
     const { selection, doc } = state;
-    const { from, to, empty } = selection;
 
     const OrderedType = editor.schema.nodes.orderedList;
     const BulletType = editor.schema.nodes.bulletList;
     const TargetType = typeof listType === 'string' ? editor.schema.nodes[listType] : listType;
+    const targetKind = TargetType === OrderedType ? 'ordered' : 'bullet';
 
-    const sameListAtCursor = findParentNode((n) => n.type === TargetType)(selection);
+    const near = nearestListAt(selection.$from, OrderedType, BulletType);
+    const nearKind = near ? getEffectiveListKind(near.node) : null;
 
-    // 1) Same type: unwrap, then restore span over the unwrapped content
-    if (sameListAtCursor) {
-      const { pos, node } = sameListAtCursor;
-      const spanFromBefore = pos;
-      const spanToBefore = pos + node.nodeSize;
+    // A) Inside some list
+    if (near) {
+      const isSameAsTarget = nearKind === targetKind;
 
-      const paras = [];
-      for (let i = 0; i < node.childCount; i++) {
-        const li = node.child(i);
-        paras.push(li.firstChild || editor.schema.nodes.paragraph.create());
+      // A1) Effective kind already target → unwrap that list only
+      if (isSameAsTarget) {
+        const { pos, node } = near;
+        const spanFromBefore = pos;
+        const spanToBefore = pos + node.nodeSize;
+
+        const paras = [];
+        for (let i = 0; i < node.childCount; i++) {
+          const li = node.child(i);
+          paras.push(li.firstChild || editor.schema.nodes.paragraph.create());
+        }
+        tr.replaceWith(pos, pos + node.nodeSize, paras);
+        setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
+
+        if (dispatch) dispatch(tr);
+        return true;
       }
-      tr.replaceWith(pos, pos + node.nodeSize, paras);
 
-      setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
-      if (dispatch) dispatch(tr);
-      return true;
-    }
+      // A2) Different effective kind → convert touched containers (never unwrap)
+      let touchedLists = collectIntersectingTopLists({ doc, selection, OrderedType, BulletType });
 
-    // 2) Intersects list(s): convert containers; keep whole touched span selected
-    const touchedLists = collectIntersectingTopLists({ doc, selection, OrderedType, BulletType });
+      // Fallback: caret case (no intersecting top lists collected)
+      if (touchedLists.length === 0) {
+        touchedLists = [{ node: near.node, pos: near.pos, depth: near.depth }];
+      }
 
-    if (touchedLists.length > 0) {
-      // Compute span BEFORE we start mutating
+      // Compute span BEFORE mutations
       let spanFromBefore = Infinity;
       let spanToBefore = -Infinity;
       for (const { node, pos } of touchedLists) {
@@ -172,13 +310,19 @@ export const toggleList =
         spanToBefore = Math.max(spanToBefore, pos + node.nodeSize);
       }
 
-      const switchingToOrdered = TargetType === OrderedType;
+      const switchingToOrdered = targetKind === 'ordered';
       let sharedNumId = null;
       if (switchingToOrdered) {
         sharedNumId = ListHelpers.getNewListId(editor);
-        ListHelpers.generateNewListDefinition({ numId: sharedNumId, listType: TargetType, editor });
+        ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
+      } else {
+        // switching to bullet: also ensure a bullet definition exists
+        sharedNumId = ListHelpers.getNewListId(editor);
+        ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
       }
 
+      // Replace from bottom-up to keep positions stable
+      touchedLists.sort((a, b) => b.pos - a.pos);
       for (const { node: oldList, pos } of touchedLists) {
         const mapped = tr.mapping.map(pos);
         const newList = rebuildListNodeWithNewNum({
@@ -186,7 +330,7 @@ export const toggleList =
           toType: TargetType,
           editor,
           schema: editor.schema,
-          fixedNumId: switchingToOrdered ? sharedNumId : null,
+          fixedNumId: sharedNumId,
         });
         tr.replaceWith(mapped, mapped + oldList.nodeSize, newList);
       }
@@ -196,18 +340,19 @@ export const toggleList =
       return true;
     }
 
-    // 3) Not in/over a list: wrap paragraphs (multi-node); keep whole original span selected
+    // B) Not inside a list: wrap paragraphs
+    const { from, to, empty } = selection;
 
     /**
      * Collect all paragraph nodes in the current selection.
-     * @returns {Array<{ node: Node, pos: number }>} An array of paragraph nodes and their positions.
+     * @returns {Array<{ node: import("prosemirror-model").Node, pos: number }>}
      */
     const collectParagraphs = () => {
       const out = [];
       doc.nodesBetween(from, to, (node, pos) => {
         if (node.type.name === 'paragraph') {
-          const nodeFrom = pos,
-            nodeTo = pos + node.nodeSize;
+          const nodeFrom = pos;
+          const nodeTo = pos + node.nodeSize;
           if (nodeFrom < to && nodeTo > from) out.push({ node, pos });
           return false;
         }
@@ -219,50 +364,39 @@ export const toggleList =
     if (!empty && from !== to) {
       const paragraphs = collectParagraphs();
       if (paragraphs.length > 1) {
-        // span BEFORE mutations
-        let spanFromBefore = Math.min(...paragraphs.map((p) => p.pos));
-        let spanToBefore = Math.max(...paragraphs.map((p) => p.pos + p.node.nodeSize));
+        // Calculate span BEFORE mutation
+        const first = paragraphs[0];
+        const last = paragraphs[paragraphs.length - 1];
+        const spanFromBefore = first.pos;
+        const spanToBefore = last.pos + last.node.nodeSize;
 
-        const numId = ListHelpers.getNewListId(editor);
-        ListHelpers.generateNewListDefinition({ numId, listType: TargetType, editor });
+        const listNode = buildListFromParagraphs({
+          paragraphs,
+          targetKind,
+          editor,
+          schema: editor.schema,
+        });
 
-        // Replace from end to start to avoid shifting
-        for (let i = paragraphs.length - 1; i >= 0; i--) {
-          const { node, pos } = paragraphs[i];
-          const listNode = ListHelpers.createSchemaOrderedListNode({
-            level: 0,
-            numId,
-            listType: TargetType,
-            editor,
-            listLevel: [1],
-            contentNode: node.toJSON(),
-          });
-          // Do not rely on insertNewList’s selection side-effect; we’ll set it after the loop
-          tr.replaceWith(pos, pos + node.nodeSize, listNode);
-        }
+        tr.replaceWith(spanFromBefore, spanToBefore, listNode);
+        setMappedSelectionSpan(tr, spanFromBefore, spanFromBefore + listNode.nodeSize);
 
-        setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
         if (dispatch) dispatch(tr);
         return true;
       }
     }
 
-    // Single paragraph case (keep default caret behavior)
+    // Single paragraph case
     const paraAtCursor = findParentNode((n) => n.type.name === 'paragraph')(selection);
     if (!paraAtCursor) return false;
 
     {
       const { node: paragraph, pos } = paraAtCursor;
-      const numId = ListHelpers.getNewListId(editor);
-      ListHelpers.generateNewListDefinition({ numId, listType: TargetType, editor });
 
-      const listNode = ListHelpers.createSchemaOrderedListNode({
-        level: 0,
-        numId,
-        listType: TargetType,
+      const listNode = buildListFromParagraphs({
+        paragraphs: [{ node: paragraph, pos }],
+        targetKind,
         editor,
-        listLevel: [1],
-        contentNode: paragraph.toJSON(),
+        schema: editor.schema,
       });
 
       tr.replaceWith(pos, pos + paragraph.nodeSize, listNode);
