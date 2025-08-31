@@ -553,4 +553,86 @@ describe('setMappedSelectionSpan', () => {
     expect(tr.selection.from).toBeGreaterThanOrEqual(1);
     expect(tr.selection.to).toBeLessThanOrEqual(tr.doc.content.size);
   });
+
+  it('wraps multiple paragraphs into multiple BULLET list containers (one item each, shared numId)', () => {
+    const d = doc(p('A'), p('B'), p('C'));
+    const { editor, state } = createEditor(d);
+
+    const [from0, to0] = inlineSpanOf(d);
+    const s1 = state.apply(state.tr.setSelection(TextSelection.create(d, from0, to0)));
+
+    const s2 = applyCmd(s1, editor, toggleList('bulletList'));
+
+    // Old (broken) behavior would create a single <ul> with 3 <li>.
+    // Correct behavior: 3 <ul> containers, each with 1 <li>, sharing the same numId/listId.
+    expect(s2.doc.childCount).toBe(3);
+
+    const listIds = new Set();
+    const numIds = new Set();
+
+    for (let i = 0; i < s2.doc.childCount; i++) {
+      const node = s2.doc.child(i);
+      expect(node.type.name).toBe('bulletList');
+      expect(node.childCount).toBe(1);
+
+      const li = node.child(0);
+      expect(li.type.name).toBe('listItem');
+
+      // Track ids to ensure they all match
+      listIds.add(node.attrs.listId);
+      numIds.add(li.attrs.numId);
+
+      // container listId should match the item's numId
+      expect(li.attrs.numId).toBe(node.attrs.listId);
+      // bullet list should advertise bullet style
+      expect(node.attrs['list-style-type']).toBe('bullet');
+      expect(li.attrs.listNumberingType).toBe('bullet');
+      expect(li.attrs.lvlText).toBe('•');
+    }
+
+    expect(listIds.size).toBe(1);
+    expect(numIds.size).toBe(1);
+  });
+
+  it('wraps multiple paragraphs into multiple ORDERED list containers (one item each, shared numId)', () => {
+    const d = doc(p('One'), p('Two'));
+    const { editor, state } = createEditor(d);
+
+    const [from0, to0] = inlineSpanOf(d);
+    const s1 = state.apply(state.tr.setSelection(TextSelection.create(d, from0, to0)));
+
+    const s2 = applyCmd(s1, editor, toggleList('orderedList'));
+
+    // Old (broken) behavior would create a single <ol> with 2 <li>.
+    // Correct behavior: 2 <ol> containers, each with 1 <li>, sharing the same numId/listId.
+    expect(s2.doc.childCount).toBe(2);
+
+    const listIds = new Set();
+    const numIds = new Set();
+
+    for (let i = 0; i < s2.doc.childCount; i++) {
+      const node = s2.doc.child(i);
+      expect(node.type.name).toBe('orderedList');
+      expect(node.childCount).toBe(1);
+
+      const li = node.child(0);
+      expect(li.type.name).toBe('listItem');
+
+      // Track ids to ensure they all match
+      listIds.add(node.attrs.listId);
+      numIds.add(li.attrs.numId);
+
+      // container listId should match the item's numId
+      expect(li.attrs.numId).toBe(node.attrs.listId);
+
+      // ordered lists should have decimal style and start at order 1 (per your impl)
+      expect(node.attrs['list-style-type']).toBe('decimal');
+      expect(node.attrs.order).toBe(1);
+      expect(li.attrs.listNumberingType).toBe('decimal');
+      expect(li.attrs.lvlText).toBe('%1.');
+    }
+
+    expect(listIds.size).toBe(1);
+    expect(numIds.size).toBe(1);
+  });
 });

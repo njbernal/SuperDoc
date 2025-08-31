@@ -1,4 +1,5 @@
 // @ts-check
+import { Fragment } from 'prosemirror-model';
 import { TextSelection } from 'prosemirror-state';
 import { findParentNode } from '../helpers/findParentNode.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
@@ -72,15 +73,13 @@ export function collectIntersectingTopLists({ doc, selection, OrderedType, Bulle
 }
 
 /**
- * Compute hierarchical counters (listLevel) for ordered lists.
- * Produces [1], [2], ... for level 0; [1,1], [1,2] for deeper levels, etc.
+ * Compute hierarchical counters (listLevel) for ordered lists that contain multiple LIs.
  * @param {Array<import("prosemirror-model").Node>} liNodes
  * @returns {Array<number[]>}
  */
 function computeListLevels(liNodes) {
   const levelsOut = [];
   const counters = [];
-
   for (let i = 0; i < liNodes.length; i++) {
     const lvl = Math.max(0, Number(liNodes[i]?.attrs?.level ?? 0));
     while (counters.length <= lvl) counters.push(0);
@@ -88,7 +87,6 @@ function computeListLevels(liNodes) {
     counters[lvl] = (counters[lvl] ?? 0) + 1;
     levelsOut.push(counters.slice(0, lvl + 1));
   }
-
   return levelsOut;
 }
 
@@ -114,7 +112,7 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
     ListHelpers.generateNewListDefinition?.({ numId: Number(numId), listType: toType, editor });
   }
 
-  // Collect list items
+  // Collect list items from old container
   const liNodes = [];
   for (let i = 0; i < oldList.childCount; i++) {
     const li = oldList.child(i);
@@ -176,44 +174,45 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
 }
 
 /**
- * Build a single list container from multiple paragraph nodes using helpers.
- * Each paragraph becomes one listItem that preserves its runs.
- * We generate a definition and numId for both bullet and ordered.
+ * Build multiple list containers (MS-Word model: each list has exactly one listItem).
+ * All containers share the same numId so numbering/markers continue across them.
  * @param {Object} param0
  * @param {Array<{ node: import("prosemirror-model").Node, pos: number }>} param0.paragraphs
  * @param {'ordered'|'bullet'} param0.targetKind
  * @param {import("../Editor.js").Editor} param0.editor
  * @param {import("prosemirror-model").Schema} param0.schema
- * @returns {import("prosemirror-model").Node}
+ * @returns {import("prosemirror-model").Node[]} array of list containers
  */
-function buildListFromParagraphs({ paragraphs, targetKind, editor, schema }) {
+function buildListContainersFromParagraphs({ paragraphs, targetKind, editor, schema }) {
   const OrderedType = schema.nodes.orderedList;
   const BulletType = schema.nodes.bulletList;
   const toType = targetKind === 'ordered' ? OrderedType : BulletType;
 
-  // Always create a definition + numId even for bullets
+  // One shared numId/definition for all containers
   const numId = ListHelpers.getNewListId(editor);
   ListHelpers.generateNewListDefinition?.({ numId, listType: toType, editor });
 
   const isOrdered = targetKind === 'ordered';
+  const containers = [];
 
-  const items = paragraphs.map(({ node }, idx) => {
+  for (let i = 0; i < paragraphs.length; i++) {
+    const { node } = paragraphs[i];
     const level = 0;
-    const listLevel = isOrdered ? [idx + 1] : [1];
+    const listLevel = [1]; // top-level item in its own container
+
     const numFmt = isOrdered ? 'decimal' : 'bullet';
     const lvlText = isOrdered ? '%1.' : '•';
 
-    // Use the helper so all expected attrs for listItem are present
     const itemJSON = ListHelpers.createListItemNodeJSON({
       level,
       listLevel,
       numId,
       numFmt,
       lvlText,
-      contentNode: node.toJSON(),
+      contentNode: node.toJSON(), // preserve runs
     });
 
-    // Ensure runtime-critical attrs are present (in case helper is conservative)
+    // Ensure runtime-critical attrs
     itemJSON.attrs = {
       ...(itemJSON.attrs || {}),
       level,
@@ -224,20 +223,20 @@ function buildListFromParagraphs({ paragraphs, targetKind, editor, schema }) {
       lvlText,
     };
 
-    return itemJSON;
-  });
+    const containerJSON = {
+      type: isOrdered ? 'orderedList' : 'bulletList',
+      attrs: {
+        listId: numId,
+        'list-style-type': isOrdered ? 'decimal' : 'bullet',
+        ...(isOrdered ? { order: 1 } : {}),
+      },
+      content: [itemJSON],
+    };
 
-  const containerJSON = {
-    type: isOrdered ? 'orderedList' : 'bulletList',
-    attrs: {
-      listId: numId,
-      'list-style-type': isOrdered ? 'decimal' : 'bullet',
-      ...(isOrdered ? { order: 1 } : {}),
-    },
-    content: items,
-  };
+    containers.push(editor.schema.nodeFromJSON(containerJSON));
+  }
 
-  return editor.schema.nodeFromJSON(containerJSON);
+  return containers;
 }
 
 /**
@@ -257,7 +256,8 @@ export function setMappedSelectionSpan(tr, fromBefore, toBefore) {
 /**
  * Toggle a list type in the editor.
  * Unwrap only when the effective kind already matches the target kind.
- * Otherwise, convert touched list container(s). For multi-paragraph wraps, build one container.
+ * Otherwise, convert touched list container(s). For multi-paragraph wraps,
+ * create one container per paragraph (MS-Word model).
  * @param {String|import("prosemirror-model").NodeType} listType
  * @returns {Function}
  */
@@ -313,15 +313,8 @@ export const toggleList =
       }
 
       const switchingToOrdered = targetKind === 'ordered';
-      let sharedNumId = null;
-      if (switchingToOrdered) {
-        sharedNumId = ListHelpers.getNewListId(editor);
-        ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
-      } else {
-        // switching to bullet: also ensure a bullet definition exists
-        sharedNumId = ListHelpers.getNewListId(editor);
-        ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
-      }
+      let sharedNumId = ListHelpers.getNewListId(editor);
+      ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
 
       // Replace from bottom-up to keep positions stable
       touchedLists.sort((a, b) => b.pos - a.pos);
@@ -342,7 +335,7 @@ export const toggleList =
       return true;
     }
 
-    // B) Not inside a list: wrap paragraphs
+    // B) Not inside a list: wrap paragraphs (MS-Word model → one container per paragraph)
     const { from, to, empty } = selection;
 
     /**
@@ -366,21 +359,21 @@ export const toggleList =
     if (!empty && from !== to) {
       const paragraphs = collectParagraphs();
       if (paragraphs.length > 1) {
-        // Calculate span BEFORE mutation
+        // span BEFORE mutation
         const first = paragraphs[0];
         const last = paragraphs[paragraphs.length - 1];
         const spanFromBefore = first.pos;
         const spanToBefore = last.pos + last.node.nodeSize;
 
-        const listNode = buildListFromParagraphs({
+        const containers = buildListContainersFromParagraphs({
           paragraphs,
           targetKind,
           editor,
           schema: editor.schema,
         });
 
-        tr.replaceWith(spanFromBefore, spanToBefore, listNode);
-        setMappedSelectionSpan(tr, spanFromBefore, spanFromBefore + listNode.nodeSize);
+        tr.replaceWith(spanFromBefore, spanToBefore, Fragment.from(containers));
+        setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
 
         if (dispatch) dispatch(tr);
         return true;
@@ -393,15 +386,14 @@ export const toggleList =
 
     {
       const { node: paragraph, pos } = paraAtCursor;
-
-      const listNode = buildListFromParagraphs({
+      const containers = buildListContainersFromParagraphs({
         paragraphs: [{ node: paragraph, pos }],
         targetKind,
         editor,
         schema: editor.schema,
       });
 
-      tr.replaceWith(pos, pos + paragraph.nodeSize, listNode);
+      tr.replaceWith(pos, pos + paragraph.nodeSize, containers[0]);
       if (dispatch) dispatch(tr);
       return true;
     }
