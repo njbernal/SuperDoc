@@ -1,3 +1,4 @@
+// @ts-check
 import { TextSelection } from 'prosemirror-state';
 import { findParentNode } from '../helpers/findParentNode.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
@@ -98,7 +99,7 @@ function computeListLevels(liNodes) {
  * @param {Object} param0
  * @param {import("prosemirror-model").Node} param0.oldList
  * @param {import("prosemirror-model").NodeType} param0.toType
- * @param {import("prosemirror-view").EditorView} param0.editor
+ * @param {import("../Editor.js").Editor} param0.editor
  * @param {import("prosemirror-model").Schema} param0.schema
  * @param {String|null} param0.fixedNumId
  * @returns {import("prosemirror-model").Node}
@@ -110,7 +111,7 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
   // Always create a list definition + numId for the target kind (bullet or ordered)
   const numId = fixedNumId ?? ListHelpers.getNewListId(editor);
   if (fixedNumId == null) {
-    ListHelpers.generateNewListDefinition?.({ numId, listType: toType, editor });
+    ListHelpers.generateNewListDefinition?.({ numId: Number(numId), listType: toType, editor });
   }
 
   // Collect list items
@@ -133,7 +134,8 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
         ? li.attrs.listLevel
         : [level + 1];
 
-    const details = ListHelpers.getListDefinitionDetails?.({ numId, level, listType: toType, editor }) || {};
+    const details =
+      ListHelpers.getListDefinitionDetails?.({ numId: Number(numId), level, listType: toType, editor }) || {};
 
     const effectiveFmt = isOrdered ? details.numFmt || 'decimal' : details.numFmt || 'bullet';
     const effectiveLvlText = isOrdered ? details.lvlText || '%1.' : details.lvlText || '•';
@@ -180,7 +182,7 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
  * @param {Object} param0
  * @param {Array<{ node: import("prosemirror-model").Node, pos: number }>} param0.paragraphs
  * @param {'ordered'|'bullet'} param0.targetKind
- * @param {import("prosemirror-view").EditorView} param0.editor
+ * @param {import("../Editor.js").Editor} param0.editor
  * @param {import("prosemirror-model").Schema} param0.schema
  * @returns {import("prosemirror-model").Node}
  */
@@ -330,7 +332,7 @@ export const toggleList =
           toType: TargetType,
           editor,
           schema: editor.schema,
-          fixedNumId: sharedNumId,
+          fixedNumId: String(sharedNumId),
         });
         tr.replaceWith(mapped, mapped + oldList.nodeSize, newList);
       }
