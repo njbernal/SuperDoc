@@ -1,6 +1,11 @@
 import { childrenOf, allTags, namespaces } from './lookup.js';
 import { getAttributes } from './index.js';
 
+// Explicit namespace allowlist for now
+// Keeping: w*, a:, pic:, wp:, r:, mc:, cp:, dc:, dcterms:
+// Skipping for now: m:, v:, o:, p:, x:, g20:, cdr:, etc.
+const ALLOWED_PREFIXES = new Set(['w:', 'a:', 'pic:', 'wp:', 'r:', 'mc:', 'cp:', 'dc:', 'dcterms:']);
+
 export function runChildrenCLI(argv) {
   const sub = argv[0];
   const arg = argv[1];
@@ -20,9 +25,28 @@ export function runChildrenCLI(argv) {
       const flags = new Set(argv.slice(prefix ? 2 : 1).filter((a) => a.startsWith('--')));
       const parentsOnly = flags.has('--parents');
       const plain = flags.has('--plain');
-      const tags = allTags({ prefix, hasChildren: parentsOnly ? true : null });
+
+      // look for --namespace <ns>
+      const nsIndex = argv.findIndex((a) => a === '--namespace');
+      const nsPrefix = nsIndex !== -1 ? argv[nsIndex + 1] : null;
+
+      let tags = allTags({ prefix, hasChildren: parentsOnly ? true : null });
+
+      // apply allowlist filter
+      tags = tags.filter((t) => {
+        for (const p of ALLOWED_PREFIXES) {
+          if (t.startsWith(p)) return true;
+        }
+        return false;
+      });
+
+      // apply explicit --namespace filter if given
+      if (nsPrefix) {
+        tags = tags.filter((t) => t.startsWith(nsPrefix + ':'));
+      }
+
       console.log(plain ? tags.join('\n') : JSON.stringify({ count: tags.length, tags }, null, 2));
-      console.log(`Total tags: ${tags.length}`);
+      console.log(`Total tags (filtered): ${tags.length}`);
       break;
     }
 
@@ -77,6 +101,6 @@ Options:
 }
 
 function notFound(q) {
-  console.error(`Unknown element: ${q}`);
+  console.error(`Unknown element: \${q}\\`);
   process.exit(2);
 }
