@@ -8,6 +8,7 @@ Thank you for your interest in contributing to SuperDoc! We're excited to have y
 - [How Can I Contribute?](#how-can-i-contribute)
 - [Development Setup](#development-setup)
 - [Pull Request Process](#pull-request-process)
+- [Release Process](#release-process)
 - [Style Guidelines](#style-guidelines)
 - [Community](#community)
 
