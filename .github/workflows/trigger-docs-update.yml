@@ -11,6 +11,10 @@ on:
       # - 'packages/super-editor/src/components/**/*.js'
   workflow_dispatch:  # Manual trigger
 
+concurrency:
+  group: docs-update
+  cancel-in-progress: true
+
 jobs:
   trigger-docs:
     runs-on: ubuntu-latest    
