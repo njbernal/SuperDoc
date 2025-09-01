@@ -1,4 +1,4 @@
-name: Sync Patches to Main
+name: Sync Patches to Main [manual]
 
 on:
   push:

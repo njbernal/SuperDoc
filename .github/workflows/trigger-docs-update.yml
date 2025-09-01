@@ -1,9 +1,9 @@
-name: Trigger Documentation Update
+name: Trigger Docs Update [auto]
 
 on:
   push:
     branches:
-      - main
+      - release/**
     paths:
       # Trigger when extensions change
       - 'packages/super-editor/src/extensions/**/*.js'
