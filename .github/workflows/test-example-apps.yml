@@ -1,17 +1,13 @@
-name: Test for example apps
+name: Test for example apps [auto]
 
 on:
   workflow_dispatch:
     inputs:
       update-screenshots:
         description: "Update screenshots"
+        type: boolean
+        default: false
         required: false
-        default: "false"
-
-  # TODO: Enable this when we test this workflow manually
-  # pull_request:
-  #   branches:
-  #     - develop
 
 permissions:
   contents: write
