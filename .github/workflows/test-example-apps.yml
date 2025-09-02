@@ -1,4 +1,4 @@
-name: Run tests for example apps
+name: Test for example apps
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  run-tests-example-apps:
+  test-example-apps:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,9 +47,10 @@ jobs:
         if: inputs.update-screenshots == 'true'
         run: cd examples/tests && npm test -- --update-snapshots
       
-
       - name: Upload screenshots
         if: inputs.update-screenshots == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.SUPERDOC_PAT }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

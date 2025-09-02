@@ -31,13 +31,26 @@ jobs:
           wait
       
       - name: Build
+        if: always()
         run: npm run build
       
       - name: Test
+        if: always()
         run: npm test
       
+      - name: E2E tests
+        if: always()
+        run: |
+          curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.SUPERDOC_PAT }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          -d '{"ref": "main", "inputs": {"superdoc-branch": "${{ github.head_ref }}", "pull-request-url": "${{ github.event.pull_request.html_url }}"}}' \
+          ${{ secrets.SD_TESTS_URL }}
+
       - name: Check commits (PR only)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && always()
         run: |
           npx commitlint \
             --from ${{ github.event.pull_request.base.sha }} \
