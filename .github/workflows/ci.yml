@@ -37,10 +37,6 @@ jobs:
       - name: Test
         if: always()
         run: npm test
-      
-      - name: Test example apps
-        if: always()
-        uses: ./.github/workflows/test-example-apps.yml
 
       - name: Check commits (PR only)
         if: github.event_name == 'pull_request' && always()

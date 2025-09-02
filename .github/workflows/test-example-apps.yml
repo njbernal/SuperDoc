@@ -1,6 +1,10 @@
 name: Test for example apps [auto]
 
 on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main, 'release/**']
   workflow_dispatch:
     inputs:
       update-screenshots:
