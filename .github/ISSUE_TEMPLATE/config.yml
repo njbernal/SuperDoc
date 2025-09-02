@@ -2,5 +2,8 @@ blank_issues_enabled: false
 
 contact_links:
   - name: 💬 Join our Discord
-    url: https://discord.gg/WjkQEwZHBK
+    url: https://discord.gg/<YOUR_INVITE_CODE>
     about: Have a question, need help, or want to chat? Join our community Discord.
+  - name: 🔐 Report a security vulnerability
+    url: https://github.com/@harbour-enterprises/superdoc/security/policy
+    about: Please follow our security policy.
