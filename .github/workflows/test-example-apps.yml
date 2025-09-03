@@ -1,7 +1,7 @@
 name: Test Example Apps [manual/auto]
 
 on:
-  push:
+  pull_request:
     branches: [main, 'release/**']
     paths:
       - 'examples/**'
@@ -12,6 +12,10 @@ on:
         description: "Update screenshots"
         type: boolean
         default: false
+
+concurrency:
+  group: visual-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   visual-tests:
