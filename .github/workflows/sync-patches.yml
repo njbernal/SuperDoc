@@ -37,6 +37,6 @@ jobs:
             **Commits:** ${{ github.event.head_commit.message }}
             
             This PR will auto-merge after tests pass." \
-            --label "patch-sync,automerge" \
+            --label "patch-sync" \
           || gh pr edit \
-            --add-label "patch-sync,automerge"
+            --add-label "patch-sync"
