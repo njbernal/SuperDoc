@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  visual-tests:
+  test-example-apps:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
