@@ -2,12 +2,14 @@ name: 📦 New Version Release [auto]
 
 on:
   push:
-    branches: [main, 'release/**']
+    branches: [main]
     paths:
       - 'packages/**'
       - '!**.md'
       - '!examples/**'
       - '!docs/**'
+  create:
+    branches: ['release/**']
   workflow_dispatch:
 
 permissions:
