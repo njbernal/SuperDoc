@@ -14,6 +14,8 @@ All releases are automated through semantic-release based on conventional commit
 
 ## Workflow Architecture
 
+<img width="1238" height="1180" alt="image" src="https://github.com/user-attachments/assets/4f5635ef-abbb-4db8-90be-833f39eae41d" />
+
 ## GitHub Actions Workflows
 
 ### Core Workflows
