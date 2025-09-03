@@ -8,7 +8,7 @@ on:
       - '!**.md'
       - '!examples/**'
       - '!docs/**'
-  create:
+  push:
     branches: ['release/**']
   workflow_dispatch:
 
