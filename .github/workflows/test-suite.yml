@@ -1,6 +1,17 @@
 name: Test Suite
 
 on:
+  workflow_dispatch:
+    inputs:
+      run-visual:
+        type: boolean
+        default: true
+      run-e2e:
+        type: boolean
+        default: false
+      update-screenshots:
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       run-visual:
