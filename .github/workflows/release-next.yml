@@ -17,10 +17,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release:
+  test:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    uses: ./.github/workflows/test-suite.yml
+    with:
+      run-visual: true
+      run-e2e: true
+
+  release:
+    needs: test
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,10 +39,11 @@ jobs:
           cache: npm
           registry-url: 'https://registry.npmjs.org'
       
-      - name: Install and build
-        run: |
-          npm ci
-          npm run build
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build packages
+        run: npm run build
       
       - name: Release to next channel
         env:
