@@ -1,72 +1,56 @@
-name: Test for example apps [auto]
+name: Test Example Apps [manual/auto]
 
 on:
   push:
     branches: [main, 'release/**']
-  pull_request:
-    branches: [main, 'release/**']
+    paths:
+      - 'examples/**'
+      - 'packages/**/src/**'
   workflow_dispatch:
     inputs:
       update-screenshots:
         description: "Update screenshots"
         type: boolean
         default: false
-        required: false
-
-permissions:
-  contents: write
-  pull-requests: write
 
 jobs:
-  test-example-apps:
+  visual-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Install dependencies
-        run: cd examples/tests && npm ci
-
-      - name: Install Playwright browsers
-        run: cd examples/tests && npx playwright install --with-deps
-
-      - name: Install http-server globally
-        run: npm install -g http-server
-
-      - name: Run tests
-        if: inputs.update-screenshots == false
-        run: cd examples/tests && npm test
-
-      - name: Run tests with updated screenshots
-        if: inputs.update-screenshots == true
-        run: cd examples/tests && npm test -- --update-snapshots
       
-      - name: Upload screenshots
+      - name: Setup tests
+        run: |
+          cd examples/tests
+          npm ci
+          npx playwright install --with-deps
+      
+      - name: Run visual tests
+        run: |
+          cd examples/tests
+          npm test ${{ inputs.update-screenshots && '-- --update-snapshots' || '' }}
+      
+      - name: Create PR with updates
         if: inputs.update-screenshots == true
         env:
           GH_TOKEN: ${{ secrets.SUPERDOC_PAT }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Create a branch and open a PR (unique branch name based on run id)
-          BRANCH="update-screenshots-${{ github.run_id }}"
+          BRANCH="visual-updates-${{ github.run_id }}"
           git checkout -b "$BRANCH"
-          git add .
-          git commit -m 'ci: update screenshots' --allow-empty
-          
-          # Push changes
+          git add -A
+          git commit -m "chore: update visual snapshots" || exit 0
           git push origin "$BRANCH"
           
-          # Open PR
           gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "ci: update screenshots" \
-            --body "Automated update of visual test screenshots from GitHub Actions workflow."
+            --base ${{ github.ref_name }} \
+            --title "chore: update visual snapshots" \
+            --body "Automated visual test updates" \
+            --label "visual-update"
