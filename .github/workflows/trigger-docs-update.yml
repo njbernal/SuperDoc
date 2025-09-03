@@ -8,6 +8,7 @@ on:
 jobs:
   trigger-docs:
     runs-on: ubuntu-latest    
+    if: ${{ !github.event.release.prerelease }}
     steps:
       - name: Trigger documentation update
         run: |
