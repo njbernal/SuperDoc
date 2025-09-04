@@ -61,7 +61,7 @@ export function collectIntersectingTopLists({ doc, selection, OrderedType, Bulle
   const endList = nearestListAt($to, OrderedType, BulletType);
   if (endList) hit.set(endList.pos, endList);
 
-  // Catch a list node exactly at from/to (NodeSelection or boundary)
+  // Also catch a list node exactly at from/to (NodeSelection or boundary)
   const a = $from.nodeAfter;
   if (a && (a.type === OrderedType || a.type === BulletType)) {
     hit.set($from.pos, { node: a, pos: $from.pos, depth: null });
@@ -115,11 +115,13 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
   const OrderedType = schema.nodes.orderedList;
   const isOrdered = toType === OrderedType;
 
+  // Always create a list definition + numId for the target kind
   const numId = fixedNumId ?? ListHelpers.getNewListId(editor);
   if (fixedNumId == null) {
     ListHelpers.generateNewListDefinition?.({ numId: Number(numId), listType: toType, editor });
   }
 
+  // Collect list items from old container
   const liNodes = [];
   for (let i = 0; i < oldList.childCount; i++) {
     const li = oldList.child(i);
@@ -182,6 +184,7 @@ export function rebuildListNodeWithNewNum({ oldList, toType, editor, schema, fix
 
 /**
  * Build multiple list containers (MS-Word model: each list has exactly one listItem).
+ * All containers share the same numId so numbering/markers continue across them.
  * @param {Object} param0
  * @param {Array<{ node: import("prosemirror-model").Node, pos: number }>} param0.paragraphs
  * @param {'ordered'|'bullet'} param0.targetKind
@@ -194,6 +197,7 @@ function buildListContainersFromParagraphs({ paragraphs, targetKind, editor, sch
   const BulletType = schema.nodes.bulletList;
   const toType = targetKind === 'ordered' ? OrderedType : BulletType;
 
+  // One shared numId/definition for all containers
   const numId = ListHelpers.getNewListId(editor);
   ListHelpers.generateNewListDefinition?.({ numId, listType: toType, editor });
 
@@ -203,7 +207,7 @@ function buildListContainersFromParagraphs({ paragraphs, targetKind, editor, sch
   for (let i = 0; i < paragraphs.length; i++) {
     const { node } = paragraphs[i];
     const level = 0;
-    const listLevel = [1];
+    const listLevel = [1]; // top-level item in its own container
 
     const numFmt = isOrdered ? 'decimal' : 'bullet';
     const lvlText = isOrdered ? '%1.' : '•';
@@ -214,9 +218,10 @@ function buildListContainersFromParagraphs({ paragraphs, targetKind, editor, sch
       numId,
       numFmt,
       lvlText,
-      contentNode: node.toJSON(),
+      contentNode: node.toJSON(), // preserve runs
     });
 
+    // Ensure runtime-critical attrs
     itemJSON.attrs = {
       ...(itemJSON.attrs || {}),
       level,
@@ -258,7 +263,38 @@ export function setMappedSelectionSpan(tr, fromBefore, toBefore) {
 }
 
 /**
+ * Place the caret inside the first textblock descendant of the node at `containerPos`.
+ * For a node.descendants() relative pos `p`, absolute = containerPos + 1 (into node) + p + 1 (into textblock).
+ * @param {import("prosemirror-state").Transaction} tr
+ * @param {number} containerPos - Position where the new container was inserted.
+ */
+function setCaretInsideFirstTextblockOfNodeAt(tr, containerPos) {
+  const node = tr.doc.nodeAt(containerPos);
+  if (!node) return;
+
+  let found = null;
+  node.descendants((n, p) => {
+    if (n.isTextblock) {
+      found = containerPos + p + 2; // correct absolute pos inside the first textblock
+      return false;
+    }
+    return true;
+  });
+
+  if (found != null) {
+    tr.setSelection(TextSelection.create(tr.doc, found, found));
+  } else {
+    // Fallback: put selection just inside the node
+    const fallback = Math.min(tr.doc.content.size, Math.max(1, containerPos + 1));
+    tr.setSelection(TextSelection.create(tr.doc, fallback, fallback));
+  }
+}
+
+/**
  * Toggle a list type in the editor.
+ * Unwrap only when the effective kind already matches the target kind.
+ * Otherwise, convert touched list container(s). For multi-paragraph wraps,
+ * create one container per paragraph (MS-Word model).
  * @param {String|import("prosemirror-model").NodeType} listType
  * @returns {Function}
  */
@@ -272,9 +308,8 @@ export const toggleList =
     const TargetType = typeof listType === 'string' ? editor.schema.nodes[listType] : listType;
     const targetKind = TargetType === OrderedType ? 'ordered' : 'bullet';
 
-    // "near" detection: treat NodeSelection on the list (or boundaries) as inside
+    // Robust "near" detection: treat NodeSelection on the list (or boundaries) as inside
     const isListNode = (n) => !!n && (n.type === OrderedType || n.type === BulletType);
-
     let near = nearestListAt(selection.$from, OrderedType, BulletType);
     if (!near) {
       const after = selection.$from.nodeAfter;
@@ -295,7 +330,7 @@ export const toggleList =
     if (near) {
       const isSameAsTarget = nearKind === targetKind;
 
-      // A1) Unwrap if the effective kind matches target
+      // A1) Effective kind already target → unwrap that list only
       if (isSameAsTarget) {
         const { pos, node } = near;
         const spanFromBefore = pos;
@@ -313,13 +348,13 @@ export const toggleList =
         return true;
       }
 
-      // A2) Convert intersecting containers to the target kind
+      // A2) Different effective kind → convert touched containers (never unwrap)
       let touchedLists = collectIntersectingTopLists({ doc, selection, OrderedType, BulletType });
-
       if (touchedLists.length === 0) {
         touchedLists = [{ node: near.node, pos: near.pos, depth: near.depth }];
       }
 
+      // Compute span BEFORE mutations
       let spanFromBefore = Infinity;
       let spanToBefore = -Infinity;
       for (const { node, pos } of touchedLists) {
@@ -330,6 +365,7 @@ export const toggleList =
       const sharedNumId = ListHelpers.getNewListId(editor);
       ListHelpers.generateNewListDefinition?.({ numId: sharedNumId, listType: TargetType, editor });
 
+      // Replace from bottom-up to keep positions stable
       touchedLists.sort((a, b) => b.pos - a.pos);
       for (const { node: oldList, pos } of touchedLists) {
         const mapped = tr.mapping.map(pos);
@@ -351,6 +387,10 @@ export const toggleList =
     // B) Not inside a list: wrap paragraphs (MS-Word model → one container per paragraph)
     const { from, to, empty } = selection;
 
+    /**
+     * Collect all paragraph nodes in the current selection.
+     * @returns {Array<{ node: import("prosemirror-model").Node, pos: number }>}
+     */
     const collectParagraphs = () => {
       const out = [];
       doc.nodesBetween(from, to, (node, pos) => {
@@ -368,7 +408,7 @@ export const toggleList =
     if (!empty && from !== to) {
       const paragraphs = collectParagraphs();
       if (paragraphs.length >= 1) {
-        // span BEFORE mutation
+        // span BEFORE mutation (works for 1 or many)
         const first = paragraphs[0];
         const last = paragraphs[paragraphs.length - 1];
         const spanFromBefore = first.pos;
@@ -384,14 +424,20 @@ export const toggleList =
         const replacement = paragraphs.length === 1 ? containers[0] : Fragment.from(containers);
 
         tr.replaceWith(spanFromBefore, spanToBefore, replacement);
-        setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
+
+        if (paragraphs.length === 1) {
+          // Force caret inside the new list item (fixes table-cell jump)
+          setCaretInsideFirstTextblockOfNodeAt(tr, spanFromBefore);
+        } else {
+          setMappedSelectionSpan(tr, spanFromBefore, spanToBefore);
+        }
 
         if (dispatch) dispatch(tr);
         return true;
       }
     }
 
-    // Caret-only case: wrap the paragraph at the cursor
+    // Caret-only case (no range), wrap the paragraph at the cursor.
     const paraAtCursor = findParentNode((n) => n.type.name === 'paragraph')(selection);
     if (!paraAtCursor) return false;
 
@@ -404,6 +450,9 @@ export const toggleList =
     });
 
     tr.replaceWith(pos, pos + paragraph.nodeSize, containers[0]);
+    // Keep caret inside the just-inserted list (especially inside a table cell)
+    setCaretInsideFirstTextblockOfNodeAt(tr, pos);
+
     if (dispatch) dispatch(tr);
     return true;
   };
