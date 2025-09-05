@@ -18,17 +18,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.SUPERDOC_PAT }}
+          fetch-depth: 0
       
       - name: Create release branch
         run: |
           BRANCH="release/v${{ inputs.version }}"
-          
           git checkout -b "$BRANCH"
           git push origin "$BRANCH"
-          
           echo "✅ Created $BRANCH from main"
-          echo ""
-          echo "Next steps:"
-          echo "1. Semantic release will automatically publish v${{ inputs.version }}.0"
-          echo "2. This version will be tagged as @latest on npm"
-          echo "3. Main branch continues with @next releases"
+      
+      - name: Bump main to next minor
+        run: |
+          # Calculate next minor version
+          IFS='.' read -r major minor <<< "${{ inputs.version }}"
+          NEXT_MINOR="$major.$((minor + 1))"
+          
+          # Switch to main and create empty commit
+          git checkout main
+          git pull origin main
+          git commit --allow-empty -m "feat: begin v${NEXT_MINOR} development"
+          git push origin main
+          
+          echo "✅ Bumped main to v${NEXT_MINOR}.0-next.x"
