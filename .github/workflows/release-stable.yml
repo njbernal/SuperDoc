@@ -25,6 +25,9 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      released: ${{ steps.semantic-release.outputs.new-release-published }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,8 +53,80 @@ jobs:
           echo "Ref name: ${{ github.ref_name }}"
 
       - name: Release to latest channel
+        id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERDOC_PAT }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: |
+          # Run semantic-release and capture output
+          npx semantic-release 2>&1 | tee release.log
+          
+          # Check if a new release was published
+          if grep -q "Published release" release.log; then
+            echo "new-release-published=true" >> $GITHUB_OUTPUT
+          else
+            echo "new-release-published=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get released version
+        id: get-version
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Extract version from the latest git tag
+          VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Released version: $VERSION"
+
+  bump-next-version:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SUPERDOC_PAT }}
+          fetch-depth: 0
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump to next minor version
+        run: |
+          # Parse the released version
+          VERSION="${{ needs.release.outputs.version }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          
+          # Calculate next minor version
+          NEXT_MAJOR=$MAJOR
+          NEXT_MINOR=$((MINOR + 1))
+          NEXT_VERSION="${NEXT_MAJOR}.${NEXT_MINOR}.0-next.0"
+          
+          echo "Current stable version: $VERSION"
+          echo "Next development version: $NEXT_VERSION"
+          
+          # Update package.json
+          cd packages/superdoc
+          npm version "$NEXT_VERSION" --no-git-tag-version
+          
+          # Commit the change
+          git add package.json
+          git commit -m "chore: bump to v${NEXT_VERSION} [skip ci]
+
+          Begin development for v${NEXT_MAJOR}.${NEXT_MINOR}.0 after stable release v${VERSION}"
+          
+          # Push to main
+          git push origin main
+          
+          echo "✅ Successfully bumped main branch to v${NEXT_VERSION}"

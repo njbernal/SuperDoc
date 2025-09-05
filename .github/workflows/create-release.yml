@@ -31,17 +31,6 @@ jobs:
           git checkout -b "$BRANCH"
           git push origin "$BRANCH"
           echo "✅ Created $BRANCH from main"
-
-      - name: Bump main to next minor
-        run: |
-          # Calculate next minor version
-          IFS='.' read -r major minor <<< "${{ inputs.version }}"
-          NEXT_MINOR="$major.$((minor + 1))"
-          
-          # Switch to main and create empty commit
-          git checkout main
-          git pull origin main
-          git commit --allow-empty -m "feat: begin v${NEXT_MINOR} development"
-          git push origin main
-
-          echo "✅ Bumped main to v${NEXT_MINOR}.0-next.x"
+          echo ""
+          echo "The stable release will be triggered automatically when changes are pushed to this branch."
+          echo "After the stable release, the main branch will automatically bump to the next minor version."
