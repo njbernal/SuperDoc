@@ -34,18 +34,7 @@ export const handleStandardNode = (params) => {
 
   // Unhandled nodes
   if (!getElementName(node)) {
-    return {
-      nodes: [
-        {
-          type: name,
-          content: elements,
-          attrs: { ...attributes },
-          marks,
-        },
-      ],
-      consumed: 0,
-      unhandled: true,
-    };
+    return { nodes: [], consumed: 0 };
   }
 
   // Iterate through the children and build the schemaNode content

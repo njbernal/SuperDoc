@@ -23,6 +23,7 @@ import { sanitizeHtml } from '../InputRule.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { translateChildNodes } from './v2/exporter/helpers/index.js';
 import { translateDocumentSection } from './v2/exporter/index.js';
+import { translator as passthroughNodeTranslator } from './v2/handlers/passthrough-node/passthrough-node.js';
 
 /**
  * @typedef {Object} ExportParams
@@ -101,13 +102,18 @@ export function exportSchemaToJson(params) {
     'total-page-number': translateTotalPageNumberNode,
   };
 
-  if (!router[type]) {
-    console.error('No translation function found for node type:', type);
-    return null;
+  let handler = router[type];
+
+  // If we don't have a handler, use the passthrough handler
+  if (!handler) handler = passthroughNodeTranslator;
+
+  // For import/export v3 we use the translator directly
+  if ('decode' in handler && typeof handler.decode === 'function') {
+    return handler.decode(params);
   }
 
   // Call the handler for this node type
-  return router[type](params);
+  return handler(params);
 }
 
 /**
