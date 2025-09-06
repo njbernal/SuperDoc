@@ -23,6 +23,7 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
         '**/*.d.ts',
+        '**/index.js',
         'coverage/**',
 
         // tsup helper assets sometimes appear via dep graph
@@ -38,6 +39,9 @@ export default defineConfig({
         // ignore examples
         'packages/**/example/**',
         'generator/types/**',
+
+        // Other ignore
+        './src/cli.js',
       ],
     },
   },
