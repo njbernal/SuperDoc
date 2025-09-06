@@ -1,6 +1,9 @@
-# OOXML Inspector
+# OOXML Oracle
 
-**OOXML Inspector** is a developer tool + library for working with [Office Open XML (OOXML)](https://en.wikipedia.org/wiki/Office_Open_XML) schemas.  
+**OOXML Oracle** is a developer tool + library for working with [Office Open XML (OOXML)](https://en.wikipedia.org/wiki/Office_Open_XML) schemas.
+
+This uses [ECMA-376 part 4](https://ecma-international.org/publications-and-standards/standards/ecma-376/) transitional definitions, filtered mainly to the ooxml tags that SuperDoc is currently interested in.
+
 It bundles the transitional WordprocessingML schema into JSON and provides both:
 
 - a **CLI** (`ooxml`) for inspecting schema relationships, and
@@ -15,7 +18,7 @@ It bundles the transitional WordprocessingML schema into JSON and provides both:
 ## Installation
 
 ```bash
-npm install @superdoc-dev/ooxml-inspector
+npm install @superdoc-dev/ooxml-oracle
 ```
 
 ## CLI Usage
@@ -35,7 +38,7 @@ npx ooxml attrs w:p
 ## Library Usage
 
 ```js
-import { childrenOf } from '@superdoc-dev/ooxml-inspector';
+import { childrenOf } from '@superdoc-dev/ooxml-oracle';
 
 const children = childrenOf('w:p'); // Get children of <w:p>
 ```
