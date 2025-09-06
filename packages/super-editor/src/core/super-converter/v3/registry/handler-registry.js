@@ -1,4 +1,4 @@
-import { registeredHandlers } from '../index.js';
+import { registeredHandlers } from '../handlers/index.js';
 import { childrenOf } from '@superdoc-dev/ooxml-oracle';
 import {
   createCoverageGroupTitle,
@@ -17,7 +17,7 @@ import {
  * Provides methods to analyze coverage of registered handlers against OOXML specifications.
  */
 export class HandlerRegistry {
-  /** @type {import('../index.js').RegisteredHandlers} */
+  /** @type {import('../handlers/index.js').RegisteredHandlers} */
   #registeredHandlers;
 
   constructor() {
@@ -26,7 +26,7 @@ export class HandlerRegistry {
 
   /**
    * Gets the registered handlers
-   * @returns {import('../index.js').RegisteredHandlers} The registered handlers
+   * @returns {import('../handlers/index.js').RegisteredHandlers} The registered handlers
    */
   get handlers() {
     return this.#registeredHandlers;

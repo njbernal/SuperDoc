@@ -1,17 +1,17 @@
 // @ts-check
-import { NodeTranslator } from '../node-translator/index.js';
+import { NodeTranslator } from '../../node-translator/index.js';
 import { classifyBlockOrInline } from '@superdoc-dev/ooxml-oracle';
 
-/** @type {import('../node-translator/index.js').XmlNodeName} */
+/** @type {import('../../node-translator/index.js').XmlNodeName} */
 const XML_NODE_NAME = 'passthrough';
 
-/** @type {import('../node-translator/index.js').SuperDocNodeOrKeyName} */
+/** @type {import('../../node-translator/index.js').SuperDocNodeOrKeyName} */
 const SD_NODE_NAME = 'passthroughBlock';
 
 /**
  * Encode an unhandled node as a passthrough node.
- * @param {import('../node-translator/index.js').SCEncoderConfig} params
- * @returns {import('../node-translator/index.js').SCEncoderResult}
+ * @param {import('../../node-translator/index.js').SCEncoderConfig} params
+ * @returns {import('../../node-translator/index.js').SCEncoderResult}
  */
 const encode = (params) => {
   const { nodes, ctx = {} } = params;
@@ -35,8 +35,8 @@ const encode = (params) => {
 
 /**
  * Decode the passthrough node back to its original form.
- * @param {import('../node-translator/index.js').SCDecoderConfig} params
- * @returns {import('../node-translator/index.js').SCDecoderResult}
+ * @param {import('../../node-translator/index.js').SCDecoderConfig} params
+ * @returns {import('../../node-translator/index.js').SCDecoderResult}
  */
 const decode = (params) => {
   const { node } = params;
@@ -48,7 +48,7 @@ const decode = (params) => {
   return payload;
 };
 
-/** @type {import('../node-translator/index.js').NodeTranslatorConfig} */
+/** @type {import('../../node-translator/index.js').NodeTranslatorConfig} */
 export const config = {
   xmlName: XML_NODE_NAME,
   sdNodeOrKeyName: SD_NODE_NAME,
@@ -59,6 +59,6 @@ export const config = {
 
 /**
  * The NodeTranslator instance for the passthrough element.
- * @type {import('../node-translator/index.js').NodeTranslator}
+ * @type {import('../../node-translator/index.js').NodeTranslator}
  */
 export const translator = NodeTranslator.from(config);

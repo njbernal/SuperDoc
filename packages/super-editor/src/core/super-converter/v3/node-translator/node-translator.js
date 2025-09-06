@@ -15,21 +15,21 @@ export const TranslatorTypes = Object.freeze({
  * @typedef {string} SuperDocNodeOrKeyName
  */
 
-/** @typedef {import('../../importer/types').NodeHandlerParams} SCEncoderConfig */
-/** @typedef {import('../../types').SuperDocNode} SCEncoderResult */
+/** @typedef {import('../../v2/importer/types').NodeHandlerParams} SCEncoderConfig */
+/** @typedef {import('../../v2/types').SuperDocNode} SCEncoderResult */
 /** @typedef {{ node: { attrs?: any }, children?: any[] }} SCDecoderConfig */
 /** @typedef {{ name: string, elements: any[] }} SCDecoderResult */
 
 /**
  * @callback NodeTranslatorEncodeFn
  * @param {SCEncoderConfig} params
- * @returns {import('../../types').SuperDocNode}
+ * @returns {import('../../v2/types').SuperDocNode}
  */
 
 /**
  * @callback NodeTranslatorDecodeFn
  * @param {SCDecoderConfig} params
- * @returns {import('../../types').OpenXmlNode}
+ * @returns {import('../../v2/types').OpenXmlNode}
  */
 
 /** @callback MatchesEncodeFn @param {any[]} nodes @param {any} [ctx] @returns {boolean} */

@@ -23,7 +23,7 @@ import { sanitizeHtml } from '../InputRule.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { translateChildNodes } from './v2/exporter/helpers/index.js';
 import { translateDocumentSection } from './v2/exporter/index.js';
-import { translator as passthroughNodeTranslator } from './v2/handlers/passthrough-node/passthrough-node.js';
+import { translator as passthroughNodeTranslator } from './v3/handlers/passthrough-node/passthrough-node.js';
 
 /**
  * @typedef {Object} ExportParams
