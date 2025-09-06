@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * Encoder for the 'w:clear' attribute on the <w:br> element.
  * Maps to the 'clear' attribute in SuperDoc.

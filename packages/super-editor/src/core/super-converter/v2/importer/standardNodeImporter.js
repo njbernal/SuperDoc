@@ -1,7 +1,9 @@
 import { getElementName, parseProperties, isPropertiesElement } from './importerHelpers.js';
 
 /**
- * @type {import("docxImporter").NodeHandler}
+ * Standard node handler
+ * @param {import('../../v3/node-translator').SCEncoderConfig} params
+ * @returns {Object} Handler result
  */
 export const handleStandardNode = (params) => {
   const { nodes, docx, nodeListHandler } = params;
@@ -70,7 +72,8 @@ const getParentStyleId = (node) => {
 };
 
 /**
- * @type {import("docxImporter").NodeHandlerEntry}
+ * Line break node handler entity
+ * @type {Object} Handler entity
  */
 export const standardNodeHandlerEntity = {
   handlerName: 'standardNodeHandler',

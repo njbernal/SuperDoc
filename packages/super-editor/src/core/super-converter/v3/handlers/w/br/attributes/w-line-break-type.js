@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * Handler for the 'w:type' attribute on the <w:br> element.
  * Maps to the 'lineBreakType' attribute in SuperDoc.

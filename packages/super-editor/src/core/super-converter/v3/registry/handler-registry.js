@@ -1,3 +1,4 @@
+// @ts-check
 import { registeredHandlers } from '../handlers/index.js';
 import { childrenOf } from '@superdoc-dev/ooxml-oracle';
 import {
