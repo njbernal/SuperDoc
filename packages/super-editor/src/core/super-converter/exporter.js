@@ -23,7 +23,8 @@ import { sanitizeHtml } from '../InputRule.js';
 import { ListHelpers } from '@helpers/list-numbering-helpers.js';
 import { translateChildNodes } from './v2/exporter/helpers/index.js';
 import { translateDocumentSection } from './v2/exporter/index.js';
-import { translator as passthroughNodeTranslator } from './v3/handlers/passthrough-node/passthrough-node.js';
+import { translator as passthroughNodeTranslator } from './v3/handlers/passthrough-node/passthrough-translator.js';
+import { translator as wBrNodeTranslator } from './v3/handlers/w/br/br-translator.js';
 
 /**
  * @typedef {Object} ExportParams
@@ -80,7 +81,7 @@ export function exportSchemaToJson(params) {
     text: translateTextNode,
     bulletList: translateList,
     orderedList: translateList,
-    lineBreak: translateLineBreak,
+    lineBreak: wBrNodeTranslator,
     table: translateTable,
     tableRow: translateTableRow,
     tableCell: translateTableCell,
@@ -88,7 +89,7 @@ export function exportSchemaToJson(params) {
     fieldAnnotation: translateFieldAnnotation,
     tab: translateTab,
     image: translateImageNode,
-    hardBreak: translateHardBreak,
+    hardBreak: wBrNodeTranslator,
     commentRangeStart: () => translateCommentNode(params, 'Start'),
     commentRangeEnd: () => translateCommentNode(params, 'End'),
     commentReference: () => null,

@@ -1,5 +1,5 @@
 // @ts-check
-import { translator } from '../../v3/handlers/passthrough-node/passthrough-node.js';
+import { translator } from '../../v3/handlers/passthrough-node/passthrough-translator.js';
 
 /**
  * Pass-through node handler. This node maps to PassthroughNode which just stores the original data

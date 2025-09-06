@@ -1,32 +1,21 @@
-/**
- * @type {import("docxImporter").NodeHandler}
- */
-export const handleLineBreakNode = (params) => {
+import { translator } from '../../v3/handlers/w/br/index.js';
+
+export const handler = (params) => {
   const { nodes } = params;
   if (nodes.length === 0 || nodes[0].name !== 'w:br') {
     return { nodes: [], consumed: 0 };
   }
 
-  const attrs = {};
+  const result = translator.encode(params);
+  if (!result) return { nodes: [], consumed: 0 };
 
-  const lineBreakType = nodes[0].attributes?.['w:type'];
-  if (lineBreakType) attrs['lineBreakType'] = lineBreakType;
-
-  const breakType = lineBreakType === 'page' ? 'hardBreak' : 'lineBreak';
   return {
-    nodes: [
-      {
-        type: breakType,
-      },
-    ],
+    nodes: [result],
     consumed: 1,
   };
 };
 
-/**
- * @type {import("docxImporter").NodeHandlerEntry}
- */
 export const lineBreakNodeHandlerEntity = {
   handlerName: 'lineBreakNodeHandler',
-  handler: handleLineBreakNode,
+  handler,
 };

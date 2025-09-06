@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { classifyBlockOrInline } from '@superdoc-dev/ooxml-oracle';
-import { config as passthroughConfig } from './passthrough-node.js';
+import { config as passthroughConfig } from './passthrough-translator.js';
 
 vi.mock('@superdoc-dev/ooxml-oracle', () => ({
   classifyBlockOrInline: vi.fn(),
