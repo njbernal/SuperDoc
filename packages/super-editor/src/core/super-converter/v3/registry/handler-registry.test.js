@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HandlerRegistry } from './handler-registry.js';
 
-vi.mock('../index.js', () => ({
+vi.mock('../handlers/index.js', () => ({
   registeredHandlers: {},
 }));
 
