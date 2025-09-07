@@ -2,7 +2,7 @@ import { parseXmlToJson } from '@converter/v2/docxHelper.js';
 import { handleTrackChangeNode } from '@converter/v2/importer/trackChangesImporter.js';
 import { defaultNodeListHandler } from '@converter/v2/importer/docxImporter.js';
 import { TrackInsertMarkName } from '@extensions/track-changes/constants.js';
-import { handleAllTableNodes } from '@converter/v2/importer/tableImporter.js';
+import { handleTableNode } from '@converter/v2/importer/tableImporter.js';
 import { getTestDataByFileName } from '@tests/helpers/helpers.js';
 
 describe('table live xml test', () => {
@@ -426,7 +426,7 @@ describe('table live xml test', () => {
       'word/styles.xml': styles,
     };
 
-    const result = handleAllTableNodes({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
+    const result = handleTableNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes.length).toBe(1);
 
     expect(result.nodes[0].type).toBe('table');
@@ -475,7 +475,7 @@ describe('table live xml test', () => {
     const docx = {
       'word/styles.xml': styles,
     };
-    const result = handleAllTableNodes({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
+    const result = handleTableNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
     expect(result.nodes[0].content[0].content[0].attrs.borders).toBeDefined();
     expect(result.nodes[0].content[0].content[1].attrs.borders).toBeDefined();
     expect(result.nodes[0].content[0].content[0].attrs.borders.right.val).toBe('none');
@@ -489,7 +489,7 @@ describe('table live xml test', () => {
     const nodes = parseXmlToJson(tableCellsNoInlineWidth).elements;
     const styles = parseXmlToJson(simpleTableStyleXml);
     const docx = { 'word/styles.xml': styles };
-    const result = handleAllTableNodes({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
+    const result = handleTableNode({ nodes, docx, nodeListHandler: defaultNodeListHandler() });
 
     expect(result.nodes[0].content[0].content[0].attrs.colwidth).toEqual([390, 26]);
     expect(result.nodes[0].content[0].content[1].attrs.colwidth).toEqual([256]);
@@ -509,7 +509,7 @@ describe('table tests to check colwidth', () => {
     const body = doc.elements[0];
     const content = body.elements;
 
-    const result = handleAllTableNodes({ nodes: [content[0]], docx, nodeListHandler: defaultNodeListHandler() });
+    const result = handleTableNode({ nodes: [content[0]], docx, nodeListHandler: defaultNodeListHandler() });
     const node = result.nodes[0];
 
     expect(node.type).toBe('table');
