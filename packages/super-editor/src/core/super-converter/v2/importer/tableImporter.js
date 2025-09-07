@@ -3,19 +3,14 @@ import { eigthPointsToPixels, halfPointToPoints, twipsToPixels } from '../../hel
 /**
  * @type {import("docxImporter").NodeHandler}
  */
-export const handleAllTableNodes = (params) => {
+export const handleTableNode = (params) => {
   const { nodes } = params;
-  if (nodes.length === 0) {
+  if (nodes.length === 0 || nodes[0].name !== 'w:tbl') {
     return { nodes: [], consumed: 0 };
   }
   const node = nodes[0];
 
-  switch (node.name) {
-    case 'w:tbl':
-      return { nodes: [handleTableNode(node, params)], consumed: 1 };
-  }
-
-  return { nodes: [], consumed: 0 };
+  return { nodes: [processTableNode(node, params)], consumed: 1 };
 };
 
 /**
@@ -23,7 +18,7 @@ export const handleAllTableNodes = (params) => {
  */
 export const tableNodeHandlerEntity = {
   handlerName: 'tableNodeHandler',
-  handler: handleAllTableNodes,
+  handler: handleTableNode,
 };
 
 /**
@@ -34,7 +29,7 @@ export const tableNodeHandlerEntity = {
  * @param {boolean} insideTrackChange
  * @returns {{type: string, content: *, attrs: {borders: *, tableWidth: *, tableWidthType: *}}}
  */
-export function handleTableNode(node, params) {
+function processTableNode(node, params) {
   const { docx, nodeListHandler } = params;
   // Table styles
   const tblPr = node.elements.find((el) => el.name === 'w:tblPr');
