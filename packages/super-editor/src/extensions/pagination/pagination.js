@@ -500,6 +500,9 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       const $breakPos = view.state.doc.resolve(breakPos);
       if ($breakPos.parent.type.name === 'listItem') {
         breakPos = $breakPos.before($breakPos.depth);
+        const newCoords = view.coordsAtPos(breakPos);
+        actualBreakTop = newCoords.top;
+        actualBreakBottom = newCoords.bottom;
       }
 
       if (isDebugging) {
@@ -523,11 +526,26 @@ function generateInternalPageBreaks(doc, view, editor, sectionData) {
       const pageSpacer = Decoration.widget(breakPos, spacingNode, { key: 'stable-key' });
       decorations.push(pageSpacer);
 
+      if (tableRow) {
+        tableRow.node.forEach((cellNode, cellOffset) => {
+          const cellStart = tableRow.pos + cellOffset + 1;
+          const cellEnd = cellStart + cellNode.content.size;
+          if (breakPos < cellStart || breakPos > cellEnd) {
+            const { node: cellSpacingNode } = createFinalPagePadding(bufferHeight);
+            decorations.push(
+              Decoration.widget(cellEnd, cellSpacingNode, {
+                key: `stable-key-${tableRow.pos}-${cellOffset}`,
+              }),
+            );
+          }
+        });
+      }
+
       const pageBreak = createPageBreak({ editor, header, footer, isInTable });
       decorations.push(Decoration.widget(breakPos, pageBreak, { key: 'stable-key' }));
 
       // Recalculate the page threshold based on where we actually inserted the break
-      pageHeightThreshold = actualBreakBottom + (pageHeight - header.headerHeight - footer.footerHeight);
+      pageHeightThreshold = pageHeightThreshold + (pageHeight - header.headerHeight - footer.footerHeight);
     }
   });
 
