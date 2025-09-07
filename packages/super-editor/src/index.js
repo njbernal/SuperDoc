@@ -7,6 +7,7 @@ import { SuperToolbar } from './components/toolbar/super-toolbar.js';
 import { DocxZipper, helpers } from './core/index.js';
 import { Editor } from './core/Editor.js';
 import { createZip } from './core/super-converter/zipper.js';
+import { registeredHandlers } from './core/super-converter/v3/handlers/index.js';
 import { getAllowedImageDimensions } from './extensions/image/imageHelpers/processUploadedImage.js';
 import { Node, Attribute } from '@core/index.js';
 import { Extension } from '@core/Extension.js';
@@ -70,6 +71,7 @@ export {
   getRichTextExtensions,
   createZip,
   getAllowedImageDimensions,
+  registeredHandlers,
 
   // External extensions classes
   Extensions,
